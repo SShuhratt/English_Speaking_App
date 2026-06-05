@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php8.5",
+            "args": [
+                "/home/shuhrat/Projects/English_Speaking_App/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
