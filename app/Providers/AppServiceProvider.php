@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-// use App\Models\Feedback;            
+// use App\Models\Feedback;
 // use App\Observers\FeedbackObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;

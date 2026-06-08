@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Arr;
 
 class GoogleCalendarService
 {
@@ -24,8 +23,8 @@ class GoogleCalendarService
             $this->buildEventPayload($data)
         );
 
-        if (!$response->successful()) {
-            throw new \Exception('Google event creation failed: ' . $response->body());
+        if (! $response->successful()) {
+            throw new \Exception('Google event creation failed: '.$response->body());
         }
 
         return $this->formatResponse($response->json());
@@ -43,8 +42,8 @@ class GoogleCalendarService
             $this->buildEventPayload($data)
         );
 
-        if (!$response->successful()) {
-            throw new \Exception('Google event update failed: ' . $response->body());
+        if (! $response->successful()) {
+            throw new \Exception('Google event update failed: '.$response->body());
         }
 
         return $this->formatResponse($response->json());
@@ -61,7 +60,7 @@ class GoogleCalendarService
             "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}"
         );
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \Exception('Google event delete failed');
         }
     }
@@ -90,7 +89,7 @@ class GoogleCalendarService
                 'createRequest' => [
                     'requestId' => uniqid(),
                     'conferenceSolutionKey' => [
-                        'type' => 'hangoutsMeet'
+                        'type' => 'hangoutsMeet',
                     ],
                 ],
             ],

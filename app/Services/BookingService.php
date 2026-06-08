@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
-use App\Jobs\SyncAppointmentToGoogleJob;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +25,7 @@ class BookingService
         return DB::transaction(function () use ($pupil, $teacher, $startAt, $endAt, $meta) {
 
             $start = Carbon::parse($startAt);
-            $end   = Carbon::parse($endAt);
+            $end = Carbon::parse($endAt);
 
             // 1. Validate teacher availability
             $this->validateAvailability($teacher->id, $start, $end);
@@ -36,23 +36,80 @@ class BookingService
             // 3. Create appointment (NO Google logic here)
             $appointment = Appointment::create([
                 'teacher_id' => $teacher->id,
-                'pupil_id'   => $pupil->id,
-                'start_at'   => $start,
-                'end_at'     => $end,
-                'status'     => 'confirmed',
-                'notes'      => $meta['notes'] ?? null,
+                'pupil_id' => $pupil->id,
+                'start_at' => $start,
+                'end_at' => $end,
+                'status' => 'pending',
+                'notes' => $meta['notes'] ?? null,
 
                 // Google fields intentionally empty for now
-                'google_event_id'   => null,
-                'google_meet_link'  => null,
-                'google_event_data' => null,
-                'provider'          => 'google',
+                'google_event_id' => null,
+                'google_meet_link' => null,
+                'provider' => 'google',
             ]);
 
-            // 4. Queue Google sync AFTER commit
+            // 4. Clear slot cache
+            $date = $start->toDateString();
+            \Illuminate\Support\Facades\Cache::forget("teacher:{$teacher->id}:slots:{$date}");
+
+            // 5. Queue Google sync AFTER commit
             DB::afterCommit(function () use ($appointment) {
                 SyncAppointmentToGoogleJob::dispatch($appointment->id);
+                \App\Events\BookingUpdated::dispatch($appointment);
             });
+
+            return $appointment;
+        });
+    }
+
+    /**
+     * Cancel appointment
+     */
+    public function cancel(string $id): Appointment
+    {
+        return DB::transaction(function () use ($id) {
+            $appointment = Appointment::findOrFail($id);
+            $appointment->update(['status' => 'cancelled']);
+
+            // Clear cache
+            $date = $appointment->start_at->toDateString();
+            \Illuminate\Support\Facades\Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
+
+            \App\Events\BookingUpdated::dispatch($appointment);
+
+            return $appointment;
+        });
+    }
+
+    /**
+     * Approve appointment
+     */
+    public function approve(string $id): Appointment
+    {
+        return DB::transaction(function () use ($id) {
+            $appointment = Appointment::findOrFail($id);
+            $appointment->update(['status' => 'confirmed']);
+
+            \App\Events\BookingUpdated::dispatch($appointment);
+
+            return $appointment;
+        });
+    }
+
+    /**
+     * Reject appointment
+     */
+    public function reject(string $id): Appointment
+    {
+        return DB::transaction(function () use ($id) {
+            $appointment = Appointment::findOrFail($id);
+            $appointment->update(['status' => 'rejected']);
+
+            // Clear cache to make slot available again
+            $date = $appointment->start_at->toDateString();
+            \Illuminate\Support\Facades\Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
+
+            \App\Events\BookingUpdated::dispatch($appointment);
 
             return $appointment;
         });
@@ -78,17 +135,17 @@ class BookingService
                 })
 
                 // custom availability override
-                ->orWhere(function ($q) use ($start, $end) {
-                    $q->where('type', 'custom')
-                        ->where('start_datetime', '<=', $start)
-                        ->where('end_datetime', '>=', $end);
-                });
+                    ->orWhere(function ($q) use ($start, $end) {
+                        $q->where('type', 'custom')
+                            ->where('start_at', '<=', $start)
+                            ->where('end_at', '>=', $end);
+                    });
 
             })
             ->exists();
 
-        if (!$available) {
-            throw new \Exception("Teacher is not available at this time.");
+        if (! $available) {
+            throw new \Exception('Teacher is not available at this time.');
         }
     }
 
@@ -102,16 +159,16 @@ class BookingService
             ->where(function ($q) use ($start, $end) {
 
                 $q->whereBetween('start_at', [$start, $end])
-                  ->orWhereBetween('end_at', [$start, $end])
-                  ->orWhere(function ($q) use ($start, $end) {
-                      $q->where('start_at', '<=', $start)
-                        ->where('end_at', '>=', $end);
-                  });
+                    ->orWhereBetween('end_at', [$start, $end])
+                    ->orWhere(function ($q) use ($start, $end) {
+                        $q->where('start_at', '<=', $start)
+                            ->where('end_at', '>=', $end);
+                    });
             })
             ->exists();
 
         if ($conflict) {
-            throw new \Exception("Time slot already booked.");
+            throw new \Exception('Time slot already booked.');
         }
     }
 }

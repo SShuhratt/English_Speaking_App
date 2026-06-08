@@ -113,6 +113,9 @@ function TeacherDashboard({ user }: { user: any }) {
                     <p className="text-muted-foreground">Welcome back, {user.name}. Manage your sessions and availability.</p>
                 </div>
                 <div className="flex gap-3">
+                    <Link href="/teacher/appointments" className="inline-flex items-center justify-center rounded-xl border bg-background px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors">
+                        <Calendar className="mr-2 h-4 w-4" /> Booking Requests
+                    </Link>
                     <Link href="/teacher/availability" className="inline-flex items-center justify-center rounded-xl border bg-background px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors">
                         <Clock className="mr-2 h-4 w-4" /> Manage Availability
                     </Link>

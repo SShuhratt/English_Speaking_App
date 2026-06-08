@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\PasskeyAuthenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements PasskeyUser
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, PasskeyAuthenticatable;
 
     protected $fillable = [
         'email',
@@ -35,6 +37,14 @@ class User extends Authenticatable
         'google_scopes' => 'array',
         'google_token_expires_at' => 'datetime',
     ];
+
+    /**
+     * Get the display name for the passkey.
+     */
+    public function getPasskeyDisplayName(): string
+    {
+        return $this->full_name;
+    }
 
     /*
     |--------------------------------------------------------------------------

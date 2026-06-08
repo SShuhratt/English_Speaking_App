@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\BookingService;
+use App\Services\SlotService;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -18,15 +19,15 @@ class BookingController extends Controller
     {
         $validated = $request->validate([
             'teacher_id' => ['required', 'uuid', 'exists:users,id'],
-            'pupil_id'   => ['required', 'uuid', 'exists:users,id'],
-            'start_at'   => ['required', 'date'],
-            'end_at'     => ['required', 'date', 'after:start_at'],
-            'notes'      => ['nullable', 'string'],
+            'pupil_id' => ['required', 'uuid', 'exists:users,id'],
+            'start_at' => ['required', 'date'],
+            'end_at' => ['required', 'date', 'after:start_at'],
+            'notes' => ['nullable', 'string'],
         ]);
 
         $appointment = $this->bookingService->book(
-            teacherId: $validated['teacher_id'],
-            pupilId: $validated['pupil_id'],
+            pupil: \App\Models\User::findOrFail($validated['pupil_id']),
+            teacher: \App\Models\User::findOrFail($validated['teacher_id']),
             startAt: $validated['start_at'],
             endAt: $validated['end_at'],
             meta: [
@@ -36,7 +37,7 @@ class BookingController extends Controller
 
         return response()->json([
             'message' => 'Appointment booked successfully',
-            'data' => $appointment
+            'data' => $appointment,
         ], 201);
     }
 
@@ -46,7 +47,7 @@ class BookingController extends Controller
     public function availableSlots(Request $request, string $teacherId)
     {
         $request->validate([
-            'date' => ['required', 'date']
+            'date' => ['required', 'date'],
         ]);
 
         $slots = $this->bookingService->getAvailableSlots(
@@ -66,7 +67,7 @@ class BookingController extends Controller
 
         return response()->json([
             'message' => 'Appointment cancelled',
-            'data' => $appointment
+            'data' => $appointment,
         ]);
     }
 
@@ -74,19 +75,17 @@ class BookingController extends Controller
     {
         $request->validate([
             'date' => ['required', 'date'],
-            'duration' => ['nullable', 'integer']
         ]);
 
-        $slots = app(\App\Services\SlotService::class)->generate(
+        $slots = app(SlotService::class)->getAvailableSlots(
             $teacherId,
-            $request->date,
-            $request->duration ?? 30
+            $request->date
         );
 
         return response()->json([
             'teacher_id' => $teacherId,
             'date' => $request->date,
-            'slots' => $slots
+            'slots' => $slots,
         ]);
     }
 }

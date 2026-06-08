@@ -11,5 +11,8 @@ class PupilProfile extends Model
 
     protected $fillable = ['user_id', 'age', 'phone_number', 'level'];
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

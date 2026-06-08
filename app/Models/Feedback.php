@@ -17,10 +17,9 @@ class Feedback extends Model
         'pupil_id',
         'teacher_id',
         'rating_score',
-        'comment_text'
+        'comment_text',
     ];
 
-    
     public function conversation()
     {
         return $this->belongsTo(Conversation::class);

@@ -24,7 +24,7 @@ class FeedbackObserver
 
         // Save the score straight to the cache field on the teacher profile
         TeacherProfile::where('user_id', $teacherId)->update([
-            'rating_cache' => round($average, 1)
+            'rating_cache' => round($average, 1),
         ]);
     }
 }

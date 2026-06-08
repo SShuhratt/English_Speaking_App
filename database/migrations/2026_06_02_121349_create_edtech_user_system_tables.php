@@ -8,17 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        
-        Schema::create('users', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->string('full_name');
-            $table->string('role')->default('pupil'); // admin, teacher, pupil
-            $table->timestamps();
-        });
 
-        
         Schema::create('teacher_profiles', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
@@ -33,7 +23,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        
         Schema::create('pupil_profiles', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
@@ -43,7 +32,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        
         Schema::create('conversations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('pupil_id')->constrained('users')->onDelete('cascade');
@@ -52,8 +40,7 @@ return new class extends Migration
             $table->timestamp('started_at')->useCurrent();
             $table->timestamp('ended_at')->nullable();
             $table->timestamps();
-            
-            
+
             $table->index(['pupil_id', 'teacher_id']);
         });
 
@@ -75,6 +62,5 @@ return new class extends Migration
         Schema::dropIfExists('conversations');
         Schema::dropIfExists('pupil_profiles');
         Schema::dropIfExists('teacher_profiles');
-        Schema::dropIfExists('users');
     }
 };

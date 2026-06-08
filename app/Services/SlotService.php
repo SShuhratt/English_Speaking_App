@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Cache;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class SlotService
 {
@@ -53,7 +53,7 @@ class SlotService
                 );
             }
         );
-    }    
+    }
 
     protected function generateRecurringSlots(
         string $teacherId,
@@ -108,14 +108,14 @@ class SlotService
 
             $current = Carbon::parse(
                 $date->format('Y-m-d')
-                . ' '
-                . $availability->start_time
+                .' '
+                .$availability->start_time
             );
 
             $end = Carbon::parse(
                 $date->format('Y-m-d')
-                . ' '
-                . $availability->end_time
+                .' '
+                .$availability->end_time
             );
 
             while (
