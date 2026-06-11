@@ -31,7 +31,10 @@ yarn-error.log
 **/caddy
 frankenphp
 frankenphp-worker.php
-.agets
-.claude
+
+# AI and Assistant Directories
+.agents
+.codex
 .gemini
+.claude
 .junie
