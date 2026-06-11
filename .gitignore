@@ -31,3 +31,7 @@ yarn-error.log
 **/caddy
 frankenphp
 frankenphp-worker.php
+.agets
+.claude
+.gemini
+.junie
