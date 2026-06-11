@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-class PupilDashboardController extends Controller
+class TeacherSessionController extends Controller
 {
     //
 }

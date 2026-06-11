@@ -18,7 +18,7 @@ class TeacherController extends Controller
             ->paginate(12);
 
         return Inertia::render('pupil/teachers', [
-            'teachers' => $teachers
+            'teachers' => $teachers,
         ]);
     }
 
@@ -34,7 +34,7 @@ class TeacherController extends Controller
             ->firstOrFail();
 
         return Inertia::render('pupil/booking', [
-            'teacher' => $teacher
+            'teacher' => $teacher,
         ]);
     }
 }

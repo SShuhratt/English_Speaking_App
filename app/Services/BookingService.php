@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Events\BookingUpdated;
 use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class BookingService
@@ -50,12 +52,12 @@ class BookingService
 
             // 4. Clear slot cache
             $date = $start->toDateString();
-            \Illuminate\Support\Facades\Cache::forget("teacher:{$teacher->id}:slots:{$date}");
+            Cache::forget("teacher:{$teacher->id}:slots:{$date}");
 
             // 5. Queue Google sync AFTER commit
             DB::afterCommit(function () use ($appointment) {
                 SyncAppointmentToGoogleJob::dispatch($appointment->id);
-                \App\Events\BookingUpdated::dispatch($appointment);
+                BookingUpdated::dispatch($appointment);
             });
 
             return $appointment;
@@ -73,9 +75,9 @@ class BookingService
 
             // Clear cache
             $date = $appointment->start_at->toDateString();
-            \Illuminate\Support\Facades\Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
+            Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
 
-            \App\Events\BookingUpdated::dispatch($appointment);
+            BookingUpdated::dispatch($appointment);
 
             return $appointment;
         });
@@ -90,7 +92,7 @@ class BookingService
             $appointment = Appointment::findOrFail($id);
             $appointment->update(['status' => 'confirmed']);
 
-            \App\Events\BookingUpdated::dispatch($appointment);
+            BookingUpdated::dispatch($appointment);
 
             return $appointment;
         });
@@ -107,9 +109,9 @@ class BookingService
 
             // Clear cache to make slot available again
             $date = $appointment->start_at->toDateString();
-            \Illuminate\Support\Facades\Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
+            Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
 
-            \App\Events\BookingUpdated::dispatch($appointment);
+            BookingUpdated::dispatch($appointment);
 
             return $appointment;
         });

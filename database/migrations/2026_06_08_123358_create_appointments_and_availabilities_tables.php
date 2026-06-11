@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('teacher_id')->constrained('users')->onDelete('cascade');
             $table->enum('type', ['recurring', 'custom'])->default('recurring');
-            
+
             // Recurring fields
             $table->string('day_of_week')->nullable(); // Monday, Tuesday, etc.
             $table->time('start_time')->nullable();
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->dateTime('end_at');
             $table->enum('status', ['pending', 'confirmed', 'rejected', 'cancelled'])->default('pending');
             $table->text('notes')->nullable();
-            
+
             // Integration fields
             $table->string('google_event_id')->nullable();
             $table->string('google_meet_link')->nullable();

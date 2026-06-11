@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\BookingService;
 use App\Services\SlotService;
 use Illuminate\Http\Request;
@@ -26,8 +27,8 @@ class BookingController extends Controller
         ]);
 
         $appointment = $this->bookingService->book(
-            pupil: \App\Models\User::findOrFail($validated['pupil_id']),
-            teacher: \App\Models\User::findOrFail($validated['teacher_id']),
+            pupil: User::findOrFail($validated['pupil_id']),
+            teacher: User::findOrFail($validated['teacher_id']),
             startAt: $validated['start_at'],
             endAt: $validated['end_at'],
             meta: [

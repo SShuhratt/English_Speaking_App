@@ -6,6 +6,7 @@ use App\Events\BookingUpdated;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Support\Facades\Event;
@@ -32,7 +33,7 @@ class BookingWorkflowTest extends TestCase
             'slot_duration' => 60,
         ]);
 
-        $startAt = \Carbon\Carbon::parse('next monday 09:00:00');
+        $startAt = Carbon::parse('next monday 09:00:00');
         $endAt = $startAt->copy()->addHour();
 
         $response = $this->actingAs($pupil)->postJson('/bookings', [

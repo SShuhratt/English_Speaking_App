@@ -2,6 +2,13 @@
 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\GoogleOAuthController;
+use App\Http\Controllers\PupilBookingController;
+use App\Http\Controllers\PupilProgressController;
+use App\Http\Controllers\PupilSessionController;
+use App\Http\Controllers\TeacherAppointmentController;
+use App\Http\Controllers\TeacherAvailabilityController;
+use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TeacherFeedbackController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -11,15 +18,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Teacher Routes
     Route::prefix('teacher')->name('teacher.')->group(function () {
-        Route::get('/appointments', [\App\Http\Controllers\TeacherAppointmentController::class, 'index'])->name('appointments.index');
-        Route::post('/appointments/{id}/approve', [\App\Http\Controllers\TeacherAppointmentController::class, 'approve'])->name('appointments.approve');
-        Route::post('/appointments/{id}/reject', [\App\Http\Controllers\TeacherAppointmentController::class, 'reject'])->name('appointments.reject');
+        Route::get('/appointments', [TeacherAppointmentController::class, 'index'])->name('appointments.index');
+        Route::post('/appointments/{id}/approve', [TeacherAppointmentController::class, 'approve'])->name('appointments.approve');
+        Route::post('/appointments/{id}/reject', [TeacherAppointmentController::class, 'reject'])->name('appointments.reject');
+
+        Route::get('/schedule', [TeacherAppointmentController::class, 'schedule'])->name('schedule');
+        Route::get('/availability', [TeacherAvailabilityController::class, 'index'])->name('availability.index');
+        Route::post('/availability', [TeacherAvailabilityController::class, 'store'])->name('availability.store');
+        Route::get('/sessions', [TeacherAppointmentController::class, 'sessions'])->name('sessions');
+        Route::get('/feedback', [TeacherFeedbackController::class, 'index'])->name('feedback');
     });
 
     // Pupil Routes
     Route::prefix('pupil')->name('pupil.')->group(function () {
-        Route::get('/teachers', [\App\Http\Controllers\TeacherController::class, 'index'])->name('teachers.index');
-        Route::get('/booking', [\App\Http\Controllers\TeacherController::class, 'showBooking'])->name('booking.show');
+        Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+        Route::get('/booking', [TeacherController::class, 'showBooking'])->name('booking.show');
+        Route::get('/bookings', [PupilBookingController::class, 'index'])->name('bookings.index');
+        Route::get('/sessions', [PupilSessionController::class, 'index'])->name('sessions.index');
+        Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');
     });
 });
 

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use App\Services\BookingService;
 use Illuminate\Http\Request;
-use App\Models\Appointment;
+use Inertia\Inertia;
 
 class TeacherAppointmentController extends Controller
 {
@@ -23,6 +24,37 @@ class TeacherAppointmentController extends Controller
             ->paginate();
 
         return response()->json($appointments);
+    }
+
+    /**
+     * Show teacher schedule
+     */
+    public function schedule(Request $request)
+    {
+        $appointments = Appointment::where('teacher_id', $request->user()->id)
+            ->where('status', 'confirmed')
+            ->with('pupil')
+            ->orderBy('start_at')
+            ->get();
+
+        return Inertia::render('teacher/schedule', [
+            'appointments' => $appointments,
+        ]);
+    }
+
+    /**
+     * Show teacher sessions (past and upcoming)
+     */
+    public function sessions(Request $request)
+    {
+        $appointments = Appointment::where('teacher_id', $request->user()->id)
+            ->with('pupil')
+            ->latest()
+            ->paginate();
+
+        return Inertia::render('teacher/sessions', [
+            'appointments' => $appointments,
+        ]);
     }
 
     /**
