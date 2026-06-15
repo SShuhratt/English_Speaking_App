@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\PupilBookingController;
 use App\Http\Controllers\PupilProgressController;
@@ -14,17 +15,19 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Teacher Routes
     Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/appointments', [TeacherAppointmentController::class, 'index'])->name('appointments.index');
         Route::post('/appointments/{id}/approve', [TeacherAppointmentController::class, 'approve'])->name('appointments.approve');
         Route::post('/appointments/{id}/reject', [TeacherAppointmentController::class, 'reject'])->name('appointments.reject');
+        Route::post('/appointments/{id}/start', [TeacherAppointmentController::class, 'start'])->name('appointments.start');
 
         Route::get('/schedule', [TeacherAppointmentController::class, 'schedule'])->name('schedule');
         Route::get('/availability', [TeacherAvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability', [TeacherAvailabilityController::class, 'store'])->name('availability.store');
+        Route::delete('/availability/{id}', [TeacherAvailabilityController::class, 'destroy'])->name('availability.destroy');
         Route::get('/sessions', [TeacherAppointmentController::class, 'sessions'])->name('sessions');
         Route::get('/feedback', [TeacherFeedbackController::class, 'index'])->name('feedback');
     });

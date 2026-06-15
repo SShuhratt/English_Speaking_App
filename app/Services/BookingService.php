@@ -92,6 +92,8 @@ class BookingService
             $appointment = Appointment::findOrFail($id);
             $appointment->update(['status' => 'confirmed']);
 
+            \App\Jobs\SyncAppointmentToGoogleJob::dispatch($appointment);
+
             BookingUpdated::dispatch($appointment);
 
             return $appointment;

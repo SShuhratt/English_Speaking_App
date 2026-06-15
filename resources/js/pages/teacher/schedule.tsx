@@ -1,13 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
-import { Calendar, Clock, User, Video } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Calendar, Clock, User, Video, XCircle } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 interface Props {
     appointments: any[];
 }
 
 export default function Schedule({ appointments }: Props) {
+    const [startingAptId, setStartingAptId] = useState<string | null>(null);
+
+    const handleCancel = async (id: string) => {
+        if (!confirm('Are you sure you want to cancel this conversation?')) return;
+        try {
+            await axios.delete(`/bookings/${id}`);
+            toast.success('Conversation cancelled successfully');
+            router.reload();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to cancel conversation');
+        }
+    };
+
+    const handleStart = async (apt: any) => {
+        if (apt.google_meet_link) {
+            window.open(apt.google_meet_link, '_blank');
+            return;
+        }
+
+        setStartingAptId(apt.id);
+        try {
+            const response = await axios.post(`/teacher/appointments/${apt.id}/start`);
+            toast.success('Conversation started! Opening meeting link...');
+            if (response.data.google_meet_link) {
+                window.open(response.data.google_meet_link, '_blank');
+            }
+            router.reload();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to start conversation');
+        } finally {
+            setStartingAptId(null);
+        }
+    };
+
     return (
         <AppLayout>
             <Head title="My Schedule" />
@@ -41,18 +77,21 @@ export default function Schedule({ appointments }: Props) {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <a 
-                                        href={apt.google_meet_link || '#'} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
-                                            apt.google_meet_link 
-                                            ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                                            : 'bg-muted text-muted-foreground cursor-not-allowed'
-                                        }`}
+                                    <button 
+                                        disabled={startingAptId === apt.id}
+                                        onClick={() => handleStart(apt)}
+                                        className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all disabled:opacity-50"
                                     >
-                                        <Video className="h-4 w-4" /> Join Meeting
-                                    </a>
+                                        <Video className="h-4 w-4" /> 
+                                        {startingAptId === apt.id ? 'Starting...' : (apt.google_meet_link ? 'Join Meeting' : 'Start Meeting')}
+                                    </button>
+
+                                    <button 
+                                        onClick={() => handleCancel(apt.id)}
+                                        className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-all"
+                                    >
+                                        <XCircle className="h-4 w-4" /> Cancel
+                                    </button>
                                 </div>
                             </div>
                         ))

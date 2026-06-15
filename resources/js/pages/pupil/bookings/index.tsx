@@ -1,7 +1,9 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
-import { Calendar, Clock, User, Video } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Calendar, Clock, User, Video, XCircle } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 interface Props {
     bookings: {
@@ -10,6 +12,25 @@ interface Props {
 }
 
 export default function Bookings({ bookings }: Props) {
+    const handleCancel = async (id: string) => {
+        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        try {
+            await axios.delete(`/bookings/${id}`);
+            toast.success('Booking cancelled successfully');
+            router.reload();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to cancel booking');
+        }
+    };
+
+    const handleJoin = (apt: any) => {
+        if (!apt.google_meet_link) {
+            toast.error('Teacher is not ready yet');
+        } else {
+            window.open(apt.google_meet_link, '_blank');
+        }
+    };
+
     return (
         <AppLayout>
             <Head title="My Bookings" />
@@ -45,20 +66,29 @@ export default function Bookings({ bookings }: Props) {
                                 <div className="flex items-center gap-3">
                                     <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
                                         apt.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                        apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                        apt.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                        apt.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                         'bg-muted text-muted-foreground'
                                     }`}>
                                         {apt.status}
                                     </span>
-                                    {apt.status === 'confirmed' && apt.google_meet_link && (
-                                        <a 
-                                            href={apt.google_meet_link} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
+                                    
+                                    {apt.status === 'confirmed' && (
+                                        <button 
+                                            onClick={() => handleJoin(apt)}
                                             className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
                                         >
                                             <Video className="h-4 w-4" /> Join
-                                        </a>
+                                        </button>
+                                    )}
+
+                                    {(apt.status === 'confirmed' || apt.status === 'pending') && (
+                                        <button 
+                                            onClick={() => handleCancel(apt.id)}
+                                            className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-all"
+                                        >
+                                            <XCircle className="h-4 w-4" /> Cancel
+                                        </button>
                                     )}
                                 </div>
                             </div>

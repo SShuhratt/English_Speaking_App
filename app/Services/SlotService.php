@@ -60,20 +60,29 @@ class SlotService
         Carbon $date
     ): Collection {
 
-        $availabilities = TeacherAvailability::query()
-            ->where('teacher_id', $teacherId)
-            ->where('type', 'recurring')
-            ->where('is_active', true)
-            ->where(
-                'day_of_week',
-                $date->dayOfWeek
-            )
-            ->get();
+        $slots = collect();
 
-        return $this->buildRecurringSlots(
-            $availabilities,
-            $date
-        );
+        // Generate recurring slots for yesterday, today, and tomorrow to handle timezone shifts
+        foreach ([$date->copy()->subDay(), $date, $date->copy()->addDay()] as $targetDate) {
+            $availabilities = TeacherAvailability::query()
+                ->where('teacher_id', $teacherId)
+                ->where('type', 'recurring')
+                ->where('is_active', true)
+                ->where(
+                    'day_of_week',
+                    strtolower($targetDate->format('l'))
+                )
+                ->get();
+
+            $slots = $slots->merge(
+                $this->buildRecurringSlots(
+                    $availabilities,
+                    $targetDate
+                )
+            );
+        }
+
+        return $slots;
     }
 
     protected function generateCustomSlots(
@@ -81,8 +90,8 @@ class SlotService
         Carbon $date
     ): Collection {
 
-        $startOfDay = $date->copy()->startOfDay();
-        $endOfDay = $date->copy()->endOfDay();
+        $startOfDay = $date->copy()->subDay()->startOfDay();
+        $endOfDay = $date->copy()->addDay()->endOfDay();
 
         $availabilities = TeacherAvailability::query()
             ->where('teacher_id', $teacherId)
@@ -136,7 +145,7 @@ class SlotService
                         ),
                 ]);
 
-                $current->addMinutes(
+                $current = $current->addMinutes(
                     $availability->slot_duration
                 );
             }
@@ -173,7 +182,7 @@ class SlotService
                         ),
                 ]);
 
-                $current->addMinutes(
+                $current = $current->addMinutes(
                     $availability->slot_duration
                 );
             }
@@ -223,6 +232,12 @@ class SlotService
                 }
 
                 return true;
+            })
+            ->map(function ($slot) {
+                return [
+                    'start_at' => $slot['start_at']->toIso8601String(),
+                    'end_at' => $slot['end_at']->toIso8601String(),
+                ];
             })
             ->values()
             ->toArray();

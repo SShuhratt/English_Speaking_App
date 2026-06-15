@@ -96,4 +96,24 @@ class BookingWorkflowTest extends TestCase
             'status' => 'rejected',
         ]);
     }
+
+    public function test_teacher_can_start_conversation_and_generate_link()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher', 'google_connected' => false]);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        $appointment = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => now()->addDay(),
+            'end_at' => now()->addDay()->addHour(),
+            'status' => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($teacher)->postJson("/teacher/appointments/{$appointment->id}/start");
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['google_meet_link']);
+        $this->assertNotNull($appointment->fresh()->google_meet_link);
+    }
 }

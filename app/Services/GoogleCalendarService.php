@@ -19,7 +19,7 @@ class GoogleCalendarService
         $token = $this->oauth->getValidAccessToken($teacher);
 
         $response = Http::withToken($token)->post(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+            'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1',
             $this->buildEventPayload($data)
         );
 
@@ -38,7 +38,7 @@ class GoogleCalendarService
         $token = $this->oauth->getValidAccessToken($teacher);
 
         $response = Http::withToken($token)->put(
-            "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}",
+            "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}?conferenceDataVersion=1",
             $this->buildEventPayload($data)
         );
 

@@ -35,6 +35,17 @@ export default function Appointments() {
         }
     };
 
+    const handleCancel = async (id: string) => {
+        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        try {
+            await axios.delete(`/bookings/${id}`);
+            toast.success('Booking cancelled successfully');
+            fetchAppointments();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to cancel booking');
+        }
+    };
+
     return (
         <AppLayout>
             <Head title="Manage Appointments" />
@@ -86,13 +97,24 @@ export default function Appointments() {
                                             </button>
                                         </>
                                     ) : (
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                                            apt.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                            apt.status === 'rejected' ? 'bg-destructive/10 text-destructive' :
-                                            'bg-muted text-muted-foreground'
-                                        }`}>
-                                            {apt.status}
-                                        </span>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                                apt.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                apt.status === 'rejected' ? 'bg-destructive/10 text-destructive' :
+                                                apt.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                'bg-muted text-muted-foreground'
+                                            }`}>
+                                                {apt.status}
+                                            </span>
+                                            {apt.status === 'confirmed' && (
+                                                <button 
+                                                    onClick={() => handleCancel(apt.id)}
+                                                    className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-1.5 text-xs font-medium hover:bg-destructive hover:text-destructive-foreground transition-all"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>

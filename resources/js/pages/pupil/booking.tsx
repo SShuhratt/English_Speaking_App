@@ -95,33 +95,43 @@ export default function Booking({ teacher }: Props) {
                                     <div key={i} className="h-12 bg-muted rounded-xl"></div>
                                 ))}
                             </div>
-                        ) : slots.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                {slots.map((slot, index) => {
-                                    const start = new Date(slot.start_at);
-                                    return (
-                                        <button
-                                            key={index}
-                                            onClick={() => handleBook(slot)}
-                                            disabled={booking}
-                                            className="flex flex-col items-center justify-center rounded-xl border p-3 transition-all hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 group"
-                                        >
-                                            <span className="text-sm font-bold group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                                {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground uppercase mt-1">
-                                                30 min
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed">
-                                <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                                <p className="text-muted-foreground">No slots available for this date.</p>
-                            </div>
-                        )}
+                                        ) : (() => {
+                            const filteredSlots = slots.filter((slot) => {
+                                const start = new Date(slot.start_at);
+                                const y = start.getFullYear();
+                                const m = String(start.getMonth() + 1).padStart(2, '0');
+                                const d = String(start.getDate()).padStart(2, '0');
+                                return `${y}-${m}-${d}` === selectedDate;
+                            });
+
+                            return filteredSlots.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                    {filteredSlots.map((slot, index) => {
+                                        const start = new Date(slot.start_at);
+                                        return (
+                                            <button
+                                                key={index}
+                                                onClick={() => handleBook(slot)}
+                                                disabled={booking}
+                                                className="flex flex-col items-center justify-center rounded-xl border p-3 transition-all hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 group"
+                                            >
+                                                <span className="text-sm font-bold group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                                    {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground uppercase mt-1">
+                                                    30 min
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed">
+                                    <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                                    <p className="text-muted-foreground">No slots available for this date.</p>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     <div className="rounded-2xl border border-indigo-100 bg-indigo-50/30 p-6 dark:border-indigo-900/30 dark:bg-indigo-900/5">
