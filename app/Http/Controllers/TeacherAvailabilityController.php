@@ -60,12 +60,22 @@ class TeacherAvailabilityController extends Controller
         // Clear the cache for the teacher's slots
         $teacherId = $request->user()->id;
         if ($validated['type'] === 'custom') {
-            $date = Carbon::parse($validated['start_at'])->format('Y-m-d');
-            Cache::forget("teacher:{$teacherId}:slots:{$date}");
+            $startDate = Carbon::parse($validated['start_at']);
+            $endDate = Carbon::parse($validated['end_at']);
+            $current = $startDate->copy()->subDay();
+            $limit = $endDate->copy()->addDay();
+            while ($current->lte($limit)) {
+                $dateStr = $current->format('Y-m-d');
+                Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
+                $current->addDay();
+            }
         } else {
             // For recurring, clear the cache for next 8 weeks for that day of the week
             $dayOfWeek = $validated['day_of_week'];
-            $current = Carbon::now()->next($dayOfWeek);
+            $current = Carbon::now();
+            if (strtolower($current->format('l')) !== strtolower($dayOfWeek)) {
+                $current->next($dayOfWeek);
+            }
             for ($i = 0; $i < 8; $i++) {
                 $dateStr = $current->format('Y-m-d');
                 Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
@@ -86,13 +96,23 @@ class TeacherAvailabilityController extends Controller
         // Clear the cache for this teacher's slots
         $teacherId = $request->user()->id;
         if ($availability->type === 'custom' && $availability->start_at) {
-            $date = Carbon::parse($availability->start_at)->format('Y-m-d');
-            Cache::forget("teacher:{$teacherId}:slots:{$date}");
+            $startDate = Carbon::parse($availability->start_at);
+            $endDate = Carbon::parse($availability->end_at);
+            $current = $startDate->copy()->subDay();
+            $limit = $endDate->copy()->addDay();
+            while ($current->lte($limit)) {
+                $dateStr = $current->format('Y-m-d');
+                Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
+                $current->addDay();
+            }
         } else {
             // For recurring, clear the cache for next 8 weeks for that day of week
             $dayOfWeek = $availability->day_of_week;
             if ($dayOfWeek) {
-                $current = Carbon::now()->next($dayOfWeek);
+                $current = Carbon::now();
+                if (strtolower($current->format('l')) !== strtolower($dayOfWeek)) {
+                    $current->next($dayOfWeek);
+                }
                 for ($i = 0; $i < 8; $i++) {
                     $dateStr = $current->format('Y-m-d');
                     Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");

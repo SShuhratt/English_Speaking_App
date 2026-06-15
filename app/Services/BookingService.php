@@ -51,8 +51,13 @@ class BookingService
             ]);
 
             // 4. Clear slot cache
-            $date = $start->toDateString();
-            Cache::forget("teacher:{$teacher->id}:slots:{$date}");
+            $current = $start->copy()->subDay();
+            $limit = $end->copy()->addDay();
+            while ($current->lte($limit)) {
+                $dateStr = $current->toDateString();
+                Cache::forget("teacher:{$teacher->id}:slots:{$dateStr}");
+                $current->addDay();
+            }
 
             // 5. Queue Google sync AFTER commit
             DB::afterCommit(function () use ($appointment) {
@@ -74,8 +79,13 @@ class BookingService
             $appointment->update(['status' => 'cancelled']);
 
             // Clear cache
-            $date = $appointment->start_at->toDateString();
-            Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
+            $current = $appointment->start_at->copy()->subDay();
+            $limit = $appointment->end_at->copy()->addDay();
+            while ($current->lte($limit)) {
+                $dateStr = $current->toDateString();
+                Cache::forget("teacher:{$appointment->teacher_id}:slots:{$dateStr}");
+                $current->addDay();
+            }
 
             BookingUpdated::dispatch($appointment);
 
@@ -110,8 +120,13 @@ class BookingService
             $appointment->update(['status' => 'rejected']);
 
             // Clear cache to make slot available again
-            $date = $appointment->start_at->toDateString();
-            Cache::forget("teacher:{$appointment->teacher_id}:slots:{$date}");
+            $current = $appointment->start_at->copy()->subDay();
+            $limit = $appointment->end_at->copy()->addDay();
+            while ($current->lte($limit)) {
+                $dateStr = $current->toDateString();
+                Cache::forget("teacher:{$appointment->teacher_id}:slots:{$dateStr}");
+                $current->addDay();
+            }
 
             BookingUpdated::dispatch($appointment);
 
