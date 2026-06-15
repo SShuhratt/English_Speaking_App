@@ -51,4 +51,4 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 EXPOSE 8000
 
 # Start up Octane in production worker mode
-CMD ["php", "artisan", "octane:frankenphp", "--host=0.0.0.0", "--port=8000"]
+CMD php artisan octane:frankenphp --host=0.0.0.0 --port=${PORT:-8000}
