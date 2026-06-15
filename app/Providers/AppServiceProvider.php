@@ -6,6 +6,7 @@ namespace App\Providers;
 // use App\Observers\FeedbackObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -18,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
-    }
+     }
 
     /**
      * Bootstrap any application services.
@@ -35,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
+
+        if (app()->isProduction()) {
+            URL::forceScheme('https');
+        }
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
