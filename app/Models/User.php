@@ -2,17 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 
 class User extends Authenticatable implements PasskeyUser
 {
-    use HasFactory, HasUuids, PasskeyAuthenticatable;
+    use HasFactory, HasUuids, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    protected $appends = [
+        'name',
+    ];
 
     protected $fillable = [
+        'name',
         'email',
         'password',
         'full_name',
@@ -44,6 +52,19 @@ class User extends Authenticatable implements PasskeyUser
     public function getPasskeyDisplayName(): string
     {
         return $this->full_name;
+    }
+
+    /**
+     * Get or set the user's name.
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->full_name,
+            set: fn ($value) => [
+                'full_name' => $value,
+            ],
+        );
     }
 
     /*
