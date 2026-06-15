@@ -13,12 +13,18 @@ trait ProfileValidationRules
      *
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
-    protected function profileRules(?int $userId = null): array
+    protected function profileRules(?string $userId = null): array
     {
-        return [
+        $rules = [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
         ];
+
+        if ($userId === null) {
+            $rules['role'] = ['required', 'string', 'in:teacher,pupil'];
+        }
+
+        return $rules;
     }
 
     /**
