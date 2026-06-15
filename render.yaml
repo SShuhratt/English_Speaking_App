@@ -27,44 +27,7 @@ services:
       - key: CACHE_STORE
         value: redis
       - key: QUEUE_CONNECTION
-        value: redis
-      - key: SESSION_DRIVER
-        value: redis
-
-  # Background worker for Horizon queue
-  - type: worker
-    name: edtech-horizon
-    env: docker
-    dockerfilePath: Dockerfile
-    dockerCommand: php artisan horizon
-    plan: free
-    envVars:
-      - key: APP_ENV
-        value: production
-      - key: APP_DEBUG
-        value: false
-      - key: APP_KEY
-        fromService:
-          type: web
-          name: edtech-api
-          property: envVar:APP_KEY
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DB_URL
-        fromDatabase:
-          name: edtech-db
-          property: connectionString
-      - key: REDIS_CLIENT
-        value: phpredis
-      - key: REDIS_URL
-        fromService:
-          type: web
-          name: edtech-api
-          property: envVar:REDIS_URL
-      - key: CACHE_STORE
-        value: redis
-      - key: QUEUE_CONNECTION
-        value: redis
+        value: sync
       - key: SESSION_DRIVER
         value: redis
 
