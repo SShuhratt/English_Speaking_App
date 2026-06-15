@@ -40,6 +40,9 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'pending_requests_count' => ($request->user() && $request->user()->role === 'teacher')
+                    ? \App\Models\Appointment::where('teacher_id', $request->user()->id)->where('status', 'pending')->count()
+                    : 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Calendar, Clock, User, Video, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -12,6 +12,23 @@ interface Props {
 }
 
 export default function Bookings({ bookings }: Props) {
+    const { auth } = usePage<any>().props;
+
+    useEffect(() => {
+        if (!auth.user) return;
+
+        const channel = window.Echo.channel(`pupil.${auth.user.id}`);
+        
+        channel.listen('.booking.updated', (e: any) => {
+            toast.info(`Booking status updated: ${e.appointment.status}`);
+            router.reload({ preserveState: false });
+        });
+
+        return () => {
+            channel.stopListening('.booking.updated');
+        };
+    }, [auth.user?.id]);
+
     const handleCancel = async (id: string) => {
         if (!confirm('Are you sure you want to cancel this booking?')) return;
         try {

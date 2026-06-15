@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Calendar, Clock, LayoutGrid, MessageSquare, Users, Video } from 'lucide-react';
+import { BookOpen, Calendar, Clock, LayoutGrid, MessageSquare, Users, Video, Bell } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import type { NavItem, Auth } from '@/types';
 
-const getNavItems = (role: string): NavItem[] => {
+const getNavItems = (role: string, pendingCount: number = 0): NavItem[] => {
     const baseItems: NavItem[] = [
         {
             title: 'Dashboard',
@@ -26,6 +26,7 @@ const getNavItems = (role: string): NavItem[] => {
     if (role === 'teacher') {
         return [
             ...baseItems,
+            { title: 'Booking Requests', href: '/teacher/appointments', icon: Bell, badge: pendingCount },
             { title: 'My Schedule', href: '/teacher/schedule', icon: Calendar },
             { title: 'Availability', href: '/teacher/availability', icon: Clock },
             { title: 'My Sessions', href: '/teacher/sessions', icon: Video },
@@ -52,10 +53,11 @@ const getNavItems = (role: string): NavItem[] => {
 };
 
 export function AppSidebar() {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth } = usePage<any>().props;
     const role = (auth.user?.role as string) || 'pupil';
+    const pendingCount = auth.pending_requests_count || 0;
 
-    const mainNavItems = getNavItems(role);
+    const mainNavItems = getNavItems(role, pendingCount);
 
     return (
         <Sidebar collapsible="icon" variant="inset">

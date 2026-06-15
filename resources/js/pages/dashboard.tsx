@@ -1,8 +1,8 @@
 import { Head, usePage, Link, router } from '@inertiajs/react';
-import { Calendar, Clock, Video, Star, Mic, Play, TrendingUp, CheckCircle2, Users, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Video, Star, Mic, Play, TrendingUp, CheckCircle2, Users, ChevronRight, Bell } from 'lucide-react';
 import { dashboard } from '@/routes';
 import type { Auth } from '@/types';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -17,6 +17,21 @@ function PupilDashboard({
     stats?: any; 
     recentFeedback?: any; 
 }) {
+    useEffect(() => {
+        if (!user) return;
+
+        const channel = window.Echo.channel(`pupil.${user.id}`);
+        
+        channel.listen('.booking.updated', (e: any) => {
+            toast.info(`Booking status updated: ${e.appointment.status}`);
+            router.reload({ preserveState: false });
+        });
+
+        return () => {
+            channel.stopListening('.booking.updated');
+        };
+    }, [user.id]);
+
     const handleCancel = async (id: string) => {
         if (!confirm('Are you sure you want to cancel this booking?')) return;
         try {
@@ -175,6 +190,22 @@ function TeacherDashboard({
     stats?: any; 
 }) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
+    const { auth } = usePage<any>().props;
+    const pendingCount = auth.pending_requests_count || 0;
+
+    useEffect(() => {
+        if (!user) return;
+
+        const channel = window.Echo.channel(`teacher.${user.id}`);
+        
+        channel.listen('.booking.updated', (e: any) => {
+            router.reload({ preserveState: false });
+        });
+
+        return () => {
+            channel.stopListening('.booking.updated');
+        };
+    }, [user.id]);
 
     const handleCancel = async (id: string) => {
         if (!confirm('Are you sure you want to cancel this conversation?')) return;
@@ -216,8 +247,16 @@ function TeacherDashboard({
                     <p className="text-muted-foreground">Welcome back, {user.full_name || user.name}. Manage your sessions and availability.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                    <Link href="/teacher/appointments" className="inline-flex items-center justify-center rounded-xl border bg-background px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors">
-                        <Calendar className="mr-2 h-4 w-4" /> Booking Requests
+                    <Link href="/teacher/appointments" className="relative inline-flex items-center justify-center rounded-xl border bg-background px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors">
+                        <div className="relative mr-2 flex items-center justify-center">
+                            <Bell className="h-4 w-4" />
+                            {pendingCount > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[8px] font-bold text-destructive-foreground">
+                                    {pendingCount}
+                                </span>
+                            )}
+                        </div>
+                        Booking Requests
                     </Link>
                     <Link href="/teacher/availability" className="inline-flex items-center justify-center rounded-xl border bg-background px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors">
                         <Clock className="mr-2 h-4 w-4" /> Manage Availability

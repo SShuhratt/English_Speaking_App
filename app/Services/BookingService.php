@@ -62,7 +62,11 @@ class BookingService
             // 5. Queue Google sync AFTER commit
             DB::afterCommit(function () use ($appointment) {
                 SyncAppointmentToGoogleJob::dispatch($appointment->id);
-                BookingUpdated::dispatch($appointment);
+                try {
+                    BookingUpdated::dispatch($appointment);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on booking creation: " . $e->getMessage());
+                }
             });
 
             return $appointment;
@@ -75,7 +79,7 @@ class BookingService
     public function cancel(string $id): Appointment
     {
         return DB::transaction(function () use ($id) {
-            $appointment = Appointment::findOrFail($id);
+            $appointment = Appointment::with('teacher')->findOrFail($id);
             $appointment->update(['status' => 'cancelled']);
 
             // Clear cache
@@ -84,10 +88,24 @@ class BookingService
             while ($current->lte($limit)) {
                 $dateStr = $current->toDateString();
                 Cache::forget("teacher:{$appointment->teacher_id}:slots:{$dateStr}");
-                $current->addDay();
+                $current = $current->addDay();
             }
 
-            BookingUpdated::dispatch($appointment);
+            // Delete Google Calendar event if exists
+            $teacher = $appointment->teacher;
+            if ($appointment->google_event_id && $teacher && $teacher->google_connected) {
+                try {
+                    app(GoogleCalendarService::class)->deleteEvent($teacher, $appointment->google_event_id);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to delete Google event {$appointment->google_event_id} on cancellation: " . $e->getMessage());
+                }
+            }
+
+            try {
+                BookingUpdated::dispatch($appointment);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on cancellation: " . $e->getMessage());
+            }
 
             return $appointment;
         });
@@ -104,7 +122,11 @@ class BookingService
 
             \App\Jobs\SyncAppointmentToGoogleJob::dispatch($appointment);
 
-            BookingUpdated::dispatch($appointment);
+            try {
+                BookingUpdated::dispatch($appointment);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on approval: " . $e->getMessage());
+            }
 
             return $appointment;
         });
@@ -116,7 +138,7 @@ class BookingService
     public function reject(string $id): Appointment
     {
         return DB::transaction(function () use ($id) {
-            $appointment = Appointment::findOrFail($id);
+            $appointment = Appointment::with('teacher')->findOrFail($id);
             $appointment->update(['status' => 'rejected']);
 
             // Clear cache to make slot available again
@@ -125,10 +147,24 @@ class BookingService
             while ($current->lte($limit)) {
                 $dateStr = $current->toDateString();
                 Cache::forget("teacher:{$appointment->teacher_id}:slots:{$dateStr}");
-                $current->addDay();
+                $current = $current->addDay();
             }
 
-            BookingUpdated::dispatch($appointment);
+            // Delete Google Calendar event if exists
+            $teacher = $appointment->teacher;
+            if ($appointment->google_event_id && $teacher && $teacher->google_connected) {
+                try {
+                    app(GoogleCalendarService::class)->deleteEvent($teacher, $appointment->google_event_id);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to delete Google event {$appointment->google_event_id} on rejection: " . $e->getMessage());
+                }
+            }
+
+            try {
+                BookingUpdated::dispatch($appointment);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on rejection: " . $e->getMessage());
+            }
 
             return $appointment;
         });

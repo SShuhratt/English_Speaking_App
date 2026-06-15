@@ -29,6 +29,7 @@ class BookingUpdated implements ShouldBroadcast
     {
         return [
             new Channel('teacher.'.$this->appointment->teacher_id),
+            new Channel('pupil.'.$this->appointment->pupil_id),
         ];
     }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Check, X, Clock, Calendar, User } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 export default function Appointments() {
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { auth } = usePage<any>().props;
 
     const fetchAppointments = async () => {
         setLoading(true);
@@ -24,6 +25,20 @@ export default function Appointments() {
     useEffect(() => {
         fetchAppointments();
     }, []);
+
+    useEffect(() => {
+        if (!auth.user) return;
+
+        const channel = window.Echo.channel(`teacher.${auth.user.id}`);
+        
+        channel.listen('.booking.updated', (e: any) => {
+            fetchAppointments();
+        });
+
+        return () => {
+            channel.stopListening('.booking.updated');
+        };
+    }, [auth.user?.id]);
 
     const handleAction = async (id: string, action: 'approve' | 'reject') => {
         try {

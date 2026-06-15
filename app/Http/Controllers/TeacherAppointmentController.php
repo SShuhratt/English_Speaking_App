@@ -140,7 +140,11 @@ class TeacherAppointmentController extends Controller
                 ]);
             }
 
-            \App\Events\BookingUpdated::dispatch($appointment);
+            try {
+                \App\Events\BookingUpdated::dispatch($appointment);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on starting conversation: " . $e->getMessage());
+            }
         }
 
         return response()->json([
