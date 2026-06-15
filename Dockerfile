@@ -36,7 +36,7 @@ RUN npm ci
 COPY . .
 
 # Generate Laravel Wayfinder route definitions for TypeScript
-RUN php artisan wayfinder:generate
+RUN php artisan wayfinder:generate --with-form
 
 # Run production build for assets
 RUN npm run build
