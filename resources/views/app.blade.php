@@ -36,6 +36,17 @@
 
         @fonts
 
+        {{-- Inject Pusher/Echo credentials dynamically from the server --}}
+        <script>
+            window.laravelConfig = {
+                pusherKey: '{{ config('broadcasting.connections.pusher.key') }}',
+                pusherCluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
+                pusherHost: '{{ config('broadcasting.connections.pusher.options.host') }}',
+                pusherPort: '{{ config('broadcasting.connections.pusher.options.port') }}',
+                pusherScheme: '{{ config('broadcasting.connections.pusher.options.scheme') }}',
+            };
+        </script>
+
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
