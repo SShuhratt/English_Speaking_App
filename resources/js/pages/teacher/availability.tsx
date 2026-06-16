@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { store, destroy } from '@/routes/teacher/availability';
-import { Clock, Calendar as CalendarIcon, Plus, Trash2, ChevronLeft, ChevronRight, X, Info } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, Plus, Trash2, ChevronLeft, ChevronRight, X, Info, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,13 +13,161 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
 interface Props {
     availabilities: any[];
 }
 
+const translations = {
+    en: {
+        title: "Availability",
+        today: "Today",
+        day: "Day",
+        week: "Week",
+        createAvailability: "Create Availability",
+        myCalendars: "My Calendars",
+        singleDateOverride: "Single Date Override",
+        weeklyRecurring: "Weekly Recurring",
+        singleDate: "Single Date",
+        recurringWeekly: "Recurring Weekly",
+        minSlots: "min",
+        save: "Save",
+        cancel: "Cancel",
+        deleteAvailability: "Delete Availability",
+        addAvailability: "Add Availability",
+        availabilityType: "Availability Type",
+        startTime: "Start Time",
+        endTime: "End Time",
+        slotDuration: "Slot Duration",
+        confirmDelete: "Are you sure you want to delete this availability?",
+        deleteSuccess: "Availability deleted successfully.",
+        saveSuccess: "Availability saved successfully.",
+        every: "Every",
+        mon: "M", tue: "T", wed: "W", thu: "T", fri: "F", sat: "S", sun: "S",
+        weeksShort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        months: [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ],
+        typeSingleDate: "Single Date Availability",
+        typeWeeklyRecurring: "Weekly Recurring Availability",
+        dateDay: "Date/Day:",
+        timeRange: "Time Range:",
+        slotDurationLabel: "Slot Duration:",
+        minutesPerSession: "minutes per session",
+        saving: "Saving...",
+    },
+    uz: {
+        title: "Bandlik jadvali",
+        today: "Bugun",
+        day: "Kun",
+        week: "Hafta",
+        createAvailability: "Bandlik qo'shish",
+        myCalendars: "Mening kalendarlarim",
+        singleDateOverride: "Yagona kunlik o'zgarishlar",
+        weeklyRecurring: "Haftalik takrorlanuvchi",
+        singleDate: "Yagona kun",
+        recurringWeekly: "Haftalik takroriy",
+        minSlots: "daq",
+        save: "Saqlash",
+        cancel: "Bekor qilish",
+        deleteAvailability: "O'chirish",
+        addAvailability: "Bandlik qo'shish",
+        availabilityType: "Turi",
+        startTime: "Boshlanish vaqti",
+        endTime: "Tugash vaqti",
+        slotDuration: "Slot davomiyligi",
+        confirmDelete: "Ushbu bandlik vaqtini o'chirib tashlamoqchimisiz?",
+        deleteSuccess: "Bandlik muvaffaqiyatli o'chirildi.",
+        saveSuccess: "Bandlik muvaffaqiyatli saqlandi.",
+        every: "Har",
+        mon: "D", tue: "S", wed: "Ch", thu: "P", fri: "J", sat: "Sh", sun: "Y",
+        weeksShort: ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan", "Yak"],
+        months: [
+            'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+            'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+        ],
+        typeSingleDate: "Yagona kunlik bandlik",
+        typeWeeklyRecurring: "Haftalik takrorlanuvchi bandlik",
+        dateDay: "Sana/Kun:",
+        timeRange: "Vaqt oralig'i:",
+        slotDurationLabel: "Slot davomiyligi:",
+        minutesPerSession: "daqiqadan har bir dars uchun",
+        saving: "Saqlanmoqda...",
+    },
+    ru: {
+        title: "График доступности",
+        today: "Сегодня",
+        day: "День",
+        week: "Неделя",
+        createAvailability: "Добавить доступность",
+        myCalendars: "Мои календари",
+        singleDateOverride: "Разовые изменения",
+        weeklyRecurring: "Еженедельно повторяющиеся",
+        singleDate: "Разово",
+        recurringWeekly: "Еженедельно",
+        minSlots: "мин",
+        save: "Сохранить",
+        cancel: "Отмена",
+        deleteAvailability: "Удалить доступность",
+        addAvailability: "Добавить доступность",
+        availabilityType: "Тип доступности",
+        startTime: "Время начала",
+        endTime: "Время окончания",
+        slotDuration: "Длительность слота",
+        confirmDelete: "Вы уверены, что хотите удалить эту доступность?",
+        deleteSuccess: "Доступность успешно удалена.",
+        saveSuccess: "Доступность успешно сохранена.",
+        every: "Каждый",
+        mon: "П", tue: "В", wed: "С", thu: "Ч", fri: "П", sat: "С", sun: "В",
+        weeksShort: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
+        months: [
+            'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+            'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+        ],
+        typeSingleDate: "Разовая доступность",
+        typeWeeklyRecurring: "Еженедельная доступность",
+        dateDay: "Дата/День:",
+        timeRange: "Интервал:",
+        slotDurationLabel: "Длительность слота:",
+        minutesPerSession: "минут на занятие",
+        saving: "Сохранение...",
+    }
+};
+
+const daysMap = {
+    en: { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' },
+    uz: { monday: 'Dushanba', tuesday: 'Seshanba', wednesday: 'Chorshanba', thursday: 'Payshanba', friday: 'Juma', saturday: 'Shanba', sunday: 'Yakshanba' },
+    ru: { monday: 'Понедельник', tuesday: 'Вторник', wednesday: 'Среда', thursday: 'Четверг', friday: 'Пятница', saturday: 'Суббота', sunday: 'Воскресенье' }
+};
+
+const localeMap = {
+    en: 'en-US',
+    uz: 'uz-UZ',
+    ru: 'ru-RU'
+};
+
 export default function Availability({ availabilities }: Props) {
+    const [lang, setLang] = useState<'en' | 'uz' | 'ru'>(() => {
+        const saved = localStorage.getItem('availability_lang');
+        if (saved === 'en' || saved === 'uz' || saved === 'ru') return saved;
+        return 'en';
+    });
+
+    const t = translations[lang];
+
+    const handleLangChange = (newLang: 'en' | 'uz' | 'ru') => {
+        setLang(newLang);
+        localStorage.setItem('availability_lang', newLang);
+    };
+
     const [view, setView] = useState<'day' | 'week'>('week');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentDate, setCurrentDate] = useState(new Date()); // Month focus for sidebar mini-calendar
@@ -184,17 +332,17 @@ export default function Availability({ availabilities }: Props) {
         e.preventDefault();
         post(store.url(), {
             onSuccess: () => {
-                toast.success('Availability saved successfully.');
+                toast.success(t.saveSuccess);
                 setIsCreateModalOpen(false);
             },
         });
     };
 
     const handleDelete = (id: string | number) => {
-        if (confirm('Are you sure you want to delete this availability?')) {
+        if (confirm(t.confirmDelete)) {
             router.delete(destroy.url(id), {
                 onSuccess: () => {
-                    toast.success('Availability deleted successfully.');
+                    toast.success(t.deleteSuccess);
                     setSelectedEvent(null);
                 },
             });
@@ -290,18 +438,13 @@ export default function Availability({ availabilities }: Props) {
         setCurrentDate(today);
     };
 
-    const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-
     const currentTitleString = () => {
         if (view === 'day') {
-            return selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            return selectedDate.toLocaleDateString(localeMap[lang], { month: 'long', day: 'numeric', year: 'numeric' });
         } else {
             const days = getWeekDays(selectedDate);
-            const startMonth = days[0].toLocaleDateString('en-US', { month: 'short' });
-            const endMonth = days[6].toLocaleDateString('en-US', { month: 'short' });
+            const startMonth = days[0].toLocaleDateString(localeMap[lang], { month: 'short' });
+            const endMonth = days[6].toLocaleDateString(localeMap[lang], { month: 'short' });
             const startYear = days[0].getFullYear();
             const endYear = days[6].getFullYear();
             
@@ -311,14 +454,14 @@ export default function Availability({ availabilities }: Props) {
             if (startMonth !== endMonth) {
                 return `${startMonth} – ${endMonth} ${startYear}`;
             }
-            return `${days[0].toLocaleDateString('en-US', { month: 'long' })} ${startYear}`;
+            return `${days[0].toLocaleDateString(localeMap[lang], { month: 'long' })} ${startYear}`;
         }
     };
 
     return (
         <AppLayout>
             <Head title="Teacher Availability Scheduler" />
-            <div className="flex h-[calc(100vh-4rem)] flex-col bg-background select-none overflow-hidden">
+            <div className="flex h-[calc(100vh-4rem)] flex-col bg-background select-none overflow-hidden animate-in fade-in duration-300">
                 {/* Header (Google Calendar Style Toolbar) */}
                 <div className="flex items-center justify-between border-b px-6 py-3.5 bg-card">
                     <div className="flex items-center gap-6">
@@ -326,12 +469,12 @@ export default function Availability({ availabilities }: Props) {
                             <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/20">
                                 <CalendarIcon className="h-5 w-5" />
                             </div>
-                            <span className="text-xl font-bold tracking-tight text-foreground">Availability</span>
+                            <span className="text-xl font-bold tracking-tight text-foreground">{t.title}</span>
                         </div>
 
                         <div className="flex items-center gap-2">
                             <Button variant="outline" size="sm" onClick={setToday} className="rounded-lg font-medium px-4">
-                                Today
+                                {t.today}
                             </Button>
                             <div className="flex items-center">
                                 <Button variant="ghost" size="icon" onClick={() => navigateCalendar('prev')} className="h-8 w-8 rounded-lg">
@@ -341,11 +484,36 @@ export default function Availability({ availabilities }: Props) {
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <span className="text-lg font-semibold text-foreground ml-2">{currentTitleString()}</span>
+                            <span className="text-lg font-semibold text-foreground ml-2 capitalize">{currentTitleString()}</span>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {/* Language Switcher Dropdown */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="rounded-lg flex items-center gap-2 font-medium">
+                                    <Globe className="h-4 w-4 text-muted-foreground" />
+                                    <span>{lang.toUpperCase()}</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-xl">
+                                <DropdownMenuItem onClick={() => handleLangChange('en')} className="rounded-lg flex items-center justify-between">
+                                    <span>English</span>
+                                    {lang === 'en' && <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleLangChange('uz')} className="rounded-lg flex items-center justify-between">
+                                    <span>O'zbek</span>
+                                    {lang === 'uz' && <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleLangChange('ru')} className="rounded-lg flex items-center justify-between">
+                                    <span>Русский</span>
+                                    {lang === 'ru' && <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />}
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* View Switcher */}
                         <div className="flex rounded-lg border bg-muted/30 p-1">
                             <Button
                                 variant={view === 'day' ? 'secondary' : 'ghost'}
@@ -353,7 +521,7 @@ export default function Availability({ availabilities }: Props) {
                                 onClick={() => setView('day')}
                                 className="rounded-md font-medium"
                             >
-                                Day
+                                {t.day}
                             </Button>
                             <Button
                                 variant={view === 'week' ? 'secondary' : 'ghost'}
@@ -361,7 +529,7 @@ export default function Availability({ availabilities }: Props) {
                                 onClick={() => setView('week')}
                                 className="rounded-md font-medium"
                             >
-                                Week
+                                {t.week}
                             </Button>
                         </div>
                     </div>
@@ -379,14 +547,14 @@ export default function Availability({ availabilities }: Props) {
                             className="w-full justify-start gap-3 rounded-full bg-white hover:bg-muted text-gray-800 border shadow-md hover:shadow-lg transition-all py-6 px-5"
                         >
                             <Plus className="h-6 w-6 text-indigo-600" />
-                            <span className="text-sm font-semibold tracking-wide">Create Availability</span>
+                            <span className="text-sm font-semibold tracking-wide">{t.createAvailability}</span>
                         </Button>
 
                         {/* Mini Calendar */}
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between px-1">
-                                <span className="text-sm font-semibold text-foreground">
-                                    {monthNames[month]} {year}
+                                <span className="text-sm font-semibold text-foreground capitalize">
+                                    {t.months[month]} {year}
                                 </span>
                                 <div className="flex items-center">
                                     <Button variant="ghost" size="icon" onClick={prevMonth} className="h-7 w-7 rounded-lg">
@@ -399,7 +567,9 @@ export default function Availability({ availabilities }: Props) {
                             </div>
 
                             <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted-foreground uppercase mb-1">
-                                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+                                {t.weeksShort.map((w, idx) => (
+                                    <span key={idx}>{w.substring(0, 1)}</span>
+                                ))}
                             </div>
 
                             <div className="grid grid-cols-7 gap-1">
@@ -441,7 +611,7 @@ export default function Availability({ availabilities }: Props) {
 
                         {/* Calendar Toggles (My Calendars style) */}
                         <div className="flex flex-col gap-3 border-t pt-4">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">My Calendars</span>
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t.myCalendars}</span>
                             
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <input
@@ -451,7 +621,7 @@ export default function Availability({ availabilities }: Props) {
                                     className="h-4.5 w-4.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                 />
                                 <span className="text-sm font-medium text-foreground group-hover:text-indigo-600 transition-all">
-                                    Single Date Override
+                                    {t.singleDateOverride}
                                 </span>
                             </label>
 
@@ -463,7 +633,7 @@ export default function Availability({ availabilities }: Props) {
                                     className="h-4.5 w-4.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                 />
                                 <span className="text-sm font-medium text-foreground group-hover:text-indigo-600 transition-all">
-                                    Weekly Recurring
+                                    {t.weeklyRecurring}
                                 </span>
                             </label>
                         </div>
@@ -478,7 +648,7 @@ export default function Availability({ availabilities }: Props) {
                                 {view === 'day' ? (
                                     <div className="flex-1 py-3 text-center flex flex-col items-center">
                                         <span className="text-xs uppercase text-muted-foreground font-bold tracking-wider">
-                                            {selectedDate.toLocaleDateString('en-US', { weekday: 'short' })}
+                                            {selectedDate.toLocaleDateString(localeMap[lang], { weekday: 'short' })}
                                         </span>
                                         <span className={`text-xl font-bold mt-1 h-9 w-9 flex items-center justify-center rounded-full ${
                                             formatDateString(selectedDate) === formatDateString(new Date())
@@ -495,7 +665,7 @@ export default function Availability({ availabilities }: Props) {
                                         return (
                                             <div key={idx} className="flex-1 py-3 text-center border-r last:border-r-0 flex flex-col items-center min-w-[100px]">
                                                 <span className="text-xs uppercase text-muted-foreground font-bold tracking-wider">
-                                                    {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                                                    {day.toLocaleDateString(localeMap[lang], { weekday: 'short' })}
                                                 </span>
                                                 <button
                                                     onClick={() => {
@@ -562,13 +732,13 @@ export default function Availability({ availabilities }: Props) {
                                                     }`}
                                                 >
                                                     <span className="text-[11px] font-extrabold uppercase tracking-wide">
-                                                        {avail.type === 'custom' ? 'Single Date' : 'Recurring Weekly'}
+                                                        {avail.type === 'custom' ? t.singleDate : t.recurringWeekly}
                                                     </span>
                                                     <span className="text-xs font-bold mt-1">
                                                         {getEventTimeLabel(avail)}
                                                     </span>
                                                     <span className="text-[10px] font-semibold opacity-80 mt-0.5">
-                                                        {avail.slot_duration} min slots
+                                                        {avail.slot_duration} {t.minSlots}
                                                     </span>
                                                 </div>
                                             ))}
@@ -606,13 +776,13 @@ export default function Availability({ availabilities }: Props) {
                                                         }`}
                                                     >
                                                         <span className="text-[9px] font-extrabold uppercase tracking-wide">
-                                                            {avail.type === 'custom' ? 'Single' : 'Weekly'}
+                                                            {avail.type === 'custom' ? t.singleDate : t.recurringWeekly}
                                                         </span>
                                                         <span className="text-[11px] font-bold mt-0.5">
                                                             {getEventTimeLabel(avail)}
                                                         </span>
                                                         <span className="text-[9px] font-semibold opacity-80">
-                                                            {avail.slot_duration}m slots
+                                                            {avail.slot_duration}{t.minSlots}
                                                         </span>
                                                     </div>
                                                 ))}
@@ -659,26 +829,26 @@ export default function Availability({ availabilities }: Props) {
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-bold text-foreground capitalize">
-                                    {selectedEvent.type === 'custom' ? 'Single Date Availability' : 'Weekly Recurring Availability'}
+                                    {selectedEvent.type === 'custom' ? t.typeSingleDate : t.typeWeeklyRecurring}
                                 </h3>
                                 
                                 <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                                     <p className="flex items-center gap-2">
-                                        <span className="font-semibold text-foreground">Date/Day:</span>
+                                        <span className="font-semibold text-foreground">{t.dateDay}</span>
                                         <span className="capitalize">
                                             {selectedEvent.type === 'recurring' 
-                                                ? `Every ${selectedEvent.day_of_week}` 
-                                                : parseUtcDate(selectedEvent.start_at).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+                                                ? `${t.every} ${daysMap[lang][selectedEvent.day_of_week as keyof typeof daysMap['en']] || selectedEvent.day_of_week}` 
+                                                : parseUtcDate(selectedEvent.start_at).toLocaleDateString(localeMap[lang], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
                                             }
                                         </span>
                                     </p>
                                     <p className="flex items-center gap-2">
-                                        <span className="font-semibold text-foreground">Time Range:</span>
+                                        <span className="font-semibold text-foreground">{t.timeRange}</span>
                                         <span>{getEventTimeLabel(selectedEvent)}</span>
                                     </p>
                                     <p className="flex items-center gap-2">
-                                        <span className="font-semibold text-foreground">Slot Duration:</span>
-                                        <span>{selectedEvent.slot_duration} minutes per session</span>
+                                        <span className="font-semibold text-foreground">{t.slotDurationLabel}</span>
+                                        <span>{selectedEvent.slot_duration} {t.minutesPerSession}</span>
                                     </p>
                                 </div>
                             </div>
@@ -686,14 +856,14 @@ export default function Availability({ availabilities }: Props) {
 
                         <div className="flex justify-end gap-3 mt-6 border-t pt-4">
                             <Button variant="outline" onClick={() => setSelectedEvent(null)} className="rounded-lg">
-                                Cancel
+                                {t.cancel}
                             </Button>
                             <Button 
                                 variant="destructive" 
                                 onClick={() => handleDelete(selectedEvent.id)}
                                 className="rounded-lg flex items-center gap-2"
                             >
-                                <Trash2 className="h-4 w-4" /> Delete Availability
+                                <Trash2 className="h-4 w-4" /> {t.deleteAvailability}
                             </Button>
                         </div>
                     </div>
@@ -714,11 +884,11 @@ export default function Availability({ availabilities }: Props) {
                             <X className="h-4 w-4" />
                         </Button>
 
-                        <h3 className="text-lg font-bold text-foreground mb-4">Add Availability</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-4">{t.addAvailability}</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <Label>Availability Type</Label>
+                                <Label>{t.availabilityType}</Label>
                                 <div className="grid grid-cols-2 gap-2 mt-1.5">
                                     <button
                                         type="button"
@@ -729,7 +899,7 @@ export default function Availability({ availabilities }: Props) {
                                                 : 'bg-card text-foreground hover:bg-muted'
                                         }`}
                                     >
-                                        Single Date ({selectedDate.getDate()} {monthNames[selectedDate.getMonth()].substring(0, 3)})
+                                        {t.singleDate} ({selectedDate.getDate()} {t.months[selectedDate.getMonth()].substring(0, 3)})
                                     </button>
                                     <button
                                         type="button"
@@ -740,14 +910,14 @@ export default function Availability({ availabilities }: Props) {
                                                 : 'bg-card text-foreground hover:bg-muted'
                                         }`}
                                     >
-                                        Every {selectedDate.toLocaleDateString('en-US', { weekday: 'short' })}
+                                        {t.every} {selectedDate.toLocaleDateString(localeMap[lang], { weekday: 'short' })}
                                     </button>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-1.5">
-                                    <Label htmlFor="start_time">Start Time</Label>
+                                    <Label htmlFor="start_time">{t.startTime}</Label>
                                     <Input
                                         id="start_time"
                                         type="time"
@@ -760,7 +930,7 @@ export default function Availability({ availabilities }: Props) {
                                     {errors.start_at && <p className="text-xs text-destructive">{errors.start_at}</p>}
                                 </div>
                                 <div className="grid gap-1.5">
-                                    <Label htmlFor="end_time">End Time</Label>
+                                    <Label htmlFor="end_time">{t.endTime}</Label>
                                     <Input
                                         id="end_time"
                                         type="time"
@@ -775,7 +945,7 @@ export default function Availability({ availabilities }: Props) {
                             </div>
 
                             <div className="grid gap-1.5">
-                                <Label htmlFor="slot_duration">Slot Duration</Label>
+                                <Label htmlFor="slot_duration">{t.slotDuration}</Label>
                                 <Select
                                     value={String(data.slot_duration)}
                                     onValueChange={(val) => setData('slot_duration', parseInt(val))}
@@ -784,10 +954,10 @@ export default function Availability({ availabilities }: Props) {
                                         <SelectValue placeholder="Select duration" />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-xl">
-                                        <SelectItem value="15">15 minutes</SelectItem>
-                                        <SelectItem value="30">30 minutes</SelectItem>
-                                        <SelectItem value="45">45 minutes</SelectItem>
-                                        <SelectItem value="60">60 minutes</SelectItem>
+                                        <SelectItem value="15">15 {t.minSlots}</SelectItem>
+                                        <SelectItem value="30">30 {t.minSlots}</SelectItem>
+                                        <SelectItem value="45">45 {t.minSlots}</SelectItem>
+                                        <SelectItem value="60">60 {t.minSlots}</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.slot_duration && <p className="text-xs text-destructive">{errors.slot_duration}</p>}
@@ -801,14 +971,14 @@ export default function Availability({ availabilities }: Props) {
                                 onClick={() => setIsCreateModalOpen(false)}
                                 className="rounded-lg"
                             >
-                                Cancel
+                                {t.cancel}
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={processing}
                                 className="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
                             >
-                                {processing ? 'Saving...' : 'Save'}
+                                {processing ? t.saving : t.save}
                             </Button>
                         </div>
                     </form>

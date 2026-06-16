@@ -3,6 +3,7 @@ import { BookOpen, Calendar, Clock, LayoutGrid, MessageSquare, Users, Video, Bel
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { useTranslation } from '@/hooks/use-translation';
 import {
     Sidebar,
     SidebarContent,
@@ -14,50 +15,47 @@ import {
 } from '@/components/ui/sidebar';
 import type { NavItem, Auth } from '@/types';
 
-const getNavItems = (role: string, pendingCount: number = 0): NavItem[] => {
+export function AppSidebar() {
+    const { auth } = usePage<any>().props;
+    const { t } = useTranslation();
+    const role = (auth.user?.role as string) || 'pupil';
+    const pendingCount = auth.pending_requests_count || 0;
+
     const baseItems: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: t('nav.dashboard'),
             href: '/dashboard',
             icon: LayoutGrid,
         },
     ];
 
+    let mainNavItems: NavItem[] = [];
+
     if (role === 'teacher') {
-        return [
+        mainNavItems = [
             ...baseItems,
-            { title: 'Booking Requests', href: '/teacher/appointments', icon: Bell, badge: pendingCount },
-            { title: 'My Schedule', href: '/teacher/schedule', icon: Calendar },
-            { title: 'Availability', href: '/teacher/availability', icon: Clock },
-            { title: 'My Sessions', href: '/teacher/sessions', icon: Video },
-            { title: 'Pupil Feedback', href: '/teacher/feedback', icon: MessageSquare },
+            { title: t('nav.booking_requests'), href: '/teacher/appointments', icon: Bell, badge: pendingCount },
+            { title: t('nav.my_schedule'), href: '/teacher/schedule', icon: Calendar },
+            { title: t('nav.availability'), href: '/teacher/availability', icon: Clock },
+            { title: t('nav.my_sessions'), href: '/teacher/sessions', icon: Video },
+            { title: t('nav.pupil_feedback'), href: '/teacher/feedback', icon: MessageSquare },
+        ];
+    } else if (role === 'admin') {
+        mainNavItems = [
+            ...baseItems,
+            { title: t('nav.users'), href: '/admin/users', icon: Users },
+            { title: t('nav.all_sessions'), href: '/admin/sessions', icon: Video },
+        ];
+    } else {
+        // Default to pupil
+        mainNavItems = [
+            ...baseItems,
+            { title: t('nav.find_teachers'), href: '/pupil/teachers', icon: Users },
+            { title: t('nav.my_bookings'), href: '/pupil/bookings', icon: Calendar },
+            { title: t('nav.past_sessions'), href: '/pupil/sessions', icon: Video },
+            { title: t('nav.my_progress'), href: '/pupil/progress', icon: BookOpen },
         ];
     }
-
-    if (role === 'admin') {
-        return [
-            ...baseItems,
-            { title: 'Users', href: '/admin/users', icon: Users },
-            { title: 'All Sessions', href: '/admin/sessions', icon: Video },
-        ];
-    }
-
-    // Default to pupil
-    return [
-        ...baseItems,
-        { title: 'Find Teachers', href: '/pupil/teachers', icon: Users },
-        { title: 'My Bookings', href: '/pupil/bookings', icon: Calendar },
-        { title: 'Past Sessions', href: '/pupil/sessions', icon: Video },
-        { title: 'My Progress', href: '/pupil/progress', icon: BookOpen },
-    ];
-};
-
-export function AppSidebar() {
-    const { auth } = usePage<any>().props;
-    const role = (auth.user?.role as string) || 'pupil';
-    const pendingCount = auth.pending_requests_count || 0;
-
-    const mainNavItems = getNavItems(role, pendingCount);
 
     return (
         <Sidebar collapsible="icon" variant="inset">

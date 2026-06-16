@@ -5,9 +5,12 @@ import type { Auth } from '@/types';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/use-translation';
+import AppLayout from '@/layouts/app-layout';
 
 function PupilMeetingButton({ apt, handleJoin }: { apt: any; handleJoin: (apt: any) => void }) {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const { t } = useTranslation();
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -23,7 +26,7 @@ function PupilMeetingButton({ apt, handleJoin }: { apt: any; handleJoin: (apt: a
                 disabled 
                 className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-muted-foreground cursor-not-allowed border"
             >
-                <Clock className="h-4 w-4" /> Scheduled
+                <Clock className="h-4 w-4" /> {t('meeting.scheduled')}
             </button>
         );
     }
@@ -31,15 +34,16 @@ function PupilMeetingButton({ apt, handleJoin }: { apt: any; handleJoin: (apt: a
     return (
         <button 
             onClick={() => handleJoin(apt)}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors cursor-pointer"
         >
-            <Video className="h-4 w-4" /> Join Meeting
+            <Video className="h-4 w-4" /> {t('meeting.join')}
         </button>
     );
 }
 
 function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; handleStart: (apt: any) => void; startingAptId: string | null }) {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const { t } = useTranslation();
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -55,7 +59,7 @@ function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; h
                 disabled 
                 className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed border"
             >
-                <Clock className="h-4 w-4" /> Scheduled
+                <Clock className="h-4 w-4" /> {t('meeting.scheduled')}
             </button>
         );
     }
@@ -64,10 +68,10 @@ function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; h
         <button 
             disabled={startingAptId === apt.id}
             onClick={() => handleStart(apt)}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 cursor-pointer"
         >
             <Video className="h-4 w-4" /> 
-            {startingAptId === apt.id ? 'Starting...' : (apt.google_meet_link ? 'Join Meeting' : 'Start Meeting')}
+            {startingAptId === apt.id ? t('meeting.starting') : (apt.google_meet_link ? t('meeting.join') : t('meeting.start'))}
         </button>
     );
 }
@@ -83,6 +87,8 @@ function PupilDashboard({
     stats?: any; 
     recentFeedback?: any; 
 }) {
+    const { t } = useTranslation();
+
     useEffect(() => {
         if (!user) return;
 
@@ -99,13 +105,13 @@ function PupilDashboard({
     }, [user.id]);
 
     const handleCancel = async (id: string) => {
-        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        if (!confirm(t('dashboard.cancel_booking_confirm'))) return;
         try {
             await axios.delete(`/bookings/${id}`);
-            toast.success('Booking cancelled successfully');
+            toast.success(t('dashboard.cancel_success'));
             router.reload();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to cancel booking');
+            toast.error(error.response?.data?.message || t('dashboard.cancel_error'));
         }
     };
 
@@ -114,7 +120,7 @@ function PupilDashboard({
             const response = await axios.post(`/pupil/appointments/${apt.id}/join`);
             window.open(response.data.google_meet_link, '_blank');
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Teacher is not ready yet');
+            toast.error(error.response?.data?.message || t('meeting.not_ready'));
         }
     };
 
@@ -122,11 +128,11 @@ function PupilDashboard({
         <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user.full_name || user.name} 👋</h1>
-                    <p className="text-muted-foreground">Here is what's happening with your learning journey.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.welcome_back', { name: user.full_name || user.name })}</h1>
+                    <p className="text-muted-foreground">{t('dashboard.learning_journey_desc')}</p>
                 </div>
                 <Link href="/pupil/teachers" className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
-                    Book a Session <ChevronRight className="ml-2 h-4 w-4" />
+                    {t('dashboard.book_now')} <ChevronRight className="ml-2 h-4 w-4" />
                 </Link>
             </div>
 
@@ -134,32 +140,32 @@ function PupilDashboard({
                 <div className="flex flex-col gap-2 rounded-2xl border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-2 text-indigo-500">
                         <Clock className="h-5 w-5" />
-                        <h3 className="font-medium">Total Speaking Hours</h3>
+                        <h3 className="font-medium">{t('dashboard.speaking_hours')}</h3>
                     </div>
                     <p className="text-4xl font-bold">{stats.speaking_hours || 0}<span className="text-xl font-medium text-muted-foreground">h</span></p>
-                    <p className="text-sm text-emerald-500 flex items-center gap-1 mt-1"><TrendingUp className="h-3 w-3" /> Practice makes perfect</p>
+                    <p className="text-sm text-emerald-500 flex items-center gap-1 mt-1"><TrendingUp className="h-3 w-3" /> {t('dashboard.practice_perfect')}</p>
                 </div>
                 <div className="flex flex-col gap-2 rounded-2xl border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-2 text-purple-500">
                         <Calendar className="h-5 w-5" />
-                        <h3 className="font-medium">Upcoming Sessions</h3>
+                        <h3 className="font-medium">{t('dashboard.upcoming_sessions')}</h3>
                     </div>
                     <p className="text-4xl font-bold">{stats.upcoming_sessions || 0}</p>
-                    <p className="text-sm text-muted-foreground mt-1">Book more for faster progress</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t('dashboard.book_more')}</p>
                 </div>
                 <div className="flex flex-col gap-2 rounded-2xl border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-2 text-amber-500">
                         <Star className="h-5 w-5" />
-                        <h3 className="font-medium">Average Rating</h3>
+                        <h3 className="font-medium">{t('dashboard.avg_rating')}</h3>
                     </div>
                     <p className="text-4xl font-bold">4.8<span className="text-xl font-medium text-muted-foreground">/5</span></p>
-                    <p className="text-sm text-muted-foreground mt-1">Feedback from your teachers</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t('dashboard.rating_desc')}</p>
                 </div>
             </div>
 
             <div className="grid gap-8 lg:grid-cols-2">
                 <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">Upcoming Sessions</h2>
+                    <h2 className="text-xl font-bold">{t('dashboard.upcoming_sessions')}</h2>
                     {appointments.length > 0 ? (
                         <div className="flex flex-col gap-4">
                             {appointments.map((apt) => (
@@ -186,9 +192,9 @@ function PupilDashboard({
                                     <div className="p-4 bg-muted/50 flex justify-end gap-3">
                                         <button 
                                             onClick={() => handleCancel(apt.id)}
-                                            className="rounded-lg px-4 py-2 text-sm font-medium border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all"
+                                            className="rounded-lg px-4 py-2 text-sm font-medium border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
                                         >
-                                            Cancel
+                                            {t('dashboard.cancel_button')}
                                         </button>
                                         <PupilMeetingButton apt={apt} handleJoin={handleJoin} />
                                     </div>
@@ -198,16 +204,16 @@ function PupilDashboard({
                     ) : (
                         <div className="rounded-2xl border bg-card p-10 text-center text-muted-foreground">
                             <Calendar className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
-                            <p>No confirmed upcoming sessions.</p>
+                            <p>{t('dashboard.no_upcoming')}</p>
                             <Link href="/pupil/teachers" className="text-indigo-600 hover:underline text-sm font-medium mt-2 inline-block">
-                                Book one now
+                                {t('dashboard.book_now')}
                             </Link>
                         </div>
                     )}
                 </div>
 
                 <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">Recent Feedback</h2>
+                    <h2 className="text-xl font-bold">{t('dashboard.recent_feedback')}</h2>
                     {recentFeedback ? (
                         <div className="rounded-2xl border bg-card p-5 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
@@ -233,7 +239,7 @@ function PupilDashboard({
                     ) : (
                         <div className="rounded-2xl border bg-card p-10 text-center text-muted-foreground">
                             <Play className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
-                            <p>No feedback received yet.</p>
+                            <p>{t('dashboard.no_feedback')}</p>
                         </div>
                     )}
                 </div>
@@ -253,6 +259,7 @@ function TeacherDashboard({
 }) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
     const { auth } = usePage<any>().props;
+    const { t } = useTranslation();
     const pendingCount = auth.pending_requests_count || 0;
 
     useEffect(() => {
@@ -270,13 +277,13 @@ function TeacherDashboard({
     }, [user.id]);
 
     const handleCancel = async (id: string) => {
-        if (!confirm('Are you sure you want to cancel this conversation?')) return;
+        if (!confirm(t('dashboard.cancel_conversation_confirm'))) return;
         try {
             await axios.delete(`/bookings/${id}`);
-            toast.success('Conversation cancelled successfully');
+            toast.success(t('dashboard.cancel_conversation_success'));
             router.reload();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to cancel conversation');
+            toast.error(error.response?.data?.message || t('dashboard.cancel_conversation_error'));
         }
     };
 
@@ -289,13 +296,13 @@ function TeacherDashboard({
         setStartingAptId(apt.id);
         try {
             const response = await axios.post(`/teacher/appointments/${apt.id}/start`);
-            toast.success('Conversation started! Opening meeting link...');
+            toast.success(t('dashboard.start_conversation_success'));
             if (response.data.google_meet_link) {
                 window.open(response.data.google_meet_link, '_blank');
             }
             router.reload();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to start conversation');
+            toast.error(error.response?.data?.message || t('dashboard.start_conversation_error'));
         } finally {
             setStartingAptId(null);
         }
@@ -305,8 +312,8 @@ function TeacherDashboard({
         <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Teacher Dashboard</h1>
-                    <p className="text-muted-foreground">Welcome back, {user.full_name || user.name}. Manage your sessions and availability.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.teacher_title')}</h1>
+                    <p className="text-muted-foreground">{t('dashboard.teacher_subtitle', { name: user.full_name || user.name })}</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     <Link href="/teacher/appointments" className="relative inline-flex items-center justify-center rounded-xl border bg-background px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors">
@@ -318,10 +325,10 @@ function TeacherDashboard({
                                 </span>
                             )}
                         </div>
-                        Booking Requests
+                        {t('nav.booking_requests')}
                     </Link>
                     <Link href="/teacher/availability" className="inline-flex items-center justify-center rounded-xl border bg-background px-6 py-2.5 text-sm font-semibold hover:bg-muted transition-colors">
-                        <Clock className="mr-2 h-4 w-4" /> Manage Availability
+                        <Clock className="mr-2 h-4 w-4" /> {t('dashboard.manage_availability')}
                     </Link>
                 </div>
             </div>
@@ -329,14 +336,14 @@ function TeacherDashboard({
             {!user.google_connected && (
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-xl border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-900/10">
                     <div>
-                        <h4 className="font-semibold text-red-800 dark:text-red-400">Google Calendar Not Connected</h4>
-                        <p className="text-sm text-red-600 dark:text-red-500">Please connect your Google Account to automatically generate Google Meet links for your sessions.</p>
+                        <h4 className="font-semibold text-red-800 dark:text-red-400">{t('dashboard.google_not_connected')}</h4>
+                        <p className="text-sm text-red-600 dark:text-red-500">{t('dashboard.google_not_connected_desc')}</p>
                     </div>
                     <a 
                         href="/auth/google" 
                         className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors whitespace-nowrap shadow-md shadow-red-500/20"
                     >
-                        Connect Google Account
+                        {t('dashboard.connect_google')}
                     </a>
                 </div>
             )}
@@ -345,32 +352,32 @@ function TeacherDashboard({
                 <div className="flex flex-col gap-2 rounded-2xl border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-2 text-indigo-500">
                         <Video className="h-5 w-5" />
-                        <h3 className="font-medium">Sessions Today</h3>
+                        <h3 className="font-medium">{t('dashboard.sessions_today')}</h3>
                     </div>
                     <p className="text-4xl font-bold">{stats.sessions_today || 0}</p>
-                    <p className="text-sm text-muted-foreground mt-1">Confirmed slots for today</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t('dashboard.sessions_today_desc')}</p>
                 </div>
                 <div className="flex flex-col gap-2 rounded-2xl border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-2 text-emerald-500">
                         <Users className="h-5 w-5" />
-                        <h3 className="font-medium">Total Pupils</h3>
+                        <h3 className="font-medium">{t('dashboard.total_pupils')}</h3>
                     </div>
                     <p className="text-4xl font-bold">{stats.total_pupils || 0}</p>
-                    <p className="text-sm text-muted-foreground mt-1">Pupils you have taught</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t('dashboard.total_pupils_desc')}</p>
                 </div>
                 <div className="flex flex-col gap-2 rounded-2xl border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-2 text-amber-500">
                         <Star className="h-5 w-5" />
-                        <h3 className="font-medium">Your Rating</h3>
+                        <h3 className="font-medium">{t('dashboard.your_rating')}</h3>
                     </div>
                     <p className="text-4xl font-bold">{stats.average_rating || '5.0'}<span className="text-xl font-medium text-muted-foreground">/10</span></p>
-                    <p className="text-sm text-muted-foreground mt-1">Based on pupil reviews</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t('dashboard.your_rating_desc')}</p>
                 </div>
             </div>
 
             <div className="grid gap-8 lg:grid-cols-2">
                 <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">Today's Schedule</h2>
+                    <h2 className="text-xl font-bold">{t('dashboard.todays_schedule')}</h2>
                     {appointments.length > 0 ? (
                         <div className="flex flex-col gap-3">
                             {appointments.map((apt) => {
@@ -393,9 +400,9 @@ function TeacherDashboard({
                                         <div className="flex items-center gap-2">
                                             <button 
                                                 onClick={() => handleCancel(apt.id)}
-                                                className="rounded-lg px-3 py-2 text-xs font-medium border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all"
+                                                className="rounded-lg px-3 py-2 text-xs font-medium border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
                                             >
-                                                Cancel
+                                                {t('dashboard.cancel_button')}
                                             </button>
                                             <TeacherMeetingButton apt={apt} handleStart={handleStart} startingAptId={startingAptId} />
                                         </div>
@@ -406,19 +413,19 @@ function TeacherDashboard({
                     ) : (
                         <div className="rounded-2xl border bg-card p-10 text-center text-muted-foreground">
                             <Calendar className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
-                            <p>No confirmed appointments scheduled for today.</p>
+                            <p>{t('dashboard.no_appointments_today')}</p>
                         </div>
                     )}
                 </div>
 
                 <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">Pending Feedback</h2>
+                    <h2 className="text-xl font-bold">{t('dashboard.pending_feedback')}</h2>
                     <div className="rounded-2xl border bg-card p-5 text-center py-10">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 mb-4">
                             <CheckCircle2 className="h-6 w-6" />
                         </div>
-                        <h3 className="text-lg font-medium">All caught up!</h3>
-                        <p className="text-muted-foreground mt-1 max-w-sm mx-auto">You've submitted feedback for all your past sessions. Great job!</p>
+                        <h3 className="text-lg font-medium">{t('dashboard.all_caught_up')}</h3>
+                        <p className="text-muted-foreground mt-1 max-w-sm mx-auto">{t('dashboard.all_caught_up_desc')}</p>
                     </div>
                 </div>
             </div>
@@ -437,10 +444,11 @@ export default function Dashboard({
 }) {
     const { auth } = usePage<any>().props;
     const role = (auth.user?.role as string) || 'pupil';
+    const { t } = useTranslation();
 
     return (
         <>
-            <Head title="Dashboard" />
+            <Head title={t('nav.dashboard')} />
 
             {role === 'teacher' ? (
                 <TeacherDashboard user={auth.user} appointments={appointments} stats={stats} />
@@ -451,11 +459,10 @@ export default function Dashboard({
     );
 }
 
-Dashboard.layout = {
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-        },
-    ],
+Dashboard.layout = (page: React.ReactNode) => {
+    return (
+        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
+            {page}
+        </AppLayout>
+    );
 };

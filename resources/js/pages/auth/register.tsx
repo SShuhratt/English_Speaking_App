@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
+import { useTranslation } from '@/hooks/use-translation';
+import AuthLayout from '@/layouts/auth-layout';
 
 type Props = {
     passwordRules: string;
@@ -16,10 +18,11 @@ type Props = {
 
 export default function Register({ passwordRules }: Props) {
     const [role, setRole] = useState<'teacher' | 'pupil'>('pupil');
+    const { t } = useTranslation();
 
     return (
         <>
-            <Head title="Register" />
+            <Head title={t('auth.register')} />
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -30,7 +33,7 @@ export default function Register({ passwordRules }: Props) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name">{t('auth.name')}</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -39,7 +42,7 @@ export default function Register({ passwordRules }: Props) {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Full name"
+                                    placeholder={t('auth.full_name_placeholder')}
                                 />
                                 <InputError
                                     message={errors.name}
@@ -48,7 +51,7 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">{t('auth.email_address')}</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -62,7 +65,7 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Join as a</Label>
+                                <Label>{t('auth.join_as')}</Label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
                                         type="button"
@@ -73,8 +76,8 @@ export default function Register({ passwordRules }: Props) {
                                                 : 'border-muted hover:border-muted-foreground bg-transparent'
                                         }`}
                                     >
-                                        <span className="font-semibold text-sm">Pupil</span>
-                                        <span className="text-[10px] text-muted-foreground mt-1">Book speaking sessions</span>
+                                        <span className="font-semibold text-sm">{t('auth.role_pupil')}</span>
+                                        <span className="text-[10px] text-muted-foreground mt-1">{t('auth.pupil_desc')}</span>
                                     </button>
                                     <button
                                         type="button"
@@ -85,8 +88,8 @@ export default function Register({ passwordRules }: Props) {
                                                 : 'border-muted hover:border-muted-foreground bg-transparent'
                                         }`}
                                     >
-                                        <span className="font-semibold text-sm">Teacher</span>
-                                        <span className="text-[10px] text-muted-foreground mt-1">Teach & manage schedule</span>
+                                        <span className="font-semibold text-sm">{t('auth.role_teacher')}</span>
+                                        <span className="text-[10px] text-muted-foreground mt-1">{t('auth.teacher_desc')}</span>
                                     </button>
                                     <input type="hidden" name="role" value={role} />
                                 </div>
@@ -94,19 +97,19 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="age">Age</Label>
+                                <Label htmlFor="age">{t('auth.age')}</Label>
                                 <Input
                                     id="age"
                                     type="number"
                                     required
                                     name="age"
-                                    placeholder="Enter your age"
+                                    placeholder={t('auth.age_placeholder')}
                                 />
                                 <InputError message={errors.age} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="phone_number">Phone Number</Label>
+                                <Label htmlFor="phone_number">{t('auth.phone_number')}</Label>
                                 <Input
                                     id="phone_number"
                                     type="text"
@@ -119,14 +122,14 @@ export default function Register({ passwordRules }: Props) {
 
                             {role === 'pupil' && (
                                 <div className="grid gap-2">
-                                    <Label htmlFor="level">English Target Level</Label>
+                                    <Label htmlFor="level">{t('auth.target_level')}</Label>
                                     <select
                                         id="level"
                                         name="level"
                                         required
                                         className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
-                                        <option value="">Select Level</option>
+                                        <option value="">{t('auth.select_level')}</option>
                                         <option value="beginner">Beginner</option>
                                         <option value="pre-intermediate">Pre-Intermediate</option>
                                         <option value="upper-intermediate">Upper-Intermediate</option>
@@ -141,7 +144,7 @@ export default function Register({ passwordRules }: Props) {
                             {role === 'teacher' && (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="overall_level">Overall IELTS Level / Grade</Label>
+                                        <Label htmlFor="overall_level">{t('auth.overall_level')}</Label>
                                         <Input
                                             id="overall_level"
                                             type="text"
@@ -153,7 +156,7 @@ export default function Register({ passwordRules }: Props) {
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="speaking_band">Speaking Band Score</Label>
+                                        <Label htmlFor="speaking_band">{t('auth.speaking_band')}</Label>
                                         <Input
                                             id="speaking_band"
                                             type="number"
@@ -168,14 +171,14 @@ export default function Register({ passwordRules }: Props) {
                             )}
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">{t('auth.password')}</Label>
                                 <PasswordInput
                                     id="password"
                                     required
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
-                                    placeholder="Password"
+                                    placeholder={t('auth.password')}
                                     passwordrules={passwordRules}
                                 />
                                 <InputError message={errors.password} />
@@ -183,7 +186,7 @@ export default function Register({ passwordRules }: Props) {
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password_confirmation">
-                                    Confirm password
+                                    {t('auth.confirm_password')}
                                 </Label>
                                 <PasswordInput
                                     id="password_confirmation"
@@ -191,7 +194,7 @@ export default function Register({ passwordRules }: Props) {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder="Confirm password"
+                                    placeholder={t('auth.confirm_password')}
                                     passwordrules={passwordRules}
                                 />
                                 <InputError
@@ -201,19 +204,19 @@ export default function Register({ passwordRules }: Props) {
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full"
+                                className="mt-2 w-full cursor-pointer"
                                 tabIndex={5}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                {t('auth.register_button')}
                             </Button>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
+                            {t('auth.has_account')}{' '}
                             <TextLink href={login()} tabIndex={6}>
-                                Log in
+                                {t('auth.login_button')}
                             </TextLink>
                         </div>
                     </>
@@ -223,7 +226,18 @@ export default function Register({ passwordRules }: Props) {
     );
 }
 
-Register.layout = {
-    title: 'Create an account',
-    description: 'Enter your details below to create your account',
+function AuthLayoutWrapper({ children }: { children: React.ReactNode }) {
+    const { t } = useTranslation();
+    return (
+        <AuthLayout 
+            title={t('auth.create_account_title')} 
+            description={t('auth.create_account_desc')}
+        >
+            {children}
+        </AuthLayout>
+    );
+}
+
+Register.layout = (page: React.ReactNode) => {
+    return <AuthLayoutWrapper>{page}</AuthLayoutWrapper>;
 };

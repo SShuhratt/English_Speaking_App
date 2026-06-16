@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,10 +39,11 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'locale' => app()->getLocale(),
             'auth' => [
                 'user' => $request->user(),
                 'pending_requests_count' => ($request->user() && $request->user()->role === 'teacher')
-                    ? \App\Models\Appointment::where('teacher_id', $request->user()->id)->where('status', 'pending')->count()
+                    ? Appointment::where('teacher_id', $request->user()->id)->where('status', 'pending')->count()
                     : 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
