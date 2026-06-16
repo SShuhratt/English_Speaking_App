@@ -25,16 +25,23 @@ export default function Booking({ teacher }: Props) {
             return;
         }
 
-        const startAt = `${selectedDate}T${customStartTime}`;
-        const endAt = `${selectedDate}T${customEndTime}`;
-
-        if (new Date(startAt) >= new Date(endAt)) {
-            toast.error('End time must be after start time');
-            return;
-        }
-
-        setBooking(true);
         try {
+            const [year, month, day] = selectedDate.split('-').map(Number);
+            const [startHour, startMin] = customStartTime.split(':').map(Number);
+            const [endHour, endMin] = customEndTime.split(':').map(Number);
+
+            const startLocal = new Date(year, month - 1, day, startHour, startMin);
+            const endLocal = new Date(year, month - 1, day, endHour, endMin);
+
+            // If end time is before or equal to start time, it belongs to the next day
+            if (endLocal <= startLocal) {
+                endLocal.setDate(endLocal.getDate() + 1);
+            }
+
+            const startAt = startLocal.toISOString();
+            const endAt = endLocal.toISOString();
+
+            setBooking(true);
             await axios.post('/bookings', {
                 teacher_id: teacher.id,
                 pupil_id: auth.user.id,

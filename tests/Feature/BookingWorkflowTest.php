@@ -214,4 +214,33 @@ class BookingWorkflowTest extends TestCase
         ]);
         $response->assertStatus(201);
     }
+
+    public function test_booking_custom_date_availability()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        // Custom availability on 16.06.2026 from 02:55 AM (UTC 02:55:00) to 05:00 PM (UTC 17:00:00)
+        TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse('2026-06-16 02:55:00'),
+            'end_at' => Carbon::parse('2026-06-16 17:00:00'),
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        // Requesting 02:12 PM (14:12) to 02:42 PM (14:42) on 2026-06-16 UTC
+        $startValid = Carbon::parse('2026-06-16 14:12:00');
+        $endValid = Carbon::parse('2026-06-16 14:42:00');
+
+        $response = $this->actingAs($pupil)->postJson('/bookings', [
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => $startValid->toIso8601String(),
+            'end_at' => $endValid->toIso8601String(),
+        ]);
+
+        $response->assertStatus(201);
+    }
 }
