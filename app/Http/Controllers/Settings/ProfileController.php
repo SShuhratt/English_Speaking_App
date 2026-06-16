@@ -19,8 +19,15 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+        if ($user->role === 'teacher') {
+            $user->load('teacherProfile');
+        } elseif ($user->role === 'pupil') {
+            $user->load('pupilProfile');
+        }
+
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
         ]);
     }
@@ -30,13 +37,52 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        
+        // Update user basics
+        $user->fill($request->only(['name', 'email']));
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        // Update role-specific profile details
+        if ($user->role === 'teacher') {
+            // Handle certificates formatting (comma-separated string to array)
+            if ($request->has('certificates') && is_string($request->input('certificates'))) {
+                $certs = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
+                $request->merge(['certificates' => $certs]);
+            }
+
+            $profileData = $request->validate([
+                'age' => ['nullable', 'integer', 'min:18', 'max:100'],
+                'phone_number' => ['nullable', 'string', 'max:20'],
+                'experience_years' => ['nullable', 'numeric', 'min:0', 'max:80'],
+                'workplace' => ['nullable', 'string', 'max:255'],
+                'overall_level' => ['nullable', 'string', 'max:255'],
+                'speaking_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
+                'certificates' => ['nullable', 'array'],
+                'certificates.*' => ['string'],
+            ]);
+            
+            $user->teacherProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                $profileData
+            );
+        } elseif ($user->role === 'pupil') {
+            $profileData = $request->validate([
+                'age' => ['nullable', 'integer', 'min:1', 'max:100'],
+                'phone_number' => ['nullable', 'string', 'max:20'],
+                'level' => ['nullable', 'string', 'max:255'],
+            ]);
+            
+            $user->pupilProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                $profileData
+            );
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 

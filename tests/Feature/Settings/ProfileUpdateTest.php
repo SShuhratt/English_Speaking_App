@@ -96,4 +96,64 @@ class ProfileUpdateTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    public function test_teacher_profile_can_be_updated()
+    {
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Teacher Name',
+                'email' => 'teacher@example.com',
+                'age' => 30,
+                'phone_number' => '+1234567890',
+                'experience_years' => 5.5,
+                'workplace' => 'English Academy',
+                'overall_level' => 'IELTS 8.5',
+                'speaking_band' => 8.5,
+                'certificates' => 'CELTA, TESOL',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $this->assertDatabaseHas('teacher_profiles', [
+            'user_id' => $user->id,
+            'age' => 30,
+            'phone_number' => '+1234567890',
+            'experience_years' => 5.5,
+            'workplace' => 'English Academy',
+            'overall_level' => 'IELTS 8.5',
+            'speaking_band' => 8.5,
+        ]);
+        
+        $user->refresh();
+        $this->assertEquals(['CELTA', 'TESOL'], $user->teacherProfile->certificates);
+    }
+
+    public function test_pupil_profile_can_be_updated()
+    {
+        $user = User::factory()->create(['role' => 'pupil']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Pupil Name',
+                'email' => 'pupil@example.com',
+                'age' => 17,
+                'phone_number' => '+0987654321',
+                'level' => 'pre-intermediate',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $this->assertDatabaseHas('pupil_profiles', [
+            'user_id' => $user->id,
+            'age' => 17,
+            'phone_number' => '+0987654321',
+            'level' => 'pre-intermediate',
+        ]);
+    }
 }
