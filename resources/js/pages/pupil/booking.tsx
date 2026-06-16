@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
-import { Calendar as CalendarIcon, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle2, AlertCircle, Award, Star } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -68,7 +68,7 @@ export default function Booking({ teacher }: Props) {
                 <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Book a Session</h1>
-                        <p className="text-muted-foreground mt-2">Practice with {teacher.full_name}</p>
+                        <p className="text-muted-foreground mt-2">Reserve a time for your practice session.</p>
                     </div>
                     
                     <div className="flex items-center gap-4 bg-muted/50 p-2 rounded-xl">
@@ -78,8 +78,71 @@ export default function Booking({ teacher }: Props) {
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             min={new Date().toISOString().split('T')[0]}
-                            className="bg-transparent border-none focus:ring-0 text-sm font-medium pr-4"
+                            className="bg-transparent border-none focus:ring-0 text-sm font-medium pr-4 focus:outline-none"
                         />
+                    </div>
+                </div>
+
+                {/* Teacher Profile Card */}
+                <div className="rounded-2xl border bg-card p-6 shadow-sm mb-6 flex flex-col md:flex-row gap-6 items-start">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-3xl font-bold text-white shadow-lg shrink-0 mx-auto md:mx-0">
+                        {teacher.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                    </div>
+                    <div className="flex-1 text-center md:text-left space-y-3 w-full">
+                        <div>
+                            <h2 className="text-2xl font-bold text-foreground">{teacher.full_name}</h2>
+                            <p className="text-sm text-muted-foreground mt-0.5">{teacher.email}</p>
+                        </div>
+                        
+                        <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                            <span className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-950/40 dark:text-indigo-400">
+                                IELTS Level: {teacher.teacher_profile?.overall_level || 'Certified'}
+                            </span>
+                            {teacher.teacher_profile?.speaking_band && (
+                                <span className="inline-flex items-center rounded-md bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700 ring-1 ring-inset ring-purple-700/10 dark:bg-purple-950/40 dark:text-purple-400">
+                                    Speaking Band: {teacher.teacher_profile.speaking_band}
+                                </span>
+                            )}
+                            <span className="inline-flex items-center rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-700/10 dark:bg-amber-950/40 dark:text-amber-400">
+                                Experience: {teacher.teacher_profile?.experience_years || 0} Years
+                            </span>
+                            {teacher.teacher_profile?.rating_cache && (
+                                <span className="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/10 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                    ★ {teacher.teacher_profile.rating_cache} Rating
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground pt-3 border-t w-full">
+                            {teacher.teacher_profile?.workplace && (
+                                <div>
+                                    <span className="font-semibold text-foreground">Workplace:</span> {teacher.teacher_profile.workplace}
+                                </div>
+                            )}
+                            {teacher.teacher_profile?.age && (
+                                <div>
+                                    <span className="font-semibold text-foreground">Age:</span> {teacher.teacher_profile.age}
+                                </div>
+                            )}
+                            {teacher.teacher_profile?.phone_number && (
+                                <div>
+                                    <span className="font-semibold text-foreground">Phone:</span> {teacher.teacher_profile.phone_number}
+                                </div>
+                            )}
+                        </div>
+
+                        {teacher.teacher_profile?.certificates && Array.isArray(teacher.teacher_profile.certificates) && teacher.teacher_profile.certificates.length > 0 && (
+                            <div className="pt-2">
+                                <span className="text-sm font-semibold text-foreground block mb-1">Certificates:</span>
+                                <div className="flex flex-wrap gap-1.5 justify-center md:justify-start">
+                                    {teacher.teacher_profile.certificates.map((cert: string, idx: number) => (
+                                        <span key={idx} className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground border">
+                                            {cert}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -95,7 +158,7 @@ export default function Booking({ teacher }: Props) {
                                     <div key={i} className="h-12 bg-muted rounded-xl"></div>
                                 ))}
                             </div>
-                                        ) : (() => {
+                        ) : (() => {
                             const filteredSlots = slots.filter((slot) => {
                                 const start = new Date(slot.start_at);
                                 const y = start.getFullYear();
@@ -113,7 +176,7 @@ export default function Booking({ teacher }: Props) {
                                                 key={index}
                                                 onClick={() => handleBook(slot)}
                                                 disabled={booking}
-                                                className="flex flex-col items-center justify-center rounded-xl border p-3 transition-all hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 group"
+                                                className="flex flex-col items-center justify-center rounded-xl border p-3 transition-all hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 group cursor-pointer"
                                             >
                                                 <span className="text-sm font-bold group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                                                     {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

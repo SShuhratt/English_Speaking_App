@@ -35,4 +35,14 @@ class Appointment extends Model
     {
         return $this->belongsTo(User::class, 'pupil_id');
     }
+
+    public function conversation()
+    {
+        return $this->hasOne(Conversation::class, 'appointment_id');
+    }
+
+    public function feedbacks()
+    {
+        return $this->hasManyThrough(Feedback::class, Conversation::class, 'appointment_id', 'conversation_id');
+    }
 }

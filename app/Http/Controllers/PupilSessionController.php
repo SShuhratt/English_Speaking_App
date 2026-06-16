@@ -11,7 +11,7 @@ class PupilSessionController extends Controller
     public function index(Request $request)
     {
         $sessions = Appointment::where('pupil_id', $request->user()->id)
-            ->with('teacher')
+            ->with(['teacher', 'feedbacks'])
             ->latest()
             ->paginate();
 

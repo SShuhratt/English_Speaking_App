@@ -18,7 +18,20 @@ class Feedback extends Model
         'teacher_id',
         'rating_score',
         'comment_text',
+        'author_id',
     ];
+
+    protected $appends = ['rating', 'comment'];
+
+    public function getRatingAttribute()
+    {
+        return $this->rating_score;
+    }
+
+    public function getCommentAttribute()
+    {
+        return $this->comment_text;
+    }
 
     public function conversation()
     {
@@ -33,5 +46,10 @@ class Feedback extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 }

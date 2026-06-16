@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
-import { Video, User, Calendar, Clock } from 'lucide-react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { Video, User, Calendar, Clock, MessageSquare } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Props {
     appointments: {
@@ -10,6 +18,35 @@ interface Props {
 }
 
 export default function Sessions({ appointments }: Props) {
+    const { auth } = usePage().props as any;
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedApt, setSelectedApt] = useState<any>(null);
+
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+        appointment_id: '',
+        comment_text: '',
+    });
+
+    const handleOpenFeedbackModal = (apt: any) => {
+        setData({
+            appointment_id: apt.id,
+            comment_text: '',
+        });
+        clearErrors();
+        setSelectedApt(apt);
+        setIsOpen(true);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post('/feedback', {
+            onSuccess: () => {
+                setIsOpen(false);
+                reset();
+            },
+        });
+    };
+
     return (
         <AppLayout>
             <Head title="My Sessions" />
@@ -21,38 +58,70 @@ export default function Sessions({ appointments }: Props) {
 
                 <div className="grid gap-4">
                     {appointments.data.length > 0 ? (
-                        appointments.data.map((apt) => (
-                            <div key={apt.id} className="rounded-2xl border bg-card p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30">
-                                        <User className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-foreground">{apt.pupil?.full_name || 'Student'}</h4>
-                                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="h-3.5 w-3.5" />
-                                                {new Date(apt.start_at).toLocaleDateString()}
+                        appointments.data.map((apt) => {
+                            const teacherFeedback = apt.feedbacks?.find((fb: any) => fb.author_id === auth.user.id);
+                            return (
+                                <div key={apt.id} className="rounded-2xl border bg-card p-5 shadow-sm flex flex-col gap-4">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30">
+                                                <User className="h-6 w-6" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-foreground">{apt.pupil?.full_name || 'Student'}</h4>
+                                                <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar className="h-3.5 w-3.5" />
+                                                        {new Date(apt.start_at).toLocaleDateString()}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="h-3.5 w-3.5" />
+                                                        {new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 self-end md:self-auto">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                                apt.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                'bg-muted text-muted-foreground'
+                                            }`}>
+                                                {apt.status}
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="h-3.5 w-3.5" />
-                                                {new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
+
+                                            {apt.status === 'confirmed' && (
+                                                <>
+                                                    {!teacherFeedback ? (
+                                                        <button
+                                                            onClick={() => handleOpenFeedbackModal(apt)}
+                                                            className="flex items-center gap-2 rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-all cursor-pointer"
+                                                        >
+                                                            <MessageSquare className="h-4 w-4" /> Leave Feedback
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-xs bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-3 py-1 rounded-full font-medium">
+                                                            Feedback Left
+                                                        </span>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="flex items-center gap-3">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                                        apt.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                        apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                        'bg-muted text-muted-foreground'
-                                    }`}>
-                                        {apt.status}
-                                    </span>
+                                    {teacherFeedback && (
+                                        <div className="mt-1 p-4 bg-muted/40 rounded-xl border border-dashed text-sm">
+                                            <div className="flex items-center gap-1.5 text-indigo-600 font-semibold mb-2 dark:text-indigo-400">
+                                                <MessageSquare className="h-3.5 w-3.5" />
+                                                <span>Your Session Feedback</span>
+                                            </div>
+                                            <p className="text-muted-foreground italic">"{teacherFeedback.comment}"</p>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     ) : (
                         <div className="text-center py-20 border rounded-2xl bg-muted/10 border-dashed">
                             <p className="text-muted-foreground">No sessions found.</p>
@@ -60,6 +129,50 @@ export default function Sessions({ appointments }: Props) {
                     )}
                 </div>
             </div>
+
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Leave Feedback for Student</DialogTitle>
+                        <DialogDescription>
+                            Write feedback about {selectedApt?.pupil?.full_name}'s English performance and areas of improvement.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium font-semibold">Feedback / Lesson Notes</label>
+                            <textarea
+                                value={data.comment_text}
+                                onChange={(e) => setData('comment_text', e.target.value)}
+                                placeholder="Describe the pupil's performance. Focus on speaking flow, pronunciation, and vocabulary recommendations..."
+                                className="w-full min-h-[150px] rounded-xl border border-muted bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
+                                required
+                            />
+                            {errors.comment_text && (
+                                <p className="text-xs text-destructive">{errors.comment_text}</p>
+                            )}
+                        </div>
+
+                        <DialogFooter>
+                            <button
+                                type="button"
+                                onClick={() => setIsOpen(false)}
+                                className="px-4 py-2 border border-muted rounded-xl text-sm font-semibold hover:bg-muted transition-all cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                            >
+                                {processing ? 'Submitting...' : 'Submit Feedback'}
+                            </button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

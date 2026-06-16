@@ -54,7 +54,7 @@ class TeacherAppointmentController extends Controller
     public function sessions(Request $request)
     {
         $appointments = Appointment::where('teacher_id', $request->user()->id)
-            ->with('pupil')
+            ->with(['pupil', 'feedbacks'])
             ->latest()
             ->paginate();
 

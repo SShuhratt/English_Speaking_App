@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/slots/{teacherId}', [BookingController::class, 'slots']);
     Route::delete('/bookings/{id}', [BookingController::class, 'cancel']);
+    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
 });
 
 Route::get('/auth/google', [GoogleOAuthController::class, 'redirect']);
