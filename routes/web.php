@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/booking', [TeacherController::class, 'showBooking'])->name('booking.show');
         Route::get('/bookings', [PupilBookingController::class, 'index'])->name('bookings.index');
         Route::get('/sessions', [PupilSessionController::class, 'index'])->name('sessions.index');
+        Route::post('/appointments/{id}/join', [PupilSessionController::class, 'join'])->name('appointments.join');
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');
     });
 });

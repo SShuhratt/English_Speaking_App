@@ -40,11 +40,12 @@ export default function Bookings({ bookings }: Props) {
         }
     };
 
-    const handleJoin = (apt: any) => {
-        if (!apt.google_meet_link) {
-            toast.error('Teacher is not ready yet');
-        } else {
-            window.open(apt.google_meet_link, '_blank');
+    const handleJoin = async (apt: any) => {
+        try {
+            const response = await axios.post(`/pupil/appointments/${apt.id}/join`);
+            window.open(response.data.google_meet_link, '_blank');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Teacher is not ready yet');
         }
     };
 

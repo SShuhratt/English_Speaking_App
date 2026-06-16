@@ -19,4 +19,26 @@ class PupilSessionController extends Controller
             'sessions' => $sessions,
         ]);
     }
+
+    /**
+     * Pupil attempts to join the meeting room.
+     */
+    public function join(Request $request, string $id)
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        if ($appointment->pupil_id !== $request->user()->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (empty($appointment->google_meet_link)) {
+            return response()->json([
+                'message' => 'Teacher is not ready yet',
+            ], 400);
+        }
+
+        return response()->json([
+            'google_meet_link' => $appointment->google_meet_link,
+        ]);
+    }
 }
