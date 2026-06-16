@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, Clock, ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface TeacherProps {
     teacher: {
@@ -16,6 +17,7 @@ interface TeacherProps {
 }
 
 export default function TeacherCard({ teacher }: TeacherProps) {
+    const { t } = useTranslation();
     const initials = teacher.full_name
         .split(' ')
         .map((n) => n[0])
@@ -32,11 +34,11 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                     <h3 className="font-semibold text-foreground">{teacher.full_name}</h3>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
                         <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-950/40 dark:text-indigo-400">
-                            {teacher.teacher_profile?.overall_level || 'Certified'}
+                            {teacher.teacher_profile?.overall_level || t('teachers.certified')}
                         </span>
                         {teacher.teacher_profile?.speaking_band && (
                             <span className="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-700 ring-1 ring-inset ring-purple-700/10 dark:bg-purple-950/40 dark:text-purple-400">
-                                Speaking: {teacher.teacher_profile.speaking_band}
+                                {t('teachers.speaking', { band: teacher.teacher_profile.speaking_band })}
                             </span>
                         )}
                     </div>
@@ -50,7 +52,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                 </div>
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Clock className="h-4 w-4" />
-                    <span>{teacher.teacher_profile?.experience_years || 0}y experience</span>
+                    <span>{t('teachers.years_experience', { count: teacher.teacher_profile?.experience_years || 0 })}</span>
                 </div>
             </div>
 
@@ -58,7 +60,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                 href={`/pupil/booking?teacher_id=${teacher.id}`}
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700"
             >
-                Book Session <ChevronRight className="h-4 w-4" />
+                {t('teachers.book_session')} <ChevronRight className="h-4 w-4" />
             </Link>
         </div>
     );

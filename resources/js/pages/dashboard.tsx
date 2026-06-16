@@ -176,8 +176,8 @@ function PupilDashboard({
                                                 <Mic className="h-6 w-6" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold">English Speaking Practice</h4>
-                                                <p className="text-sm text-muted-foreground">with Teacher {apt.teacher?.full_name}</p>
+                                                <h4 className="font-semibold">{t('dashboard.speaking_practice')}</h4>
+                                                <p className="text-sm text-muted-foreground">{t('dashboard.with_teacher', { name: apt.teacher?.full_name || '' })}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
@@ -394,8 +394,8 @@ function TeacherDashboard({
                                             <span className="text-[10px] text-muted-foreground">{durationMin}m</span>
                                         </div>
                                         <div className="flex-1">
-                                            <h4 className="font-semibold">English Conversation Practice</h4>
-                                            <p className="text-sm text-muted-foreground">with {apt.pupil?.full_name || 'Pupil'}</p>
+                                            <h4 className="font-semibold">{t('dashboard.conversation_practice')}</h4>
+                                            <p className="text-sm text-muted-foreground">{t('dashboard.with_pupil', { name: apt.pupil?.full_name || 'Pupil' })}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button 

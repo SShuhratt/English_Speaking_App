@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { store, destroy } from '@/routes/teacher/availability';
-import { Clock, Calendar as CalendarIcon, Plus, Trash2, ChevronLeft, ChevronRight, X, Info, Globe } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, Plus, Trash2, ChevronLeft, ChevronRight, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface Props {
     availabilities: any[];
@@ -155,18 +156,11 @@ const localeMap = {
 };
 
 export default function Availability({ availabilities }: Props) {
-    const [lang, setLang] = useState<'en' | 'uz' | 'ru'>(() => {
-        const saved = localStorage.getItem('availability_lang');
-        if (saved === 'en' || saved === 'uz' || saved === 'ru') return saved;
-        return 'en';
-    });
+    const { locale } = useTranslation();
+    const lang = (locale === 'en' || locale === 'uz' || locale === 'ru') ? locale : 'en';
 
     const t = translations[lang];
 
-    const handleLangChange = (newLang: 'en' | 'uz' | 'ru') => {
-        setLang(newLang);
-        localStorage.setItem('availability_lang', newLang);
-    };
 
     const [view, setView] = useState<'day' | 'week'>('week');
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -489,30 +483,6 @@ export default function Availability({ availabilities }: Props) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {/* Language Switcher Dropdown */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="rounded-lg flex items-center gap-2 font-medium">
-                                    <Globe className="h-4 w-4 text-muted-foreground" />
-                                    <span>{lang.toUpperCase()}</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="rounded-xl">
-                                <DropdownMenuItem onClick={() => handleLangChange('en')} className="rounded-lg flex items-center justify-between">
-                                    <span>English</span>
-                                    {lang === 'en' && <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleLangChange('uz')} className="rounded-lg flex items-center justify-between">
-                                    <span>O'zbek</span>
-                                    {lang === 'uz' && <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleLangChange('ru')} className="rounded-lg flex items-center justify-between">
-                                    <span>Русский</span>
-                                    {lang === 'ru' && <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
                         {/* View Switcher */}
                         <div className="flex rounded-lg border bg-muted/30 p-1">
                             <Button

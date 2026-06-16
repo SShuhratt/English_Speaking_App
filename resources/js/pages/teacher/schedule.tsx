@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/react';
 import { Calendar, Clock, User, Video, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface Props {
     appointments: any[];
@@ -11,6 +12,7 @@ interface Props {
 
 function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; handleStart: (apt: any) => void; startingAptId: string | null }) {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const { t } = useTranslation();
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -26,7 +28,7 @@ function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; h
                 disabled 
                 className="flex items-center gap-2 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed border"
             >
-                <Clock className="h-4 w-4" /> Scheduled
+                <Clock className="h-4 w-4" /> {t('schedule.scheduled')}
             </button>
         );
     }
@@ -35,25 +37,26 @@ function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; h
         <button 
             disabled={startingAptId === apt.id}
             onClick={() => handleStart(apt)}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 disabled:opacity-50 cursor-pointer"
         >
             <Video className="h-4 w-4" /> 
-            {startingAptId === apt.id ? 'Starting...' : (apt.google_meet_link ? 'Join Meeting' : 'Start Meeting')}
+            {startingAptId === apt.id ? t('schedule.starting') : (apt.google_meet_link ? t('schedule.join') : t('schedule.start'))}
         </button>
     );
 }
 
 export default function Schedule({ appointments }: Props) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
+    const { t } = useTranslation();
 
     const handleCancel = async (id: string) => {
-        if (!confirm('Are you sure you want to cancel this conversation?')) return;
+        if (!confirm(t('schedule.confirm_cancel'))) return;
         try {
             await axios.delete(`/bookings/${id}`);
-            toast.success('Conversation cancelled successfully');
+            toast.success(t('schedule.cancel_success'));
             router.reload();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to cancel conversation');
+            toast.error(error.response?.data?.message || t('schedule.cancel_failed'));
         }
     };
 
@@ -66,13 +69,13 @@ export default function Schedule({ appointments }: Props) {
         setStartingAptId(apt.id);
         try {
             const response = await axios.post(`/teacher/appointments/${apt.id}/start`);
-            toast.success('Conversation started! Opening meeting link...');
+            toast.success(t('schedule.start_success'));
             if (response.data.google_meet_link) {
                 window.open(response.data.google_meet_link, '_blank');
             }
             router.reload();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to start conversation');
+            toast.error(error.response?.data?.message || t('schedule.start_failed'));
         } finally {
             setStartingAptId(null);
         }
@@ -80,11 +83,11 @@ export default function Schedule({ appointments }: Props) {
 
     return (
         <AppLayout>
-            <Head title="My Schedule" />
-            <div className="p-6 md:p-8">
+            <Head title={t('schedule.title')} />
+            <div className="p-6 md:p-8 max-w-5xl mx-auto">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight">My Schedule</h1>
-                    <p className="text-muted-foreground mt-2">Your upcoming confirmed sessions.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('schedule.title')}</h1>
+                    <p className="text-muted-foreground mt-2">{t('schedule.desc')}</p>
                 </div>
 
                 <div className="grid gap-4">
@@ -115,16 +118,16 @@ export default function Schedule({ appointments }: Props) {
 
                                     <button 
                                         onClick={() => handleCancel(apt.id)}
-                                        className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-all"
+                                        className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
                                     >
-                                        <XCircle className="h-4 w-4" /> Cancel
+                                        <XCircle className="h-4 w-4" /> {t('teacher.cancel')}
                                     </button>
                                 </div>
                             </div>
                         ))
                     ) : (
                         <div className="text-center py-20 border rounded-2xl bg-muted/10 border-dashed">
-                            <p className="text-muted-foreground">No upcoming sessions scheduled.</p>
+                            <p className="text-muted-foreground">{t('schedule.none')}</p>
                         </div>
                     )}
                 </div>

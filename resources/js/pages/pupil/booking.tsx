@@ -11,7 +11,6 @@ import {
     X, 
     Info, 
     Star, 
-    Globe, 
     User,
     BookOpen
 } from 'lucide-react';

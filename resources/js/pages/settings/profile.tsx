@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
+import { useTranslation } from '@/hooks/use-translation';
 
 type PageProps = {
     auth: Auth & {
@@ -41,18 +42,19 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<PageProps>().props;
+    const { t } = useTranslation();
 
     return (
         <>
-            <Head title="Profile settings" />
+            <Head title={t('profile.title')} />
 
-            <h1 className="sr-only">Profile settings</h1>
+            <h1 className="sr-only">{t('profile.title')}</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Profile"
-                    description="Update your name and email address"
+                    title={t('profile.title')}
+                    description={t('profile.desc')}
                 />
 
                 <Form
@@ -65,7 +67,7 @@ export default function Profile({
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name">{t('profile.name')}</Label>
 
                                 <Input
                                     id="name"
@@ -74,7 +76,7 @@ export default function Profile({
                                     name="name"
                                     required
                                     autoComplete="name"
-                                    placeholder="Full name"
+                                    placeholder={t('profile.fullname_placeholder')}
                                 />
 
                                 <InputError
@@ -84,7 +86,7 @@ export default function Profile({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">{t('profile.email')}</Label>
 
                                 <Input
                                     id="email"
@@ -94,7 +96,7 @@ export default function Profile({
                                     name="email"
                                     required
                                     autoComplete="username"
-                                    placeholder="Email address"
+                                    placeholder={t('profile.email')}
                                 />
 
                                 <InputError
@@ -106,13 +108,13 @@ export default function Profile({
                             {auth.user.role === 'teacher' && (
                                 <div className="border-t pt-6 mt-6 space-y-6">
                                     <div>
-                                        <h3 className="text-lg font-semibold text-foreground">Teacher Profile Information</h3>
-                                        <p className="text-sm text-muted-foreground mt-1">Provide information about your certifications, IELTS scores, and availability.</p>
+                                        <h3 className="text-lg font-semibold text-foreground">{t('profile.teacher_info')}</h3>
+                                        <p className="text-sm text-muted-foreground mt-1">{t('profile.teacher_desc')}</p>
                                     </div>
                                     
                                     <div className="grid gap-6 sm:grid-cols-2">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="age">Age</Label>
+                                            <Label htmlFor="age">{t('profile.age')}</Label>
                                             <Input
                                                 id="age"
                                                 type="number"
@@ -125,7 +127,7 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="phone_number">Phone Number</Label>
+                                            <Label htmlFor="phone_number">{t('profile.phone')}</Label>
                                             <Input
                                                 id="phone_number"
                                                 type="text"
@@ -138,7 +140,7 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="overall_level">Overall IELTS Level / Grade</Label>
+                                            <Label htmlFor="overall_level">{t('profile.overall')}</Label>
                                             <Input
                                                 id="overall_level"
                                                 type="text"
@@ -151,7 +153,7 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="speaking_band">Speaking Band Score</Label>
+                                            <Label htmlFor="speaking_band">{t('profile.speaking')}</Label>
                                             <Input
                                                 id="speaking_band"
                                                 type="number"
@@ -165,7 +167,7 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="experience_years">Years of Experience</Label>
+                                            <Label htmlFor="experience_years">{t('profile.experience')}</Label>
                                             <Input
                                                 id="experience_years"
                                                 type="number"
@@ -179,7 +181,7 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="workplace">Current Workplace / Institution</Label>
+                                            <Label htmlFor="workplace">{t('profile.workplace')}</Label>
                                             <Input
                                                 id="workplace"
                                                 type="text"
@@ -193,7 +195,7 @@ export default function Profile({
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="certificates">Certificates (Comma-separated)</Label>
+                                        <Label htmlFor="certificates">{t('profile.certificates')}</Label>
                                         <Input
                                             id="certificates"
                                             type="text"
@@ -210,13 +212,13 @@ export default function Profile({
                             {auth.user.role === 'pupil' && (
                                 <div className="border-t pt-6 mt-6 space-y-6">
                                     <div>
-                                        <h3 className="text-lg font-semibold text-foreground">Pupil Profile Information</h3>
-                                        <p className="text-sm text-muted-foreground mt-1">Fill in your profile details to help teachers adapt lessons to your level.</p>
+                                        <h3 className="text-lg font-semibold text-foreground">{t('profile.pupil_info')}</h3>
+                                        <p className="text-sm text-muted-foreground mt-1">{t('profile.pupil_desc')}</p>
                                     </div>
                                     
                                     <div className="grid gap-6 sm:grid-cols-2">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="age">Age</Label>
+                                            <Label htmlFor="age">{t('profile.age')}</Label>
                                             <Input
                                                 id="age"
                                                 type="number"
@@ -229,7 +231,7 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="phone_number">Phone Number</Label>
+                                            <Label htmlFor="phone_number">{t('profile.phone')}</Label>
                                             <Input
                                                 id="phone_number"
                                                 type="text"
@@ -242,20 +244,20 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2 sm:col-span-2">
-                                            <Label htmlFor="level">English Target Level</Label>
+                                            <Label htmlFor="level">{t('profile.target_level')}</Label>
                                             <select
                                                 id="level"
                                                 name="level"
-                                                className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                                                 defaultValue={auth.user.pupil_profile?.level || ''}
                                             >
-                                                <option value="">Select Level</option>
-                                                <option value="beginner">Beginner</option>
-                                                <option value="pre-intermediate">Pre-Intermediate</option>
-                                                <option value="upper-intermediate">Upper-Intermediate</option>
-                                                <option value="advanced">Advanced</option>
-                                                <option value="ielts_band">IELTS Band</option>
-                                                <option value="cefr_band">CEFR Band</option>
+                                                <option value="">{t('profile.select_level')}</option>
+                                                <option value="beginner">{t('profile.level_beginner')}</option>
+                                                <option value="pre-intermediate">{t('profile.level_pre_int')}</option>
+                                                <option value="upper-intermediate">{t('profile.level_upper_int')}</option>
+                                                <option value="advanced">{t('profile.level_advanced')}</option>
+                                                <option value="ielts_band">{t('profile.level_ielts')}</option>
+                                                <option value="cefr_band">{t('profile.level_cefr')}</option>
                                             </select>
                                             <InputError className="mt-2" message={errors.level} />
                                         </div>
@@ -267,22 +269,20 @@ export default function Profile({
                                 auth.user.email_verified_at === null && (
                                     <div>
                                         <p className="-mt-4 text-sm text-muted-foreground">
-                                            Your email address is unverified.{' '}
+                                            {t('profile.email_unverified')}{' '}
                                             <Link
                                                 href={send()}
                                                 as="button"
                                                 className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                             >
-                                                Click here to re-send the
-                                                verification email.
+                                                {t('profile.resend_btn')}
                                             </Link>
                                         </p>
 
                                         {status ===
                                             'verification-link-sent' && (
                                             <div className="mt-2 text-sm font-medium text-green-600">
-                                                A new verification link has been
-                                                sent to your email address.
+                                                {t('profile.resend_sent')}
                                             </div>
                                         )}
                                     </div>
@@ -293,7 +293,7 @@ export default function Profile({
                                     disabled={processing}
                                     data-test="update-profile-button"
                                 >
-                                    Save
+                                    {t('profile.save')}
                                 </Button>
                             </div>
                         </>

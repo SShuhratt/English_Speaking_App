@@ -9,6 +9,7 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
+import { useTranslation } from '@/hooks/use-translation';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -30,15 +31,26 @@ const sidebarNavItems: NavItem[] = [
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { t } = useTranslation();
+
+    const getTranslatedTitle = (title: string) => {
+        const keyMap: Record<string, string> = {
+            'profile': 'settings.profile',
+            'security': 'settings.security',
+            'appearance': 'settings.appearance'
+        };
+        const key = keyMap[title.toLowerCase()] || `settings.${title.toLowerCase()}`;
+        return t(key);
+    };
 
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
+                title={t('settings.title')}
+                description={t('settings.subtitle')}
             />
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
+            <div className="flex flex-col lg:flex-row lg:space-x-12 mt-6">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav
                         className="flex flex-col space-y-1 space-x-0"
@@ -58,7 +70,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    {item.title}
+                                    {getTranslatedTitle(item.title)}
                                 </Link>
                             </Button>
                         ))}

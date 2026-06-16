@@ -4,11 +4,13 @@ import { Head, usePage } from '@inertiajs/react';
 import { Check, X, Clock, Calendar, User } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function Appointments() {
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { auth } = usePage<any>().props;
+    const { t } = useTranslation();
 
     const fetchAppointments = async () => {
         setLoading(true);
@@ -16,7 +18,7 @@ export default function Appointments() {
             const response = await axios.get('/teacher/appointments');
             setAppointments(response.data.data);
         } catch (error) {
-            toast.error('Failed to load appointments');
+            toast.error(t('teacher.failed_load'));
         } finally {
             setLoading(false);
         }
@@ -43,36 +45,36 @@ export default function Appointments() {
     const handleAction = async (id: string, action: 'approve' | 'reject') => {
         try {
             await axios.post(`/teacher/appointments/${id}/${action}`);
-            toast.success(`Appointment ${action}d successfully`);
+            toast.success(t(`teacher.${action}_success`));
             fetchAppointments();
         } catch (error) {
-            toast.error(`Failed to ${action} appointment`);
+            toast.error(t(`teacher.${action}_failed`));
         }
     };
 
     const handleCancel = async (id: string) => {
-        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        if (!confirm(t('teacher.confirm_cancel'))) return;
         try {
             await axios.delete(`/bookings/${id}`);
-            toast.success('Booking cancelled successfully');
+            toast.success(t('teacher.cancel_success'));
             fetchAppointments();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to cancel booking');
+            toast.error(error.response?.data?.message || t('teacher.cancel_failed'));
         }
     };
 
     return (
         <AppLayout>
-            <Head title="Manage Appointments" />
-            <div className="p-6 md:p-8">
+            <Head title={t('teacher.appointments_title')} />
+            <div className="p-6 md:p-8 max-w-5xl mx-auto">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight">Booking Requests</h1>
-                    <p className="text-muted-foreground mt-2">Manage your upcoming sessions and approval requests.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('teacher.booking_requests')}</h1>
+                    <p className="text-muted-foreground mt-2">{t('teacher.booking_requests_desc')}</p>
                 </div>
 
                 <div className="grid gap-4">
                     {loading ? (
-                        <div className="text-center py-20">Loading...</div>
+                        <div className="text-center py-20 text-muted-foreground">{t('teacher.loading')}</div>
                     ) : appointments.length > 0 ? (
                         appointments.map((apt) => (
                             <div key={apt.id} className="rounded-2xl border bg-card p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -100,15 +102,15 @@ export default function Appointments() {
                                         <>
                                             <button 
                                                 onClick={() => handleAction(apt.id, 'approve')}
-                                                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-all"
+                                                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-all cursor-pointer"
                                             >
-                                                <Check className="h-4 w-4" /> Approve
+                                                <Check className="h-4 w-4" /> {t('teacher.approve')}
                                             </button>
                                             <button 
                                                 onClick={() => handleAction(apt.id, 'reject')}
-                                                className="flex items-center gap-2 rounded-xl border border-destructive text-destructive px-4 py-2 text-sm font-semibold hover:bg-destructive hover:text-white transition-all"
+                                                className="flex items-center gap-2 rounded-xl border border-destructive text-destructive px-4 py-2 text-sm font-semibold hover:bg-destructive hover:text-white transition-all cursor-pointer"
                                             >
-                                                <X className="h-4 w-4" /> Reject
+                                                <X className="h-4 w-4" /> {t('teacher.reject')}
                                             </button>
                                         </>
                                     ) : (
@@ -119,14 +121,14 @@ export default function Appointments() {
                                                 apt.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                                 'bg-muted text-muted-foreground'
                                             }`}>
-                                                {apt.status}
+                                                {t(`bookings.status_${apt.status}`)}
                                             </span>
                                             {apt.status === 'confirmed' && (
                                                 <button 
                                                     onClick={() => handleCancel(apt.id)}
-                                                    className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-1.5 text-xs font-medium hover:bg-destructive hover:text-destructive-foreground transition-all"
+                                                    className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-1.5 text-xs font-medium hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
                                                 >
-                                                    Cancel
+                                                    {t('teacher.cancel')}
                                                 </button>
                                             )}
                                         </div>
@@ -136,7 +138,7 @@ export default function Appointments() {
                         ))
                     ) : (
                         <div className="text-center py-20 border rounded-2xl bg-muted/10 border-dashed">
-                            <p className="text-muted-foreground">No appointment requests found.</p>
+                            <p className="text-muted-foreground">{t('teacher.no_appointments')}</p>
                         </div>
                     )}
                 </div>

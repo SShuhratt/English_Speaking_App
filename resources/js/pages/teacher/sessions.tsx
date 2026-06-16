@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { Video, User, Calendar, Clock, MessageSquare } from 'lucide-react';
+import { User, Calendar, Clock, MessageSquare } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -10,6 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface Props {
     appointments: {
@@ -21,6 +22,7 @@ export default function Sessions({ appointments }: Props) {
     const { auth } = usePage().props as any;
     const [isOpen, setIsOpen] = useState(false);
     const [selectedApt, setSelectedApt] = useState<any>(null);
+    const { t } = useTranslation();
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         appointment_id: '',
@@ -49,11 +51,11 @@ export default function Sessions({ appointments }: Props) {
 
     return (
         <AppLayout>
-            <Head title="My Sessions" />
-            <div className="p-6 md:p-8">
+            <Head title={t('teacher.sessions_title')} />
+            <div className="p-6 md:p-8 max-w-5xl mx-auto">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight">My Sessions</h1>
-                    <p className="text-muted-foreground mt-2">History of your past and upcoming teaching sessions.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('teacher.sessions_title')}</h1>
+                    <p className="text-muted-foreground mt-2">{t('teacher.sessions_desc')}</p>
                 </div>
 
                 <div className="grid gap-4">
@@ -88,7 +90,7 @@ export default function Sessions({ appointments }: Props) {
                                                 apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                                                 'bg-muted text-muted-foreground'
                                             }`}>
-                                                {apt.status}
+                                                {t(`bookings.status_${apt.status}`)}
                                             </span>
 
                                             {apt.status === 'confirmed' && (
@@ -96,13 +98,13 @@ export default function Sessions({ appointments }: Props) {
                                                     {!teacherFeedback ? (
                                                         <button
                                                             onClick={() => handleOpenFeedbackModal(apt)}
-                                                            className="flex items-center gap-2 rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-all cursor-pointer"
+                                                            className="flex items-center gap-2 rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-all cursor-pointer dark:border-neutral-800 dark:text-indigo-400"
                                                         >
-                                                            <MessageSquare className="h-4 w-4" /> Leave Feedback
+                                                            <MessageSquare className="h-4 w-4" /> {t('teacher.sessions_leave_feedback')}
                                                         </button>
                                                     ) : (
                                                         <span className="text-xs bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-3 py-1 rounded-full font-medium">
-                                                            Feedback Left
+                                                            {t('teacher.sessions_feedback_left')}
                                                         </span>
                                                     )}
                                                 </>
@@ -114,7 +116,7 @@ export default function Sessions({ appointments }: Props) {
                                         <div className="mt-1 p-4 bg-muted/40 rounded-xl border border-dashed text-sm">
                                             <div className="flex items-center gap-1.5 text-indigo-600 font-semibold mb-2 dark:text-indigo-400">
                                                 <MessageSquare className="h-3.5 w-3.5" />
-                                                <span>Your Session Feedback</span>
+                                                <span>{t('teacher.sessions_your_feedback')}</span>
                                             </div>
                                             <p className="text-muted-foreground italic">"{teacherFeedback.comment}"</p>
                                         </div>
@@ -124,7 +126,7 @@ export default function Sessions({ appointments }: Props) {
                         })
                     ) : (
                         <div className="text-center py-20 border rounded-2xl bg-muted/10 border-dashed">
-                            <p className="text-muted-foreground">No sessions found.</p>
+                            <p className="text-muted-foreground">{t('teacher.sessions_none')}</p>
                         </div>
                     )}
                 </div>
@@ -133,19 +135,19 @@ export default function Sessions({ appointments }: Props) {
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Leave Feedback for Student</DialogTitle>
+                        <DialogTitle>{t('teacher.sessions_dialog_title')}</DialogTitle>
                         <DialogDescription>
-                            Write feedback about {selectedApt?.pupil?.full_name}'s English performance and areas of improvement.
+                            {t('teacher.sessions_dialog_desc', { name: selectedApt?.pupil?.full_name })}
                         </DialogDescription>
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium font-semibold">Feedback / Lesson Notes</label>
+                            <label className="text-sm font-medium font-semibold">{t('teacher.sessions_feedback_notes')}</label>
                             <textarea
                                 value={data.comment_text}
                                 onChange={(e) => setData('comment_text', e.target.value)}
-                                placeholder="Describe the pupil's performance. Focus on speaking flow, pronunciation, and vocabulary recommendations..."
+                                placeholder={t('teacher.sessions_feedback_placeholder')}
                                 className="w-full min-h-[150px] rounded-xl border border-muted bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
                                 required
                             />
@@ -160,14 +162,14 @@ export default function Sessions({ appointments }: Props) {
                                 onClick={() => setIsOpen(false)}
                                 className="px-4 py-2 border border-muted rounded-xl text-sm font-semibold hover:bg-muted transition-all cursor-pointer"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
                             >
-                                {processing ? 'Submitting...' : 'Submit Feedback'}
+                                {processing ? t('sessions.submitting') : t('sessions.submit_btn')}
                             </button>
                         </DialogFooter>
                     </form>

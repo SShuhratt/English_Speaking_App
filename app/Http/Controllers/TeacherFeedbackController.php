@@ -14,7 +14,7 @@ class TeacherFeedbackController extends Controller
     public function index(Request $request)
     {
         $feedbacks = Feedback::where('teacher_id', $request->user()->id)
-            ->with('pupil')
+            ->with(['pupil', 'author', 'conversation.pupil', 'conversation.teacher'])
             ->latest()
             ->paginate();
 
