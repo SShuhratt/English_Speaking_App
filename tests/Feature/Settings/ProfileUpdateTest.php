@@ -156,4 +156,61 @@ class ProfileUpdateTest extends TestCase
             'level' => 'pre-intermediate',
         ]);
     }
+
+    public function test_teacher_profile_can_be_updated_with_null_values()
+    {
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Teacher Name',
+                'email' => 'teacher@example.com',
+                'age' => null,
+                'phone_number' => null,
+                'experience_years' => null,
+                'workplace' => null,
+                'overall_level' => 'IELTS 8.5',
+                'speaking_band' => 8.5,
+                'certificates' => null,
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $this->assertDatabaseHas('teacher_profiles', [
+            'user_id' => $user->id,
+            'age' => null,
+            'phone_number' => null,
+            'experience_years' => null,
+            'workplace' => null,
+            'overall_level' => 'IELTS 8.5',
+            'speaking_band' => 8.5,
+        ]);
+    }
+
+    public function test_pupil_profile_can_be_updated_with_null_values()
+    {
+        $user = User::factory()->create(['role' => 'pupil']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Pupil Name',
+                'email' => 'pupil@example.com',
+                'age' => null,
+                'phone_number' => null,
+                'level' => null,
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $this->assertDatabaseHas('pupil_profiles', [
+            'user_id' => $user->id,
+            'age' => null,
+            'phone_number' => null,
+            'level' => null,
+        ]);
+    }
 }
