@@ -32,6 +32,9 @@ class RegistrationTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'role' => 'pupil',
+            'age' => 16,
+            'phone_number' => '+123456789',
+            'level' => 'pre-intermediate',
         ]);
 
         $this->assertAuthenticated();
@@ -39,6 +42,11 @@ class RegistrationTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'pupil@example.com',
             'role' => 'pupil',
+        ]);
+        $this->assertDatabaseHas('pupil_profiles', [
+            'age' => 16,
+            'phone_number' => '+123456789',
+            'level' => 'pre-intermediate',
         ]);
     }
 
@@ -50,6 +58,10 @@ class RegistrationTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'role' => 'teacher',
+            'age' => 28,
+            'phone_number' => '+987654321',
+            'overall_level' => 'IELTS 8.5',
+            'speaking_band' => 8.5,
         ]);
 
         $this->assertAuthenticated();
@@ -57,6 +69,12 @@ class RegistrationTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'teacher@example.com',
             'role' => 'teacher',
+        ]);
+        $this->assertDatabaseHas('teacher_profiles', [
+            'age' => 28,
+            'phone_number' => '+987654321',
+            'overall_level' => 'IELTS 8.5',
+            'speaking_band' => 8.5,
         ]);
     }
 
