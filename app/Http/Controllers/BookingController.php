@@ -26,20 +26,26 @@ class BookingController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $appointment = $this->bookingService->book(
-            pupil: User::findOrFail($validated['pupil_id']),
-            teacher: User::findOrFail($validated['teacher_id']),
-            startAt: $validated['start_at'],
-            endAt: $validated['end_at'],
-            meta: [
-                'notes' => $validated['notes'] ?? null,
-            ]
-        );
+        try {
+            $appointment = $this->bookingService->book(
+                pupil: User::findOrFail($validated['pupil_id']),
+                teacher: User::findOrFail($validated['teacher_id']),
+                startAt: $validated['start_at'],
+                endAt: $validated['end_at'],
+                meta: [
+                    'notes' => $validated['notes'] ?? null,
+                ]
+            );
 
-        return response()->json([
-            'message' => 'Appointment booked successfully',
-            'data' => $appointment,
-        ], 201);
+            return response()->json([
+                'message' => 'Appointment booked successfully',
+                'data' => $appointment,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**

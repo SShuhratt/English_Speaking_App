@@ -197,8 +197,8 @@ class SlotService
         Collection $slots
     ): array {
 
-        $startOfDay = $date->copy()->startOfDay();
-        $endOfDay = $date->copy()->endOfDay();
+        $startOfDay = $date->copy()->subDay()->startOfDay();
+        $endOfDay = $date->copy()->addDay()->endOfDay();
 
         $appointments = Appointment::query()
             ->where('teacher_id', $teacherId)

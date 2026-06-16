@@ -116,4 +116,45 @@ class BookingWorkflowTest extends TestCase
         $response->assertJsonStructure(['google_meet_link']);
         $this->assertNotNull($appointment->fresh()->google_meet_link);
     }
+
+    public function test_booking_conflict_returns_422_status()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $otherPupil = User::factory()->create(['role' => 'pupil']);
+
+        TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'recurring',
+            'day_of_week' => 'monday',
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'slot_duration' => 60,
+        ]);
+
+        $startAt = Carbon::parse('next monday 09:00:00');
+        $endAt = $startAt->copy()->addHour();
+
+        // Book it first
+        Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => $startAt,
+            'end_at' => $endAt,
+            'status' => 'confirmed',
+        ]);
+
+        // Attempt to book the same slot again
+        $response = $this->actingAs($otherPupil)->postJson('/bookings', [
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $otherPupil->id,
+            'start_at' => $startAt->toDateTimeString(),
+            'end_at' => $endAt->toDateTimeString(),
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'Time slot already booked.',
+        ]);
+    }
 }
