@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { Calendar, Clock, User, Video, XCircle } from 'lucide-react';
@@ -7,6 +7,40 @@ import { toast } from 'sonner';
 
 interface Props {
     appointments: any[];
+}
+
+function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; handleStart: (apt: any) => void; startingAptId: string | null }) {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const start = new Date(apt.start_at);
+    const hasStartedTime = currentTime >= start;
+
+    if (!hasStartedTime) {
+        return (
+            <button 
+                disabled 
+                className="flex items-center gap-2 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed border"
+            >
+                <Clock className="h-4 w-4" /> Scheduled
+            </button>
+        );
+    }
+
+    return (
+        <button 
+            disabled={startingAptId === apt.id}
+            onClick={() => handleStart(apt)}
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 disabled:opacity-50"
+        >
+            <Video className="h-4 w-4" /> 
+            {startingAptId === apt.id ? 'Starting...' : (apt.google_meet_link ? 'Join Meeting' : 'Start Meeting')}
+        </button>
+    );
 }
 
 export default function Schedule({ appointments }: Props) {
@@ -77,14 +111,7 @@ export default function Schedule({ appointments }: Props) {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <button 
-                                        disabled={startingAptId === apt.id}
-                                        onClick={() => handleStart(apt)}
-                                        className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all disabled:opacity-50"
-                                    >
-                                        <Video className="h-4 w-4" /> 
-                                        {startingAptId === apt.id ? 'Starting...' : (apt.google_meet_link ? 'Join Meeting' : 'Start Meeting')}
-                                    </button>
+                                    <TeacherMeetingButton apt={apt} handleStart={handleStart} startingAptId={startingAptId} />
 
                                     <button 
                                         onClick={() => handleCancel(apt.id)}

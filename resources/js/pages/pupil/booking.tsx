@@ -15,6 +15,42 @@ export default function Booking({ teacher }: Props) {
     const [slots, setSlots] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [booking, setBooking] = useState(false);
+    const [customStartTime, setCustomStartTime] = useState('');
+    const [customEndTime, setCustomEndTime] = useState('');
+
+    const handleBookCustom = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!customStartTime || !customEndTime) {
+            toast.error('Please select start and end times');
+            return;
+        }
+
+        const startAt = `${selectedDate}T${customStartTime}`;
+        const endAt = `${selectedDate}T${customEndTime}`;
+
+        if (new Date(startAt) >= new Date(endAt)) {
+            toast.error('End time must be after start time');
+            return;
+        }
+
+        setBooking(true);
+        try {
+            await axios.post('/bookings', {
+                teacher_id: teacher.id,
+                pupil_id: auth.user.id,
+                start_at: startAt,
+                end_at: endAt,
+            });
+            toast.success('Custom session requested! Waiting for teacher approval.');
+            fetchSlots();
+            setCustomStartTime('');
+            setCustomEndTime('');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Booking failed');
+        } finally {
+            setBooking(false);
+        }
+    };
 
     const fetchSlots = async () => {
         setLoading(true);
@@ -195,6 +231,45 @@ export default function Booking({ teacher }: Props) {
                                 </div>
                             );
                         })()}
+                    </div>
+
+                    <div className="rounded-2xl border bg-card p-6 shadow-sm">
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <Clock className="h-5 w-5 text-indigo-500" /> Or Request a Custom Time
+                        </h2>
+                        
+                        <form onSubmit={handleBookCustom} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-muted-foreground mb-1">Start Time</label>
+                                    <input 
+                                        type="time" 
+                                        value={customStartTime}
+                                        onChange={(e) => setCustomStartTime(e.target.value)}
+                                        className="w-full rounded-xl border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-muted-foreground mb-1">End Time</label>
+                                    <input 
+                                        type="time" 
+                                        value={customEndTime}
+                                        onChange={(e) => setCustomEndTime(e.target.value)}
+                                        className="w-full rounded-xl border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            
+                            <button
+                                type="submit"
+                                disabled={booking}
+                                className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-600 hover:to-purple-700 transition-all disabled:opacity-50 cursor-pointer text-center"
+                            >
+                                {booking ? 'Requesting...' : 'Request Custom Session'}
+                            </button>
+                        </form>
                     </div>
 
                     <div className="rounded-2xl border border-indigo-100 bg-indigo-50/30 p-6 dark:border-indigo-900/30 dark:bg-indigo-900/5">

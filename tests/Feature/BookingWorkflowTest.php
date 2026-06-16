@@ -157,4 +157,61 @@ class BookingWorkflowTest extends TestCase
             'message' => 'Time slot already booked.',
         ]);
     }
+
+    public function test_booking_custom_time_matching_availability()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        // Teacher availability from 01:30 PM to 06:30 PM on Monday
+        TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'recurring',
+            'day_of_week' => 'monday',
+            'start_time' => '13:30:00',
+            'end_time' => '18:30:00',
+            'slot_duration' => 30,
+        ]);
+
+        $monday = Carbon::parse('next monday');
+
+        // 1. Time starting before 01:30 PM (e.g., 01:00 PM to 02:00 PM)
+        $startBefore = $monday->copy()->setTime(13, 0, 0);
+        $endBefore = $monday->copy()->setTime(14, 0, 0);
+        $response = $this->actingAs($pupil)->postJson('/bookings', [
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => $startBefore->toDateTimeString(),
+            'end_at' => $endBefore->toDateTimeString(),
+        ]);
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => "not suitable to teacher's availability",
+        ]);
+
+        // 2. Time ending after 06:30 PM (e.g., 06:00 PM to 07:00 PM)
+        $startAfter = $monday->copy()->setTime(18, 0, 0);
+        $endAfter = $monday->copy()->setTime(19, 0, 0);
+        $response = $this->actingAs($pupil)->postJson('/bookings', [
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => $startAfter->toDateTimeString(),
+            'end_at' => $endAfter->toDateTimeString(),
+        ]);
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => "not suitable to teacher's availability",
+        ]);
+
+        // 3. Time fully within availability (e.g., 02:48 PM to 03:17 PM)
+        $startValid = $monday->copy()->setTime(14, 48, 0);
+        $endValid = $monday->copy()->setTime(15, 17, 0);
+        $response = $this->actingAs($pupil)->postJson('/bookings', [
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => $startValid->toDateTimeString(),
+            'end_at' => $endValid->toDateTimeString(),
+        ]);
+        $response->assertStatus(201);
+    }
 }

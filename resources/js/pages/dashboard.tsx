@@ -6,6 +6,72 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
+function PupilMeetingButton({ apt, handleJoin }: { apt: any; handleJoin: (apt: any) => void }) {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const start = new Date(apt.start_at);
+    const hasStartedTime = currentTime >= start;
+
+    if (!hasStartedTime) {
+        return (
+            <button 
+                disabled 
+                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-muted-foreground cursor-not-allowed border"
+            >
+                <Clock className="h-4 w-4" /> Scheduled
+            </button>
+        );
+    }
+
+    return (
+        <button 
+            onClick={() => handleJoin(apt)}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+        >
+            <Video className="h-4 w-4" /> Join Meeting
+        </button>
+    );
+}
+
+function TeacherMeetingButton({ apt, handleStart, startingAptId }: { apt: any; handleStart: (apt: any) => void; startingAptId: string | null }) {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const start = new Date(apt.start_at);
+    const hasStartedTime = currentTime >= start;
+
+    if (!hasStartedTime) {
+        return (
+            <button 
+                disabled 
+                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed border"
+            >
+                <Clock className="h-4 w-4" /> Scheduled
+            </button>
+        );
+    }
+
+    return (
+        <button 
+            disabled={startingAptId === apt.id}
+            onClick={() => handleStart(apt)}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
+        >
+            <Video className="h-4 w-4" /> 
+            {startingAptId === apt.id ? 'Starting...' : (apt.google_meet_link ? 'Join Meeting' : 'Start Meeting')}
+        </button>
+    );
+}
+
 function PupilDashboard({ 
     user, 
     appointments = [], 
@@ -124,12 +190,7 @@ function PupilDashboard({
                                         >
                                             Cancel
                                         </button>
-                                        <button 
-                                            onClick={() => handleJoin(apt)}
-                                            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
-                                        >
-                                            <Video className="h-4 w-4" /> Join Call
-                                        </button>
+                                        <PupilMeetingButton apt={apt} handleJoin={handleJoin} />
                                     </div>
                                 </div>
                             ))}
@@ -336,14 +397,7 @@ function TeacherDashboard({
                                             >
                                                 Cancel
                                             </button>
-                                            <button 
-                                                disabled={startingAptId === apt.id}
-                                                onClick={() => handleStart(apt)}
-                                                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                                            >
-                                                <Video className="h-4 w-4" /> 
-                                                {startingAptId === apt.id ? 'Starting...' : (apt.google_meet_link ? 'Join' : 'Start')}
-                                            </button>
+                                            <TeacherMeetingButton apt={apt} handleStart={handleStart} startingAptId={startingAptId} />
                                         </div>
                                     </div>
                                 );

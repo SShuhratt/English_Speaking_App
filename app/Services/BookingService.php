@@ -200,7 +200,7 @@ class BookingService
             ->exists();
 
         if (! $available) {
-            throw new \Exception('Teacher is not available at this time.');
+            throw new \Exception('not suitable to teacher\'s availability');
         }
     }
 

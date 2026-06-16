@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Calendar, Clock, User, Video, XCircle } from 'lucide-react';
@@ -9,6 +9,38 @@ interface Props {
     bookings: {
         data: any[];
     };
+}
+
+function PupilMeetingButton({ apt, handleJoin }: { apt: any; handleJoin: (apt: any) => void }) {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const start = new Date(apt.start_at);
+    const hasStartedTime = currentTime >= start;
+
+    if (!hasStartedTime) {
+        return (
+            <button 
+                disabled 
+                className="flex items-center gap-2 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground cursor-not-allowed border"
+            >
+                <Clock className="h-4 w-4" /> Scheduled
+            </button>
+        );
+    }
+
+    return (
+        <button 
+            onClick={() => handleJoin(apt)}
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20"
+        >
+            <Video className="h-4 w-4" /> Join Meeting
+        </button>
+    );
 }
 
 export default function Bookings({ bookings }: Props) {
@@ -92,12 +124,7 @@ export default function Bookings({ bookings }: Props) {
                                     </span>
                                     
                                     {apt.status === 'confirmed' && (
-                                        <button 
-                                            onClick={() => handleJoin(apt)}
-                                            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
-                                        >
-                                            <Video className="h-4 w-4" /> Join
-                                        </button>
+                                        <PupilMeetingButton apt={apt} handleJoin={handleJoin} />
                                     )}
 
                                     {(apt.status === 'confirmed' || apt.status === 'pending') && (
