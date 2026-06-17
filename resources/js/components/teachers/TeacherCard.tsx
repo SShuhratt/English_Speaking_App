@@ -57,10 +57,10 @@ export default function TeacherCard({ teacher }: TeacherProps) {
             </div>
 
             <Link
-                href={`/pupil/booking?teacher_id=${teacher.id}`}
+                href={`/pupil/teachers/${teacher.id}`}
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700"
             >
-                {t('teachers.book_session')} <ChevronRight className="h-4 w-4" />
+                {t('teachers.view_profile')} <ChevronRight className="h-4 w-4" />
             </Link>
         </div>
     );

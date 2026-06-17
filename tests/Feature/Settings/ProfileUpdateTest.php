@@ -127,7 +127,7 @@ class ProfileUpdateTest extends TestCase
             'overall_level' => 'IELTS 8.5',
             'speaking_band' => 8.5,
         ]);
-        
+
         $user->refresh();
         $this->assertEquals(['CELTA', 'TESOL'], $user->teacherProfile->certificates);
     }
@@ -212,5 +212,30 @@ class ProfileUpdateTest extends TestCase
             'phone_number' => null,
             'level' => null,
         ]);
+    }
+
+    public function test_teacher_profile_can_be_updated_with_labels()
+    {
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Teacher Name',
+                'email' => 'teacher@example.com',
+                'age' => 30,
+                'phone_number' => '+1234567890',
+                'experience_years' => 5.5,
+                'workplace' => 'English Academy',
+                'overall_level' => 'IELTS 8.5',
+                'speaking_band' => 8.5,
+                'labels' => ['mock', 'business english'],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $user->refresh();
+        $this->assertEquals(['mock', 'business english'], $user->teacherProfile->labels);
     }
 }

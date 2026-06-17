@@ -167,6 +167,24 @@ export default function Register({ passwordRules }: Props) {
                                         />
                                         <InputError message={errors.speaking_band} />
                                     </div>
+
+                                    <div className="grid gap-2">
+                                        <Label className="text-sm font-semibold">{t('labels.title')}</Label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-1.5">
+                                            {['mock', 'freestyle', 'lessons', 'business english'].map((lbl) => (
+                                                <label key={lbl} className="flex items-center gap-2.5 text-sm font-medium cursor-pointer border rounded-xl p-3 hover:bg-muted/40 transition-colors select-none">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="labels[]"
+                                                        value={lbl}
+                                                        className="rounded border-input text-indigo-600 focus:ring-indigo-500"
+                                                    />
+                                                    <span>{t(`labels.${lbl}`)}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                        <InputError message={errors.labels} />
+                                    </div>
                                 </>
                             )}
 

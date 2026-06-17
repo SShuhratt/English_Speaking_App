@@ -35,6 +35,8 @@ class CreateNewUser implements CreatesNewUsers
             $rules['phone_number'] = ['required', 'string', 'max:20'];
             $rules['overall_level'] = ['required', 'string', 'max:255'];
             $rules['speaking_band'] = ['required', 'numeric', 'min:0', 'max:9'];
+            $rules['labels'] = ['nullable', 'array'];
+            $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english'];
         } elseif ($role === 'pupil') {
             $rules['age'] = ['required', 'integer', 'min:1', 'max:100'];
             $rules['phone_number'] = ['required', 'string', 'max:20'];
@@ -57,6 +59,7 @@ class CreateNewUser implements CreatesNewUsers
                     'phone_number' => $input['phone_number'],
                     'overall_level' => $input['overall_level'],
                     'speaking_band' => $input['speaking_band'],
+                    'labels' => $input['labels'] ?? null,
                     'experience_years' => 0.0,
                     'rating_cache' => 0.0,
                 ]);

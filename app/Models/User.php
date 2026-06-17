@@ -102,4 +102,9 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(Meeting::class, 'teacher_id');
     }
+
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class, 'teacher_id');
+    }
 }

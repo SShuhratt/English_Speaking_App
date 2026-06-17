@@ -9,10 +9,11 @@ class TeacherProfile extends Model
 {
     use HasUuids;
 
-    protected $fillable = ['user_id', 'age', 'phone_number', 'certificates', 'overall_level', 'speaking_band', 'experience_years', 'workplace', 'rating_cache'];
+    protected $fillable = ['user_id', 'age', 'phone_number', 'certificates', 'labels', 'overall_level', 'speaking_band', 'experience_years', 'workplace', 'rating_cache'];
 
     protected $casts = [
         'certificates' => 'array', // Automatically serializes URLs array to JSON string for Postgres
+        'labels' => 'array',
         'experience_years' => 'float',
         'rating_cache' => 'float',
     ];

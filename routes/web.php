@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\PupilBookingController;
 use App\Http\Controllers\PupilProgressController;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Pupil Routes
     Route::prefix('pupil')->name('pupil.')->group(function () {
         Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+        Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
         Route::get('/booking', [TeacherController::class, 'showBooking'])->name('booking.show');
         Route::get('/bookings', [PupilBookingController::class, 'index'])->name('bookings.index');
         Route::get('/sessions', [PupilSessionController::class, 'index'])->name('sessions.index');
@@ -47,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/slots/{teacherId}', [BookingController::class, 'slots']);
     Route::delete('/bookings/{id}', [BookingController::class, 'cancel']);
-    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+    Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 });
 
 Route::get('/auth/google', [GoogleOAuthController::class, 'redirect']);

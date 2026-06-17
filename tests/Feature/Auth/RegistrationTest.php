@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Fortify\Features;
 use Tests\TestCase;
@@ -90,5 +91,31 @@ class RegistrationTest extends TestCase
 
         $response->assertSessionHasErrors(['role']);
         $this->assertGuest();
+    }
+
+    public function test_new_users_can_register_as_teacher_with_labels()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Test Teacher Labels',
+            'email' => 'teacher_labels@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 30,
+            'phone_number' => '+987654321',
+            'overall_level' => 'IELTS 8.5',
+            'speaking_band' => 8.5,
+            'labels' => ['mock', 'freestyle'],
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertDatabaseHas('users', [
+            'email' => 'teacher_labels@example.com',
+            'role' => 'teacher',
+        ]);
+
+        $teacher = User::where('email', 'teacher_labels@example.com')->first();
+        $this->assertEquals(['mock', 'freestyle'], $teacher->teacherProfile->labels);
     }
 }

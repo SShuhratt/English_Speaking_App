@@ -30,4 +30,20 @@ class PupilSectionsTest extends TestCase
         $response = $this->actingAs($pupil)->get('/pupil/progress');
         $response->assertStatus(200);
     }
+
+    public function test_pupil_can_access_teachers_list()
+    {
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $response = $this->actingAs($pupil)->get('/pupil/teachers');
+        $response->assertStatus(200);
+    }
+
+    public function test_pupil_can_view_teacher_profile()
+    {
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $teacher = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this->actingAs($pupil)->get("/pupil/teachers/{$teacher->id}");
+        $response->assertStatus(200);
+    }
 }

@@ -23,6 +23,21 @@ class TeacherController extends Controller
     }
 
     /**
+     * Show teacher profile page for pupil
+     */
+    public function show($id)
+    {
+        $teacher = User::where('id', $id)
+            ->where('role', 'teacher')
+            ->with(['teacherProfile', 'feedbacks.author'])
+            ->firstOrFail();
+
+        return Inertia::render('pupil/teacher-profile', [
+            'teacher' => $teacher,
+        ]);
+    }
+
+    /**
      * Show booking page for a teacher
      */
     public function showBooking(Request $request)

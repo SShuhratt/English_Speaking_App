@@ -24,6 +24,7 @@ type PageProps = {
                 overall_level?: string;
                 speaking_band?: number;
                 certificates?: string[];
+                labels?: string[];
             };
             pupil_profile?: {
                 age?: number;
@@ -205,6 +206,28 @@ export default function Profile({
                                             placeholder="CELTA, IELTS Trainer, TESOL"
                                         />
                                         <InputError className="mt-2" message={errors.certificates} />
+                                    </div>
+
+                                    <div className="grid gap-2 pt-2">
+                                        <Label className="text-sm font-semibold">{t('labels.title')}</Label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-1.5">
+                                            {['mock', 'freestyle', 'lessons', 'business english'].map((lbl) => {
+                                                const isChecked = auth.user.teacher_profile?.labels?.includes(lbl) || false;
+                                                return (
+                                                    <label key={lbl} className="flex items-center gap-2.5 text-sm font-medium cursor-pointer border rounded-xl p-3 hover:bg-muted/40 transition-colors select-none">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="labels[]"
+                                                            value={lbl}
+                                                            defaultChecked={isChecked}
+                                                            className="rounded border-input text-indigo-600 focus:ring-indigo-500"
+                                                        />
+                                                        <span>{t(`labels.${lbl}`)}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                        <InputError className="mt-2" message={errors.labels} />
                                     </div>
                                 </div>
                             )}

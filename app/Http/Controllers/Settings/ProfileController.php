@@ -38,7 +38,7 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        
+
         // Update user basics
         $user->fill($request->only(['name', 'email']));
 
@@ -65,8 +65,10 @@ class ProfileController extends Controller
                 'speaking_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
                 'certificates' => ['nullable', 'array'],
                 'certificates.*' => ['string'],
+                'labels' => ['nullable', 'array'],
+                'labels.*' => ['string', 'in:mock,freestyle,lessons,business english'],
             ]);
-            
+
             $user->teacherProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData
@@ -77,7 +79,7 @@ class ProfileController extends Controller
                 'phone_number' => ['nullable', 'string', 'max:20'],
                 'level' => ['nullable', 'string', 'max:255'],
             ]);
-            
+
             $user->pupilProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData

@@ -163,86 +163,52 @@ function PupilDashboard({
                 </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-2">
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">{t('dashboard.upcoming_sessions')}</h2>
-                    {appointments.length > 0 ? (
-                        <div className="flex flex-col gap-4">
-                            {appointments.map((apt) => (
-                                <div key={apt.id} className="rounded-2xl border bg-card shadow-sm overflow-hidden">
-                                    <div className="flex items-center justify-between border-b p-5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50">
-                                                <Mic className="h-6 w-6" />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-semibold">{t('dashboard.speaking_practice')}</h4>
-                                                <p className="text-sm text-muted-foreground">{t('dashboard.with_teacher', { name: apt.teacher?.full_name || '' })}</p>
-                                            </div>
+            <div className="max-w-3xl flex flex-col gap-4">
+                <h2 className="text-xl font-bold">{t('dashboard.upcoming_sessions')}</h2>
+                {appointments.length > 0 ? (
+                    <div className="flex flex-col gap-4">
+                        {appointments.map((apt) => (
+                            <div key={apt.id} className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+                                <div className="flex items-center justify-between border-b p-5">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50">
+                                            <Mic className="h-6 w-6" />
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold text-indigo-600 dark:text-indigo-400">
-                                                {new Date(apt.start_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </p>
+                                        <div>
+                                            <h4 className="font-semibold">{t('dashboard.speaking_practice')}</h4>
+                                            <p className="text-sm text-muted-foreground">{t('dashboard.with_teacher', { name: apt.teacher?.full_name || '' })}</p>
                                         </div>
                                     </div>
-                                    <div className="p-4 bg-muted/50 flex justify-end gap-3">
-                                        <button 
-                                            onClick={() => handleCancel(apt.id)}
-                                            className="rounded-lg px-4 py-2 text-sm font-medium border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
-                                        >
-                                            {t('dashboard.cancel_button')}
-                                        </button>
-                                        <PupilMeetingButton apt={apt} handleJoin={handleJoin} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="rounded-2xl border bg-card p-10 text-center text-muted-foreground">
-                            <Calendar className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
-                            <p>{t('dashboard.no_upcoming')}</p>
-                            <Link href="/pupil/teachers" className="text-indigo-600 hover:underline text-sm font-medium mt-2 inline-block">
-                                {t('dashboard.book_now')}
-                            </Link>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold">{t('dashboard.recent_feedback')}</h2>
-                    {recentFeedback ? (
-                        <div className="rounded-2xl border bg-card p-5 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex justify-center items-center text-white font-bold">
-                                        {recentFeedback.teacher?.full_name?.substring(0, 2).toUpperCase() || 'TR'}
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold">{recentFeedback.teacher?.full_name}</h4>
+                                    <div className="text-right">
+                                        <p className="font-semibold text-indigo-600 dark:text-indigo-400">
+                                            {new Date(apt.start_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </p>
                                         <p className="text-xs text-muted-foreground">
-                                            {new Date(recentFeedback.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                            {new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-sm font-medium dark:bg-amber-900/30 dark:text-amber-400">
-                                    <Star className="h-3.5 w-3.5 fill-current" /> {recentFeedback.rating_score}/10
+                                <div className="p-4 bg-muted/50 flex justify-end gap-3">
+                                    <button 
+                                        onClick={() => handleCancel(apt.id)}
+                                        className="rounded-lg px-4 py-2 text-sm font-medium border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
+                                    >
+                                        {t('dashboard.cancel_button')}
+                                    </button>
+                                    <PupilMeetingButton apt={apt} handleJoin={handleJoin} />
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed italic">
-                                "{recentFeedback.comment_text}"
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="rounded-2xl border bg-card p-10 text-center text-muted-foreground">
-                            <Play className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
-                            <p>{t('dashboard.no_feedback')}</p>
-                        </div>
-                    )}
-                </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="rounded-2xl border bg-card p-10 text-center text-muted-foreground">
+                        <Calendar className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
+                        <p>{t('dashboard.no_upcoming')}</p>
+                        <Link href="/pupil/teachers" className="text-indigo-600 hover:underline text-sm font-medium mt-2 inline-block">
+                            {t('dashboard.book_now')}
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );
