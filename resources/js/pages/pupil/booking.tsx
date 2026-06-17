@@ -56,7 +56,7 @@ export default function Booking({ teacher }: Props) {
     const { t, locale } = useTranslation();
     
     // Default to en if locale is not supported
-    const lang = (locale === 'en' || locale === 'uz' || locale === 'ru') ? locale : 'en';
+    const lang = ((locale === 'en' || locale === 'uz' || locale === 'ru') ? locale : 'en') as 'en' | 'uz' | 'ru';
 
     const [view, setView] = useState<'day' | 'week'>('day');
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());

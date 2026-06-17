@@ -157,7 +157,7 @@ const localeMap = {
 
 export default function Availability({ availabilities }: Props) {
     const { locale } = useTranslation();
-    const lang = (locale === 'en' || locale === 'uz' || locale === 'ru') ? locale : 'en';
+    const lang = ((locale === 'en' || locale === 'uz' || locale === 'ru') ? locale : 'en') as 'en' | 'uz' | 'ru';
 
     const t = translations[lang];
 
