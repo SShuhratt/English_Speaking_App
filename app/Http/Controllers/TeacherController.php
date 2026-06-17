@@ -29,7 +29,14 @@ class TeacherController extends Controller
     {
         $teacher = User::where('id', $id)
             ->where('role', 'teacher')
-            ->with(['teacherProfile', 'feedbacks.author'])
+            ->with([
+                'teacherProfile',
+                'feedbacks' => function ($query) {
+                    $query->whereHas('author', function ($q) {
+                        $q->where('role', 'pupil');
+                    })->with('author');
+                },
+            ])
             ->firstOrFail();
 
         return Inertia::render('pupil/teacher-profile', [
