@@ -15,9 +15,9 @@ abstract class TestCase extends BaseTestCase
 
         $defaultConnection = config('database.default');
         $defaultDatabase = config("database.connections.{$defaultConnection}.database");
-        $pgsqlDatabase = config("database.connections.pgsql.database");
+        $pgsqlDatabase = config('database.connections.pgsql.database');
 
-        if ($defaultDatabase === 'edtech' || $pgsqlDatabase === 'edtech') {
+        if ($defaultDatabase === 'edtech' || ($defaultConnection === 'pgsql' && $pgsqlDatabase === 'edtech')) {
             throw new \RuntimeException("SAFETY DANGER: Tests are attempting to run on the main database ('edtech')!");
         }
 

@@ -19,6 +19,7 @@ class DashboardController extends Controller
         if ($user->role === 'teacher') {
             $appointments = Appointment::where('teacher_id', $user->id)
                 ->where('status', 'confirmed')
+                ->where('end_at', '>', now())
                 ->with('pupil')
                 ->orderBy('start_at')
                 ->get();
@@ -47,6 +48,7 @@ class DashboardController extends Controller
         } else {
             $appointments = Appointment::where('pupil_id', $user->id)
                 ->where('status', 'confirmed')
+                ->where('end_at', '>', now())
                 ->with('teacher')
                 ->orderBy('start_at')
                 ->get();

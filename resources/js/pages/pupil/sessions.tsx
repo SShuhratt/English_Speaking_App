@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { Video, User, Calendar, Clock, Star, MessageSquare } from 'lucide-react';
+import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { Video, User, Calendar, Clock, Star, MessageSquare, Trash2 } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
 import {
     Dialog,
@@ -39,6 +41,17 @@ export default function Sessions({ sessions }: Props) {
         clearErrors();
         setSelectedApt(apt);
         setIsOpen(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm(t('bookings.delete_confirm'))) return;
+        try {
+            await axios.delete(`/appointments/${id}`);
+            toast.success(t('bookings.delete_success'));
+            router.reload();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || t('bookings.delete_error'));
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -99,6 +112,13 @@ export default function Sessions({ sessions }: Props) {
                                                     {t('sessions.feedback_left')}
                                                 </span>
                                             )}
+
+                                            <button 
+                                                onClick={() => handleDelete(apt.id)}
+                                                className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
+                                            >
+                                                <Trash2 className="h-4 w-4" /> {t('bookings.delete')}
+                                            </button>
                                         </div>
                                     </div>
 

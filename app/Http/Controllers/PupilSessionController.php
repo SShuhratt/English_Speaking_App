@@ -31,6 +31,10 @@ class PupilSessionController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        if ($appointment->end_at->isPast()) {
+            abort(403, 'Meeting has expired');
+        }
+
         if (empty($appointment->google_meet_link)) {
             return response()->json([
                 'message' => 'Teacher is not ready yet',

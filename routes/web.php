@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/slots/{teacherId}', [BookingController::class, 'slots']);
     Route::delete('/bookings/{id}', [BookingController::class, 'cancel']);
+    Route::delete('/appointments/{id}', [BookingController::class, 'destroy']);
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 });
 

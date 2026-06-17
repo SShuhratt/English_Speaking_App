@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
-import { Check, X, Clock, Calendar, User } from 'lucide-react';
+import { Check, X, Clock, Calendar, User, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
@@ -63,6 +63,17 @@ export default function Appointments() {
         }
     };
 
+    const handleDelete = async (id: string) => {
+        if (!confirm(t('bookings.delete_confirm'))) return;
+        try {
+            await axios.delete(`/appointments/${id}`);
+            toast.success(t('bookings.delete_success'));
+            fetchAppointments();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || t('bookings.delete_error'));
+        }
+    };
+
     return (
         <AppLayout>
             <Head title={t('teacher.appointments_title')} />
@@ -98,7 +109,24 @@ export default function Appointments() {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {apt.status === 'pending' ? (
+                                    {new Date(apt.end_at) < new Date() ? (
+                                        <>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                                apt.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' :
+                                                apt.status === 'rejected' ? 'bg-destructive/10 text-destructive' :
+                                                apt.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                'bg-muted text-muted-foreground'
+                                            }`}>
+                                                {t(`bookings.status_${apt.status}`)}
+                                            </span>
+                                            <button 
+                                                onClick={() => handleDelete(apt.id)}
+                                                className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-semibold hover:bg-destructive hover:text-white transition-all cursor-pointer"
+                                            >
+                                                <Trash2 className="h-4 w-4" /> {t('bookings.delete')}
+                                            </button>
+                                        </>
+                                    ) : apt.status === 'pending' ? (
                                         <>
                                             <button 
                                                 onClick={() => handleAction(apt.id, 'approve')}

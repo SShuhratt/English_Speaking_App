@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use App\Models\User;
 use App\Services\BookingService;
 use App\Services\SlotService;
@@ -75,6 +76,33 @@ class BookingController extends Controller
         return response()->json([
             'message' => 'Appointment cancelled',
             'data' => $appointment,
+        ]);
+    }
+
+    /**
+     * Delete appointment after expiration
+     */
+    public function destroy(Request $request, string $id)
+    {
+        $user = $request->user();
+        $appointment = Appointment::findOrFail($id);
+
+        // Ensure user is authorized
+        if ($appointment->pupil_id !== $user->id && $appointment->teacher_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Ensure it is expired
+        if ($appointment->end_at->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot delete active or upcoming appointments.',
+            ], 400);
+        }
+
+        $appointment->delete();
+
+        return response()->json([
+            'message' => 'Appointment deleted successfully',
         ]);
     }
 

@@ -12,6 +12,12 @@ class TeacherAvailabilityController extends Controller
 {
     public function index(Request $request)
     {
+        // Delete expired custom availabilities from the DB
+        TeacherAvailability::where('teacher_id', $request->user()->id)
+            ->where('type', 'custom')
+            ->where('end_at', '<', Carbon::now())
+            ->delete();
+
         $availabilities = TeacherAvailability::where('teacher_id', $request->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -36,7 +42,7 @@ class TeacherAvailabilityController extends Controller
                     if ($request->input('type') === 'recurring' && $request->input('start_time') && $value <= $request->input('start_time')) {
                         $fail('The end time must be a time after start time.');
                     }
-                }
+                },
             ],
             // Custom fields
             'start_at' => ['required_if:type,custom', 'nullable', 'date'],

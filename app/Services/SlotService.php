@@ -21,13 +21,18 @@ class SlotService
             $date
         );
 
-        return Cache::remember(
+        $slots = Cache::remember(
             $cacheKey,
             now()->addHour(),
             function () use (
                 $teacherId,
                 $date
             ) {
+                // Delete expired custom availabilities from the DB
+                TeacherAvailability::where('teacher_id', $teacherId)
+                    ->where('type', 'custom')
+                    ->where('end_at', '<', Carbon::now())
+                    ->delete();
 
                 $day = Carbon::parse($date);
                 $slots = collect();
@@ -53,6 +58,11 @@ class SlotService
                 );
             }
         );
+
+        // Filter out past slots after cache retrieval to ensure accuracy to the current minute
+        return array_values(array_filter($slots, function ($slot) {
+            return Carbon::parse($slot['start_at'])->gt(Carbon::now());
+        }));
     }
 
     protected function generateRecurringSlots(

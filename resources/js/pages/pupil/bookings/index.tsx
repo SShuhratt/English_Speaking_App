@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Calendar, Clock, User, Video, XCircle } from 'lucide-react';
+import { Calendar, Clock, User, Video, XCircle, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
@@ -75,6 +75,17 @@ export default function Bookings({ bookings }: Props) {
         }
     };
 
+    const handleDelete = async (id: string) => {
+        if (!confirm(t('bookings.delete_confirm'))) return;
+        try {
+            await axios.delete(`/appointments/${id}`);
+            toast.success(t('bookings.delete_success'));
+            router.reload();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || t('bookings.delete_error'));
+        }
+    };
+
     const handleJoin = async (apt: any) => {
         try {
             const response = await axios.post(`/pupil/appointments/${apt.id}/join`);
@@ -137,17 +148,28 @@ export default function Bookings({ bookings }: Props) {
                                         {getStatusLabel(apt.status)}
                                     </span>
                                     
-                                    {apt.status === 'confirmed' && (
-                                        <PupilMeetingButton apt={apt} handleJoin={handleJoin} />
-                                    )}
-
-                                    {(apt.status === 'confirmed' || apt.status === 'pending') && (
+                                    {new Date(apt.end_at) < new Date() ? (
                                         <button 
-                                            onClick={() => handleCancel(apt.id)}
+                                            onClick={() => handleDelete(apt.id)}
                                             className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
                                         >
-                                            <XCircle className="h-4 w-4" /> {t('dashboard.cancel_button')}
+                                            <Trash2 className="h-4 w-4" /> {t('bookings.delete')}
                                         </button>
+                                    ) : (
+                                        <>
+                                            {apt.status === 'confirmed' && (
+                                                <PupilMeetingButton apt={apt} handleJoin={handleJoin} />
+                                            )}
+
+                                            {(apt.status === 'confirmed' || apt.status === 'pending') && (
+                                                <button 
+                                                    onClick={() => handleCancel(apt.id)}
+                                                    className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-all cursor-pointer"
+                                                >
+                                                    <XCircle className="h-4 w-4" /> {t('dashboard.cancel_button')}
+                                                </button>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
