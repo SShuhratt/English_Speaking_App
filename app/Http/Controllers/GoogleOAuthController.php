@@ -34,9 +34,37 @@ class GoogleOAuthController extends Controller
             $user = Auth::user();
 
             if (!$user) {
-                return redirect()->route('login')->with('error', 'Please log in first.');
+                // Try to find existing user by email
+                $existingUser = \App\Models\User::where('email', $googleUser->getEmail())->first();
+                if ($existingUser) {
+                    $existingUser->update([
+                        'google_connected' => true,
+                        'google_access_token' => $googleUser->token,
+                        'google_refresh_token' => $googleUser->refreshToken ?? $existingUser->google_refresh_token,
+                        'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
+                        'google_scopes' => $googleUser->approvedScopes ?? [],
+                    ]);
+                    
+                    Auth::login($existingUser);
+                    return redirect()->route('dashboard')->with('success', 'Logged in with Google successfully.');
+                }
+
+                // New user - store in session for registration prefill and verification bypass
+                session([
+                    'google_register' => [
+                        'email' => $googleUser->getEmail(),
+                        'name' => $googleUser->getName(),
+                        'google_id' => $googleUser->getId(),
+                        'google_token' => $googleUser->token,
+                        'google_refresh_token' => $googleUser->refreshToken,
+                        'google_expires_in' => $googleUser->expiresIn,
+                    ]
+                ]);
+
+                return redirect()->route('register')->with('info', 'Google authenticated successfully. Please complete your registration details.');
             }
 
+            // Connection flow for authenticated user
             $user->update([
                 'google_connected' => true,
                 'google_access_token' => $googleUser->token,
@@ -47,7 +75,8 @@ class GoogleOAuthController extends Controller
 
             return redirect()->route('dashboard')->with('success', 'Google account connected successfully.');
         } catch (\Exception $e) {
-            return redirect()->route('dashboard')->with('error', 'Google authentication failed: ' . $e->getMessage());
+            $redirectRoute = Auth::check() ? 'dashboard' : 'login';
+            return redirect()->route($redirectRoute)->with('error', 'Google authentication failed: ' . $e->getMessage());
         }
     }
 }

@@ -21,6 +21,14 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        if (session()->has('google_register')) {
+            $randomPassword = \Illuminate\Support\Str::random(32);
+            $input['password'] = $input['password'] ?? $randomPassword;
+            $input['password_confirmation'] = $input['password_confirmation'] ?? $randomPassword;
+            $input['name'] = $input['name'] ?? session('google_register.name');
+            $input['email'] = $input['email'] ?? session('google_register.email');
+        }
+
         $rules = array_merge(
             $this->profileRules(),
             [
@@ -52,6 +60,18 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => Hash::make($input['password']),
                 'role' => $role,
             ]);
+
+            if (session()->has('google_register')) {
+                $user->email_verified_at = now();
+                $user->google_connected = true;
+                $user->google_access_token = session('google_register.google_token');
+                $user->google_refresh_token = session('google_register.google_refresh_token');
+                $user->google_token_expires_at = now()->addSeconds(session('google_register.google_expires_in', 3600));
+                $user->google_scopes = ['https://www.googleapis.com/auth/calendar.events'];
+                $user->save();
+
+                session()->forget('google_register');
+            }
 
             if ($role === 'teacher') {
                 $user->teacherProfile()->create([
