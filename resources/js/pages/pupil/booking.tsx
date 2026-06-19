@@ -306,7 +306,7 @@ export default function Booking({ teacher }: Props) {
     };
 
     return (
-        <AppLayout>
+        <>
             <Head title={`Book with ${teacher.full_name}`} />
             
             <div className="flex h-[calc(100vh-4rem)] flex-col bg-background select-none overflow-hidden animate-in fade-in duration-300">
@@ -711,6 +711,13 @@ export default function Booking({ teacher }: Props) {
                     </div>
                 </div>
             )}
-        </AppLayout>
+        </>
     );
 }
+
+Booking.layout = {
+    breadcrumbs: [
+        { title: 'find teachers', href: '/pupil/teachers' },
+        { title: 'book lesson', href: '#' }
+    ]
+};

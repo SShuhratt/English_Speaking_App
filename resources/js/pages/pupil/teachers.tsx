@@ -15,7 +15,7 @@ export default function Teachers({ teachers }: Props) {
     const { t } = useTranslation();
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('teachers.browse'), href: '/pupil/teachers' }]}>
+        <>
             <Head title={t('teachers.browse')} />
             <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
                 {/* Header Section */}
@@ -40,6 +40,10 @@ export default function Teachers({ teachers }: Props) {
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Teachers.layout = {
+    breadcrumbs: [{ title: 'find teachers', href: '/pupil/teachers' }]
+};

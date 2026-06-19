@@ -21,7 +21,7 @@ export default function Progress({ progress }: Props) {
         : 0;
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('progress.title'), href: '/pupil/progress' }]}>
+        <>
             <Head title={t('progress.title')} />
             <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
                 {/* Header Section */}
@@ -114,6 +114,10 @@ export default function Progress({ progress }: Props) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Progress.layout = {
+    breadcrumbs: [{ title: 'my progress', href: '/pupil/progress' }]
+};

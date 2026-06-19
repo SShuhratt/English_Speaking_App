@@ -453,7 +453,7 @@ export default function Availability({ availabilities }: Props) {
     };
 
     return (
-        <AppLayout>
+        <>
             <Head title="Teacher Availability Scheduler" />
             <div className="flex h-[calc(100vh-4rem)] flex-col bg-background select-none overflow-hidden animate-in fade-in duration-300">
                 {/* Header (Google Calendar Style Toolbar) */}
@@ -954,6 +954,10 @@ export default function Availability({ availabilities }: Props) {
                     </form>
                 </div>
             )}
-        </AppLayout>
+        </>
     );
 }
+
+Availability.layout = {
+    breadcrumbs: [{ title: 'availability', href: '/teacher/availability' }]
+};

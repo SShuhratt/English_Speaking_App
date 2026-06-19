@@ -105,7 +105,7 @@ export default function Bookings({ bookings }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('bookings.title'), href: '/pupil/bookings' }]}>
+        <>
             <Head title={t('bookings.title')} />
             <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
                 {/* Header Section */}
@@ -196,6 +196,10 @@ export default function Bookings({ bookings }: Props) {
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Bookings.layout = {
+    breadcrumbs: [{ title: 'my bookings', href: '/pupil/bookings' }]
+};

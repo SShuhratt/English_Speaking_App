@@ -82,7 +82,7 @@ export default function Schedule({ appointments }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('schedule.title'), href: '/teacher/schedule' }]}>
+        <>
             <Head title={t('schedule.title')} />
             <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
                 {/* Header Section */}
@@ -141,6 +141,10 @@ export default function Schedule({ appointments }: Props) {
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Schedule.layout = {
+    breadcrumbs: [{ title: 'my schedule', href: '/teacher/schedule' }]
+};

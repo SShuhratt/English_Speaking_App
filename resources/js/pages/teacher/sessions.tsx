@@ -63,7 +63,7 @@ export default function Sessions({ appointments }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('teacher.sessions_title'), href: '/teacher/sessions' }]}>
+        <>
             <Head title={t('teacher.sessions_title')} />
             <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
                 {/* Header Section */}
@@ -207,6 +207,10 @@ export default function Sessions({ appointments }: Props) {
                     </form>
                 </DialogContent>
             </Dialog>
-        </AppLayout>
+        </>
     );
 }
+
+Sessions.layout = {
+    breadcrumbs: [{ title: 'my sessions', href: '/teacher/sessions' }]
+};

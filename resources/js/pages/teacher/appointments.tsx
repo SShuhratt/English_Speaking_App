@@ -75,7 +75,7 @@ export default function Appointments() {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('teacher.appointments_title'), href: '/teacher/appointments' }]}>
+        <>
             <Head title={t('teacher.appointments_title')} />
             <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
                 {/* Header Section */}
@@ -186,6 +186,10 @@ export default function Appointments() {
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Appointments.layout = {
+    breadcrumbs: [{ title: 'booking requests', href: '/teacher/appointments' }]
+};

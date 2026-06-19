@@ -1,6 +1,6 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Star, Clock, User, Calendar, Award, Briefcase, ChevronRight, MessageCircle } from 'lucide-react';
 
@@ -37,6 +37,15 @@ interface Props {
 export default function TeacherProfile({ teacher }: Props) {
     const { t } = useTranslation();
 
+    React.useEffect(() => {
+        setLayoutProps({
+            breadcrumbs: [
+                { title: 'find teachers', href: '/pupil/teachers' },
+                { title: teacher.full_name, href: `/pupil/teachers/${teacher.id}` }
+            ]
+        });
+    }, [teacher.full_name, teacher.id]);
+
     const initials = teacher.full_name
         .split(' ')
         .map((n) => n[0])
@@ -47,10 +56,7 @@ export default function TeacherProfile({ teacher }: Props) {
     const rating = teacher.teacher_profile?.rating_cache || 5.0;
 
     return (
-        <AppLayout breadcrumbs={[
-            { title: t('teachers.browse'), href: '/pupil/teachers' },
-            { title: teacher.full_name, href: `/pupil/teachers/${teacher.id}` }
-        ]}>
+        <>
             <Head title={`${teacher.full_name} - ${t('teachers.profile_title')}`} />
 
             <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
@@ -227,6 +233,13 @@ export default function TeacherProfile({ teacher }: Props) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+TeacherProfile.layout = {
+    breadcrumbs: [
+        { title: 'find teachers', href: '/pupil/teachers' },
+        { title: '...', href: '#' }
+    ]
+};

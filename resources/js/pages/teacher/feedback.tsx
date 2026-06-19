@@ -15,7 +15,7 @@ export default function Feedback({ feedbacks }: Props) {
     const { t } = useTranslation();
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('teacher.feedback_title'), href: '/teacher/feedback' }]}>
+        <>
             <Head title={t('teacher.feedback_title')} />
             <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
                 {/* Header Section */}
@@ -122,6 +122,10 @@ export default function Feedback({ feedbacks }: Props) {
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Feedback.layout = {
+    breadcrumbs: [{ title: 'pupil feedback', href: '/teacher/feedback' }]
+};
