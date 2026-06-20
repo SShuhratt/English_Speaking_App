@@ -38,6 +38,9 @@ COPY . .
 # Generate Laravel Wayfinder route definitions for TypeScript
 RUN php artisan wayfinder:generate --with-form
 
+# Create storage link
+RUN php artisan storage:link --no-interaction
+
 # Run production build for assets
 RUN npm run build
 

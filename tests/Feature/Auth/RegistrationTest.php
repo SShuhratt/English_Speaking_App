@@ -118,4 +118,47 @@ class RegistrationTest extends TestCase
         $teacher = User::where('email', 'teacher_labels@example.com')->first();
         $this->assertEquals(['mock', 'freestyle'], $teacher->teacherProfile->labels);
     }
+
+    public function test_new_users_can_register_as_teacher_under_18()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Young Teacher',
+            'email' => 'young_teacher@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 16,
+            'phone_number' => '+987654321',
+            'overall_level' => 'IELTS 8.5',
+            'speaking_band' => 8.5,
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertDatabaseHas('teacher_profiles', [
+            'age' => 16,
+            'overall_level' => 'IELTS 8.5',
+        ]);
+    }
+
+    public function test_new_users_can_register_as_teacher_with_practice_qa_label()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'QA Teacher',
+            'email' => 'qa_teacher@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 25,
+            'phone_number' => '+987654321',
+            'overall_level' => 'IELTS 8.0',
+            'speaking_band' => 8.0,
+            'labels' => ['practice q&a', 'lessons'],
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $teacher = User::where('email', 'qa_teacher@example.com')->first();
+        $this->assertEquals(['practice q&a', 'lessons'], $teacher->teacherProfile->labels);
+    }
 }

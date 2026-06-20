@@ -30,6 +30,7 @@ type PageProps = {
                 age?: number;
                 phone_number?: string;
                 level?: string;
+                certificates?: string[];
             };
         };
     };
@@ -60,6 +61,7 @@ export default function Profile({
 
                 <Form
                     {...ProfileController.update.form()}
+                    method="post"
                     options={{
                         preserveScroll: true,
                     }}
@@ -67,6 +69,7 @@ export default function Profile({
                 >
                     {({ processing, errors }) => (
                         <>
+                            <input type="hidden" name="_method" value="PATCH" />
                             <div className="grid gap-2">
                                 <Label htmlFor="name">{t('profile.name')}</Label>
 
@@ -193,25 +196,50 @@ export default function Profile({
                                             />
                                             <InputError className="mt-2" message={errors.workplace} />
                                         </div>
-                                    </div>
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="certificates">{t('profile.certificates')}</Label>
-                                        <Input
-                                            id="certificates"
-                                            type="text"
-                                            className="mt-1 block w-full"
-                                            defaultValue={auth.user.teacher_profile?.certificates?.join(', ') || ''}
-                                            name="certificates"
-                                            placeholder="CELTA, IELTS Trainer, TESOL"
-                                        />
-                                        <InputError className="mt-2" message={errors.certificates} />
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="certificates">{t('profile.certificates')}</Label>
+                                            <Input
+                                                id="certificates"
+                                                type="text"
+                                                className="mt-1 block w-full"
+                                                defaultValue={auth.user.teacher_profile?.certificates?.filter(c => !c.startsWith('/storage/')).join(', ') || ''}
+                                                name="certificates"
+                                                placeholder="CELTA, IELTS Trainer, TESOL"
+                                            />
+                                            <InputError className="mt-2" message={errors.certificates} />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="ielts_certificate">Upload IELTS Certificate (PDF or Image)</Label>
+                                            <Input
+                                                id="ielts_certificate"
+                                                type="file"
+                                                name="ielts_certificate"
+                                                className="mt-1 block w-full"
+                                                accept=".pdf,.png,.jpg,.jpeg"
+                                            />
+                                            {auth.user.teacher_profile?.certificates?.some(c => c.startsWith('/storage/')) && (
+                                                <div className="text-xs text-muted-foreground mt-1">
+                                                    Uploaded certificate:{' '}
+                                                    <a
+                                                        href={auth.user.teacher_profile.certificates.find(c => c.startsWith('/storage/'))}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-indigo-600 hover:text-indigo-700 underline font-semibold"
+                                                    >
+                                                        View File
+                                                    </a>
+                                                </div>
+                                            )}
+                                            <InputError className="mt-2" message={errors.ielts_certificate} />
+                                        </div>
                                     </div>
 
                                     <div className="grid gap-2 pt-2">
                                         <Label className="text-sm font-semibold">{t('labels.title')}</Label>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-1.5">
-                                            {['mock', 'freestyle', 'lessons', 'business english'].map((lbl) => {
+                                            {['mock', 'freestyle', 'lessons', 'business english', 'practice q&a'].map((lbl) => {
                                                 const isChecked = auth.user.teacher_profile?.labels?.includes(lbl) || false;
                                                 return (
                                                     <label key={lbl} className="flex items-center gap-2.5 text-sm font-medium cursor-pointer border rounded-xl p-3 hover:bg-muted/40 transition-colors select-none">
@@ -283,6 +311,31 @@ export default function Profile({
                                                 <option value="cefr_band">{t('profile.level_cefr')}</option>
                                             </select>
                                             <InputError className="mt-2" message={errors.level} />
+                                        </div>
+
+                                        <div className="grid gap-2 sm:col-span-2">
+                                            <Label htmlFor="ielts_certificate">Upload IELTS Certificate (PDF or Image)</Label>
+                                            <Input
+                                                id="ielts_certificate"
+                                                type="file"
+                                                name="ielts_certificate"
+                                                className="mt-1 block w-full"
+                                                accept=".pdf,.png,.jpg,.jpeg"
+                                            />
+                                            {auth.user.pupil_profile?.certificates?.some(c => c.startsWith('/storage/')) && (
+                                                <div className="text-xs text-muted-foreground mt-1">
+                                                    Uploaded certificate:{' '}
+                                                    <a
+                                                        href={auth.user.pupil_profile.certificates.find(c => c.startsWith('/storage/'))}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-indigo-600 hover:text-indigo-700 underline font-semibold"
+                                                    >
+                                                        View File
+                                                    </a>
+                                                </div>
+                                            )}
+                                            <InputError className="mt-2" message={errors.ielts_certificate} />
                                         </div>
                                     </div>
                                 </div>

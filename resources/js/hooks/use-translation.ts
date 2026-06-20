@@ -112,6 +112,7 @@ const dictionary = {
     'auth.remember_me': 'Remember me',
     'auth.forgot_password': 'Forgot your password?',
     'auth.no_account': "Don't have an account?",
+    'auth.registering_with_google': 'Registering with Google:',
     'auth.has_account': 'Already registered?',
     'auth.full_name': 'Full Name',
     'auth.name': 'Name',
@@ -137,6 +138,7 @@ const dictionary = {
     'auth.join_as': 'Join as a',
     'auth.pupil_desc': 'Book speaking sessions',
     'auth.teacher_desc': 'Teach & manage schedule',
+    'auth.continue_with_google': 'Continue with Google',
 
     // Pupil booking / teachers list
     'pupil.find_teachers': 'Find a Teacher',
@@ -312,6 +314,7 @@ const dictionary = {
     'labels.freestyle': 'Freestyle Conversation',
     'labels.lessons': 'Structured Lessons',
     'labels.business english': 'Business English',
+    'labels.practice q&a': 'Practice Q&A',
     'bookings.title': 'My Bookings',
     'bookings.desc': 'Manage your upcoming and pending lesson requests.',
     'bookings.teacher_label': 'Teacher: :name',
@@ -495,6 +498,7 @@ const dictionary = {
     'auth.remember_me': 'Eslab qolish',
     'auth.forgot_password': 'Parolni unutdingizmi?',
     'auth.no_account': 'Hisobingiz yo\'qmi?',
+    'auth.registering_with_google': 'Google orqali ro\'yxatdan o\'tilmoqda:',
     'auth.has_account': 'Ro\'yxatdan o\'tganmisiz?',
     'auth.full_name': 'To\'liq ismingiz',
     'auth.name': 'Ism',
@@ -520,6 +524,7 @@ const dictionary = {
     'auth.join_as': 'Ro\'yxatdan o\'tish turi',
     'auth.pupil_desc': 'Darslarni bron qilish',
     'auth.teacher_desc': 'Dars berish va jadvalni boshqarish',
+    'auth.continue_with_google': 'Continue with Google',
 
     // Pupil booking / teachers list
     'pupil.find_teachers': 'O\'qituvchi topish',
@@ -695,6 +700,7 @@ const dictionary = {
     'labels.freestyle': 'Erkin suhbat',
     'labels.lessons': 'Tizimli darslar',
     'labels.business english': 'Biznes ingliz tili',
+    'labels.practice q&a': 'Mashq Q&A',
     'bookings.title': 'Mening buyurtmalarim',
     'bookings.desc': 'Kelgusi va kutilayotgan dars so\'rovlaringizni boshqaring.',
     'bookings.teacher_label': 'O\'qituvchi: :name',
@@ -878,6 +884,7 @@ const dictionary = {
     'auth.remember_me': 'Запомнить меня',
     'auth.forgot_password': 'Забыли пароль?',
     'auth.no_account': 'Нет аккаунта?',
+    'auth.registering_with_google': 'Регистрация через Google:',
     'auth.has_account': 'Уже зарегистрированы?',
     'auth.full_name': 'ФИО',
     'auth.name': 'Имя',
@@ -903,6 +910,7 @@ const dictionary = {
     'auth.join_as': 'Зарегистрироваться как',
     'auth.pupil_desc': 'Бронировать разговорные уроки',
     'auth.teacher_desc': 'Преподавать и вести расписание',
+    'auth.continue_with_google': 'Continue with Google',
 
     // Pupil booking / teachers list
     'pupil.find_teachers': 'Найти учителя',
@@ -1078,6 +1086,7 @@ const dictionary = {
     'labels.freestyle': 'Разговорный клуб',
     'labels.lessons': 'Структурированные уроки',
     'labels.business english': 'Деловой английский',
+    'labels.practice q&a': 'Практика Q&A',
     'bookings.title': 'Мои бронирования',
     'bookings.desc': 'Управляйте вашими предстоящими и ожидающими запросами на уроки.',
     'bookings.teacher_label': 'Преподаватель: :name',

@@ -9,7 +9,11 @@ class PupilProfile extends Model
 {
     use HasUuids;
 
-    protected $fillable = ['user_id', 'age', 'phone_number', 'level'];
+    protected $fillable = ['user_id', 'age', 'phone_number', 'level', 'certificates'];
+
+    protected $casts = [
+        'certificates' => 'array',
+    ];
 
     public function user()
     {

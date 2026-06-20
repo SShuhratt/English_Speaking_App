@@ -237,5 +237,59 @@ class ProfileUpdateTest extends TestCase
 
         $user->refresh();
         $this->assertEquals(['mock', 'business english'], $user->teacherProfile->labels);
+     }
+
+    public function test_teacher_profile_can_be_updated_with_age_under_18()
+    {
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Young Teacher',
+                'email' => 'young_teacher@example.com',
+                'age' => 15,
+                'phone_number' => '+987654321',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('teacher_profiles', [
+            'user_id' => $user->id,
+            'age' => 15,
+        ]);
+    }
+
+    public function test_teacher_profile_can_be_updated_with_practice_qa_label()
+    {
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'QA Teacher',
+                'email' => 'qa_teacher@example.com',
+                'labels' => ['practice q&a', 'lessons'],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $user->refresh();
+        $this->assertEquals(['practice q&a', 'lessons'], $user->teacherProfile->labels);
+    }
+
+    public function test_pupil_profile_can_be_updated_with_certificates()
+    {
+        $user = User::factory()->create(['role' => 'pupil']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Pupil Name',
+                'email' => 'pupil@example.com',
+                'certificates' => ['IELTS 7.5 Certificate', 'CEFR B2'],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $user->refresh();
+        $this->assertEquals(['IELTS 7.5 Certificate', 'CEFR B2'], $user->pupilProfile->certificates);
     }
 }

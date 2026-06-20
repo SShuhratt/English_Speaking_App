@@ -105,13 +105,13 @@ export default function Login({ status, canResetPassword }: Props) {
                                 href="/auth/google"
                                 className="flex items-center justify-center gap-2.5 rounded-xl border border-input bg-background hover:bg-muted/50 px-4 py-2.5 text-sm font-semibold transition-all shadow-sm cursor-pointer text-foreground"
                             >
-                                <svg className="h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2001/XMLSchema">
+                                <svg className="h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1l3.18,2.48c1.86,-1.72 2.93,-4.25 2.93,-7.22C21.45,11.77 21.41,11.41 21.35,11.1z" fill="#4285f4" />
                                     <path d="M12,20.62c2.6,0 4.78,-0.86 6.37,-2.34l-3.18,-2.48c-0.88,0.59 -2.01,0.94 -3.19,0.94c-2.45,0 -4.53,-1.66 -5.27,-3.9L3.48,16.27c1.61,3.19 4.91,5.35 8.52,5.35z" fill="#34a853" />
                                     <path d="M6.73,12.84c-0.19,-0.57 -0.3,-1.18 -0.3,-1.81s0.11,-1.24 0.3,-1.81L3.48,6.48C2.75,7.93 2.33,9.57 2.33,11.03c0,1.46 0.42,3.1 1.15,4.55L6.73,12.84z" fill="#fbbc05" />
                                     <path d="M12,5.92c1.41,0 2.68,0.49 3.68,1.44l2.76,-2.76C16.77,3.1 14.6,2.38 12,2.38C8.39,2.38 5.09,4.54 3.48,7.73l3.25,2.51c0.74,-2.24 2.82,-3.9 5.27,-3.9z" fill="#ea4335" />
                                 </svg>
-                                {t('auth.continue_with_google', 'Continue with Google')}
+                                {t('auth.continue_with_google')}
                             </a>
                         </div>
 

@@ -31,7 +31,7 @@ export default function Register({ passwordRules }: Props) {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                     <div>
-                        <span className="font-semibold">{t('auth.registering_with_google', 'Registering with Google:')}</span> {google_register.email}. Your email will be verified automatically.
+                        <span className="font-semibold">{t('auth.registering_with_google')}</span> {google_register.email}. Your email will be verified automatically.
                     </div>
                 </div>
             )}
@@ -48,7 +48,7 @@ export default function Register({ passwordRules }: Props) {
                             <path d="M6.73,12.84c-0.19,-0.57 -0.3,-1.18 -0.3,-1.81s0.11,-1.24 0.3,-1.81L3.48,6.48C2.75,7.93 2.33,9.57 2.33,11.03c0,1.46 0.42,3.1 1.15,4.55L6.73,12.84z" fill="#fbbc05" />
                             <path d="M12,5.92c1.41,0 2.68,0.49 3.68,1.44l2.76,-2.76C16.77,3.1 14.6,2.38 12,2.38C8.39,2.38 5.09,4.54 3.48,7.73l3.25,2.51c0.74,-2.24 2.82,-3.9 5.27,-3.9z" fill="#ea4335" />
                         </svg>
-                        {t('auth.continue_with_google', 'Continue with Google')}
+                        {t('auth.continue_with_google')}
                     </a>
 
                     <div className="relative flex py-2 items-center">

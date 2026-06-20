@@ -48,16 +48,42 @@ class ProfileController extends Controller
 
         $user->save();
 
-        // Update role-specific profile details
-        if ($user->role === 'teacher') {
-            // Handle certificates formatting (comma-separated string to array)
-            if ($request->has('certificates') && is_string($request->input('certificates'))) {
-                $certs = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
-                $request->merge(['certificates' => $certs]);
+        // Handle certificates formatting (comma-separated string to array)
+        if ($request->has('certificates') && is_string($request->input('certificates'))) {
+            $certs = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
+            $request->merge(['certificates' => $certs]);
+        }
+
+        // Handle uploaded IELTS certificate file
+        if ($request->hasFile('ielts_certificate')) {
+            $request->validate([
+                'ielts_certificate' => ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'], // 10MB max
+            ]);
+
+            $path = $request->file('ielts_certificate')->store('certificates', 'public');
+            $fileUrl = '/storage/' . $path;
+
+            // Get existing or text-submitted certificates
+            $existingCerts = $request->input('certificates');
+            if (!is_array($existingCerts)) {
+                $existingCerts = $user->role === 'teacher' 
+                    ? ($user->teacherProfile?->certificates ?? [])
+                    : ($user->pupilProfile?->certificates ?? []);
             }
 
+            // Remove any old uploaded certificate from the list to keep it clean
+            $existingCerts = array_filter($existingCerts, function ($cert) {
+                return !str_starts_with($cert, '/storage/certificates/');
+            });
+
+            $existingCerts[] = $fileUrl;
+            $request->merge(['certificates' => array_values($existingCerts)]);
+        }
+
+        // Update role-specific profile details
+        if ($user->role === 'teacher') {
             $profileData = $request->validate([
-                'age' => ['nullable', 'integer', 'min:18', 'max:100'],
+                'age' => ['nullable', 'integer', 'min:1', 'max:120'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
                 'experience_years' => ['nullable', 'numeric', 'min:0', 'max:80'],
                 'workplace' => ['nullable', 'string', 'max:255'],
@@ -66,7 +92,7 @@ class ProfileController extends Controller
                 'certificates' => ['nullable', 'array'],
                 'certificates.*' => ['string'],
                 'labels' => ['nullable', 'array'],
-                'labels.*' => ['string', 'in:mock,freestyle,lessons,business english'],
+                'labels.*' => ['string', 'in:mock,freestyle,lessons,business english,practice q&a'],
             ]);
 
             $user->teacherProfile()->updateOrCreate(
@@ -75,9 +101,11 @@ class ProfileController extends Controller
             );
         } elseif ($user->role === 'pupil') {
             $profileData = $request->validate([
-                'age' => ['nullable', 'integer', 'min:1', 'max:100'],
+                'age' => ['nullable', 'integer', 'min:1', 'max:120'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
                 'level' => ['nullable', 'string', 'max:255'],
+                'certificates' => ['nullable', 'array'],
+                'certificates.*' => ['string'],
             ]);
 
             $user->pupilProfile()->updateOrCreate(

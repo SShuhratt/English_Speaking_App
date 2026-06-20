@@ -39,16 +39,18 @@ class CreateNewUser implements CreatesNewUsers
         // Add role-specific validation rules
         $role = $input['role'] ?? null;
         if ($role === 'teacher') {
-            $rules['age'] = ['required', 'integer', 'min:18', 'max:100'];
+            $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
             $rules['phone_number'] = ['required', 'string', 'max:20'];
             $rules['overall_level'] = ['required', 'string', 'max:255'];
             $rules['speaking_band'] = ['required', 'numeric', 'min:0', 'max:9'];
             $rules['labels'] = ['nullable', 'array'];
-            $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english'];
+            $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english,practice q&a'];
+            $rules['ielts_certificate'] = ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
         } elseif ($role === 'pupil') {
-            $rules['age'] = ['required', 'integer', 'min:1', 'max:100'];
+            $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
             $rules['phone_number'] = ['required', 'string', 'max:20'];
             $rules['level'] = ['required', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'];
+            $rules['ielts_certificate'] = ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
         }
 
         Validator::make($input, $rules)->validate();
@@ -73,6 +75,12 @@ class CreateNewUser implements CreatesNewUsers
                 session()->forget('google_register');
             }
 
+            $certificates = null;
+            if (request()->hasFile('ielts_certificate')) {
+                $path = request()->file('ielts_certificate')->store('certificates', 'public');
+                $certificates = ['/storage/' . $path];
+            }
+
             if ($role === 'teacher') {
                 $user->teacherProfile()->create([
                     'age' => $input['age'],
@@ -80,6 +88,7 @@ class CreateNewUser implements CreatesNewUsers
                     'overall_level' => $input['overall_level'],
                     'speaking_band' => $input['speaking_band'],
                     'labels' => $input['labels'] ?? null,
+                    'certificates' => $certificates,
                     'experience_years' => 0.0,
                     'rating_cache' => 0.0,
                 ]);
@@ -88,6 +97,7 @@ class CreateNewUser implements CreatesNewUsers
                     'age' => $input['age'],
                     'phone_number' => $input['phone_number'],
                     'level' => $input['level'],
+                    'certificates' => $certificates,
                 ]);
             }
 
