@@ -66,7 +66,8 @@ return [
             'key_file_path' => (function() {
                 $key = env('GOOGLE_CLOUD_KEY_FILE', env('GCP_KEY_FILE'));
                 if (is_string($key) && !str_starts_with(trim($key), '{') && !str_contains($key, '"') && !str_contains($key, ':')) {
-                    return $key;
+                    $key = trim($key);
+                    return str_starts_with($key, '/') ? $key : base_path($key);
                 }
                 return null;
             })(),
