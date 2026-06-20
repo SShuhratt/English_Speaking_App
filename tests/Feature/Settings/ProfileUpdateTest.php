@@ -297,6 +297,7 @@ class ProfileUpdateTest extends TestCase
 
     public function test_teacher_profile_can_be_updated_with_multiple_certificates_uploaded()
     {
+        Storage::fake(env('FILESYSTEM_DISK', 'public'));
         Storage::fake('gcs');
         $user = User::factory()->create(['role' => 'teacher']);
 
@@ -323,6 +324,7 @@ class ProfileUpdateTest extends TestCase
 
     public function test_teacher_profile_can_be_updated_by_deleting_existing_certificates()
     {
+        Storage::fake(env('FILESYSTEM_DISK', 'public'));
         Storage::fake('gcs');
         $user = User::factory()->create(['role' => 'teacher']);
 

@@ -166,6 +166,7 @@ class RegistrationTest extends TestCase
 
     public function test_registration_can_upload_multiple_certificates()
     {
+        Storage::fake(env('FILESYSTEM_DISK', 'public'));
         Storage::fake('gcs');
 
         $response = $this->post(route('register.store'), [
