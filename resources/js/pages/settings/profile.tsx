@@ -1,5 +1,7 @@
+import React from 'react';
 import { Form, Head, usePage } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
+import { Trash2, FileText, ExternalLink } from 'lucide-react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
@@ -45,6 +47,19 @@ export default function Profile({
 }) {
     const { auth } = usePage<PageProps>().props;
     const { t } = useTranslation();
+
+    const isImageFile = (url: string) => {
+        const cleanUrl = url.split('?')[0];
+        return /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(cleanUrl);
+    };
+
+    const initialUploadedCerts = React.useMemo(() => {
+        return auth.user.role === 'teacher'
+            ? (auth.user.teacher_profile?.certificates?.filter(c => c.startsWith('http') || c.startsWith('/storage')) || [])
+            : (auth.user.pupil_profile?.certificates?.filter(c => c.startsWith('http') || c.startsWith('/storage')) || []);
+    }, [auth.user]);
+
+    const [uploadedCerts, setUploadedCerts] = React.useState<string[]>(initialUploadedCerts);
 
     return (
         <>
@@ -203,7 +218,7 @@ export default function Profile({
                                                 id="certificates"
                                                 type="text"
                                                 className="mt-1 block w-full"
-                                                defaultValue={auth.user.teacher_profile?.certificates?.filter(c => !c.startsWith('/storage/')).join(', ') || ''}
+                                                defaultValue={auth.user.teacher_profile?.certificates?.filter(c => !c.startsWith('/storage') && !c.startsWith('http')).join(', ') || ''}
                                                 name="certificates"
                                                 placeholder="CELTA, IELTS Trainer, TESOL"
                                             />
@@ -211,28 +226,56 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="ielts_certificate">Upload IELTS Certificate (PDF or Image)</Label>
+                                            <Label htmlFor="ielts_certificates">Upload IELTS Certificate(s) (PDF or Image)</Label>
                                             <Input
-                                                id="ielts_certificate"
+                                                id="ielts_certificates"
                                                 type="file"
-                                                name="ielts_certificate"
+                                                name="ielts_certificates[]"
+                                                multiple
                                                 className="mt-1 block w-full"
                                                 accept=".pdf,.png,.jpg,.jpeg"
                                             />
-                                            {auth.user.teacher_profile?.certificates?.some(c => c.startsWith('/storage/')) && (
-                                                <div className="text-xs text-muted-foreground mt-1">
-                                                    Uploaded certificate:{' '}
-                                                    <a
-                                                        href={auth.user.teacher_profile.certificates.find(c => c.startsWith('/storage/'))}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-indigo-600 hover:text-indigo-700 underline font-semibold"
-                                                    >
-                                                        View File
-                                                    </a>
+                                            <InputError className="mt-2" message={errors.ielts_certificates} />
+
+                                            {uploadedCerts.length > 0 && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                                                    {uploadedCerts.map((cert, index) => {
+                                                        const isImg = isImageFile(cert);
+                                                        return (
+                                                            <div key={index} className="relative group rounded-xl border border-border bg-muted/20 overflow-hidden flex flex-col p-2.5 transition-all hover:shadow-sm">
+                                                                {isImg ? (
+                                                                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                                                                        <img src={cert} alt="Certificate" className="w-full h-full object-cover" />
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                                            <a href={cert} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/95 text-slate-800 hover:bg-white transition-all scale-90 group-hover:scale-100">
+                                                                                <ExternalLink className="h-4 w-4" />
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="aspect-video w-full rounded-lg bg-muted/40 border border-dashed border-border/80 flex flex-col items-center justify-center gap-1.5 p-2">
+                                                                        <FileText className="h-8 w-8 text-indigo-500/80" />
+                                                                        <span className="text-[10px] font-bold text-muted-foreground truncate max-w-full px-2">
+                                                                            {cert.substring(cert.lastIndexOf('/') + 1)}
+                                                                        </span>
+                                                                        <a href={cert} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                                                                            View Document <ExternalLink className="h-3 w-3" />
+                                                                        </a>
+                                                                    </div>
+                                                                )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setUploadedCerts(prev => prev.filter((_, i) => i !== index))}
+                                                                    className="absolute top-2.5 right-2.5 p-1 rounded-full bg-red-500 text-white shadow hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none"
+                                                                >
+                                                                    <Trash2 className="h-3 w-3" />
+                                                                </button>
+                                                                <input type="hidden" name="existing_certificates[]" value={cert} />
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            <InputError className="mt-2" message={errors.ielts_certificate} />
                                         </div>
                                     </div>
 
@@ -314,28 +357,56 @@ export default function Profile({
                                         </div>
 
                                         <div className="grid gap-2 sm:col-span-2">
-                                            <Label htmlFor="ielts_certificate">Upload IELTS Certificate (PDF or Image)</Label>
+                                            <Label htmlFor="ielts_certificates">Upload IELTS Certificate(s) (PDF or Image)</Label>
                                             <Input
-                                                id="ielts_certificate"
+                                                id="ielts_certificates"
                                                 type="file"
-                                                name="ielts_certificate"
+                                                name="ielts_certificates[]"
+                                                multiple
                                                 className="mt-1 block w-full"
                                                 accept=".pdf,.png,.jpg,.jpeg"
                                             />
-                                            {auth.user.pupil_profile?.certificates?.some(c => c.startsWith('/storage/')) && (
-                                                <div className="text-xs text-muted-foreground mt-1">
-                                                    Uploaded certificate:{' '}
-                                                    <a
-                                                        href={auth.user.pupil_profile.certificates.find(c => c.startsWith('/storage/'))}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-indigo-600 hover:text-indigo-700 underline font-semibold"
-                                                    >
-                                                        View File
-                                                    </a>
+                                            <InputError className="mt-2" message={errors.ielts_certificates} />
+
+                                            {uploadedCerts.length > 0 && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                                                    {uploadedCerts.map((cert, index) => {
+                                                        const isImg = isImageFile(cert);
+                                                        return (
+                                                            <div key={index} className="relative group rounded-xl border border-border bg-muted/20 overflow-hidden flex flex-col p-2.5 transition-all hover:shadow-sm">
+                                                                {isImg ? (
+                                                                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                                                                        <img src={cert} alt="Certificate" className="w-full h-full object-cover" />
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                                            <a href={cert} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/95 text-slate-800 hover:bg-white transition-all scale-90 group-hover:scale-100">
+                                                                                <ExternalLink className="h-4 w-4" />
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="aspect-video w-full rounded-lg bg-muted/40 border border-dashed border-border/80 flex flex-col items-center justify-center gap-1.5 p-2">
+                                                                        <FileText className="h-8 w-8 text-indigo-500/80" />
+                                                                        <span className="text-[10px] font-bold text-muted-foreground truncate max-w-full px-2">
+                                                                            {cert.substring(cert.lastIndexOf('/') + 1)}
+                                                                        </span>
+                                                                        <a href={cert} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                                                                            View Document <ExternalLink className="h-3 w-3" />
+                                                                        </a>
+                                                                    </div>
+                                                                )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setUploadedCerts(prev => prev.filter((_, i) => i !== index))}
+                                                                    className="absolute top-2.5 right-2.5 p-1 rounded-full bg-red-500 text-white shadow hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none"
+                                                                >
+                                                                    <Trash2 className="h-3 w-3" />
+                                                                </button>
+                                                                <input type="hidden" name="existing_certificates[]" value={cert} />
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            <InputError className="mt-2" message={errors.ielts_certificate} />
                                         </div>
                                     </div>
                                 </div>

@@ -4,6 +4,8 @@ namespace Tests\Feature\Settings;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileUpdateTest extends TestCase
@@ -291,5 +293,56 @@ class ProfileUpdateTest extends TestCase
         $response->assertSessionHasNoErrors();
         $user->refresh();
         $this->assertEquals(['IELTS 7.5 Certificate', 'CEFR B2'], $user->pupilProfile->certificates);
+    }
+
+    public function test_teacher_profile_can_be_updated_with_multiple_certificates_uploaded()
+    {
+        Storage::fake('gcs');
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Teacher Name',
+                'email' => 'teacher@example.com',
+                'certificates' => 'CELTA, TESOL',
+                'ielts_certificates' => [
+                    UploadedFile::fake()->create('t_cert1.jpg', 100, 'image/jpeg'),
+                    UploadedFile::fake()->create('t_doc2.pdf', 100, 'application/pdf')
+                ],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $user->refresh();
+
+        $certs = $user->teacherProfile->certificates;
+        $this->assertContains('CELTA', $certs);
+        $this->assertContains('TESOL', $certs);
+        $this->assertCount(4, $certs);
+    }
+
+    public function test_teacher_profile_can_be_updated_by_deleting_existing_certificates()
+    {
+        Storage::fake('gcs');
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $user->teacherProfile()->create([
+            'certificates' => ['CELTA', 'https://storage.googleapis.com/bucket/old_cert.pdf']
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Teacher Name',
+                'email' => 'teacher@example.com',
+                'certificates' => 'CELTA',
+                'existing_certificates' => [],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $user->refresh();
+
+        $certs = $user->teacherProfile->certificates;
+        $this->assertEquals(['CELTA'], $certs);
     }
 }

@@ -161,23 +161,37 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             {role === 'pupil' && (
-                                <div className="grid gap-2">
-                                    <Label htmlFor="level">{t('auth.target_level')}</Label>
-                                    <select
-                                        id="level"
-                                        name="level"
-                                        required
-                                        className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <option value="">{t('auth.select_level')}</option>
-                                        <option value="beginner">Beginner</option>
-                                        <option value="pre-intermediate">Pre-Intermediate</option>
-                                        <option value="upper-intermediate">Upper-Intermediate</option>
-                                        <option value="advanced">Advanced</option>
-                                        <option value="ielts_band">IELTS Band</option>
-                                        <option value="cefr_band">CEFR Band</option>
-                                    </select>
-                                    <InputError message={errors.level} />
+                                <div className="space-y-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="level">{t('auth.target_level')}</Label>
+                                        <select
+                                            id="level"
+                                            name="level"
+                                            required
+                                            className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <option value="">{t('auth.select_level')}</option>
+                                            <option value="beginner">Beginner</option>
+                                            <option value="pre-intermediate">Pre-Intermediate</option>
+                                            <option value="upper-intermediate">Upper-Intermediate</option>
+                                            <option value="advanced">Advanced</option>
+                                            <option value="ielts_band">IELTS Band</option>
+                                            <option value="cefr_band">CEFR Band</option>
+                                        </select>
+                                        <InputError message={errors.level} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="ielts_certificates">Upload IELTS Certificate(s) (PDF or Image)</Label>
+                                        <Input
+                                            id="ielts_certificates"
+                                            type="file"
+                                            name="ielts_certificates[]"
+                                            multiple
+                                            className="mt-1 block w-full"
+                                            accept=".pdf,.png,.jpg,.jpeg"
+                                        />
+                                        <InputError message={errors.ielts_certificates} />
+                                    </div>
                                 </div>
                             )}
 
@@ -211,7 +225,7 @@ export default function Register({ passwordRules }: Props) {
                                     <div className="grid gap-2">
                                         <Label className="text-sm font-semibold">{t('labels.title')}</Label>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-1.5">
-                                            {['mock', 'freestyle', 'lessons', 'business english'].map((lbl) => (
+                                            {['mock', 'freestyle', 'lessons', 'business english', 'practice q&a'].map((lbl) => (
                                                 <label key={lbl} className="flex items-center gap-2.5 text-sm font-medium cursor-pointer border rounded-xl p-3 hover:bg-muted/40 transition-colors select-none">
                                                     <input
                                                         type="checkbox"
@@ -224,6 +238,19 @@ export default function Register({ passwordRules }: Props) {
                                             ))}
                                         </div>
                                         <InputError message={errors.labels} />
+                                    </div>
+
+                                    <div className="grid gap-2 mt-4">
+                                        <Label htmlFor="ielts_certificates">Upload IELTS Certificate(s) (PDF or Image)</Label>
+                                        <Input
+                                            id="ielts_certificates"
+                                            type="file"
+                                            name="ielts_certificates[]"
+                                            multiple
+                                            className="mt-1 block w-full"
+                                            accept=".pdf,.png,.jpg,.jpeg"
+                                        />
+                                        <InputError message={errors.ielts_certificates} />
                                     </div>
                                 </>
                             )}

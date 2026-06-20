@@ -49,38 +49,51 @@ class ProfileController extends Controller
 
         $user->save();
 
-        // Handle certificates formatting (comma-separated string to array)
-        if ($request->has('certificates') && is_string($request->input('certificates'))) {
-            $certs = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
-            $request->merge(['certificates' => $certs]);
+        // Extract text certificates (from the comma-separated input)
+        $textCerts = [];
+        if ($request->has('certificates')) {
+            if (is_string($request->input('certificates'))) {
+                $textCerts = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
+            } elseif (is_array($request->input('certificates'))) {
+                $textCerts = $request->input('certificates');
+            }
         }
 
-        // Handle uploaded IELTS certificate file
-        if ($request->hasFile('ielts_certificate')) {
+        // Extract remaining/existing uploaded certificates (sent as hidden inputs)
+        $existingUploadedCerts = [];
+        if ($request->has('existing_certificates')) {
+            $existingUploadedCerts = $request->input('existing_certificates') ?? [];
+        } else {
+            // Fallback to currently stored certificate URLs if 'existing_certificates' is not sent
+            $currentCerts = $user->role === 'teacher' 
+                ? ($user->teacherProfile?->certificates ?? [])
+                : ($user->pupilProfile?->certificates ?? []);
+            
+            $existingUploadedCerts = array_filter($currentCerts, function ($cert) {
+                return str_starts_with($cert, 'http') || str_starts_with($cert, '/storage');
+            });
+        }
+
+        // Handle newly uploaded files
+        $newUploadedUrls = [];
+        if ($request->hasFile('ielts_certificates')) {
             $request->validate([
-                'ielts_certificate' => ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'], // 10MB max
+                'ielts_certificates' => ['nullable', 'array'],
+                'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'], // 10MB max per file
             ]);
 
             $disk = env('FILESYSTEM_DISK', 'public');
-            $path = $request->file('ielts_certificate')->store('certificates', $disk);
-            $fileUrl = Storage::disk($disk)->url($path);
-
-            // Get existing or text-submitted certificates
-            $existingCerts = $request->input('certificates');
-            if (!is_array($existingCerts)) {
-                $existingCerts = $user->role === 'teacher' 
-                    ? ($user->teacherProfile?->certificates ?? [])
-                    : ($user->pupilProfile?->certificates ?? []);
+            foreach ($request->file('ielts_certificates') as $file) {
+                $path = $file->store('certificates', $disk);
+                $newUploadedUrls[] = Storage::disk($disk)->url($path);
             }
-
-            // Remove any old uploaded certificate from the list to keep it clean
-            $existingCerts = array_filter($existingCerts, function ($cert) {
-                return !str_contains($cert, 'certificates');
-            });
-
-            $existingCerts[] = $fileUrl;
-            $request->merge(['certificates' => array_values($existingCerts)]);
         }
+
+        // Merge all into one array
+        $finalCertificates = array_values(array_unique(array_merge($textCerts, $existingUploadedCerts, $newUploadedUrls)));
+
+        // Merge back into the request data
+        $request->merge(['certificates' => $finalCertificates]);
 
         // Update role-specific profile details
         if ($user->role === 'teacher') {

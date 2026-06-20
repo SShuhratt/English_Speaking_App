@@ -4,6 +4,8 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Features;
 use Tests\TestCase;
 
@@ -160,5 +162,36 @@ class RegistrationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
         $teacher = User::where('email', 'qa_teacher@example.com')->first();
         $this->assertEquals(['practice q&a', 'lessons'], $teacher->teacherProfile->labels);
+    }
+
+    public function test_registration_can_upload_multiple_certificates()
+    {
+        Storage::fake('gcs');
+
+        $response = $this->post(route('register.store'), [
+            'name' => 'Certificate Teacher',
+            'email' => 'cert_teacher@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 28,
+            'phone_number' => '+987654321',
+            'overall_level' => 'IELTS 8.0',
+            'speaking_band' => 8.0,
+            'ielts_certificates' => [
+                UploadedFile::fake()->create('cert1.jpg', 100, 'image/jpeg'),
+                UploadedFile::fake()->create('doc2.pdf', 100, 'application/pdf')
+            ],
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $teacher = User::where('email', 'cert_teacher@example.com')->first();
+        $certs = $teacher->teacherProfile->certificates;
+
+        $this->assertCount(2, $certs);
+        $this->assertTrue(str_starts_with($certs[0], '/storage/') || str_contains($certs[0], 'storage.googleapis.com') || str_contains($certs[0], 'cert1.jpg'));
+        $this->assertTrue(str_starts_with($certs[1], '/storage/') || str_contains($certs[1], 'storage.googleapis.com') || str_contains($certs[1], 'doc2.pdf'));
     }
 }

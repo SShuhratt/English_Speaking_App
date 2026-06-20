@@ -46,12 +46,14 @@ class CreateNewUser implements CreatesNewUsers
             $rules['speaking_band'] = ['required', 'numeric', 'min:0', 'max:9'];
             $rules['labels'] = ['nullable', 'array'];
             $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english,practice q&a'];
-            $rules['ielts_certificate'] = ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
+            $rules['ielts_certificates'] = ['nullable', 'array'];
+            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
         } elseif ($role === 'pupil') {
             $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
             $rules['phone_number'] = ['required', 'string', 'max:20'];
             $rules['level'] = ['required', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'];
-            $rules['ielts_certificate'] = ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
+            $rules['ielts_certificates'] = ['nullable', 'array'];
+            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
         }
 
         Validator::make($input, $rules)->validate();
@@ -77,10 +79,14 @@ class CreateNewUser implements CreatesNewUsers
             }
 
             $certificates = null;
-            if (request()->hasFile('ielts_certificate')) {
+            if (request()->hasFile('ielts_certificates')) {
                 $disk = env('FILESYSTEM_DISK', 'public');
-                $path = request()->file('ielts_certificate')->store('certificates', $disk);
-                $certificates = [Storage::disk($disk)->url($path)];
+                $certsArray = [];
+                foreach (request()->file('ielts_certificates') as $file) {
+                    $path = $file->store('certificates', $disk);
+                    $certsArray[] = Storage::disk($disk)->url($path);
+                }
+                $certificates = $certsArray;
             }
 
             if ($role === 'teacher') {
