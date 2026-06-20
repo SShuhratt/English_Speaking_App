@@ -53,10 +53,20 @@ export default function Profile({
         return /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(cleanUrl);
     };
 
+    const isPdfFile = (url: string) => {
+        const cleanUrl = url.split('?')[0];
+        return /\.pdf$/i.test(cleanUrl);
+    };
+
     const initialUploadedCerts = React.useMemo(() => {
-        return auth.user.role === 'teacher'
-            ? (auth.user.teacher_profile?.certificates?.filter(c => c.startsWith('http') || c.startsWith('/storage')) || [])
-            : (auth.user.pupil_profile?.certificates?.filter(c => c.startsWith('http') || c.startsWith('/storage')) || []);
+        const rawCerts = auth.user.role === 'teacher'
+            ? (auth.user.teacher_profile?.certificates ?? [])
+            : (auth.user.pupil_profile?.certificates ?? []);
+        return rawCerts.filter(c => {
+            if (!c || (!c.startsWith('http') && !c.startsWith('/storage'))) return false;
+            const cleanUrl = c.split('?')[0];
+            return !(cleanUrl.endsWith('/') || cleanUrl.endsWith('edtech-media-storage-dev'));
+        });
     }, [auth.user]);
 
     const [uploadedCerts, setUploadedCerts] = React.useState<string[]>(initialUploadedCerts);
@@ -241,12 +251,25 @@ export default function Profile({
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                                                     {uploadedCerts.map((cert, index) => {
                                                         const isImg = isImageFile(cert);
+                                                        const isPdf = isPdfFile(cert);
                                                         return (
                                                             <div key={index} className="relative group rounded-xl border border-border bg-muted/20 overflow-hidden flex flex-col p-2.5 transition-all hover:shadow-sm">
                                                                 {isImg ? (
                                                                     <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
                                                                         <img src={cert} alt="Certificate" className="w-full h-full object-cover" />
                                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                                            <a href={cert} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/95 text-slate-800 hover:bg-white transition-all scale-90 group-hover:scale-100">
+                                                                                <ExternalLink className="h-4 w-4" />
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : isPdf ? (
+                                                                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-white flex items-center justify-center border border-border/40">
+                                                                        <iframe src={`${cert}#toolbar=0&navpanes=0`} className="w-full h-full border-0 pointer-events-none" />
+                                                                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center">
+                                                                            <span className="text-white text-[10px] font-semibold mb-1 truncate max-w-full px-2">
+                                                                                {cert.substring(cert.lastIndexOf('/') + 1)}
+                                                                            </span>
                                                                             <a href={cert} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/95 text-slate-800 hover:bg-white transition-all scale-90 group-hover:scale-100">
                                                                                 <ExternalLink className="h-4 w-4" />
                                                                             </a>
@@ -372,12 +395,25 @@ export default function Profile({
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                                                     {uploadedCerts.map((cert, index) => {
                                                         const isImg = isImageFile(cert);
+                                                        const isPdf = isPdfFile(cert);
                                                         return (
                                                             <div key={index} className="relative group rounded-xl border border-border bg-muted/20 overflow-hidden flex flex-col p-2.5 transition-all hover:shadow-sm">
                                                                 {isImg ? (
                                                                     <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
                                                                         <img src={cert} alt="Certificate" className="w-full h-full object-cover" />
                                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                                            <a href={cert} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/95 text-slate-800 hover:bg-white transition-all scale-90 group-hover:scale-100">
+                                                                                <ExternalLink className="h-4 w-4" />
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : isPdf ? (
+                                                                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-white flex items-center justify-center border border-border/40">
+                                                                        <iframe src={`${cert}#toolbar=0&navpanes=0`} className="w-full h-full border-0 pointer-events-none" />
+                                                                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center">
+                                                                            <span className="text-white text-[10px] font-semibold mb-1 truncate max-w-full px-2">
+                                                                                {cert.substring(cert.lastIndexOf('/') + 1)}
+                                                                            </span>
                                                                             <a href={cert} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/95 text-slate-800 hover:bg-white transition-all scale-90 group-hover:scale-100">
                                                                                 <ExternalLink className="h-4 w-4" />
                                                                             </a>

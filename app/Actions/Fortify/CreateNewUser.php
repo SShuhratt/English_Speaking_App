@@ -86,7 +86,23 @@ class CreateNewUser implements CreatesNewUsers
                     $path = $file->store('certificates', $disk);
                     $certsArray[] = Storage::disk($disk)->url($path);
                 }
-                $certificates = $certsArray;
+                $certificates = array_values(array_filter($certsArray, function ($cert) {
+                    $cert = trim($cert);
+                    if (empty($cert)) {
+                        return false;
+                    }
+                    if (str_starts_with($cert, 'http') || str_starts_with($cert, '/storage')) {
+                        $path = parse_url($cert, PHP_URL_PATH);
+                        if (empty($path) || $path === '/' || str_ends_with($path, '/')) {
+                            return false;
+                        }
+                        $segments = explode('/', trim($path, '/'));
+                        if (count($segments) <= 1 && (empty($segments[0]) || $segments[0] === 'edtech-media-storage-dev')) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }));
             }
 
             if ($role === 'teacher') {

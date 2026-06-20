@@ -192,14 +192,24 @@ export default function TeacherProfile({ teacher }: Props) {
                                     )}
 
                                     {/* File certificates */}
-                                    {teacher.teacher_profile.certificates.filter(c => c.startsWith('http') || c.startsWith('/storage')).length > 0 && (
+                                    {teacher.teacher_profile.certificates.filter(c => {
+                                        if (!c || (!c.startsWith('http') && !c.startsWith('/storage'))) return false;
+                                        const cleanUrl = c.split('?')[0];
+                                        return !(cleanUrl.endsWith('/') || cleanUrl.endsWith('edtech-media-storage-dev'));
+                                    }).length > 0 && (
                                         <div className="space-y-2.5">
                                             <h3 className="text-xs font-semibold text-muted-foreground mb-2">Documents & Images</h3>
                                             <div className="grid grid-cols-1 gap-3">
                                                 {teacher.teacher_profile.certificates
-                                                    .filter(c => c.startsWith('http') || c.startsWith('/storage'))
+                                                    .filter(c => {
+                                                        if (!c || (!c.startsWith('http') && !c.startsWith('/storage'))) return false;
+                                                        const cleanUrl = c.split('?')[0];
+                                                        return !(cleanUrl.endsWith('/') || cleanUrl.endsWith('edtech-media-storage-dev'));
+                                                    })
                                                     .map((cert, index) => {
-                                                        const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(cert.split('?')[0]);
+                                                        const cleanUrl = cert.split('?')[0];
+                                                        const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(cleanUrl);
+                                                        const isPdf = /\.pdf$/i.test(cleanUrl);
                                                         return (
                                                             <div key={index} className="relative group rounded-2xl border border-border/60 bg-muted/20 overflow-hidden flex flex-col p-2 transition-all hover:shadow-sm">
                                                                 {isImg ? (
@@ -208,6 +218,18 @@ export default function TeacherProfile({ teacher }: Props) {
                                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                                             <a href={cert} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white transition-all scale-95 hover:scale-100 flex items-center gap-1.5 text-xs font-bold shadow-md">
                                                                                 <ExternalLink className="h-4 w-4" /> View Full Image
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : isPdf ? (
+                                                                    <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-white flex items-center justify-center border border-border/40">
+                                                                        <iframe src={`${cert}#toolbar=0&navpanes=0`} className="w-full h-full border-0 pointer-events-none" />
+                                                                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-center">
+                                                                            <span className="text-white text-xs font-semibold mb-2 truncate max-w-full">
+                                                                                {cert.substring(cert.lastIndexOf('/') + 1)}
+                                                                            </span>
+                                                                            <a href={cert} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white transition-all scale-95 hover:scale-100 flex items-center gap-1.5 text-xs font-bold shadow-md">
+                                                                                <ExternalLink className="h-4 w-4" /> View Full PDF
                                                                             </a>
                                                                         </div>
                                                                     </div>

@@ -92,6 +92,28 @@ class ProfileController extends Controller
         // Merge all into one array
         $finalCertificates = array_values(array_unique(array_merge($textCerts, $existingUploadedCerts, $newUploadedUrls)));
 
+        // Filter out empty values or invalid bucket roots
+        $finalCertificates = array_values(array_filter($finalCertificates, function ($cert) {
+            $cert = trim($cert);
+            if (empty($cert)) {
+                return false;
+            }
+            if (str_starts_with($cert, 'http') || str_starts_with($cert, '/storage')) {
+                // If it is a URL, it must contain a file name and not end with a slash or be the bucket root
+                $path = parse_url($cert, PHP_URL_PATH);
+                if (empty($path) || $path === '/' || str_ends_with($path, '/')) {
+                    return false;
+                }
+                
+                // Also ensure it doesn't just consist of the bucket name with no file name
+                $segments = explode('/', trim($path, '/'));
+                if (count($segments) <= 1 && (empty($segments[0]) || $segments[0] === 'edtech-media-storage-dev')) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+
         // Merge back into the request data
         $request->merge(['certificates' => $finalCertificates]);
 
