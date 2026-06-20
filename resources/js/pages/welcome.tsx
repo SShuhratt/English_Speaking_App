@@ -49,7 +49,7 @@ export default function Welcome() {
                             <a href="#features" className="transition-colors hover:text-indigo-500">{t('welcome.nav_features')}</a>
                             <a href="#how-it-works" className="transition-colors hover:text-indigo-500">{t('welcome.nav_how_it_works')}</a>
                             <a href="#teachers" className="transition-colors hover:text-indigo-500">{t('welcome.nav_teachers')}</a>
-                            <a href="#pricing" className="transition-colors hover:text-indigo-500">{t('welcome.nav_pricing')}</a>
+
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -408,109 +408,7 @@ export default function Welcome() {
                     </div>
                 </section>
 
-                {/* ── Pricing ── */}
-                <section id="pricing" className="bg-gradient-to-b from-white via-indigo-50/30 to-white py-20 lg:py-28 dark:from-[#080811] dark:via-[#0E0E25]/30 dark:to-[#080811] relative">
-                    <div className="mx-auto max-w-7xl px-6">
-                        <div className="text-center space-y-4">
-                            <h2 className="text-3xl font-black tracking-tight md:text-4xl lg:text-5xl">
-                                {t('welcome.pricing_title')}{' '}
-                                <span className="text-indigo-500">{t('welcome.pricing_title_highlight')}</span>
-                            </h2>
-                            <p className="mx-auto max-w-2xl text-muted-foreground">
-                                {t('welcome.pricing_subtitle')}
-                            </p>
-                        </div>
 
-                        <div className="mt-16 grid gap-8 md:grid-cols-3">
-                            {[
-                                {
-                                    name: 'Starter',
-                                    price: t('welcome.pricing_free'),
-                                    period: '',
-                                    desc: t('welcome.pricing_plan_starter_desc'),
-                                    features: [
-                                        t('welcome.pricing_plan_starter_feat_1'),
-                                        t('welcome.pricing_plan_starter_feat_2'),
-                                        t('welcome.pricing_plan_starter_feat_3'),
-                                    ],
-                                    cta: t('welcome.pricing_plan_starter_cta'),
-                                    featured: false,
-                                },
-                                {
-                                    name: 'Pro',
-                                    price: '$19',
-                                    period: t('welcome.pricing_month'),
-                                    desc: t('welcome.pricing_plan_pro_desc'),
-                                    features: [
-                                        t('welcome.pricing_plan_pro_feat_1'),
-                                        t('welcome.pricing_plan_pro_feat_2'),
-                                        t('welcome.pricing_plan_pro_feat_3'),
-                                        t('welcome.pricing_plan_pro_feat_4'),
-                                        t('welcome.pricing_plan_pro_feat_5'),
-                                    ],
-                                    cta: t('welcome.pricing_plan_pro_cta'),
-                                    featured: true,
-                                },
-                                {
-                                    name: 'Unlimited',
-                                    price: '$39',
-                                    period: t('welcome.pricing_month'),
-                                    desc: t('welcome.pricing_plan_unlimited_desc'),
-                                    features: [
-                                        t('welcome.pricing_plan_unlimited_feat_1'),
-                                        t('welcome.pricing_plan_unlimited_feat_2'),
-                                        t('welcome.pricing_plan_unlimited_feat_3'),
-                                        t('welcome.pricing_plan_unlimited_feat_4'),
-                                        t('welcome.pricing_plan_unlimited_feat_5'),
-                                    ],
-                                    cta: t('welcome.pricing_plan_unlimited_cta'),
-                                    featured: false,
-                                },
-                            ].map((plan) => (
-                                <div
-                                    key={plan.name}
-                                    className={`relative rounded-3xl border p-8 transition-all duration-300 ${
-                                        plan.featured
-                                            ? 'border-indigo-500 bg-card shadow-2xl shadow-indigo-500/10 hover:-translate-y-1'
-                                            : 'border-border bg-card hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1'
-                                    }`}
-                                >
-                                    {plan.featured && (
-                                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-1.5 text-xs font-bold text-white shadow-md">
-                                            {t('welcome.pricing_most_popular')}
-                                        </div>
-                                    )}
-                                    <h3 className="text-lg font-bold">{plan.name}</h3>
-                                    <div className="mt-4 flex items-baseline gap-1">
-                                        <span className="text-4xl font-extrabold tracking-tight">{plan.price}</span>
-                                        {plan.period && <span className="text-muted-foreground font-semibold text-sm">{plan.period}</span>}
-                                    </div>
-                                    <p className="mt-3 text-sm text-muted-foreground">{plan.desc}</p>
-
-                                    <ul className="mt-8 space-y-4">
-                                        {plan.features.map((feature) => (
-                                            <li key={feature} className="flex items-center gap-3 text-sm">
-                                                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                                                <span className="text-muted-foreground font-medium">{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <Link
-                                        href={register()}
-                                        className={`mt-8 block w-full rounded-2xl py-3.5 text-center text-sm font-semibold transition-all duration-300 cursor-pointer ${
-                                            plan.featured
-                                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30'
-                                                : 'border border-border bg-accent text-foreground hover:border-indigo-500/30 hover:bg-indigo-500/5'
-                                        }`}
-                                    >
-                                        {plan.cta}
-                                    </Link>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
 
                 {/* ── CTA Section ── */}
                 <section className="py-20 lg:py-28 relative">
