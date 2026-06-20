@@ -6,9 +6,11 @@ use App\Events\BookingUpdated;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use App\Services\SlotService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
@@ -242,5 +244,51 @@ class BookingWorkflowTest extends TestCase
         ]);
 
         $response->assertStatus(201);
+    }
+
+    public function test_get_available_slots_all_time()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+
+        // Teacher availability: Monday 09:00:00 to 12:00:00, slot_duration = 0 (All time)
+        TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'recurring',
+            'day_of_week' => 'monday',
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'slot_duration' => 0,
+        ]);
+
+        $monday = Carbon::parse('next monday');
+        $dateStr = $monday->toDateString();
+
+        // Initially we should have 1 all-time block: 09:00 to 12:00
+        $slots = app(SlotService::class)->getAvailableSlots($teacher->id, $dateStr);
+
+        $this->assertCount(1, $slots);
+        $this->assertEquals(Carbon::parse('next monday 09:00:00')->toIso8601String(), $slots[0]['start_at']);
+        $this->assertEquals(Carbon::parse('next monday 12:00:00')->toIso8601String(), $slots[0]['end_at']);
+        $this->assertTrue($slots[0]['is_all_time']);
+
+        // Now book an appointment from 10:00 to 10:45
+        Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => User::factory()->create(['role' => 'pupil'])->id,
+            'start_at' => Carbon::parse('next monday 10:00:00'),
+            'end_at' => Carbon::parse('next monday 10:45:00'),
+            'status' => 'confirmed',
+        ]);
+
+        // Refresh cache and get slots
+        Cache::flush();
+        $slots = app(SlotService::class)->getAvailableSlots($teacher->id, $dateStr);
+
+        // Should split into two slots: 09:00-10:00 and 10:45-12:00
+        $this->assertCount(2, $slots);
+        $this->assertEquals(Carbon::parse('next monday 09:00:00')->toIso8601String(), $slots[0]['start_at']);
+        $this->assertEquals(Carbon::parse('next monday 10:00:00')->toIso8601String(), $slots[0]['end_at']);
+        $this->assertEquals(Carbon::parse('next monday 10:45:00')->toIso8601String(), $slots[1]['start_at']);
+        $this->assertEquals(Carbon::parse('next monday 12:00:00')->toIso8601String(), $slots[1]['end_at']);
     }
 }

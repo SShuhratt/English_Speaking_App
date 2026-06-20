@@ -48,7 +48,7 @@ class TeacherAvailabilityController extends Controller
             'start_at' => ['required_if:type,custom', 'nullable', 'date'],
             'end_at' => ['required_if:type,custom', 'nullable', 'date', 'after:start_at'],
             // Shared fields
-            'slot_duration' => ['required', 'integer', 'min:15', 'max:120'],
+            'slot_duration' => ['required', 'integer', 'min:0', 'max:1440'],
         ]);
 
         $availability = TeacherAvailability::create([

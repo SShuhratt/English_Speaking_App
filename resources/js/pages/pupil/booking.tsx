@@ -1,62 +1,95 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
-import { 
-    Calendar as CalendarIcon, 
-    Clock, 
-    CheckCircle2, 
-    AlertCircle, 
-    ChevronLeft, 
-    ChevronRight, 
-    X, 
-    Info, 
-    Star, 
+import {
+    Calendar as CalendarIcon,
+    Clock,
+    CheckCircle2,
+    AlertCircle,
+    ChevronLeft,
+    ChevronRight,
+    X,
+    Info,
+    Star,
     User,
-    BookOpen
+    BookOpen,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface Props {
     teacher: any;
 }
 
 const weeksShortMap = {
-    en: ["M", "T", "W", "T", "F", "S", "S"],
-    uz: ["D", "S", "Ch", "P", "J", "Sh", "Y"],
-    ru: ["П", "В", "С", "Ч", "П", "С", "В"]
+    en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    uz: ['D', 'S', 'Ch', 'P', 'J', 'Sh', 'Y'],
+    ru: ['П', 'В', 'С', 'Ч', 'П', 'С', 'В'],
 };
 
 const monthsMap = {
     en: [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
     ],
     uz: [
-        'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
-        'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+        'Yanvar',
+        'Fevral',
+        'Mart',
+        'Aprel',
+        'May',
+        'Iyun',
+        'Iyul',
+        'Avgust',
+        'Sentyabr',
+        'Oktyabr',
+        'Noyabr',
+        'Dekabr',
     ],
     ru: [
-        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-    ]
+        'Январь',
+        'Февраль',
+        'Март',
+        'Апрель',
+        'Май',
+        'Июнь',
+        'Июль',
+        'Август',
+        'Сентябрь',
+        'Октябрь',
+        'Ноябрь',
+        'Декабрь',
+    ],
 };
 
 const localeMap = {
     en: 'en-US',
     uz: 'uz-UZ',
-    ru: 'ru-RU'
+    ru: 'ru-RU',
 };
 
 export default function Booking({ teacher }: Props) {
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
-    
+
     // Default to en if locale is not supported
-    const lang = ((locale === 'en' || locale === 'uz' || locale === 'ru') ? locale : 'en') as 'en' | 'uz' | 'ru';
+    const lang = (
+        locale === 'en' || locale === 'uz' || locale === 'ru' ? locale : 'en'
+    ) as 'en' | 'uz' | 'ru';
 
     const [view, setView] = useState<'day' | 'week'>('day');
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -67,6 +100,93 @@ export default function Booking({ teacher }: Props) {
     const [customStartTime, setCustomStartTime] = useState('');
     const [customEndTime, setCustomEndTime] = useState('');
     const [confirmingSlot, setConfirmingSlot] = useState<any | null>(null);
+    const [selectedStartStr, setSelectedStartStr] = useState('');
+    const [selectedEndStr, setSelectedEndStr] = useState('');
+
+    const formatTimeToHHMM = (date: Date) => {
+        const h = String(date.getHours()).padStart(2, '0');
+        const m = String(date.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    };
+
+    useEffect(() => {
+        if (confirmingSlot) {
+            const start = new Date(confirmingSlot.start_at);
+            const end = new Date(confirmingSlot.end_at);
+            setSelectedStartStr(formatTimeToHHMM(start));
+
+            // Default to start + 30 minutes, or end if less than 30 mins remaining
+            const defaultEnd = new Date(start.getTime() + 30 * 60 * 1000);
+            if (defaultEnd.getTime() > end.getTime()) {
+                setSelectedEndStr(formatTimeToHHMM(end));
+            } else {
+                setSelectedEndStr(formatTimeToHHMM(defaultEnd));
+            }
+        }
+    }, [confirmingSlot]);
+
+    const getSelectedStartAndEnd = () => {
+        if (!confirmingSlot) return null;
+
+        const baseDate = new Date(confirmingSlot.start_at);
+        const [sh, sm] = selectedStartStr.split(':').map(Number);
+        const startLocalDate = new Date(
+            baseDate.getFullYear(),
+            baseDate.getMonth(),
+            baseDate.getDate(),
+            sh,
+            sm,
+        );
+
+        const [eh, em] = selectedEndStr.split(':').map(Number);
+        const endLocalDate = new Date(
+            baseDate.getFullYear(),
+            baseDate.getMonth(),
+            baseDate.getDate(),
+            eh,
+            em,
+        );
+
+        return { start: startLocalDate, end: endLocalDate };
+    };
+
+    const validateSelectedRange = () => {
+        if (!confirmingSlot) return true;
+        if (!confirmingSlot.is_all_time) return true;
+
+        const dates = getSelectedStartAndEnd();
+        if (!dates) return false;
+
+        const limitStart = new Date(confirmingSlot.start_at);
+        const limitEnd = new Date(confirmingSlot.end_at);
+
+        return (
+            dates.start.getTime() >= limitStart.getTime() &&
+            dates.start.getTime() < limitEnd.getTime() &&
+            dates.end.getTime() > dates.start.getTime() &&
+            dates.end.getTime() <= limitEnd.getTime()
+        );
+    };
+
+    const handleConfirmSubmit = () => {
+        if (!confirmingSlot) return;
+
+        let startAt = confirmingSlot.start_at;
+        let endAt = confirmingSlot.end_at;
+
+        if (confirmingSlot.is_all_time) {
+            const dates = getSelectedStartAndEnd();
+            if (!dates || !validateSelectedRange()) {
+                toast.error(t('booking.invalid_range'));
+                return;
+            }
+            startAt = dates.start.toISOString();
+            endAt = dates.end.toISOString();
+        }
+
+        handleBook({ start_at: startAt, end_at: endAt });
+        setConfirmingSlot(null);
+    };
 
     // Live clock for red line indicator
     const [nowTime, setNowTime] = useState(new Date());
@@ -133,31 +253,34 @@ export default function Booking({ teacher }: Props) {
         try {
             if (view === 'day') {
                 const dateStr = formatDateString(selectedDate);
-                const response = await axios.get(`/bookings/slots/${teacher.id}?date=${dateStr}`);
-                setSlotsByDate(prev => ({
+                const response = await axios.get(
+                    `/bookings/slots/${teacher.id}?date=${dateStr}`,
+                );
+                setSlotsByDate((prev) => ({
                     ...prev,
-                    [dateStr]: response.data.slots
+                    [dateStr]: response.data.slots,
                 }));
             } else {
                 const days = getWeekDays(selectedDate);
-                const dateStrings = days.map(d => formatDateString(d));
-                
+                const dateStrings = days.map((d) => formatDateString(d));
+
                 // Fetch in parallel for all days in the week view
-                const promises = dateStrings.map(d => 
-                    axios.get(`/bookings/slots/${teacher.id}?date=${d}`)
-                        .then(res => ({ dateStr: d, slots: res.data.slots }))
-                        .catch(() => ({ dateStr: d, slots: [] }))
+                const promises = dateStrings.map((d) =>
+                    axios
+                        .get(`/bookings/slots/${teacher.id}?date=${d}`)
+                        .then((res) => ({ dateStr: d, slots: res.data.slots }))
+                        .catch(() => ({ dateStr: d, slots: [] })),
                 );
-                
+
                 const results = await Promise.all(promises);
                 const newSlots: Record<string, any[]> = {};
-                results.forEach(item => {
+                results.forEach((item) => {
                     newSlots[item.dateStr] = item.slots;
                 });
-                
-                setSlotsByDate(prev => ({
+
+                setSlotsByDate((prev) => ({
                     ...prev,
-                    ...newSlots
+                    ...newSlots,
                 }));
             }
         } catch (error) {
@@ -210,11 +333,25 @@ export default function Booking({ teacher }: Props) {
         try {
             const dateStr = formatDateString(selectedDate);
             const [yearNum, monthNum, dayNum] = dateStr.split('-').map(Number);
-            const [startHour, startMin] = customStartTime.split(':').map(Number);
+            const [startHour, startMin] = customStartTime
+                .split(':')
+                .map(Number);
             const [endHour, endMin] = customEndTime.split(':').map(Number);
 
-            const startLocal = new Date(yearNum, monthNum - 1, dayNum, startHour, startMin);
-            const endLocal = new Date(yearNum, monthNum - 1, dayNum, endHour, endMin);
+            const startLocal = new Date(
+                yearNum,
+                monthNum - 1,
+                dayNum,
+                startHour,
+                startMin,
+            );
+            const endLocal = new Date(
+                yearNum,
+                monthNum - 1,
+                dayNum,
+                endHour,
+                endMin,
+            );
 
             // If end time is before or equal to start time, it belongs to the next day
             if (endLocal <= startLocal) {
@@ -274,7 +411,9 @@ export default function Booking({ teacher }: Props) {
     const navigateCalendar = (direction: 'prev' | 'next') => {
         const amount = view === 'day' ? 1 : 7;
         const nextDate = new Date(selectedDate);
-        nextDate.setDate(selectedDate.getDate() + (direction === 'prev' ? -amount : amount));
+        nextDate.setDate(
+            selectedDate.getDate() + (direction === 'prev' ? -amount : amount),
+        );
         setSelectedDate(nextDate);
         setCurrentDate(nextDate);
     };
@@ -287,14 +426,22 @@ export default function Booking({ teacher }: Props) {
 
     const currentTitleString = () => {
         if (view === 'day') {
-            return selectedDate.toLocaleDateString(localeMap[lang], { month: 'long', day: 'numeric', year: 'numeric' });
+            return selectedDate.toLocaleDateString(localeMap[lang], {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+            });
         } else {
             const days = getWeekDays(selectedDate);
-            const startMonth = days[0].toLocaleDateString(localeMap[lang], { month: 'short' });
-            const endMonth = days[6].toLocaleDateString(localeMap[lang], { month: 'short' });
+            const startMonth = days[0].toLocaleDateString(localeMap[lang], {
+                month: 'short',
+            });
+            const endMonth = days[6].toLocaleDateString(localeMap[lang], {
+                month: 'short',
+            });
             const startYear = days[0].getFullYear();
             const endYear = days[6].getFullYear();
-            
+
             if (startYear !== endYear) {
                 return `${startMonth} ${startYear} – ${endMonth} ${endYear}`;
             }
@@ -308,31 +455,48 @@ export default function Booking({ teacher }: Props) {
     return (
         <>
             <Head title={`Book with ${teacher.full_name}`} />
-            
-            <div className="flex h-[calc(100vh-4rem)] flex-col bg-background select-none overflow-hidden animate-in fade-in duration-300">
+
+            <div className="flex h-[calc(100vh-4rem)] animate-in flex-col overflow-hidden bg-background duration-300 select-none fade-in">
                 {/* Header (Google Calendar Style Toolbar) */}
-                <div className="flex items-center justify-between border-b px-6 py-3.5 bg-card">
+                <div className="flex items-center justify-between border-b bg-card px-6 py-3.5">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2.5">
-                            <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/20">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20">
                                 <CalendarIcon className="h-5 w-5" />
                             </div>
-                            <span className="text-xl font-bold tracking-tight text-foreground">{t('booking.title')}</span>
+                            <span className="text-xl font-bold tracking-tight text-foreground">
+                                {t('booking.title')}
+                            </span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" onClick={setToday} className="rounded-lg font-medium px-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={setToday}
+                                className="rounded-lg px-4 font-medium"
+                            >
                                 {t('booking.today')}
                             </Button>
                             <div className="flex items-center">
-                                <Button variant="ghost" size="icon" onClick={() => navigateCalendar('prev')} className="h-8 w-8 rounded-lg">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => navigateCalendar('prev')}
+                                    className="h-8 w-8 rounded-lg"
+                                >
                                     <ChevronLeft className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={() => navigateCalendar('next')} className="h-8 w-8 rounded-lg">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => navigateCalendar('next')}
+                                    className="h-8 w-8 rounded-lg"
+                                >
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <span className="text-base font-bold text-foreground capitalize ml-2">
+                            <span className="ml-2 text-base font-bold text-foreground capitalize">
                                 {currentTitleString()}
                             </span>
                         </div>
@@ -345,15 +509,17 @@ export default function Booking({ teacher }: Props) {
                                 variant={view === 'day' ? 'secondary' : 'ghost'}
                                 size="sm"
                                 onClick={() => setView('day')}
-                                className="rounded-md font-medium px-3.5"
+                                className="rounded-md px-3.5 font-medium"
                             >
                                 {t('booking.day')}
                             </Button>
                             <Button
-                                variant={view === 'week' ? 'secondary' : 'ghost'}
+                                variant={
+                                    view === 'week' ? 'secondary' : 'ghost'
+                                }
                                 size="sm"
                                 onClick={() => setView('week')}
-                                className="rounded-md font-medium px-3.5"
+                                className="rounded-md px-3.5 font-medium"
                             >
                                 {t('booking.week')}
                             </Button>
@@ -364,46 +530,88 @@ export default function Booking({ teacher }: Props) {
                 {/* Main Workspace Layout */}
                 <div className="flex flex-1 overflow-hidden">
                     {/* Left Sidebar: Profile & Custom Booking */}
-                    <div className="w-80 border-r bg-card flex flex-col p-4 gap-5 overflow-y-auto shrink-0">
+                    <div className="flex w-80 shrink-0 flex-col gap-5 overflow-y-auto border-r bg-card p-4">
                         {/* Teacher Profile Card */}
-                        <div className="rounded-2xl border p-4 shadow-sm bg-muted/20 flex flex-col items-center text-center">
-                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl font-bold text-white shadow-lg shrink-0 mb-3">
-                                {teacher.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                        <div className="flex flex-col items-center rounded-2xl border bg-muted/20 p-4 text-center shadow-sm">
+                            <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl font-bold text-white shadow-lg">
+                                {teacher.full_name
+                                    .split(' ')
+                                    .map((n: string) => n[0])
+                                    .join('')
+                                    .toUpperCase()}
                             </div>
-                            <h2 className="text-lg font-bold text-foreground leading-tight">{teacher.full_name}</h2>
-                            <p className="text-xs text-muted-foreground mt-1 mb-3">{teacher.email}</p>
+                            <h2 className="text-lg leading-tight font-bold text-foreground">
+                                {teacher.full_name}
+                            </h2>
+                            <p className="mt-1 mb-3 text-xs text-muted-foreground">
+                                {teacher.email}
+                            </p>
 
-                            <div className="flex flex-col gap-1.5 w-full text-xs text-left">
-                                <div className="flex justify-between py-1 border-b">
-                                    <span className="text-muted-foreground">{t('booking.ielts_level')}</span>
-                                    <span className="font-semibold text-foreground">{teacher.teacher_profile?.overall_level || 'Certified'}</span>
+                            <div className="flex w-full flex-col gap-1.5 text-left text-xs">
+                                <div className="flex justify-between border-b py-1">
+                                    <span className="text-muted-foreground">
+                                        {t('booking.ielts_level')}
+                                    </span>
+                                    <span className="font-semibold text-foreground">
+                                        {teacher.teacher_profile
+                                            ?.overall_level || 'Certified'}
+                                    </span>
                                 </div>
                                 {teacher.teacher_profile?.speaking_band && (
-                                    <div className="flex justify-between py-1 border-b">
-                                        <span className="text-muted-foreground">{t('booking.speaking_band')}</span>
-                                        <span className="font-semibold text-purple-600 dark:text-purple-400">{teacher.teacher_profile.speaking_band}</span>
+                                    <div className="flex justify-between border-b py-1">
+                                        <span className="text-muted-foreground">
+                                            {t('booking.speaking_band')}
+                                        </span>
+                                        <span className="font-semibold text-purple-600 dark:text-purple-400">
+                                            {
+                                                teacher.teacher_profile
+                                                    .speaking_band
+                                            }
+                                        </span>
                                     </div>
                                 )}
-                                <div className="flex justify-between py-1 border-b">
-                                    <span className="text-muted-foreground">{t('booking.experience')}</span>
-                                    <span className="font-semibold text-foreground">{teacher.teacher_profile?.experience_years || 0} {t('booking.years')}</span>
+                                <div className="flex justify-between border-b py-1">
+                                    <span className="text-muted-foreground">
+                                        {t('booking.experience')}
+                                    </span>
+                                    <span className="font-semibold text-foreground">
+                                        {teacher.teacher_profile
+                                            ?.experience_years || 0}{' '}
+                                        {t('booking.years')}
+                                    </span>
                                 </div>
                                 {teacher.teacher_profile?.rating_cache && (
-                                    <div className="flex justify-between py-1 border-b">
-                                        <span className="text-muted-foreground">{t('booking.rating')}</span>
-                                        <span className="font-semibold text-amber-600 dark:text-amber-400">★ {teacher.teacher_profile.rating_cache}</span>
+                                    <div className="flex justify-between border-b py-1">
+                                        <span className="text-muted-foreground">
+                                            {t('booking.rating')}
+                                        </span>
+                                        <span className="font-semibold text-amber-600 dark:text-amber-400">
+                                            ★{' '}
+                                            {
+                                                teacher.teacher_profile
+                                                    .rating_cache
+                                            }
+                                        </span>
                                     </div>
                                 )}
                                 {teacher.teacher_profile?.workplace && (
-                                    <div className="flex justify-between py-1 border-b">
-                                        <span className="text-muted-foreground">{t('booking.workplace')}</span>
-                                        <span className="font-semibold text-foreground truncate max-w-[120px]">{teacher.teacher_profile.workplace}</span>
+                                    <div className="flex justify-between border-b py-1">
+                                        <span className="text-muted-foreground">
+                                            {t('booking.workplace')}
+                                        </span>
+                                        <span className="max-w-[120px] truncate font-semibold text-foreground">
+                                            {teacher.teacher_profile.workplace}
+                                        </span>
                                     </div>
                                 )}
                                 {teacher.teacher_profile?.age && (
-                                    <div className="flex justify-between py-1 border-b">
-                                        <span className="text-muted-foreground">{t('booking.age')}</span>
-                                        <span className="font-semibold text-foreground">{teacher.teacher_profile.age}</span>
+                                    <div className="flex justify-between border-b py-1">
+                                        <span className="text-muted-foreground">
+                                            {t('booking.age')}
+                                        </span>
+                                        <span className="font-semibold text-foreground">
+                                            {teacher.teacher_profile.age}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -416,16 +624,26 @@ export default function Booking({ teacher }: Props) {
                                     {monthsMap[lang][month]} {year}
                                 </span>
                                 <div className="flex items-center">
-                                    <Button variant="ghost" size="icon" onClick={prevMonth} className="h-7 w-7 rounded-lg">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={prevMonth}
+                                        className="h-7 w-7 rounded-lg"
+                                    >
                                         <ChevronLeft className="h-3.5 w-3.5" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" onClick={nextMonth} className="h-7 w-7 rounded-lg">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={nextMonth}
+                                        className="h-7 w-7 rounded-lg"
+                                    >
                                         <ChevronRight className="h-3.5 w-3.5" />
                                     </Button>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted-foreground uppercase mb-1">
+                            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted-foreground uppercase">
                                 {weeksShortMap[lang].map((w, idx) => (
                                     <span key={idx}>{w}</span>
                                 ))}
@@ -434,11 +652,20 @@ export default function Booking({ teacher }: Props) {
                             <div className="grid grid-cols-7 gap-1">
                                 {miniCalDays.map((day, idx) => {
                                     if (day === null) {
-                                        return <div key={`empty-${idx}`} className="aspect-square"></div>;
+                                        return (
+                                            <div
+                                                key={`empty-${idx}`}
+                                                className="aspect-square"
+                                            ></div>
+                                        );
                                     }
 
-                                    const isSelected = formatDateString(day) === formatDateString(selectedDate);
-                                    const isToday = formatDateString(day) === formatDateString(new Date());
+                                    const isSelected =
+                                        formatDateString(day) ===
+                                        formatDateString(selectedDate);
+                                    const isToday =
+                                        formatDateString(day) ===
+                                        formatDateString(new Date());
 
                                     return (
                                         <button
@@ -447,12 +674,12 @@ export default function Booking({ teacher }: Props) {
                                                 setSelectedDate(day);
                                                 setCurrentDate(day);
                                             }}
-                                            className={`aspect-square relative flex items-center justify-center rounded-full text-xs font-semibold transition-all ${
+                                            className={`relative flex aspect-square items-center justify-center rounded-full text-xs font-semibold transition-all ${
                                                 isSelected
                                                     ? 'bg-indigo-600 text-white shadow-sm'
                                                     : isToday
-                                                    ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50'
-                                                    : 'hover:bg-muted text-foreground'
+                                                      ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                      : 'text-foreground hover:bg-muted'
                                             }`}
                                         >
                                             <span>{day.getDate()}</span>
@@ -464,192 +691,323 @@ export default function Booking({ teacher }: Props) {
 
                         {/* Request Custom Time Form */}
                         <div className="flex flex-col gap-3 border-t pt-4">
-                            <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                            <h3 className="flex items-center gap-1.5 text-sm font-bold text-foreground">
                                 <Clock className="h-4 w-4 text-indigo-500" />
                                 {t('booking.custom_title')}
                             </h3>
-                            <form onSubmit={handleBookCustom} className="space-y-3">
+                            <form
+                                onSubmit={handleBookCustom}
+                                className="space-y-3"
+                            >
                                 <div>
-                                    <Label className="text-[11px] font-semibold text-muted-foreground mb-1 block">
+                                    <Label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
                                         {t('booking.custom_start')}
                                     </Label>
-                                    <input 
-                                        type="time" 
+                                    <input
+                                        type="time"
                                         value={customStartTime}
-                                        onChange={(e) => setCustomStartTime(e.target.value)}
-                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        onChange={(e) =>
+                                            setCustomStartTime(e.target.value)
+                                        }
+                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <Label className="text-[11px] font-semibold text-muted-foreground mb-1 block">
+                                    <Label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
                                         {t('booking.custom_end')}
                                     </Label>
-                                    <input 
-                                        type="time" 
+                                    <input
+                                        type="time"
                                         value={customEndTime}
-                                        onChange={(e) => setCustomEndTime(e.target.value)}
-                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        onChange={(e) =>
+                                            setCustomEndTime(e.target.value)
+                                        }
+                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                                         required
                                     />
                                 </div>
-                                
+
                                 <Button
                                     type="submit"
                                     disabled={booking}
-                                    className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-xs font-semibold text-white shadow-md hover:from-indigo-600 hover:to-purple-700 transition-all disabled:opacity-50 py-4"
+                                    className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 py-4 text-xs font-semibold text-white shadow-md transition-all hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
                                 >
-                                    {booking ? t('booking.requesting') : t('booking.custom_submit')}
+                                    {booking
+                                        ? t('booking.requesting')
+                                        : t('booking.custom_submit')}
                                 </Button>
                             </form>
                         </div>
                     </div>
 
                     {/* Timeline & Columns Workspace */}
-                    <div className="flex-1 flex flex-col overflow-hidden bg-muted/5">
+                    <div className="flex flex-1 flex-col overflow-hidden bg-muted/5">
                         {/* Day/Week header row */}
                         <div className="flex border-b bg-card">
                             <div className="w-16 flex-shrink-0 border-r bg-card"></div>
-                            <div className="flex-1 flex overflow-hidden">
+                            <div className="flex flex-1 overflow-hidden">
                                 {view === 'day' ? (
-                                    <div className="flex-1 py-3 text-center flex flex-col items-center">
-                                        <span className="text-xs uppercase text-muted-foreground font-bold tracking-wider">
-                                            {selectedDate.toLocaleDateString(localeMap[lang], { weekday: 'short' })}
+                                    <div className="flex flex-1 flex-col items-center py-3 text-center">
+                                        <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                            {selectedDate.toLocaleDateString(
+                                                localeMap[lang],
+                                                { weekday: 'short' },
+                                            )}
                                         </span>
-                                        <span className={`text-xl font-bold mt-1 h-9 w-9 flex items-center justify-center rounded-full ${
-                                            formatDateString(selectedDate) === formatDateString(new Date())
-                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                                                : ''
-                                        }`}>
+                                        <span
+                                            className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold ${
+                                                formatDateString(
+                                                    selectedDate,
+                                                ) ===
+                                                formatDateString(new Date())
+                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                                    : ''
+                                            }`}
+                                        >
                                             {selectedDate.getDate()}
                                         </span>
                                     </div>
                                 ) : (
-                                    getWeekDays(selectedDate).map((day, idx) => {
-                                        const isToday = formatDateString(day) === formatDateString(new Date());
-                                        const isSelected = formatDateString(day) === formatDateString(selectedDate);
-                                        return (
-                                            <div key={idx} className="flex-1 py-3 text-center border-r last:border-r-0 flex flex-col items-center min-w-[100px]">
-                                                <span className="text-xs uppercase text-muted-foreground font-bold tracking-wider">
-                                                    {day.toLocaleDateString(localeMap[lang], { weekday: 'short' })}
-                                                </span>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedDate(day);
-                                                        setCurrentDate(day);
-                                                    }}
-                                                    className={`text-xl font-bold mt-1 h-9 w-9 flex items-center justify-center rounded-full transition-all ${
-                                                        isToday
-                                                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                                                            : isSelected
-                                                            ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
-                                                            : 'hover:bg-muted text-foreground'
-                                                    }`}
+                                    getWeekDays(selectedDate).map(
+                                        (day, idx) => {
+                                            const isToday =
+                                                formatDateString(day) ===
+                                                formatDateString(new Date());
+                                            const isSelected =
+                                                formatDateString(day) ===
+                                                formatDateString(selectedDate);
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    className="flex min-w-[100px] flex-1 flex-col items-center border-r py-3 text-center last:border-r-0"
                                                 >
-                                                    {day.getDate()}
-                                                </button>
-                                            </div>
-                                        );
-                                    })
+                                                    <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                                        {day.toLocaleDateString(
+                                                            localeMap[lang],
+                                                            {
+                                                                weekday:
+                                                                    'short',
+                                                            },
+                                                        )}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedDate(
+                                                                day,
+                                                            );
+                                                            setCurrentDate(day);
+                                                        }}
+                                                        className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold transition-all ${
+                                                            isToday
+                                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                                                : isSelected
+                                                                  ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                                  : 'text-foreground hover:bg-muted'
+                                                        }`}
+                                                    >
+                                                        {day.getDate()}
+                                                    </button>
+                                                </div>
+                                            );
+                                        },
+                                    )
                                 )}
                             </div>
                         </div>
 
                         {/* Vertical Timeline Scroll Grid */}
-                        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative flex">
+                        <div
+                            ref={scrollContainerRef}
+                            className="relative flex flex-1 overflow-y-auto"
+                        >
                             {/* Y-Axis Hours label */}
-                            <div className="w-16 border-r flex flex-col relative select-none flex-shrink-0 bg-card" style={{ height: '1440px' }}>
+                            <div
+                                className="relative flex w-16 flex-shrink-0 flex-col border-r bg-card select-none"
+                                style={{ height: '1440px' }}
+                            >
                                 {Array.from({ length: 24 }).map((_, hour) => (
-                                    <div key={hour} className="absolute right-3 text-[10px] font-bold text-muted-foreground/70" style={{ top: `${hour * 60 - 8}px` }}>
-                                        {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
+                                    <div
+                                        key={hour}
+                                        className="absolute right-3 text-[10px] font-bold text-muted-foreground/70"
+                                        style={{ top: `${hour * 60 - 8}px` }}
+                                    >
+                                        {hour === 0
+                                            ? '12 AM'
+                                            : hour === 12
+                                              ? '12 PM'
+                                              : hour > 12
+                                                ? `${hour - 12} PM`
+                                                : `${hour} AM`}
                                     </div>
                                 ))}
                             </div>
 
                             {/* Main Content Columns Grid */}
-                            <div className="flex-1 relative" style={{ height: '1440px' }}>
+                            <div
+                                className="relative flex-1"
+                                style={{ height: '1440px' }}
+                            >
                                 {/* Horizontal grid line overlay */}
-                                <div className="absolute inset-0 pointer-events-none">
-                                    {Array.from({ length: 24 }).map((_, hour) => (
-                                        <div key={hour} className="absolute left-0 right-0 border-b border-muted-foreground/10" style={{ top: `${hour * 60}px` }}></div>
-                                    ))}
+                                <div className="pointer-events-none absolute inset-0">
+                                    {Array.from({ length: 24 }).map(
+                                        (_, hour) => (
+                                            <div
+                                                key={hour}
+                                                className="absolute right-0 left-0 border-b border-muted-foreground/10"
+                                                style={{
+                                                    top: `${hour * 60}px`,
+                                                }}
+                                            ></div>
+                                        ),
+                                    )}
                                 </div>
 
                                 {/* Columns */}
                                 <div className="absolute inset-0 flex">
                                     {view === 'day' ? (
-                                        <div className="flex-1 relative h-full">
+                                        <div className="relative h-full flex-1">
                                             {/* Render Slots */}
                                             {loading ? (
-                                                <div className="absolute inset-0 bg-background/30 backdrop-blur-[1px] flex items-center justify-center">
-                                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-600"></div>
+                                                <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-[1px]">
+                                                    <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-indigo-600"></div>
                                                 </div>
-                                            ) : (slotsByDate[formatDateString(selectedDate)] || []).map((slot, index) => (
-                                                <button
-                                                    key={index}
-                                                    onClick={() => setConfirmingSlot(slot)}
-                                                    style={getBlockStyle(slot, selectedDate)}
-                                                    className="absolute left-2.5 right-2.5 rounded-xl border border-indigo-100 bg-indigo-50/70 p-2 shadow-sm text-indigo-700 hover:bg-indigo-100/90 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60 hover:shadow-md hover:scale-[1.01] transition-all text-left overflow-hidden cursor-pointer flex flex-col"
-                                                >
-                                                    <span className="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                                                        <BookOpen className="h-3 w-3" />
-                                                        {t('pupil.book_button')}
-                                                    </span>
-                                                    <span className="text-xs font-bold mt-1">
-                                                        {new Date(slot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(slot.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                </button>
-                                            ))}
+                                            ) : (
+                                                (
+                                                    slotsByDate[
+                                                        formatDateString(
+                                                            selectedDate,
+                                                        )
+                                                    ] || []
+                                                ).map((slot, index) => (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() =>
+                                                            setConfirmingSlot(
+                                                                slot,
+                                                            )
+                                                        }
+                                                        style={getBlockStyle(
+                                                            slot,
+                                                            selectedDate,
+                                                        )}
+                                                        className="absolute right-2.5 left-2.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50/70 p-2 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow-md dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
+                                                    >
+                                                        <span className="flex items-center gap-1 text-[10px] font-extrabold tracking-wider uppercase">
+                                                            <BookOpen className="h-3 w-3" />
+                                                            {t(
+                                                                'pupil.book_button',
+                                                            )}
+                                                        </span>
+                                                        <span className="mt-1 text-xs font-bold">
+                                                            {new Date(
+                                                                slot.start_at,
+                                                            ).toLocaleTimeString(
+                                                                [],
+                                                                {
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                },
+                                                            )}{' '}
+                                                            -{' '}
+                                                            {new Date(
+                                                                slot.end_at,
+                                                            ).toLocaleTimeString(
+                                                                [],
+                                                                {
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                },
+                                                            )}
+                                                        </span>
+                                                    </button>
+                                                ))
+                                            )}
 
                                             {/* Red Current Time Indicator */}
-                                            {formatDateString(selectedDate) === formatDateString(new Date()) && (
-                                                <div 
-                                                    className="absolute left-0 right-0 border-t-2 border-red-500 flex items-center pointer-events-none"
-                                                    style={{ top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px` }}
+                                            {formatDateString(selectedDate) ===
+                                                formatDateString(
+                                                    new Date(),
+                                                ) && (
+                                                <div
+                                                    className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                    style={{
+                                                        top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                    }}
                                                 >
-                                                    <div className="h-2 w-2 rounded-full bg-red-500 -ml-1"></div>
+                                                    <div className="-ml-1 h-2 w-2 rounded-full bg-red-500"></div>
                                                 </div>
                                             )}
                                         </div>
                                     ) : (
-                                        getWeekDays(selectedDate).map((day, colIdx) => {
-                                            const dateStr = formatDateString(day);
-                                            const daySlots = slotsByDate[dateStr] || [];
-                                            
-                                            return (
-                                                <div
-                                                    key={colIdx}
-                                                    className="flex-1 border-r border-muted-foreground/10 last:border-r-0 relative h-full min-w-[100px]"
-                                                >
-                                                    {/* Render Slots */}
-                                                    {daySlots.map((slot, index) => (
-                                                        <button
-                                                            key={index}
-                                                            onClick={() => setConfirmingSlot(slot)}
-                                                            style={getBlockStyle(slot, day)}
-                                                            className="absolute left-1.5 right-1.5 rounded-xl border border-indigo-100 bg-indigo-50/70 p-1.5 shadow-sm text-indigo-700 hover:bg-indigo-100/90 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60 hover:shadow hover:scale-[1.01] transition-all text-left overflow-hidden cursor-pointer flex flex-col"
-                                                        >
-                                                            <span className="text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-0.5 truncate">
-                                                                {t('pupil.book_button')}
-                                                            </span>
-                                                            <span className="text-[11px] font-bold mt-0.5 whitespace-nowrap">
-                                                                {new Date(slot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                            </span>
-                                                        </button>
-                                                    ))}
+                                        getWeekDays(selectedDate).map(
+                                            (day, colIdx) => {
+                                                const dateStr =
+                                                    formatDateString(day);
+                                                const daySlots =
+                                                    slotsByDate[dateStr] || [];
 
-                                                    {/* Red Current Time Indicator */}
-                                                    {formatDateString(day) === formatDateString(new Date()) && (
-                                                        <div 
-                                                            className="absolute left-0 right-0 border-t-2 border-red-500 flex items-center pointer-events-none"
-                                                            style={{ top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px` }}
-                                                        >
-                                                            <div className="h-2.5 w-2.5 rounded-full bg-red-500 -ml-1.5"></div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })
+                                                return (
+                                                    <div
+                                                        key={colIdx}
+                                                        className="relative h-full min-w-[100px] flex-1 border-r border-muted-foreground/10 last:border-r-0"
+                                                    >
+                                                        {/* Render Slots */}
+                                                        {daySlots.map(
+                                                            (slot, index) => (
+                                                                <button
+                                                                    key={index}
+                                                                    onClick={() =>
+                                                                        setConfirmingSlot(
+                                                                            slot,
+                                                                        )
+                                                                    }
+                                                                    style={getBlockStyle(
+                                                                        slot,
+                                                                        day,
+                                                                    )}
+                                                                    className="absolute right-1.5 left-1.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50/70 p-1.5 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
+                                                                >
+                                                                    <span className="flex items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase">
+                                                                        {t(
+                                                                            'pupil.book_button',
+                                                                        )}
+                                                                    </span>
+                                                                    <span className="mt-0.5 text-[11px] font-bold whitespace-nowrap">
+                                                                        {new Date(
+                                                                            slot.start_at,
+                                                                        ).toLocaleTimeString(
+                                                                            [],
+                                                                            {
+                                                                                hour: '2-digit',
+                                                                                minute: '2-digit',
+                                                                            },
+                                                                        )}
+                                                                    </span>
+                                                                </button>
+                                                            ),
+                                                        )}
+
+                                                        {/* Red Current Time Indicator */}
+                                                        {formatDateString(
+                                                            day,
+                                                        ) ===
+                                                            formatDateString(
+                                                                new Date(),
+                                                            ) && (
+                                                            <div
+                                                                className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                                style={{
+                                                                    top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                                }}
+                                                            >
+                                                                <div className="-ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            },
+                                        )
                                     )}
                                 </div>
                             </div>
@@ -661,49 +1019,142 @@ export default function Booking({ teacher }: Props) {
             {/* Confirmation Modal */}
             {confirmingSlot && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="w-full max-w-md bg-card rounded-2xl p-6 shadow-2xl border flex flex-col relative animate-in zoom-in-95 duration-150 mx-4">
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
+                    <div className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95">
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => setConfirmingSlot(null)}
-                            className="absolute right-4 top-4 h-8 w-8 rounded-lg"
+                            className="absolute top-4 right-4 h-8 w-8 rounded-lg"
                         >
                             <X className="h-4 w-4" />
                         </Button>
 
-                        <div className="flex items-start gap-4 mt-2">
-                            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                        <div className="mt-2 flex items-start gap-4">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
                                 <Info className="h-5 w-5" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-bold text-foreground">
-                                    {t('booking.confirm_title')}
+                                    {confirmingSlot.is_all_time
+                                        ? t('booking.all_time_title')
+                                        : t('booking.confirm_title')}
                                 </h3>
-                                
-                                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-                                    {t('booking.confirm_message', {
-                                        teacher: teacher.full_name,
-                                        start: new Date(confirmingSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                        end: new Date(confirmingSlot.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                    })}
-                                </p>
-                                
-                                <div className="mt-6 flex items-center gap-3 justify-end">
+
+                                {confirmingSlot.is_all_time ? (
+                                    <div className="mt-3 space-y-4">
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                            {t('booking.all_time_desc')}
+                                        </p>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-1">
+                                                <Label
+                                                    htmlFor="all_time_start"
+                                                    className="text-xs font-semibold"
+                                                >
+                                                    {t(
+                                                        'booking.all_time_start',
+                                                    )}
+                                                </Label>
+                                                <Input
+                                                    id="all_time_start"
+                                                    type="time"
+                                                    value={selectedStartStr}
+                                                    onChange={(e) =>
+                                                        setSelectedStartStr(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    min={formatTimeToHHMM(
+                                                        new Date(
+                                                            confirmingSlot.start_at,
+                                                        ),
+                                                    )}
+                                                    max={formatTimeToHHMM(
+                                                        new Date(
+                                                            confirmingSlot.end_at,
+                                                        ),
+                                                    )}
+                                                    className="mt-1 rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="grid gap-1">
+                                                <Label
+                                                    htmlFor="all_time_end"
+                                                    className="text-xs font-semibold"
+                                                >
+                                                    {t('booking.all_time_end')}
+                                                </Label>
+                                                <Input
+                                                    id="all_time_end"
+                                                    type="time"
+                                                    value={selectedEndStr}
+                                                    onChange={(e) =>
+                                                        setSelectedEndStr(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    min={
+                                                        selectedStartStr ||
+                                                        formatTimeToHHMM(
+                                                            new Date(
+                                                                confirmingSlot.start_at,
+                                                            ),
+                                                        )
+                                                    }
+                                                    max={formatTimeToHHMM(
+                                                        new Date(
+                                                            confirmingSlot.end_at,
+                                                        ),
+                                                    )}
+                                                    className="mt-1 rounded-xl"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {!validateSelectedRange() && (
+                                            <p className="text-xs text-destructive">
+                                                {t('booking.invalid_range')}
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                                        {t('booking.confirm_message', {
+                                            teacher: teacher.full_name,
+                                            start: new Date(
+                                                confirmingSlot.start_at,
+                                            ).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            }),
+                                            end: new Date(
+                                                confirmingSlot.end_at,
+                                            ).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            }),
+                                        })}
+                                    </p>
+                                )}
+
+                                <div className="mt-6 flex items-center justify-end gap-3">
                                     <button
                                         onClick={() => setConfirmingSlot(null)}
-                                        className="px-4 py-2 text-sm font-semibold rounded-xl border hover:bg-muted transition-colors cursor-pointer"
+                                        className="cursor-pointer rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted"
                                     >
                                         {t('booking.cancel_btn')}
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            handleBook(confirmingSlot);
-                                            setConfirmingSlot(null);
-                                        }}
-                                        disabled={booking}
-                                        className="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-600/10 disabled:opacity-50 cursor-pointer"
+                                        onClick={handleConfirmSubmit}
+                                        disabled={
+                                            booking || !validateSelectedRange()
+                                        }
+                                        className="cursor-pointer rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-600/10 transition-colors hover:bg-indigo-700 disabled:opacity-50"
                                     >
-                                        {booking ? t('booking.requesting') : t('booking.confirm_btn')}
+                                        {booking
+                                            ? t('booking.requesting')
+                                            : t('booking.confirm_btn')}
                                     </button>
                                 </div>
                             </div>
@@ -718,6 +1169,6 @@ export default function Booking({ teacher }: Props) {
 Booking.layout = {
     breadcrumbs: [
         { title: 'find teachers', href: '/pupil/teachers' },
-        { title: 'book lesson', href: '#' }
-    ]
+        { title: 'book lesson', href: '#' },
+    ],
 };
