@@ -87,7 +87,7 @@ function PupilDashboard({
     stats?: any; 
     recentFeedback?: any; 
 }) {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
 
     useEffect(() => {
         if (!user) return;
@@ -136,7 +136,7 @@ function PupilDashboard({
                         <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-md rounded-2xl border-2 border-white/40 flex items-center justify-center text-3xl font-bold shadow-inner">
                             👤
                         </div>
-                        <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold border-2 border-indigo-600 shadow-sm">Level 3</span>
+                        <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold border-2 border-indigo-600 shadow-sm">{t('dashboard.level', { level: 3 })}</span>
                     </div>
                     <div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -144,7 +144,7 @@ function PupilDashboard({
                                 {t('welcome.badge')}
                             </span>
                             <div className="flex items-center space-x-1.5 bg-orange-500/20 text-orange-200 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-bold animate-pulse shadow-sm">
-                                <span>🔥 5 Day Streak!</span>
+                                <span>{t('dashboard.streak', { count: 5 })}</span>
                             </div>
                         </div>
                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-2">
@@ -175,7 +175,7 @@ function PupilDashboard({
                             <p className="text-slate-500 dark:text-muted-foreground text-sm font-semibold uppercase tracking-wider">{t('dashboard.speaking_hours')}</p>
                             <div className="flex items-baseline space-x-2">
                                 <span className="text-4xl font-extrabold text-slate-800 dark:text-foreground tracking-tight">{stats.speaking_hours || 0}</span>
-                                <span className="text-slate-500 font-semibold text-sm">soat</span>
+                                <span className="text-slate-500 font-semibold text-sm">{t('dashboard.hours_unit')}</span>
                             </div>
                         </div>
                         <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition duration-200">
@@ -196,7 +196,7 @@ function PupilDashboard({
                             <p className="text-slate-500 dark:text-muted-foreground text-sm font-semibold uppercase tracking-wider">{t('dashboard.upcoming_sessions')}</p>
                             <div className="flex items-baseline space-x-2">
                                 <span className="text-4xl font-extrabold text-slate-800 dark:text-foreground tracking-tight">{stats.upcoming_sessions || 0}</span>
-                                <span className="text-slate-500 font-semibold text-sm">ta seans</span>
+                                <span className="text-slate-500 font-semibold text-sm">{t('dashboard.sessions_unit')}</span>
                             </div>
                         </div>
                         <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition duration-200">
@@ -253,10 +253,10 @@ function PupilDashboard({
                                     </div>
                                     <div className="flex flex-col sm:text-right">
                                         <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                                            {new Date(apt.start_at).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
+                                            {new Date(apt.start_at).toLocaleDateString(locale, { month: 'long', day: 'numeric', year: 'numeric' })}
                                         </span>
                                         <span className="text-xs text-muted-foreground font-semibold mt-0.5">
-                                            {new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(apt.start_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.end_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
                                 </div>
@@ -312,7 +312,7 @@ function TeacherDashboard({
 }) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
     const { auth } = usePage<any>().props;
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const pendingCount = auth.pending_requests_count || 0;
 
     useEffect(() => {
@@ -437,7 +437,7 @@ function TeacherDashboard({
                             <p className="text-slate-500 dark:text-muted-foreground text-sm font-semibold uppercase tracking-wider">{t('dashboard.sessions_today')}</p>
                             <div className="flex items-baseline space-x-2">
                                 <span className="text-4xl font-extrabold text-slate-800 dark:text-foreground tracking-tight">{stats.sessions_today || 0}</span>
-                                <span className="text-slate-500 font-semibold text-sm">ta seans</span>
+                                <span className="text-slate-500 font-semibold text-sm">{t('dashboard.sessions_unit')}</span>
                             </div>
                         </div>
                         <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition duration-200">
@@ -457,7 +457,7 @@ function TeacherDashboard({
                             <p className="text-slate-500 dark:text-muted-foreground text-sm font-semibold uppercase tracking-wider">{t('dashboard.total_pupils')}</p>
                             <div className="flex items-baseline space-x-2">
                                 <span className="text-4xl font-extrabold text-slate-800 dark:text-foreground tracking-tight">{stats.total_pupils || 0}</span>
-                                <span className="text-slate-500 font-semibold text-sm">ta faol</span>
+                                <span className="text-slate-500 font-semibold text-sm">{t('dashboard.active_unit')}</span>
                             </div>
                         </div>
                         <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition duration-200">
@@ -512,7 +512,7 @@ function TeacherDashboard({
                                         <div key={apt.id} className="flex items-center gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/10 p-4 dark:border-indigo-950/20 dark:bg-indigo-950/5 transition-all hover:shadow-md">
                                             <div className="flex flex-col items-center justify-center rounded-xl bg-white dark:bg-card px-3 py-2.5 text-center shadow-sm border border-border/60">
                                                 <span className="text-xs font-bold uppercase text-indigo-600 dark:text-indigo-400">
-                                                    {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground font-semibold mt-0.5">{durationMin}m</span>
                                             </div>
