@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -60,8 +61,9 @@ class ProfileController extends Controller
                 'ielts_certificate' => ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'], // 10MB max
             ]);
 
-            $path = $request->file('ielts_certificate')->store('certificates', 'public');
-            $fileUrl = '/storage/' . $path;
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = $request->file('ielts_certificate')->store('certificates', $disk);
+            $fileUrl = Storage::disk($disk)->url($path);
 
             // Get existing or text-submitted certificates
             $existingCerts = $request->input('certificates');
@@ -73,7 +75,7 @@ class ProfileController extends Controller
 
             // Remove any old uploaded certificate from the list to keep it clean
             $existingCerts = array_filter($existingCerts, function ($cert) {
-                return !str_starts_with($cert, '/storage/certificates/');
+                return !str_contains($cert, 'certificates');
             });
 
             $existingCerts[] = $fileUrl;

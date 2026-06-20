@@ -7,6 +7,7 @@ use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
@@ -77,8 +78,9 @@ class CreateNewUser implements CreatesNewUsers
 
             $certificates = null;
             if (request()->hasFile('ielts_certificate')) {
-                $path = request()->file('ielts_certificate')->store('certificates', 'public');
-                $certificates = ['/storage/' . $path];
+                $disk = env('FILESYSTEM_DISK', 'public');
+                $path = request()->file('ielts_certificate')->store('certificates', $disk);
+                $certificates = [Storage::disk($disk)->url($path)];
             }
 
             if ($role === 'teacher') {
