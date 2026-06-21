@@ -788,9 +788,9 @@ export default function Availability({ availabilities }: Props) {
                 </div>
 
                 {/* Main Workspace Layout */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
                     {/* Left Sidebar (Mini Cal, Create, Calendars toggles) */}
-                    <div className="hidden md:flex w-64 flex-col gap-6 overflow-y-auto border-r bg-card p-4">
+                    <div className="flex w-full md:w-64 flex-col gap-4 md:gap-6 border-b md:border-b-0 md:border-r bg-card p-4 overflow-y-auto max-h-[45vh] md:max-h-none flex-shrink-0">
                         <Button
                             onClick={() => {
                                 reset();
@@ -923,8 +923,9 @@ export default function Availability({ availabilities }: Props) {
                     </div>
 
                     {/* Timeline & Columns Workspace */}
-                    <div className="hidden md:flex flex-1 flex-col overflow-hidden bg-muted/5">
-                        {/* Day/Week header row */}
+                    <div className="flex flex-1 flex-col overflow-x-auto overflow-y-hidden bg-muted/5 border-t md:border-t-0">
+                        <div className={`flex flex-col flex-1 ${view === 'week' ? 'min-w-[760px]' : 'min-w-0'} md:min-w-0`}>
+                            {/* Day/Week header row */}
                         <div className="flex border-b bg-card">
                             <div className="w-16 flex-shrink-0 border-r bg-card"></div>
                             <div className="flex flex-1 overflow-hidden">
@@ -1179,112 +1180,9 @@ export default function Availability({ availabilities }: Props) {
                             </div>
                         </div>
                     </div>
-
-                    {/* Mobile Card-Based View */}
-                    <div className="flex md:hidden flex-1 flex-col overflow-y-auto p-4 space-y-6">
-                        <Button
-                            onClick={() => {
-                                reset();
-                                setIsCreateModalOpen(true);
-                            }}
-                            className="w-full justify-center gap-3 rounded-xl bg-indigo-600 px-5 py-4 text-white shadow-md hover:bg-indigo-700 hover:shadow-lg animate-in fade-in duration-200"
-                        >
-                            <Plus className="h-5 w-5" />
-                            <span className="text-sm font-semibold tracking-wide">
-                                {t.createAvailability}
-                            </span>
-                        </Button>
-
-                        {/* Toggles */}
-                        <div className="flex gap-4 border-b pb-4">
-                            <label className="flex cursor-pointer items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={showCustom}
-                                    onChange={(e) => setShowCustom(e.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                                />
-                                <span className="text-xs font-semibold text-foreground">
-                                    {t.singleDateOverride}
-                                </span>
-                            </label>
-                            <label className="flex cursor-pointer items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={showRecurring}
-                                    onChange={(e) => setShowRecurring(e.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-xs font-semibold text-foreground">
-                                    {t.weeklyRecurring}
-                                </span>
-                            </label>
-                        </div>
-
-                        {/* List of Availability Cards */}
-                        <div className="space-y-3">
-                            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                                {t.myCalendars}
-                            </h3>
-                            {availabilities.filter(avail => {
-                                if (avail.type === 'custom') return showCustom;
-                                return showRecurring;
-                            }).length === 0 ? (
-                                <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl p-4">
-                                    No availability configured.
-                                </div>
-                            ) : (
-                                availabilities
-                                    .filter(avail => {
-                                        if (avail.type === 'custom') return showCustom;
-                                        return showRecurring;
-                                    })
-                                    .map((avail) => (
-                                        <div
-                                            key={avail.id}
-                                            onClick={() => setSelectedEvent(avail)}
-                                            className={`cursor-pointer rounded-xl border p-4 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
-                                                avail.type === 'custom'
-                                                    ? 'border-emerald-200 bg-emerald-50/20 hover:bg-emerald-50/40 dark:border-emerald-900/30 dark:bg-emerald-950/10'
-                                                    : 'border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40 dark:border-indigo-900/30 dark:bg-indigo-950/10'
-                                            }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <span className={`text-[10px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded ${
-                                                    avail.type === 'custom'
-                                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                                        : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
-                                                }`}>
-                                                    {avail.type === 'custom' ? t.singleDate : t.recurringWeekly}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-muted-foreground">
-                                                    {avail.slot_duration === 0 ? t.slotDurationAll : `${avail.slot_duration} min`}
-                                                </span>
-                                            </div>
-                                            <div className="mt-3">
-                                                <h4 className="text-sm font-bold text-foreground capitalize">
-                                                    {avail.type === 'recurring'
-                                                        ? `${t.every} ${daysMap[lang][avail.day_of_week as keyof (typeof daysMap)['en']] || avail.day_of_week}`
-                                                        : parseUtcDate(avail.start_at).toLocaleDateString(localeMap[lang], {
-                                                              weekday: 'long',
-                                                              month: 'long',
-                                                              day: 'numeric',
-                                                              year: 'numeric'
-                                                          })
-                                                    }
-                                                </h4>
-                                                <p className="text-xs font-semibold text-muted-foreground mt-1 flex items-center gap-1.5">
-                                                    <Clock className="h-3.5 w-3.5" />
-                                                    {getEventTimeLabel(avail)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                            )}
-                        </div>
-                    </div>
                 </div>
             </div>
+        </div>
 
             {/* Custom Google Calendar Event details / delete modal */}
             {selectedEvent && (
