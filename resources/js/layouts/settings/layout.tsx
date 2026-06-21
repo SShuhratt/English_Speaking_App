@@ -35,11 +35,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
     const getTranslatedTitle = (title: string) => {
         const keyMap: Record<string, string> = {
-            'profile': 'settings.profile',
-            'security': 'settings.security',
-            'appearance': 'settings.appearance'
+            profile: 'settings.profile',
+            security: 'settings.security',
+            appearance: 'settings.appearance',
         };
-        const key = keyMap[title.toLowerCase()] || `settings.${title.toLowerCase()}`;
+        const key =
+            keyMap[title.toLowerCase()] || `settings.${title.toLowerCase()}`;
         return t(key);
     };
 
@@ -50,7 +51,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 description={t('settings.subtitle')}
             />
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12 mt-6">
+            <div className="mt-6 flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav
                         className="flex flex-col space-y-1 space-x-0"

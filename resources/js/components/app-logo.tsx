@@ -3,7 +3,7 @@ import AppLogoIcon from '@/components/app-logo-icon';
 export default function AppLogo() {
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md text-white">
+            <div className="flex aspect-square size-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
                 <AppLogoIcon className="size-5 text-white" />
             </div>
             <div className="ml-2 grid flex-1 text-left text-sm">

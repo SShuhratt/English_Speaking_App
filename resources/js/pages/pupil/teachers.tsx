@@ -17,14 +17,16 @@ export default function Teachers({ teachers }: Props) {
     return (
         <>
             <Head title={t('teachers.browse')} />
-            <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+            <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
+                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent p-6 md:flex-row md:items-center dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
+                        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
                             {t('teachers.meet_expert')}
                         </h1>
-                        <p className="text-muted-foreground font-medium text-sm">{t('teachers.subtitle')}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                            {t('teachers.subtitle')}
+                        </p>
                     </div>
                 </div>
 
@@ -35,8 +37,10 @@ export default function Teachers({ teachers }: Props) {
                 </div>
 
                 {teachers.data.length === 0 && (
-                    <div className="text-center py-20 border border-dashed rounded-3xl bg-card">
-                        <p className="text-muted-foreground text-sm font-medium">{t('teachers.none_available')}</p>
+                    <div className="rounded-3xl border border-dashed bg-card py-20 text-center">
+                        <p className="text-sm font-medium text-muted-foreground">
+                            {t('teachers.none_available')}
+                        </p>
                     </div>
                 )}
             </div>
@@ -45,5 +49,5 @@ export default function Teachers({ teachers }: Props) {
 }
 
 Teachers.layout = {
-    breadcrumbs: [{ title: 'find teachers', href: '/pupil/teachers' }]
+    breadcrumbs: [{ title: 'find teachers', href: '/pupil/teachers' }],
 };

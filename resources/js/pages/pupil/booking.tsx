@@ -92,6 +92,7 @@ export default function Booking({ teacher }: Props) {
     ) as 'en' | 'uz' | 'ru';
 
     const [view, setView] = useState<'day' | 'week'>('day');
+    const [showSidebar, setShowSidebar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [currentDate, setCurrentDate] = useState<Date>(new Date()); // Month focus for mini-calendar
     const [slotsByDate, setSlotsByDate] = useState<Record<string, any[]>>({});
@@ -531,6 +532,18 @@ export default function Booking({ teacher }: Props) {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowSidebar(!showSidebar)}
+                            className="flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs font-semibold text-foreground md:hidden"
+                        >
+                            <CalendarIcon className="h-4 w-4 text-indigo-600" />
+                            {showSidebar
+                                ? t('booking.hide_sidebar')
+                                : t('booking.show_sidebar')}
+                        </Button>
+
                         {/* View Switcher */}
                         <div className="flex rounded-lg border bg-muted/30 p-1">
                             <Button
@@ -556,9 +569,11 @@ export default function Booking({ teacher }: Props) {
                 </div>
 
                 {/* Main Workspace Layout */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
                     {/* Left Sidebar: Profile & Custom Booking */}
-                    <div className="flex w-80 shrink-0 flex-col gap-5 overflow-y-auto border-r bg-card p-4">
+                    <div
+                        className={`flex w-full shrink-0 flex-col gap-5 overflow-y-auto border-b bg-card p-4 md:w-80 md:border-r md:border-b-0 ${showSidebar ? 'flex max-h-[50vh]' : 'hidden md:flex'}`}
+                    >
                         {/* Teacher Profile Card */}
                         <div className="flex flex-col items-center rounded-2xl border bg-muted/20 p-4 text-center shadow-sm">
                             <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl font-bold text-white shadow-lg">
@@ -773,7 +788,7 @@ export default function Booking({ teacher }: Props) {
                     <div className="flex flex-1 flex-col overflow-hidden bg-muted/5">
                         {/* Day/Week header row */}
                         <div className="flex border-b bg-card">
-                            <div className="w-10 md:w-16 flex-shrink-0 border-r bg-card"></div>
+                            <div className="w-14 flex-shrink-0 border-r bg-card md:w-16"></div>
                             <div className="flex flex-1 overflow-hidden">
                                 {view === 'day' ? (
                                     <div className="flex flex-1 flex-col items-center py-3 text-center">
@@ -808,9 +823,9 @@ export default function Booking({ teacher }: Props) {
                                             return (
                                                 <div
                                                     key={idx}
-                                                    className="flex min-w-[35px] md:min-w-[100px] flex-1 flex-col items-center border-r py-1.5 md:py-3 text-center last:border-r-0"
+                                                    className="flex min-w-[35px] flex-1 flex-col items-center border-r py-1.5 text-center last:border-r-0 md:min-w-[100px] md:py-3"
                                                 >
-                                                    <span className="text-[9px] md:text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                                    <span className="text-[9px] font-bold tracking-wider text-muted-foreground uppercase md:text-xs">
                                                         {day.toLocaleDateString(
                                                             localeMap[lang],
                                                             {
@@ -826,7 +841,7 @@ export default function Booking({ teacher }: Props) {
                                                             );
                                                             setCurrentDate(day);
                                                         }}
-                                                        className={`mt-1 flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-full text-xs md:text-xl font-bold transition-all ${
+                                                        className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${
                                                             isToday
                                                                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                                                                 : isSelected
@@ -851,36 +866,22 @@ export default function Booking({ teacher }: Props) {
                         >
                             {/* Y-Axis Hours label */}
                             <div
-                                className="relative flex w-10 md:w-16 flex-shrink-0 flex-col border-r bg-card select-none"
+                                className="relative flex w-14 flex-shrink-0 flex-col border-r bg-card select-none md:w-16"
                                 style={{ height: '1440px' }}
                             >
                                 {Array.from({ length: 24 }).map((_, hour) => (
                                     <div
                                         key={hour}
-                                        className="absolute right-1.5 md:right-3 text-[8px] md:text-[10px] font-bold text-muted-foreground/70"
+                                        className="absolute right-2 text-[9px] font-bold text-muted-foreground/70 md:right-3 md:text-[10px]"
                                         style={{ top: `${hour * 60 - 8}px` }}
                                     >
-                                        {hour === 0 ? (
-                                            <>
-                                                <span className="md:hidden">12a</span>
-                                                <span className="hidden md:inline">12 AM</span>
-                                            </>
-                                        ) : hour === 12 ? (
-                                            <>
-                                                <span className="md:hidden">12p</span>
-                                                <span className="hidden md:inline">12 PM</span>
-                                            </>
-                                        ) : hour > 12 ? (
-                                            <>
-                                                <span className="md:hidden">{hour - 12}p</span>
-                                                <span className="hidden md:inline">{hour - 12} PM</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="md:hidden">{hour}a</span>
-                                                <span className="hidden md:inline">{hour} AM</span>
-                                            </>
-                                        )}
+                                        {hour === 0
+                                            ? '12 AM'
+                                            : hour === 12
+                                              ? '12 PM'
+                                              : hour > 12
+                                                ? `${hour - 12} PM`
+                                                : `${hour} AM`}
                                     </div>
                                 ))}
                             </div>
@@ -915,7 +916,9 @@ export default function Booking({ teacher }: Props) {
                                                     <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-indigo-600"></div>
                                                 </div>
                                             ) : (
-                                                getSlotsForDate(selectedDate).map((slot, index) => (
+                                                getSlotsForDate(
+                                                    selectedDate,
+                                                ).map((slot, index) => (
                                                     <button
                                                         key={index}
                                                         onClick={() =>
@@ -986,7 +989,7 @@ export default function Booking({ teacher }: Props) {
                                                 return (
                                                     <div
                                                         key={colIdx}
-                                                        className="relative h-full min-w-[35px] md:min-w-[100px] flex-1 border-r border-muted-foreground/10 last:border-r-0"
+                                                        className="relative h-full min-w-[35px] flex-1 border-r border-muted-foreground/10 last:border-r-0 md:min-w-[100px]"
                                                     >
                                                         {/* Render Slots */}
                                                         {daySlots.map(
@@ -1002,14 +1005,14 @@ export default function Booking({ teacher }: Props) {
                                                                         slot,
                                                                         day,
                                                                     )}
-                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md md:rounded-xl border border-indigo-100/50 bg-indigo-50/70 p-0.5 md:p-1.5 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
+                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border border-indigo-100/50 bg-indigo-50/70 p-0.5 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow md:rounded-xl md:p-1.5 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
                                                                 >
-                                                                    <span className="hidden md:flex items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase">
+                                                                    <span className="hidden items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase md:flex">
                                                                         {t(
                                                                             'pupil.book_button',
                                                                         )}
                                                                     </span>
-                                                                    <span className="mt-0.5 text-[7px] md:text-[11px] font-bold whitespace-nowrap leading-none">
+                                                                    <span className="mt-0.5 text-[7px] leading-none font-bold whitespace-nowrap md:text-[11px]">
                                                                         {new Date(
                                                                             slot.start_at,
                                                                         ).toLocaleTimeString(

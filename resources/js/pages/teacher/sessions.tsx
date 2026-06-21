@@ -26,10 +26,11 @@ export default function Sessions({ appointments }: Props) {
     const [selectedApt, setSelectedApt] = useState<any>(null);
     const { t } = useTranslation();
 
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        appointment_id: '',
-        comment_text: '',
-    });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            appointment_id: '',
+            comment_text: '',
+        });
 
     const handleOpenFeedbackModal = (apt: any) => {
         setData({
@@ -48,7 +49,9 @@ export default function Sessions({ appointments }: Props) {
             toast.success(t('bookings.delete_success'));
             router.reload();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || t('bookings.delete_error'));
+            toast.error(
+                error.response?.data?.message || t('bookings.delete_error'),
+            );
         }
     };
 
@@ -65,14 +68,16 @@ export default function Sessions({ appointments }: Props) {
     return (
         <>
             <Head title={t('teacher.sessions_title')} />
-            <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
+            <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
+                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent p-6 md:flex-row md:items-center dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
+                        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
                             {t('teacher.sessions_title')}
                         </h1>
-                        <p className="text-muted-foreground font-medium text-sm">{t('teacher.sessions_desc')}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                            {t('teacher.sessions_desc')}
+                        </p>
                     </div>
                 </div>
 
@@ -80,75 +85,135 @@ export default function Sessions({ appointments }: Props) {
                 <div className="grid gap-5">
                     {appointments.data.length > 0 ? (
                         appointments.data.map((apt) => {
-                            const teacherFeedback = apt.feedbacks?.find((fb: any) => fb.author_id === auth.user.id);
+                            const teacherFeedback = apt.feedbacks?.find(
+                                (fb: any) => fb.author_id === auth.user.id,
+                            );
                             const isPast = new Date(apt.end_at) < new Date();
                             return (
-                                <div key={apt.id} className="group rounded-3xl border border-border bg-card p-6 shadow-sm flex flex-col gap-5 hover:shadow-md transition-shadow duration-300">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div
+                                    key={apt.id}
+                                    className="group flex flex-col gap-5 rounded-3xl border border-border bg-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md"
+                                >
+                                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 group-hover:scale-105 transition-transform shrink-0">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-950/40 dark:text-indigo-400">
                                                 <User className="h-6 w-6" />
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-base text-foreground">{apt.pupil?.full_name || 'Student'}</h4>
-                                                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-muted-foreground font-semibold">
+                                                <h4 className="text-base font-bold text-foreground">
+                                                    {apt.pupil?.full_name ||
+                                                        'Student'}
+                                                </h4>
+                                                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar className="h-3.5 w-3.5 text-indigo-500" />
-                                                        {new Date(apt.start_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        {new Date(
+                                                            apt.start_at,
+                                                        ).toLocaleDateString(
+                                                            [],
+                                                            {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric',
+                                                            },
+                                                        )}
                                                     </span>
-                                                    <div className="h-2 w-px bg-border hidden sm:block" />
+                                                    <div className="hidden h-2 w-px bg-border sm:block" />
                                                     <span className="flex items-center gap-1">
                                                         <Clock className="h-3.5 w-3.5 text-indigo-500" />
-                                                        {new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {new Date(
+                                                            apt.start_at,
+                                                        ).toLocaleTimeString(
+                                                            [],
+                                                            {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            },
+                                                        )}{' '}
+                                                        -{' '}
+                                                        {new Date(
+                                                            apt.end_at,
+                                                        ).toLocaleTimeString(
+                                                            [],
+                                                            {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            },
+                                                        )}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center gap-2.5 self-end md:self-auto">
-                                            <span className={`px-3 py-1 rounded-xl text-[10px] font-extrabold uppercase tracking-wider border ${
-                                                apt.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/30' :
-                                                apt.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200/50 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/30' :
-                                                'bg-muted text-muted-foreground border-transparent'
-                                            }`}>
-                                                {t(`bookings.status_${apt.status}`)}
+                                            <span
+                                                className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
+                                                    apt.status === 'confirmed'
+                                                        ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                                        : apt.status ===
+                                                            'pending'
+                                                          ? 'border-amber-200/50 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-400'
+                                                          : 'border-transparent bg-muted text-muted-foreground'
+                                                }`}
+                                            >
+                                                {t(
+                                                    `bookings.status_${apt.status}`,
+                                                )}
                                             </span>
 
                                             {apt.status === 'confirmed' && (
                                                 <>
                                                     {!teacherFeedback ? (
                                                         <button
-                                                            onClick={() => handleOpenFeedbackModal(apt)}
-                                                            className="flex items-center gap-2 rounded-xl bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/10 px-4 py-2.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer"
+                                                            onClick={() =>
+                                                                handleOpenFeedbackModal(
+                                                                    apt,
+                                                                )
+                                                            }
+                                                            className="flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/10 bg-indigo-500/5 px-4 py-2.5 text-xs font-bold text-indigo-600 transition-all hover:bg-indigo-500/10 dark:text-indigo-400"
                                                         >
-                                                            <MessageSquare className="h-3.5 w-3.5" /> {t('teacher.sessions_leave_feedback')}
+                                                            <MessageSquare className="h-3.5 w-3.5" />{' '}
+                                                            {t(
+                                                                'teacher.sessions_leave_feedback',
+                                                            )}
                                                         </button>
                                                     ) : (
-                                                        <span className="text-[10px] bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl font-bold uppercase tracking-wide border border-emerald-500/10">
-                                                            {t('teacher.sessions_feedback_left')}
+                                                        <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
+                                                            {t(
+                                                                'teacher.sessions_feedback_left',
+                                                            )}
                                                         </span>
                                                     )}
                                                 </>
                                             )}
 
                                             {isPast && (
-                                                <button 
-                                                    onClick={() => handleDelete(apt.id)}
-                                                    className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3.5 py-2.5 text-xs font-bold hover:bg-destructive hover:text-white transition-all duration-300 cursor-pointer"
+                                                <button
+                                                    onClick={() =>
+                                                        handleDelete(apt.id)
+                                                    }
+                                                    className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/20 px-3.5 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
                                                 >
-                                                    <Trash2 className="h-3.5 w-3.5" /> {t('bookings.delete')}
+                                                    <Trash2 className="h-3.5 w-3.5" />{' '}
+                                                    {t('bookings.delete')}
                                                 </button>
                                             )}
                                         </div>
                                     </div>
 
                                     {teacherFeedback && (
-                                        <div className="mt-1 p-4 rounded-2xl bg-muted/30 border border-dashed border-border/80 text-sm font-semibold">
-                                            <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 mb-2">
+                                        <div className="mt-1 rounded-2xl border border-dashed border-border/80 bg-muted/30 p-4 text-sm font-semibold">
+                                            <div className="mb-2 flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                                 <MessageSquare className="h-4 w-4" />
-                                                <span>{t('teacher.sessions_your_feedback')}</span>
+                                                <span>
+                                                    {t(
+                                                        'teacher.sessions_your_feedback',
+                                                    )}
+                                                </span>
                                             </div>
-                                            <p className="text-muted-foreground italic font-medium">"{teacherFeedback.comment}"</p>
+                                            <p className="font-medium text-muted-foreground italic">
+                                                "{teacherFeedback.comment}"
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -156,52 +221,71 @@ export default function Sessions({ appointments }: Props) {
                         })
                     ) : (
                         <div className="rounded-3xl border border-dashed border-border bg-card p-16 text-center text-muted-foreground">
-                            <Clock className="mx-auto h-10 w-10 text-muted-foreground/45 mb-4 animate-pulse" />
-                            <p className="font-bold text-base text-foreground mb-1">{t('teacher.sessions_none')}</p>
-                            <p className="text-sm text-muted-foreground">Completed past sessions with your feedback will appear here.</p>
+                            <Clock className="mx-auto mb-4 h-10 w-10 animate-pulse text-muted-foreground/45" />
+                            <p className="mb-1 text-base font-bold text-foreground">
+                                {t('teacher.sessions_none')}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Completed past sessions with your feedback will
+                                appear here.
+                            </p>
                         </div>
                     )}
                 </div>
             </div>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="rounded-3xl max-w-md border border-border bg-card shadow-2xl p-6">
+                <DialogContent className="max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-black tracking-tight">{t('teacher.sessions_dialog_title')}</DialogTitle>
+                        <DialogTitle className="text-xl font-black tracking-tight">
+                            {t('teacher.sessions_dialog_title')}
+                        </DialogTitle>
                         <DialogDescription className="text-sm font-medium text-muted-foreground">
-                            {t('teacher.sessions_dialog_desc', { name: selectedApt?.pupil?.full_name })}
+                            {t('teacher.sessions_dialog_desc', {
+                                name: selectedApt?.pupil?.full_name,
+                            })}
                         </DialogDescription>
                     </DialogHeader>
 
-                    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                    <form onSubmit={handleSubmit} className="mt-4 space-y-6">
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('teacher.sessions_feedback_notes')}</label>
+                            <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                {t('teacher.sessions_feedback_notes')}
+                            </label>
                             <textarea
                                 value={data.comment_text}
-                                onChange={(e) => setData('comment_text', e.target.value)}
-                                placeholder={t('teacher.sessions_feedback_placeholder')}
-                                className="w-full min-h-[150px] rounded-2xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none font-medium"
+                                onChange={(e) =>
+                                    setData('comment_text', e.target.value)
+                                }
+                                placeholder={t(
+                                    'teacher.sessions_feedback_placeholder',
+                                )}
+                                className="min-h-[150px] w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm font-medium transition-all focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                 required
                             />
                             {errors.comment_text && (
-                                <p className="text-xs text-destructive font-bold">{errors.comment_text}</p>
+                                <p className="text-xs font-bold text-destructive">
+                                    {errors.comment_text}
+                                </p>
                             )}
                         </div>
 
-                        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/55">
+                        <DialogFooter className="gap-2 border-t border-border/55 pt-2 sm:gap-0">
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(false)}
-                                className="px-4 py-2.5 border border-border rounded-xl text-xs font-bold hover:bg-muted transition-all cursor-pointer"
+                                className="cursor-pointer rounded-xl border border-border px-4 py-2.5 text-xs font-bold transition-all hover:bg-muted"
                             >
                                 {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-md shadow-indigo-500/10"
+                                className="cursor-pointer rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/10 transition-all hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
                             >
-                                {processing ? t('sessions.submitting') : t('sessions.submit_btn')}
+                                {processing
+                                    ? t('sessions.submitting')
+                                    : t('sessions.submit_btn')}
                             </button>
                         </DialogFooter>
                     </form>
@@ -212,5 +296,5 @@ export default function Sessions({ appointments }: Props) {
 }
 
 Sessions.layout = {
-    breadcrumbs: [{ title: 'my sessions', href: '/teacher/sessions' }]
+    breadcrumbs: [{ title: 'my sessions', href: '/teacher/sessions' }],
 };

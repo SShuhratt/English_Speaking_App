@@ -12,28 +12,22 @@ interface PupilSessionsProps {
 
 export default function PupilSessions({ sessions }: PupilSessionsProps) {
     return (
-        <div className="p-6 space-y-4">
+        <div className="space-y-4 p-6">
             <h1 className="text-xl font-bold">Past Sessions</h1>
 
             {sessions.length === 0 && (
-                <p className="text-gray-500">
-                    No past sessions yet
-                </p>
+                <p className="text-gray-500">No past sessions yet</p>
             )}
 
             {sessions.map((s) => (
-                <div key={s.id} className="border p-4 rounded-xl">
-                    <p className="font-semibold">
-                        {s.teacher?.full_name}
-                    </p>
+                <div key={s.id} className="rounded-xl border p-4">
+                    <p className="font-semibold">{s.teacher?.full_name}</p>
 
                     <p className="text-sm text-gray-500">
                         {new Date(s.start_at).toLocaleString()}
                     </p>
 
-                    <p className="text-xs text-green-600">
-                        Completed
-                    </p>
+                    <p className="text-xs text-green-600">Completed</p>
                 </div>
             ))}
         </div>

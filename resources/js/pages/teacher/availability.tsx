@@ -48,6 +48,8 @@ const translations = {
         singleDate: 'Single Date',
         recurringWeekly: 'Recurring Weekly',
         minSlots: 'min',
+        chooseDatePicker: 'Choose Date',
+        hideDatePicker: 'Hide Calendar',
         save: 'Save',
         cancel: 'Cancel',
         deleteAvailability: 'Delete Availability',
@@ -95,7 +97,8 @@ const translations = {
         deleteRangeTitle: 'Delete specific time range',
         deleteRangeButton: 'Delete Selected Range',
         deleteRangeDesc: 'Select a sub-range within this block to remove it.',
-        confirmDeleteRange: 'Are you sure you want to delete this specific time range?',
+        confirmDeleteRange:
+            'Are you sure you want to delete this specific time range?',
     },
     uz: {
         title: 'Bandlik jadvali',
@@ -109,6 +112,8 @@ const translations = {
         singleDate: 'Yagona kun',
         recurringWeekly: 'Haftalik takroriy',
         minSlots: 'daq',
+        chooseDatePicker: 'Sana tanlash',
+        hideDatePicker: 'Yashirish',
         save: 'Saqlash',
         cancel: 'Bekor qilish',
         deleteAvailability: "O'chirish",
@@ -153,10 +158,12 @@ const translations = {
         slotDurationAll: 'Butun vaqt',
         slotDurationCustom: 'Boshqa...',
         enterMinutes: 'Daqiqalarni kiriting',
-        deleteRangeTitle: 'Tanlangan vaqt oralig\'ini o\'chirish',
-        deleteRangeButton: 'Tanlangan oralig\'ni o\'chirish',
-        deleteRangeDesc: 'Ushbu blok ichidan o\'chirmoqchi bo\'lgan oralig\'ingizni tanlang.',
-        confirmDeleteRange: 'Ushbu tanlangan vaqt oralig\'ini o\'chirib tashlamoqchimisiz?',
+        deleteRangeTitle: "Tanlangan vaqt oralig'ini o'chirish",
+        deleteRangeButton: "Tanlangan oralig'ni o'chirish",
+        deleteRangeDesc:
+            "Ushbu blok ichidan o'chirmoqchi bo'lgan oralig'ingizni tanlang.",
+        confirmDeleteRange:
+            "Ushbu tanlangan vaqt oralig'ini o'chirib tashlamoqchimisiz?",
     },
     ru: {
         title: 'График доступности',
@@ -170,6 +177,8 @@ const translations = {
         singleDate: 'Разово',
         recurringWeekly: 'Еженедельно',
         minSlots: 'мин',
+        chooseDatePicker: 'Выбрать дату',
+        hideDatePicker: 'Скрыть',
         save: 'Сохранить',
         cancel: 'Отмена',
         deleteAvailability: 'Удалить доступность',
@@ -216,8 +225,10 @@ const translations = {
         enterMinutes: 'Введите минуты',
         deleteRangeTitle: 'Удалить временной интервал',
         deleteRangeButton: 'Удалить выбранный интервал',
-        deleteRangeDesc: 'Выберите подинтервал внутри этого блока, чтобы удалить его.',
-        confirmDeleteRange: 'Вы уверены, что хотите удалить этот конкретный временной интервал?',
+        deleteRangeDesc:
+            'Выберите подинтервал внутри этого блока, чтобы удалить его.',
+        confirmDeleteRange:
+            'Вы уверены, что хотите удалить этот конкретный временной интервал?',
     },
 };
 
@@ -266,6 +277,7 @@ export default function Availability({ availabilities }: Props) {
     const t = translations[lang];
 
     const [view, setView] = useState<'day' | 'week'>('week');
+    const [showFilters, setShowFilters] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentDate, setCurrentDate] = useState(new Date()); // Month focus for sidebar mini-calendar
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -371,8 +383,12 @@ export default function Availability({ availabilities }: Props) {
                 setRangeStartVal(formatTimeForInput(start));
                 setRangeEndVal(formatTimeForInput(end));
             } else {
-                const startStr = selectedEvent.start_time ? selectedEvent.start_time.substring(0, 5) : '';
-                const endStr = selectedEvent.end_time ? selectedEvent.end_time.substring(0, 5) : '';
+                const startStr = selectedEvent.start_time
+                    ? selectedEvent.start_time.substring(0, 5)
+                    : '';
+                const endStr = selectedEvent.end_time
+                    ? selectedEvent.end_time.substring(0, 5)
+                    : '';
                 setRangeStartVal(startStr);
                 setRangeEndVal(endStr);
             }
@@ -440,7 +456,7 @@ export default function Availability({ availabilities }: Props) {
                     } else {
                         toast.error('Failed to delete time range');
                     }
-                }
+                },
             });
         }
     };
@@ -763,6 +779,18 @@ export default function Availability({ availabilities }: Props) {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground md:hidden"
+                        >
+                            <CalendarIcon className="h-4 w-4 text-indigo-600" />
+                            {showFilters
+                                ? t.hideDatePicker
+                                : t.chooseDatePicker}
+                        </Button>
+
                         {/* View Switcher */}
                         <div className="flex rounded-lg border bg-muted/30 p-1">
                             <Button
@@ -788,9 +816,11 @@ export default function Availability({ availabilities }: Props) {
                 </div>
 
                 {/* Main Workspace Layout */}
-                <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+                <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
                     {/* Left Sidebar (Mini Cal, Create, Calendars toggles) */}
-                    <div className="flex w-full md:w-64 flex-col gap-4 md:gap-6 border-b md:border-b-0 md:border-r bg-card p-4 overflow-y-auto max-h-[45vh] md:max-h-none flex-shrink-0">
+                    <div
+                        className={`flex w-full flex-col gap-4 overflow-y-auto border-b bg-card p-4 md:w-64 md:gap-6 md:border-r md:border-b-0 ${showFilters ? 'flex max-h-[45vh]' : 'hidden md:flex'} flex-shrink-0 md:max-h-none`}
+                    >
                         <Button
                             onClick={() => {
                                 reset();
@@ -923,280 +953,310 @@ export default function Availability({ availabilities }: Props) {
                     </div>
 
                     {/* Timeline & Columns Workspace */}
-                    <div className="flex flex-1 flex-col overflow-hidden bg-muted/5 border-t md:border-t-0">
-                        <div className="flex flex-col flex-1 w-full min-w-0">
+                    <div className="flex flex-1 flex-col overflow-hidden border-t bg-muted/5 md:border-t-0">
+                        <div className="flex w-full min-w-0 flex-1 flex-col">
                             {/* Day/Week header row */}
-                        <div className="flex border-b bg-card">
-                            <div className="w-10 md:w-16 flex-shrink-0 border-r bg-card"></div>
-                            <div className="flex flex-1 overflow-hidden">
-                                {view === 'day' ? (
-                                    <div className="flex flex-1 flex-col items-center py-3 text-center">
-                                        <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                                            {selectedDate.toLocaleDateString(
-                                                localeMap[lang],
-                                                { weekday: 'short' },
-                                            )}
-                                        </span>
-                                        <span
-                                            className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold ${
-                                                formatDateString(
-                                                    selectedDate,
-                                                ) ===
-                                                formatDateString(new Date())
-                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                                                    : ''
-                                            }`}
-                                        >
-                                            {selectedDate.getDate()}
-                                        </span>
-                                    </div>
-                                ) : (
-                                    getWeekDays(selectedDate).map(
-                                        (day, idx) => {
-                                            const isToday =
-                                                formatDateString(day) ===
-                                                formatDateString(new Date());
-                                            const isSelected =
-                                                formatDateString(day) ===
-                                                formatDateString(selectedDate);
-                                            return (
-                                                <div
-                                                    key={idx}
-                                                     className="flex min-w-[35px] md:min-w-[100px] flex-1 flex-col items-center border-r py-1.5 md:py-3 text-center last:border-r-0"
-                                                >
-                                                    <span className="text-[9px] md:text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                                                        {day.toLocaleDateString(
-                                                            localeMap[lang],
-                                                            {
-                                                                weekday:
-                                                                    'short',
-                                                            },
-                                                        )}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedDate(
-                                                                day,
-                                                            );
-                                                            setCurrentDate(day);
-                                                        }}
-                                                        className={`mt-1 flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-full text-xs md:text-xl font-bold transition-all ${
-                                                            isToday
-                                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                                                                : isSelected
-                                                                  ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400'
-                                                                  : 'text-foreground hover:bg-muted'
-                                                        }`}
+                            <div className="flex border-b bg-card">
+                                <div className="w-14 flex-shrink-0 border-r bg-card md:w-16"></div>
+                                <div className="flex flex-1 overflow-hidden">
+                                    {view === 'day' ? (
+                                        <div className="flex flex-1 flex-col items-center py-3 text-center">
+                                            <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                                {selectedDate.toLocaleDateString(
+                                                    localeMap[lang],
+                                                    { weekday: 'short' },
+                                                )}
+                                            </span>
+                                            <span
+                                                className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold ${
+                                                    formatDateString(
+                                                        selectedDate,
+                                                    ) ===
+                                                    formatDateString(new Date())
+                                                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                                        : ''
+                                                }`}
+                                            >
+                                                {selectedDate.getDate()}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        getWeekDays(selectedDate).map(
+                                            (day, idx) => {
+                                                const isToday =
+                                                    formatDateString(day) ===
+                                                    formatDateString(
+                                                        new Date(),
+                                                    );
+                                                const isSelected =
+                                                    formatDateString(day) ===
+                                                    formatDateString(
+                                                        selectedDate,
+                                                    );
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex min-w-[35px] flex-1 flex-col items-center border-r py-1.5 text-center last:border-r-0 md:min-w-[100px] md:py-3"
                                                     >
-                                                        {day.getDate()}
-                                                    </button>
-                                                </div>
-                                            );
-                                        },
-                                    )
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Vertical Timeline Scroll Grid */}
-                        <div className="relative flex flex-1 overflow-y-auto">
-                            {/* Y-Axis Hours label */}
-                            <div
-                                className="relative flex w-10 md:w-16 flex-shrink-0 flex-col border-r bg-card select-none"
-                                style={{ height: '1440px' }}
-                            >
-                                {Array.from({ length: 24 }).map((_, hour) => (
-                                    <div
-                                        key={hour}
-                                        className="absolute right-1.5 md:right-3 text-[8px] md:text-[10px] font-bold text-muted-foreground/70"
-                                        style={{ top: `${hour * 60 - 8}px` }}
-                                    >
-                                        {hour === 0 ? (
-                                            <>
-                                                <span className="md:hidden">12a</span>
-                                                <span className="hidden md:inline">12 AM</span>
-                                            </>
-                                        ) : hour === 12 ? (
-                                            <>
-                                                <span className="md:hidden">12p</span>
-                                                <span className="hidden md:inline">12 PM</span>
-                                            </>
-                                        ) : hour > 12 ? (
-                                            <>
-                                                <span className="md:hidden">{hour - 12}p</span>
-                                                <span className="hidden md:inline">{hour - 12} PM</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="md:hidden">{hour}a</span>
-                                                <span className="hidden md:inline">{hour} AM</span>
-                                            </>
-                                        )}
-                                    </div>
-                                ))}
+                                                        <span className="text-[9px] font-bold tracking-wider text-muted-foreground uppercase md:text-xs">
+                                                            {day.toLocaleDateString(
+                                                                localeMap[lang],
+                                                                {
+                                                                    weekday:
+                                                                        'short',
+                                                                },
+                                                            )}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedDate(
+                                                                    day,
+                                                                );
+                                                                setCurrentDate(
+                                                                    day,
+                                                                );
+                                                            }}
+                                                            className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${
+                                                                isToday
+                                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                                                    : isSelected
+                                                                      ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                                      : 'text-foreground hover:bg-muted'
+                                                            }`}
+                                                        >
+                                                            {day.getDate()}
+                                                        </button>
+                                                    </div>
+                                                );
+                                            },
+                                        )
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Main Content Columns Grid */}
-                            <div
-                                className="relative flex-1"
-                                style={{ height: '1440px' }}
-                            >
-                                {/* Horizontal grid line overlay */}
-                                <div className="pointer-events-none absolute inset-0">
+                            {/* Vertical Timeline Scroll Grid */}
+                            <div className="relative flex flex-1 overflow-y-auto">
+                                {/* Y-Axis Hours label */}
+                                <div
+                                    className="relative flex w-14 flex-shrink-0 flex-col border-r bg-card select-none md:w-16"
+                                    style={{ height: '1440px' }}
+                                >
                                     {Array.from({ length: 24 }).map(
                                         (_, hour) => (
                                             <div
                                                 key={hour}
-                                                className="absolute right-0 left-0 border-b border-muted-foreground/10"
+                                                className="absolute right-2 text-[9px] font-bold text-muted-foreground/70 md:right-3 md:text-[10px]"
                                                 style={{
-                                                    top: `${hour * 60}px`,
+                                                    top: `${hour * 60 - 8}px`,
                                                 }}
-                                            ></div>
+                                            >
+                                                {hour === 0
+                                                    ? '12 AM'
+                                                    : hour === 12
+                                                      ? '12 PM'
+                                                      : hour > 12
+                                                        ? `${hour - 12} PM`
+                                                        : `${hour} AM`}
+                                            </div>
                                         ),
                                     )}
                                 </div>
 
-                                {/* Columns */}
-                                <div className="absolute inset-0 flex">
-                                    {view === 'day' ? (
-                                        <div
-                                            className="relative h-full flex-1 cursor-pointer transition-colors hover:bg-indigo-50/5"
-                                            onClick={(e) =>
-                                                handleGridClick(e, selectedDate)
-                                            }
-                                        >
-                                            {/* Render Availability Blocks */}
-                                            {getAvailabilitiesForDate(
-                                                selectedDate,
-                                            ).map((avail) => (
+                                {/* Main Content Columns Grid */}
+                                <div
+                                    className="relative flex-1"
+                                    style={{ height: '1440px' }}
+                                >
+                                    {/* Horizontal grid line overlay */}
+                                    <div className="pointer-events-none absolute inset-0">
+                                        {Array.from({ length: 24 }).map(
+                                            (_, hour) => (
                                                 <div
-                                                    key={avail.id}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedEvent(avail);
-                                                    }}
-                                                    style={getBlockStyle(
-                                                        avail,
-                                                        selectedDate,
-                                                    )}
-                                                    className={`availability-block absolute right-2 left-2 flex cursor-pointer flex-col overflow-hidden rounded-xl border-l-4 p-2.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
-                                                        avail.type === 'custom'
-                                                            ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                                                            : 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
-                                                    }`}
-                                                >
-                                                    <span className="text-[11px] font-extrabold tracking-wide uppercase">
-                                                        {avail.type === 'custom'
-                                                            ? t.singleDate
-                                                            : t.recurringWeekly}
-                                                    </span>
-                                                    <span className="mt-1 text-xs font-bold">
-                                                        {getEventTimeLabel(
-                                                            avail,
-                                                        )}
-                                                    </span>
-                                                    <span className="mt-0.5 text-[10px] font-semibold opacity-80">
-                                                        {avail.slot_duration ===
-                                                        0
-                                                            ? t.slotDurationAll
-                                                            : `${avail.slot_duration} ${t.minSlots}`}
-                                                    </span>
-                                                </div>
-                                            ))}
-
-                                            {/* Red Current Time Indicator */}
-                                            {formatDateString(selectedDate) ===
-                                                formatDateString(
-                                                    new Date(),
-                                                ) && (
-                                                <div
-                                                    className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                    key={hour}
+                                                    className="absolute right-0 left-0 border-b border-muted-foreground/10"
                                                     style={{
-                                                        top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                        top: `${hour * 60}px`,
                                                     }}
-                                                >
-                                                    <div className="-ml-1 h-2 w-2 rounded-full bg-red-500"></div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        getWeekDays(selectedDate).map(
-                                            (day, colIdx) => (
-                                                <div
-                                                    key={colIdx}
-                                                    className="relative h-full min-w-[35px] md:min-w-[100px] flex-1 cursor-pointer border-r border-muted-foreground/10 transition-colors last:border-r-0 hover:bg-indigo-50/5"
-                                                    onClick={(e) =>
-                                                        handleGridClick(e, day)
-                                                    }
-                                                >
-                                                    {/* Render Availability Blocks */}
-                                                    {getAvailabilitiesForDate(
-                                                        day,
-                                                    ).map((avail) => (
-                                                        <div
-                                                            key={avail.id}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedEvent(
-                                                                    avail,
-                                                                );
-                                                            }}
-                                                            style={getBlockStyle(
-                                                                avail,
-                                                                day,
-                                                            )}
-                                                            className={`availability-block absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md md:rounded-xl border-l-2 md:border-l-4 p-0.5 md:p-2 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
-                                                                avail.type ===
-                                                                'custom'
-                                                                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                                                                    : 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
-                                                            }`}
-                                                        >
-                                                            <span className="hidden md:inline-block text-[9px] font-extrabold tracking-wide uppercase">
-                                                                {avail.type ===
-                                                                'custom'
-                                                                    ? t.singleDate
-                                                                    : t.recurringWeekly}
-                                                            </span>
-                                                            <div className="flex flex-col text-[7px] md:text-[11px] font-bold leading-none md:flex-row md:gap-1 mt-0.5">
-                                                                <span>{getEventTimeLabel(avail).split(' - ')[0]}</span>
-                                                                <span className="hidden md:inline">-</span>
-                                                                <span>{getEventTimeLabel(avail).split(' - ')[1]}</span>
-                                                            </div>
-                                                            <span className="hidden md:inline-block text-[9px] font-semibold opacity-80 mt-0.5">
-                                                                {avail.slot_duration ===
-                                                                0
-                                                                    ? t.slotDurationAll
-                                                                    : `${avail.slot_duration} ${t.minSlots}`}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-
-                                                    {/* Red Current Time Indicator */}
-                                                    {formatDateString(day) ===
-                                                        formatDateString(
-                                                            new Date(),
-                                                        ) && (
-                                                        <div
-                                                            className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
-                                                            style={{
-                                                                top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
-                                                            }}
-                                                        >
-                                                            <div className="-ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></div>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                ></div>
                                             ),
-                                        )
-                                    )}
+                                        )}
+                                    </div>
+
+                                    {/* Columns */}
+                                    <div className="absolute inset-0 flex">
+                                        {view === 'day' ? (
+                                            <div
+                                                className="relative h-full flex-1 cursor-pointer transition-colors hover:bg-indigo-50/5"
+                                                onClick={(e) =>
+                                                    handleGridClick(
+                                                        e,
+                                                        selectedDate,
+                                                    )
+                                                }
+                                            >
+                                                {/* Render Availability Blocks */}
+                                                {getAvailabilitiesForDate(
+                                                    selectedDate,
+                                                ).map((avail) => (
+                                                    <div
+                                                        key={avail.id}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedEvent(
+                                                                avail,
+                                                            );
+                                                        }}
+                                                        style={getBlockStyle(
+                                                            avail,
+                                                            selectedDate,
+                                                        )}
+                                                        className={`availability-block absolute right-2 left-2 flex cursor-pointer flex-col overflow-hidden rounded-xl border-l-4 p-2.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
+                                                            avail.type ===
+                                                            'custom'
+                                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                                                : 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                                                        }`}
+                                                    >
+                                                        <span className="text-[11px] font-extrabold tracking-wide uppercase">
+                                                            {avail.type ===
+                                                            'custom'
+                                                                ? t.singleDate
+                                                                : t.recurringWeekly}
+                                                        </span>
+                                                        <span className="mt-1 text-xs font-bold">
+                                                            {getEventTimeLabel(
+                                                                avail,
+                                                            )}
+                                                        </span>
+                                                        <span className="mt-0.5 text-[10px] font-semibold opacity-80">
+                                                            {avail.slot_duration ===
+                                                            0
+                                                                ? t.slotDurationAll
+                                                                : `${avail.slot_duration} ${t.minSlots}`}
+                                                        </span>
+                                                    </div>
+                                                ))}
+
+                                                {/* Red Current Time Indicator */}
+                                                {formatDateString(
+                                                    selectedDate,
+                                                ) ===
+                                                    formatDateString(
+                                                        new Date(),
+                                                    ) && (
+                                                    <div
+                                                        className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                        style={{
+                                                            top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                        }}
+                                                    >
+                                                        <div className="-ml-1 h-2 w-2 rounded-full bg-red-500"></div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            getWeekDays(selectedDate).map(
+                                                (day, colIdx) => (
+                                                    <div
+                                                        key={colIdx}
+                                                        className="relative h-full min-w-[35px] flex-1 cursor-pointer border-r border-muted-foreground/10 transition-colors last:border-r-0 hover:bg-indigo-50/5 md:min-w-[100px]"
+                                                        onClick={(e) =>
+                                                            handleGridClick(
+                                                                e,
+                                                                day,
+                                                            )
+                                                        }
+                                                    >
+                                                        {/* Render Availability Blocks */}
+                                                        {getAvailabilitiesForDate(
+                                                            day,
+                                                        ).map((avail) => (
+                                                            <div
+                                                                key={avail.id}
+                                                                onClick={(
+                                                                    e,
+                                                                ) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedEvent(
+                                                                        avail,
+                                                                    );
+                                                                }}
+                                                                style={getBlockStyle(
+                                                                    avail,
+                                                                    day,
+                                                                )}
+                                                                className={`availability-block absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border-l-2 p-0.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md md:rounded-xl md:border-l-4 md:p-2 ${
+                                                                    avail.type ===
+                                                                    'custom'
+                                                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                                                        : 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                                                                }`}
+                                                            >
+                                                                <span className="hidden text-[9px] font-extrabold tracking-wide uppercase md:inline-block">
+                                                                    {avail.type ===
+                                                                    'custom'
+                                                                        ? t.singleDate
+                                                                        : t.recurringWeekly}
+                                                                </span>
+                                                                <div className="mt-0.5 flex flex-col text-[7px] leading-none font-bold md:flex-row md:gap-1 md:text-[11px]">
+                                                                    <span>
+                                                                        {
+                                                                            getEventTimeLabel(
+                                                                                avail,
+                                                                            ).split(
+                                                                                ' - ',
+                                                                            )[0]
+                                                                        }
+                                                                    </span>
+                                                                    <span className="hidden md:inline">
+                                                                        -
+                                                                    </span>
+                                                                    <span>
+                                                                        {
+                                                                            getEventTimeLabel(
+                                                                                avail,
+                                                                            ).split(
+                                                                                ' - ',
+                                                                            )[1]
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <span className="mt-0.5 hidden text-[9px] font-semibold opacity-80 md:inline-block">
+                                                                    {avail.slot_duration ===
+                                                                    0
+                                                                        ? t.slotDurationAll
+                                                                        : `${avail.slot_duration} ${t.minSlots}`}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+
+                                                        {/* Red Current Time Indicator */}
+                                                        {formatDateString(
+                                                            day,
+                                                        ) ===
+                                                            formatDateString(
+                                                                new Date(),
+                                                            ) && (
+                                                            <div
+                                                                className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                                style={{
+                                                                    top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                                }}
+                                                            >
+                                                                <div className="-ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ),
+                                            )
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
             {/* Custom Google Calendar Event details / delete modal */}
             {selectedEvent && (
@@ -1275,26 +1335,34 @@ export default function Availability({ availabilities }: Props) {
                             <h4 className="text-xs font-bold text-foreground">
                                 {t.deleteRangeTitle}
                             </h4>
-                            <p className="text-[10px] text-muted-foreground mt-0.5 mb-2">
+                            <p className="mt-0.5 mb-2 text-[10px] text-muted-foreground">
                                 {t.deleteRangeDesc}
                             </p>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <Label className="text-[10px]">{t.startTime}</Label>
+                                    <Label className="text-[10px]">
+                                        {t.startTime}
+                                    </Label>
                                     <Input
                                         type="time"
                                         value={rangeStartVal}
-                                        onChange={(e) => setRangeStartVal(e.target.value)}
-                                        className="h-8 text-xs px-2"
+                                        onChange={(e) =>
+                                            setRangeStartVal(e.target.value)
+                                        }
+                                        className="h-8 px-2 text-xs"
                                     />
                                 </div>
                                 <div>
-                                    <Label className="text-[10px]">{t.endTime}</Label>
+                                    <Label className="text-[10px]">
+                                        {t.endTime}
+                                    </Label>
                                     <Input
                                         type="time"
                                         value={rangeEndVal}
-                                        onChange={(e) => setRangeEndVal(e.target.value)}
-                                        className="h-8 text-xs px-2"
+                                        onChange={(e) =>
+                                            setRangeEndVal(e.target.value)
+                                        }
+                                        className="h-8 px-2 text-xs"
                                     />
                                 </div>
                             </div>
@@ -1302,7 +1370,7 @@ export default function Availability({ availabilities }: Props) {
                                 type="button"
                                 variant="outline"
                                 onClick={handleDeleteRange}
-                                className="mt-2.5 w-full flex items-center justify-center gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-950/20 text-xs h-8 rounded-lg font-medium"
+                                className="mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-950/20"
                             >
                                 <Trash2 className="h-3.5 w-3.5" />
                                 {t.deleteRangeButton}

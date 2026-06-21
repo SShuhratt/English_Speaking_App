@@ -1,5 +1,14 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Calendar, Clock, LayoutGrid, MessageSquare, Users, Video, Bell } from 'lucide-react';
+import {
+    BookOpen,
+    Calendar,
+    Clock,
+    LayoutGrid,
+    MessageSquare,
+    Users,
+    Video,
+    Bell,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -34,26 +43,67 @@ export function AppSidebar() {
     if (role === 'teacher') {
         mainNavItems = [
             ...baseItems,
-            { title: t('nav.booking_requests'), href: '/teacher/appointments', icon: Bell, badge: pendingCount },
-            { title: t('nav.my_schedule'), href: '/teacher/schedule', icon: Calendar },
-            { title: t('nav.availability'), href: '/teacher/availability', icon: Clock },
-            { title: t('nav.my_sessions'), href: '/teacher/sessions', icon: Video },
-            { title: t('nav.pupil_feedback'), href: '/teacher/feedback', icon: MessageSquare },
+            {
+                title: t('nav.booking_requests'),
+                href: '/teacher/appointments',
+                icon: Bell,
+                badge: pendingCount,
+            },
+            {
+                title: t('nav.my_schedule'),
+                href: '/teacher/schedule',
+                icon: Calendar,
+            },
+            {
+                title: t('nav.availability'),
+                href: '/teacher/availability',
+                icon: Clock,
+            },
+            {
+                title: t('nav.my_sessions'),
+                href: '/teacher/sessions',
+                icon: Video,
+            },
+            {
+                title: t('nav.pupil_feedback'),
+                href: '/teacher/feedback',
+                icon: MessageSquare,
+            },
         ];
     } else if (role === 'admin') {
         mainNavItems = [
             ...baseItems,
             { title: t('nav.users'), href: '/admin/users', icon: Users },
-            { title: t('nav.all_sessions'), href: '/admin/sessions', icon: Video },
+            {
+                title: t('nav.all_sessions'),
+                href: '/admin/sessions',
+                icon: Video,
+            },
         ];
     } else {
         // Default to pupil
         mainNavItems = [
             ...baseItems,
-            { title: t('nav.find_teachers'), href: '/pupil/teachers', icon: Users },
-            { title: t('nav.my_bookings'), href: '/pupil/bookings', icon: Calendar },
-            { title: t('nav.past_sessions'), href: '/pupil/sessions', icon: Video },
-            { title: t('nav.my_progress'), href: '/pupil/progress', icon: BookOpen },
+            {
+                title: t('nav.find_teachers'),
+                href: '/pupil/teachers',
+                icon: Users,
+            },
+            {
+                title: t('nav.my_bookings'),
+                href: '/pupil/bookings',
+                icon: Calendar,
+            },
+            {
+                title: t('nav.past_sessions'),
+                href: '/pupil/sessions',
+                icon: Video,
+            },
+            {
+                title: t('nav.my_progress'),
+                href: '/pupil/progress',
+                icon: BookOpen,
+            },
         ];
     }
 

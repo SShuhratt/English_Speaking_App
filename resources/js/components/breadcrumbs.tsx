@@ -20,21 +20,23 @@ export function Breadcrumbs({
 
     const getTranslatedTitle = (title: string) => {
         const keyMap: Record<string, string> = {
-            'dashboard': 'nav.dashboard',
+            dashboard: 'nav.dashboard',
             'find teachers': 'nav.find_teachers',
             'my bookings': 'nav.my_bookings',
             'past sessions': 'nav.past_sessions',
             'my progress': 'nav.my_progress',
             'booking requests': 'nav.booking_requests',
             'my schedule': 'nav.my_schedule',
-            'availability': 'nav.availability',
+            availability: 'nav.availability',
             'my sessions': 'nav.my_sessions',
             'pupil feedback': 'nav.pupil_feedback',
-            'profile': 'nav.profile',
-            'settings': 'nav.settings'
+            profile: 'nav.profile',
+            settings: 'nav.settings',
         };
 
-        const key = keyMap[title.toLowerCase()] || `nav.${title.toLowerCase().replace(/\s+/g, '_')}`;
+        const key =
+            keyMap[title.toLowerCase()] ||
+            `nav.${title.toLowerCase().replace(/\s+/g, '_')}`;
         const translated = t(key);
         return translated !== key ? translated : title;
     };

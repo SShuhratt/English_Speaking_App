@@ -207,6 +207,8 @@ const dictionary = {
         'booking.instant_sync_title': 'Instant Booking Sync',
         'booking.instant_sync_desc':
             'Slots disappear instantly as they are booked by other students. You are seeing live availability.',
+        'booking.show_sidebar': 'Choose Date',
+        'booking.hide_sidebar': 'Hide Picker',
 
         // Pupil Progress
         'pupil.progress_title': 'My Progress',
@@ -657,6 +659,8 @@ const dictionary = {
         'booking.instant_sync_title': 'Tezkor sinxronizatsiya',
         'booking.instant_sync_desc':
             "Boshqa talabalar darslarni bron qilishi bilan joylar yo'qoladi. Siz jonli jadvalni ko'ryapsiz.",
+        'booking.show_sidebar': 'Sana tanlash',
+        'booking.hide_sidebar': 'Yashirish',
 
         // Pupil Progress
         'pupil.progress_title': 'Mening natijalarim',
@@ -1116,6 +1120,8 @@ const dictionary = {
         'booking.instant_sync_title': 'Мгновенная синхронизация',
         'booking.instant_sync_desc':
             'Слоты исчезают мгновенно по мере бронирования другими студентами. Вы видите живое расписание.',
+        'booking.show_sidebar': 'Выбрать дату',
+        'booking.hide_sidebar': 'Скрыть',
 
         // Pupil Progress
         'pupil.progress_title': 'Мой прогресс',

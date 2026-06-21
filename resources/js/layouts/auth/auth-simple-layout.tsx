@@ -17,11 +17,12 @@ export default function AuthSimpleLayout({
                             href={home()}
                             className="flex flex-col items-center gap-2 font-medium"
                         >
-                            <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 text-white">
+                            <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
                                 <AppLogoIcon className="size-6 text-white" />
                             </div>
                             <span className="text-xl font-bold">
-                                Speak<span className="text-indigo-500">Flow</span>
+                                Speak
+                                <span className="text-indigo-500">Flow</span>
                             </span>
                         </Link>
 

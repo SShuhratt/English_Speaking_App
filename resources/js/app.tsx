@@ -13,11 +13,23 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
-const pusherKey = (window as any).laravelConfig?.pusherKey || import.meta.env.VITE_PUSHER_APP_KEY;
-const pusherCluster = (window as any).laravelConfig?.pusherCluster || import.meta.env.VITE_PUSHER_APP_CLUSTER || 'mt1';
-const pusherHost = (window as any).laravelConfig?.pusherHost || import.meta.env.VITE_PUSHER_HOST;
-const pusherPort = (window as any).laravelConfig?.pusherPort || import.meta.env.VITE_PUSHER_PORT;
-const pusherScheme = (window as any).laravelConfig?.pusherScheme || import.meta.env.VITE_PUSHER_SCHEME || 'https';
+const pusherKey =
+    (window as any).laravelConfig?.pusherKey ||
+    import.meta.env.VITE_PUSHER_APP_KEY;
+const pusherCluster =
+    (window as any).laravelConfig?.pusherCluster ||
+    import.meta.env.VITE_PUSHER_APP_CLUSTER ||
+    'mt1';
+const pusherHost =
+    (window as any).laravelConfig?.pusherHost ||
+    import.meta.env.VITE_PUSHER_HOST;
+const pusherPort =
+    (window as any).laravelConfig?.pusherPort ||
+    import.meta.env.VITE_PUSHER_PORT;
+const pusherScheme =
+    (window as any).laravelConfig?.pusherScheme ||
+    import.meta.env.VITE_PUSHER_SCHEME ||
+    'https';
 
 window.Echo = new Echo({
     broadcaster: 'pusher',
@@ -33,13 +45,12 @@ window.Echo = new Echo({
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) =>
-        title ? `${title} - ${appName}` : appName,
+    title: (title) => (title ? `${title} - ${appName}` : appName),
 
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.tsx`,
-            import.meta.glob('./pages/**/*.tsx')
+            import.meta.glob('./pages/**/*.tsx'),
         ).then((page: any) => {
             const component = page.default;
 
@@ -77,7 +88,7 @@ createInertiaApp({
             <TooltipProvider>
                 <App {...props} />
                 <Toaster />
-            </TooltipProvider>
+            </TooltipProvider>,
         );
     },
 

@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
-import { Video, User, Calendar, Clock, Star, MessageSquare, Trash2, Sparkles } from 'lucide-react';
+import {
+    Video,
+    User,
+    Calendar,
+    Clock,
+    Star,
+    MessageSquare,
+    Trash2,
+    Sparkles,
+} from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
@@ -26,11 +35,12 @@ export default function Sessions({ sessions }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedApt, setSelectedApt] = useState<any>(null);
 
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        appointment_id: '',
-        rating_score: '10',
-        comment_text: '',
-    });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            appointment_id: '',
+            rating_score: '10',
+            comment_text: '',
+        });
 
     const handleOpenFeedbackModal = (apt: any) => {
         setData({
@@ -50,7 +60,9 @@ export default function Sessions({ sessions }: Props) {
             toast.success(t('bookings.delete_success'));
             router.reload();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || t('bookings.delete_error'));
+            toast.error(
+                error.response?.data?.message || t('bookings.delete_error'),
+            );
         }
     };
 
@@ -67,14 +79,16 @@ export default function Sessions({ sessions }: Props) {
     return (
         <>
             <Head title={t('sessions.past_title')} />
-            <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
+            <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
+                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent p-6 md:flex-row md:items-center dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
+                        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
                             {t('sessions.past_title')}
                         </h1>
-                        <p className="text-muted-foreground font-medium text-sm">{t('sessions.past_desc')}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                            {t('sessions.past_desc')}
+                        </p>
                     </div>
                 </div>
 
@@ -82,25 +96,60 @@ export default function Sessions({ sessions }: Props) {
                 <div className="grid gap-5">
                     {sessions.data.length > 0 ? (
                         sessions.data.map((apt) => {
-                            const pupilFeedback = apt.feedbacks?.find((fb: any) => fb.author_id === auth.user.id);
+                            const pupilFeedback = apt.feedbacks?.find(
+                                (fb: any) => fb.author_id === auth.user.id,
+                            );
                             return (
-                                <div key={apt.id} className="group rounded-3xl border border-border bg-card p-6 shadow-sm flex flex-col gap-5 hover:shadow-md transition-shadow duration-300">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div
+                                    key={apt.id}
+                                    className="group flex flex-col gap-5 rounded-3xl border border-border bg-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md"
+                                >
+                                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 group-hover:scale-105 transition-transform shrink-0">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-950/40 dark:text-indigo-400">
                                                 <User className="h-6 w-6" />
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-base text-foreground">{apt.teacher?.full_name || 'Teacher'}</h4>
-                                                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-muted-foreground font-semibold">
+                                                <h4 className="text-base font-bold text-foreground">
+                                                    {apt.teacher?.full_name ||
+                                                        'Teacher'}
+                                                </h4>
+                                                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar className="h-3.5 w-3.5 text-indigo-500" />
-                                                        {new Date(apt.start_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        {new Date(
+                                                            apt.start_at,
+                                                        ).toLocaleDateString(
+                                                            [],
+                                                            {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric',
+                                                            },
+                                                        )}
                                                     </span>
-                                                    <div className="h-2 w-px bg-border hidden sm:block" />
+                                                    <div className="hidden h-2 w-px bg-border sm:block" />
                                                     <span className="flex items-center gap-1">
                                                         <Clock className="h-3.5 w-3.5 text-indigo-500" />
-                                                        {new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {new Date(
+                                                            apt.start_at,
+                                                        ).toLocaleTimeString(
+                                                            [],
+                                                            {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            },
+                                                        )}{' '}
+                                                        -{' '}
+                                                        {new Date(
+                                                            apt.end_at,
+                                                        ).toLocaleTimeString(
+                                                            [],
+                                                            {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            },
+                                                        )}
                                                     </span>
                                                 </div>
                                             </div>
@@ -109,34 +158,52 @@ export default function Sessions({ sessions }: Props) {
                                         <div className="flex items-center gap-2.5 self-end md:self-auto">
                                             {!pupilFeedback ? (
                                                 <button
-                                                    onClick={() => handleOpenFeedbackModal(apt)}
-                                                    className="flex items-center gap-2 rounded-xl bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/10 px-4 py-2.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer"
+                                                    onClick={() =>
+                                                        handleOpenFeedbackModal(
+                                                            apt,
+                                                        )
+                                                    }
+                                                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/10 bg-indigo-500/5 px-4 py-2.5 text-xs font-bold text-indigo-600 transition-all hover:bg-indigo-500/10 dark:text-indigo-400"
                                                 >
-                                                    <Star className="h-3.5 w-3.5 fill-current" /> {t('sessions.leave_feedback')}
+                                                    <Star className="h-3.5 w-3.5 fill-current" />{' '}
+                                                    {t(
+                                                        'sessions.leave_feedback',
+                                                    )}
                                                 </button>
                                             ) : (
-                                                <span className="text-[10px] bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl font-bold uppercase tracking-wide border border-emerald-500/10">
-                                                    {t('sessions.feedback_left')}
+                                                <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
+                                                    {t(
+                                                        'sessions.feedback_left',
+                                                    )}
                                                 </span>
                                             )}
 
-                                            <button 
-                                                onClick={() => handleDelete(apt.id)}
-                                                className="flex items-center gap-1.5 rounded-xl border border-destructive/20 text-destructive px-3.5 py-2.5 text-xs font-bold hover:bg-destructive hover:text-white transition-all duration-300 cursor-pointer"
+                                            <button
+                                                onClick={() =>
+                                                    handleDelete(apt.id)
+                                                }
+                                                className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/20 px-3.5 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
                                             >
-                                                <Trash2 className="h-3.5 w-3.5" /> {t('bookings.delete')}
+                                                <Trash2 className="h-3.5 w-3.5" />{' '}
+                                                {t('bookings.delete')}
                                             </button>
                                         </div>
                                     </div>
 
                                     {pupilFeedback && (
-                                        <div className="mt-1 p-4 rounded-2xl bg-muted/30 border border-dashed border-border/80 text-sm">
-                                            <div className="flex items-center gap-1.5 text-amber-500 font-bold mb-2">
+                                        <div className="mt-1 rounded-2xl border border-dashed border-border/80 bg-muted/30 p-4 text-sm">
+                                            <div className="mb-2 flex items-center gap-1.5 font-bold text-amber-500">
                                                 <Star className="h-4 w-4 fill-current" />
-                                                <span>{pupilFeedback.rating}/10</span>
-                                                <span className="text-muted-foreground font-semibold text-[11px] ml-auto">{t('sessions.your_review')}</span>
+                                                <span>
+                                                    {pupilFeedback.rating}/10
+                                                </span>
+                                                <span className="ml-auto text-[11px] font-semibold text-muted-foreground">
+                                                    {t('sessions.your_review')}
+                                                </span>
                                             </div>
-                                            <p className="text-muted-foreground italic font-medium">"{pupilFeedback.comment}"</p>
+                                            <p className="font-medium text-muted-foreground italic">
+                                                "{pupilFeedback.comment}"
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -144,38 +211,58 @@ export default function Sessions({ sessions }: Props) {
                         })
                     ) : (
                         <div className="rounded-3xl border border-dashed border-border bg-card p-16 text-center text-muted-foreground">
-                            <Clock className="mx-auto h-10 w-10 text-muted-foreground/45 mb-4 animate-pulse" />
-                            <p className="font-bold text-base text-foreground mb-1">{t('sessions.none')}</p>
-                            <p className="text-sm text-muted-foreground">You don't have any past completed sessions.</p>
+                            <Clock className="mx-auto mb-4 h-10 w-10 animate-pulse text-muted-foreground/45" />
+                            <p className="mb-1 text-base font-bold text-foreground">
+                                {t('sessions.none')}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                You don't have any past completed sessions.
+                            </p>
                         </div>
                     )}
                 </div>
             </div>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="rounded-3xl max-w-md border border-border bg-card shadow-2xl p-6">
+                <DialogContent className="max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-black tracking-tight">{t('sessions.leave_feedback')}</DialogTitle>
+                        <DialogTitle className="text-xl font-black tracking-tight">
+                            {t('sessions.leave_feedback')}
+                        </DialogTitle>
                         <DialogDescription className="text-sm font-medium text-muted-foreground">
-                            {t('sessions.dialog_desc', { name: selectedApt?.teacher?.full_name || 'Teacher' })}
+                            {t('sessions.dialog_desc', {
+                                name:
+                                    selectedApt?.teacher?.full_name ||
+                                    'Teacher',
+                            })}
                         </DialogDescription>
                     </DialogHeader>
 
-                    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                    <form onSubmit={handleSubmit} className="mt-4 space-y-6">
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                {t('sessions.rating_label', { score: data.rating_score })}
+                            <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                {t('sessions.rating_label', {
+                                    score: data.rating_score,
+                                })}
                             </label>
-                            <div className="grid grid-cols-5 gap-2 mt-1.5">
-                                {Array.from({ length: 10 }, (_, i) => i + 1).map((val) => (
+                            <div className="mt-1.5 grid grid-cols-5 gap-2">
+                                {Array.from(
+                                    { length: 10 },
+                                    (_, i) => i + 1,
+                                ).map((val) => (
                                     <button
                                         key={val}
                                         type="button"
-                                        onClick={() => setData('rating_score', val.toString())}
-                                        className={`py-2.5 text-xs font-bold rounded-xl transition-all duration-200 border cursor-pointer ${
+                                        onClick={() =>
+                                            setData(
+                                                'rating_score',
+                                                val.toString(),
+                                            )
+                                        }
+                                        className={`cursor-pointer rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
                                             data.rating_score === val.toString()
-                                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 border-transparent text-white shadow-md shadow-indigo-500/10'
-                                                : 'border-border hover:bg-muted text-muted-foreground bg-card'
+                                                ? 'border-transparent bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/10'
+                                                : 'border-border bg-card text-muted-foreground hover:bg-muted'
                                         }`}
                                     >
                                         {val}
@@ -183,38 +270,48 @@ export default function Sessions({ sessions }: Props) {
                                 ))}
                             </div>
                             {errors.rating_score && (
-                                <p className="text-xs text-destructive font-bold">{errors.rating_score}</p>
+                                <p className="text-xs font-bold text-destructive">
+                                    {errors.rating_score}
+                                </p>
                             )}
                         </div>
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('sessions.comments_label')}</label>
+                            <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                {t('sessions.comments_label')}
+                            </label>
                             <textarea
                                 value={data.comment_text}
-                                onChange={(e) => setData('comment_text', e.target.value)}
+                                onChange={(e) =>
+                                    setData('comment_text', e.target.value)
+                                }
                                 placeholder={t('sessions.comments_placeholder')}
-                                className="w-full min-h-[120px] rounded-2xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none font-medium"
+                                className="min-h-[120px] w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm font-medium transition-all focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                 required
                             />
                             {errors.comment_text && (
-                                <p className="text-xs text-destructive font-bold">{errors.comment_text}</p>
+                                <p className="text-xs font-bold text-destructive">
+                                    {errors.comment_text}
+                                </p>
                             )}
                         </div>
 
-                        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/55">
+                        <DialogFooter className="gap-2 border-t border-border/55 pt-2 sm:gap-0">
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(false)}
-                                className="px-4 py-2.5 border border-border rounded-xl text-xs font-bold hover:bg-muted transition-all cursor-pointer"
+                                className="cursor-pointer rounded-xl border border-border px-4 py-2.5 text-xs font-bold transition-all hover:bg-muted"
                             >
                                 {t('dashboard.cancel_button')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-md shadow-indigo-500/10"
+                                className="cursor-pointer rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/10 transition-all hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
                             >
-                                {processing ? t('sessions.submitting') : t('sessions.submit_btn')}
+                                {processing
+                                    ? t('sessions.submitting')
+                                    : t('sessions.submit_btn')}
                             </button>
                         </DialogFooter>
                     </form>
@@ -225,5 +322,5 @@ export default function Sessions({ sessions }: Props) {
 }
 
 Sessions.layout = {
-    breadcrumbs: [{ title: 'past sessions', href: '/pupil/sessions' }]
+    breadcrumbs: [{ title: 'past sessions', href: '/pupil/sessions' }],
 };
