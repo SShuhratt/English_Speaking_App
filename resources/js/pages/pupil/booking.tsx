@@ -773,7 +773,7 @@ export default function Booking({ teacher }: Props) {
                     <div className="flex flex-1 flex-col overflow-hidden bg-muted/5">
                         {/* Day/Week header row */}
                         <div className="flex border-b bg-card">
-                            <div className="w-16 flex-shrink-0 border-r bg-card"></div>
+                            <div className="w-10 md:w-16 flex-shrink-0 border-r bg-card"></div>
                             <div className="flex flex-1 overflow-hidden">
                                 {view === 'day' ? (
                                     <div className="flex flex-1 flex-col items-center py-3 text-center">
@@ -808,9 +808,9 @@ export default function Booking({ teacher }: Props) {
                                             return (
                                                 <div
                                                     key={idx}
-                                                    className="flex min-w-[100px] flex-1 flex-col items-center border-r py-3 text-center last:border-r-0"
+                                                    className="flex min-w-[35px] md:min-w-[100px] flex-1 flex-col items-center border-r py-1.5 md:py-3 text-center last:border-r-0"
                                                 >
-                                                    <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                                    <span className="text-[9px] md:text-xs font-bold tracking-wider text-muted-foreground uppercase">
                                                         {day.toLocaleDateString(
                                                             localeMap[lang],
                                                             {
@@ -826,7 +826,7 @@ export default function Booking({ teacher }: Props) {
                                                             );
                                                             setCurrentDate(day);
                                                         }}
-                                                        className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold transition-all ${
+                                                        className={`mt-1 flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-full text-xs md:text-xl font-bold transition-all ${
                                                             isToday
                                                                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                                                                 : isSelected
@@ -851,22 +851,36 @@ export default function Booking({ teacher }: Props) {
                         >
                             {/* Y-Axis Hours label */}
                             <div
-                                className="relative flex w-16 flex-shrink-0 flex-col border-r bg-card select-none"
+                                className="relative flex w-10 md:w-16 flex-shrink-0 flex-col border-r bg-card select-none"
                                 style={{ height: '1440px' }}
                             >
                                 {Array.from({ length: 24 }).map((_, hour) => (
                                     <div
                                         key={hour}
-                                        className="absolute right-3 text-[10px] font-bold text-muted-foreground/70"
+                                        className="absolute right-1.5 md:right-3 text-[8px] md:text-[10px] font-bold text-muted-foreground/70"
                                         style={{ top: `${hour * 60 - 8}px` }}
                                     >
-                                        {hour === 0
-                                            ? '12 AM'
-                                            : hour === 12
-                                              ? '12 PM'
-                                              : hour > 12
-                                                ? `${hour - 12} PM`
-                                                : `${hour} AM`}
+                                        {hour === 0 ? (
+                                            <>
+                                                <span className="md:hidden">12a</span>
+                                                <span className="hidden md:inline">12 AM</span>
+                                            </>
+                                        ) : hour === 12 ? (
+                                            <>
+                                                <span className="md:hidden">12p</span>
+                                                <span className="hidden md:inline">12 PM</span>
+                                            </>
+                                        ) : hour > 12 ? (
+                                            <>
+                                                <span className="md:hidden">{hour - 12}p</span>
+                                                <span className="hidden md:inline">{hour - 12} PM</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="md:hidden">{hour}a</span>
+                                                <span className="hidden md:inline">{hour} AM</span>
+                                            </>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -972,7 +986,7 @@ export default function Booking({ teacher }: Props) {
                                                 return (
                                                     <div
                                                         key={colIdx}
-                                                        className="relative h-full min-w-[100px] flex-1 border-r border-muted-foreground/10 last:border-r-0"
+                                                        className="relative h-full min-w-[35px] md:min-w-[100px] flex-1 border-r border-muted-foreground/10 last:border-r-0"
                                                     >
                                                         {/* Render Slots */}
                                                         {daySlots.map(
@@ -988,14 +1002,14 @@ export default function Booking({ teacher }: Props) {
                                                                         slot,
                                                                         day,
                                                                     )}
-                                                                    className="absolute right-1.5 left-1.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50/70 p-1.5 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
+                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md md:rounded-xl border border-indigo-100/50 bg-indigo-50/70 p-0.5 md:p-1.5 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
                                                                 >
-                                                                    <span className="flex items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase">
+                                                                    <span className="hidden md:flex items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase">
                                                                         {t(
                                                                             'pupil.book_button',
                                                                         )}
                                                                     </span>
-                                                                    <span className="mt-0.5 text-[11px] font-bold whitespace-nowrap">
+                                                                    <span className="mt-0.5 text-[7px] md:text-[11px] font-bold whitespace-nowrap leading-none">
                                                                         {new Date(
                                                                             slot.start_at,
                                                                         ).toLocaleTimeString(
