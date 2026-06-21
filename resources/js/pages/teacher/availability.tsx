@@ -92,6 +92,10 @@ const translations = {
         slotDurationAll: 'All time',
         slotDurationCustom: 'Custom...',
         enterMinutes: 'Enter minutes',
+        deleteRangeTitle: 'Delete specific time range',
+        deleteRangeButton: 'Delete Selected Range',
+        deleteRangeDesc: 'Select a sub-range within this block to remove it.',
+        confirmDeleteRange: 'Are you sure you want to delete this specific time range?',
     },
     uz: {
         title: 'Bandlik jadvali',
@@ -149,6 +153,10 @@ const translations = {
         slotDurationAll: 'Butun vaqt',
         slotDurationCustom: 'Boshqa...',
         enterMinutes: 'Daqiqalarni kiriting',
+        deleteRangeTitle: 'Tanlangan vaqt oralig\'ini o\'chirish',
+        deleteRangeButton: 'Tanlangan oralig\'ni o\'chirish',
+        deleteRangeDesc: 'Ushbu blok ichidan o\'chirmoqchi bo\'lgan oralig\'ingizni tanlang.',
+        confirmDeleteRange: 'Ushbu tanlangan vaqt oralig\'ini o\'chirib tashlamoqchimisiz?',
     },
     ru: {
         title: 'График доступности',
@@ -206,6 +214,10 @@ const translations = {
         slotDurationAll: 'Всё время',
         slotDurationCustom: 'Другое...',
         enterMinutes: 'Введите минуты',
+        deleteRangeTitle: 'Удалить временной интервал',
+        deleteRangeButton: 'Удалить выбранный интервал',
+        deleteRangeDesc: 'Выберите подинтервал внутри этого блока, чтобы удалить его.',
+        confirmDeleteRange: 'Вы уверены, что хотите удалить этот конкретный временной интервал?',
     },
 };
 
@@ -340,6 +352,97 @@ export default function Availability({ availabilities }: Props) {
             return new Date(dateStr.replace(' ', 'T') + 'Z');
         }
         return new Date(dateStr);
+    };
+
+    const [rangeStartVal, setRangeStartVal] = useState('');
+    const [rangeEndVal, setRangeEndVal] = useState('');
+
+    const formatTimeForInput = (date: Date) => {
+        const h = String(date.getHours()).padStart(2, '0');
+        const m = String(date.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    };
+
+    useEffect(() => {
+        if (selectedEvent) {
+            if (selectedEvent.type === 'custom') {
+                const start = parseUtcDate(selectedEvent.start_at);
+                const end = parseUtcDate(selectedEvent.end_at);
+                setRangeStartVal(formatTimeForInput(start));
+                setRangeEndVal(formatTimeForInput(end));
+            } else {
+                const startStr = selectedEvent.start_time ? selectedEvent.start_time.substring(0, 5) : '';
+                const endStr = selectedEvent.end_time ? selectedEvent.end_time.substring(0, 5) : '';
+                setRangeStartVal(startStr);
+                setRangeEndVal(endStr);
+            }
+        } else {
+            setRangeStartVal('');
+            setRangeEndVal('');
+        }
+    }, [selectedEvent]);
+
+    const handleDeleteRange = () => {
+        if (!selectedEvent) return;
+
+        let rangeStartIso = '';
+        let rangeEndIso = '';
+
+        try {
+            const [startHour, startMin] = rangeStartVal.split(':').map(Number);
+            const [endHour, endMin] = rangeEndVal.split(':').map(Number);
+
+            if (selectedEvent.type === 'custom') {
+                const startLocal = parseUtcDate(selectedEvent.start_at);
+                startLocal.setHours(startHour, startMin, 0, 0);
+                const endLocal = parseUtcDate(selectedEvent.end_at);
+                endLocal.setHours(endHour, endMin, 0, 0);
+
+                if (endLocal <= startLocal) {
+                    endLocal.setDate(endLocal.getDate() + 1);
+                }
+
+                rangeStartIso = startLocal.toISOString();
+                rangeEndIso = endLocal.toISOString();
+            } else {
+                const dummyDate = new Date();
+                const startLocal = new Date(dummyDate);
+                startLocal.setHours(startHour, startMin, 0, 0);
+                const endLocal = new Date(dummyDate);
+                endLocal.setHours(endHour, endMin, 0, 0);
+
+                if (endLocal <= startLocal) {
+                    endLocal.setDate(endLocal.getDate() + 1);
+                }
+
+                rangeStartIso = startLocal.toISOString();
+                rangeEndIso = endLocal.toISOString();
+            }
+        } catch (err) {
+            toast.error('Invalid time range');
+            return;
+        }
+
+        if (confirm(t.confirmDeleteRange)) {
+            router.delete(destroy.url(selectedEvent.id), {
+                data: {
+                    delete_type: 'range',
+                    range_start: rangeStartIso,
+                    range_end: rangeEndIso,
+                },
+                onSuccess: () => {
+                    toast.success(t.deleteSuccess);
+                    setSelectedEvent(null);
+                },
+                onError: (errors) => {
+                    if (errors.range) {
+                        toast.error(errors.range);
+                    } else {
+                        toast.error('Failed to delete time range');
+                    }
+                }
+            });
+        }
     };
 
     const getWeekDays = (date: Date) => {
@@ -687,7 +790,7 @@ export default function Availability({ availabilities }: Props) {
                 {/* Main Workspace Layout */}
                 <div className="flex flex-1 overflow-hidden">
                     {/* Left Sidebar (Mini Cal, Create, Calendars toggles) */}
-                    <div className="flex w-64 flex-col gap-6 overflow-y-auto border-r bg-card p-4">
+                    <div className="hidden md:flex w-64 flex-col gap-6 overflow-y-auto border-r bg-card p-4">
                         <Button
                             onClick={() => {
                                 reset();
@@ -820,7 +923,7 @@ export default function Availability({ availabilities }: Props) {
                     </div>
 
                     {/* Timeline & Columns Workspace */}
-                    <div className="flex flex-1 flex-col overflow-hidden bg-muted/5">
+                    <div className="hidden md:flex flex-1 flex-col overflow-hidden bg-muted/5">
                         {/* Day/Week header row */}
                         <div className="flex border-b bg-card">
                             <div className="w-16 flex-shrink-0 border-r bg-card"></div>
@@ -1076,6 +1179,110 @@ export default function Availability({ availabilities }: Props) {
                             </div>
                         </div>
                     </div>
+
+                    {/* Mobile Card-Based View */}
+                    <div className="flex md:hidden flex-1 flex-col overflow-y-auto p-4 space-y-6">
+                        <Button
+                            onClick={() => {
+                                reset();
+                                setIsCreateModalOpen(true);
+                            }}
+                            className="w-full justify-center gap-3 rounded-xl bg-indigo-600 px-5 py-4 text-white shadow-md hover:bg-indigo-700 hover:shadow-lg animate-in fade-in duration-200"
+                        >
+                            <Plus className="h-5 w-5" />
+                            <span className="text-sm font-semibold tracking-wide">
+                                {t.createAvailability}
+                            </span>
+                        </Button>
+
+                        {/* Toggles */}
+                        <div className="flex gap-4 border-b pb-4">
+                            <label className="flex cursor-pointer items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={showCustom}
+                                    onChange={(e) => setShowCustom(e.target.checked)}
+                                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                />
+                                <span className="text-xs font-semibold text-foreground">
+                                    {t.singleDateOverride}
+                                </span>
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={showRecurring}
+                                    onChange={(e) => setShowRecurring(e.target.checked)}
+                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span className="text-xs font-semibold text-foreground">
+                                    {t.weeklyRecurring}
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* List of Availability Cards */}
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                                {t.myCalendars}
+                            </h3>
+                            {availabilities.filter(avail => {
+                                if (avail.type === 'custom') return showCustom;
+                                return showRecurring;
+                            }).length === 0 ? (
+                                <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl p-4">
+                                    No availability configured.
+                                </div>
+                            ) : (
+                                availabilities
+                                    .filter(avail => {
+                                        if (avail.type === 'custom') return showCustom;
+                                        return showRecurring;
+                                    })
+                                    .map((avail) => (
+                                        <div
+                                            key={avail.id}
+                                            onClick={() => setSelectedEvent(avail)}
+                                            className={`cursor-pointer rounded-xl border p-4 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
+                                                avail.type === 'custom'
+                                                    ? 'border-emerald-200 bg-emerald-50/20 hover:bg-emerald-50/40 dark:border-emerald-900/30 dark:bg-emerald-950/10'
+                                                    : 'border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40 dark:border-indigo-900/30 dark:bg-indigo-950/10'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-[10px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded ${
+                                                    avail.type === 'custom'
+                                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                                        : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
+                                                }`}>
+                                                    {avail.type === 'custom' ? t.singleDate : t.recurringWeekly}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-muted-foreground">
+                                                    {avail.slot_duration === 0 ? t.slotDurationAll : `${avail.slot_duration} min`}
+                                                </span>
+                                            </div>
+                                            <div className="mt-3">
+                                                <h4 className="text-sm font-bold text-foreground capitalize">
+                                                    {avail.type === 'recurring'
+                                                        ? `${t.every} ${daysMap[lang][avail.day_of_week as keyof (typeof daysMap)['en']] || avail.day_of_week}`
+                                                        : parseUtcDate(avail.start_at).toLocaleDateString(localeMap[lang], {
+                                                              weekday: 'long',
+                                                              month: 'long',
+                                                              day: 'numeric',
+                                                              year: 'numeric'
+                                                          })
+                                                    }
+                                                </h4>
+                                                <p className="text-xs font-semibold text-muted-foreground mt-1 flex items-center gap-1.5">
+                                                    <Clock className="h-3.5 w-3.5" />
+                                                    {getEventTimeLabel(avail)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1150,6 +1357,44 @@ export default function Availability({ availabilities }: Props) {
                                     </p>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="mt-4 border-t pt-4">
+                            <h4 className="text-xs font-bold text-foreground">
+                                {t.deleteRangeTitle}
+                            </h4>
+                            <p className="text-[10px] text-muted-foreground mt-0.5 mb-2">
+                                {t.deleteRangeDesc}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <Label className="text-[10px]">{t.startTime}</Label>
+                                    <Input
+                                        type="time"
+                                        value={rangeStartVal}
+                                        onChange={(e) => setRangeStartVal(e.target.value)}
+                                        className="h-8 text-xs px-2"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-[10px]">{t.endTime}</Label>
+                                    <Input
+                                        type="time"
+                                        value={rangeEndVal}
+                                        onChange={(e) => setRangeEndVal(e.target.value)}
+                                        className="h-8 text-xs px-2"
+                                    />
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleDeleteRange}
+                                className="mt-2.5 w-full flex items-center justify-center gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-950/20 text-xs h-8 rounded-lg font-medium"
+                            >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                {t.deleteRangeButton}
+                            </Button>
                         </div>
 
                         <div className="mt-6 flex justify-end gap-3 border-t pt-4">

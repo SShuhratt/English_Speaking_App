@@ -408,6 +408,34 @@ export default function Booking({ teacher }: Props) {
         };
     };
 
+    const getSlotsForDate = (colDate: Date) => {
+        const colDateStart = new Date(colDate);
+        colDateStart.setHours(0, 0, 0, 0);
+        const colDateEnd = new Date(colDate);
+        colDateEnd.setHours(23, 59, 59, 999);
+
+        const allSlots: any[] = [];
+        const seen = new Set<string>();
+
+        Object.values(slotsByDate).forEach((slots) => {
+            if (Array.isArray(slots)) {
+                slots.forEach((slot) => {
+                    const key = `${slot.start_at}-${slot.end_at}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        allSlots.push(slot);
+                    }
+                });
+            }
+        });
+
+        return allSlots.filter((slot) => {
+            const startLocal = new Date(slot.start_at);
+            const endLocal = new Date(slot.end_at);
+            return startLocal < colDateEnd && endLocal > colDateStart;
+        });
+    };
+
     const navigateCalendar = (direction: 'prev' | 'next') => {
         const amount = view === 'day' ? 1 : 7;
         const nextDate = new Date(selectedDate);
@@ -873,13 +901,7 @@ export default function Booking({ teacher }: Props) {
                                                     <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-indigo-600"></div>
                                                 </div>
                                             ) : (
-                                                (
-                                                    slotsByDate[
-                                                        formatDateString(
-                                                            selectedDate,
-                                                        )
-                                                    ] || []
-                                                ).map((slot, index) => (
+                                                getSlotsForDate(selectedDate).map((slot, index) => (
                                                     <button
                                                         key={index}
                                                         onClick={() =>
@@ -945,7 +967,7 @@ export default function Booking({ teacher }: Props) {
                                                 const dateStr =
                                                     formatDateString(day);
                                                 const daySlots =
-                                                    slotsByDate[dateStr] || [];
+                                                    getSlotsForDate(day);
 
                                                 return (
                                                     <div
