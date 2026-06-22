@@ -92,7 +92,6 @@ export default function Booking({ teacher }: Props) {
     ) as 'en' | 'uz' | 'ru';
 
     const [view, setView] = useState<'day' | 'week'>('day');
-    const [showSidebar, setShowSidebar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [currentDate, setCurrentDate] = useState<Date>(new Date()); // Month focus for mini-calendar
     const [slotsByDate, setSlotsByDate] = useState<Record<string, any[]>>({});
@@ -532,18 +531,6 @@ export default function Booking({ teacher }: Props) {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowSidebar(!showSidebar)}
-                            className="flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs font-semibold text-foreground md:hidden"
-                        >
-                            <CalendarIcon className="h-4 w-4 text-indigo-600" />
-                            {showSidebar
-                                ? t('booking.hide_sidebar')
-                                : t('booking.show_sidebar')}
-                        </Button>
-
                         {/* View Switcher */}
                         <div className="flex rounded-lg border bg-muted/30 p-1">
                             <Button
@@ -569,10 +556,20 @@ export default function Booking({ teacher }: Props) {
                 </div>
 
                 {/* Main Workspace Layout */}
-                <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+                <div
+                    className={
+                        view === 'day'
+                            ? 'flex flex-1 flex-row overflow-hidden'
+                            : 'flex flex-1 flex-col overflow-hidden md:flex-row'
+                    }
+                >
                     {/* Left Sidebar: Profile & Custom Booking */}
                     <div
-                        className={`flex w-full shrink-0 flex-col gap-5 overflow-y-auto border-b bg-card p-4 md:w-80 md:border-r md:border-b-0 ${showSidebar ? 'flex max-h-[50vh]' : 'hidden md:flex'}`}
+                        className={
+                            view === 'day'
+                                ? 'flex w-[58%] flex-shrink-0 shrink-0 flex-col gap-3 overflow-y-auto border-r bg-card p-2 md:w-80 md:gap-5 md:p-4'
+                                : 'flex max-h-[40vh] w-full flex-shrink-0 shrink-0 flex-col gap-3 overflow-y-auto border-b bg-card p-3 md:max-h-none md:w-80 md:gap-5 md:border-r md:border-b-0 md:p-4'
+                        }
                     >
                         {/* Teacher Profile Card */}
                         <div className="flex flex-col items-center rounded-2xl border bg-muted/20 p-4 text-center shadow-sm">
@@ -785,7 +782,13 @@ export default function Booking({ teacher }: Props) {
                     </div>
 
                     {/* Timeline & Columns Workspace */}
-                    <div className="flex flex-1 flex-col overflow-hidden bg-muted/5">
+                    <div
+                        className={
+                            view === 'day'
+                                ? 'flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/5'
+                                : 'flex min-h-[300px] w-full min-w-0 flex-1 flex-col bg-muted/5 md:min-h-0 md:w-auto'
+                        }
+                    >
                         {/* Day/Week header row */}
                         <div className="flex border-b bg-card">
                             <div className="w-14 flex-shrink-0 border-r bg-card md:w-16"></div>

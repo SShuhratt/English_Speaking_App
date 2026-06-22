@@ -277,7 +277,6 @@ export default function Availability({ availabilities }: Props) {
     const t = translations[lang];
 
     const [view, setView] = useState<'day' | 'week'>('week');
-    const [showFilters, setShowFilters] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentDate, setCurrentDate] = useState(new Date()); // Month focus for sidebar mini-calendar
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -779,18 +778,6 @@ export default function Availability({ availabilities }: Props) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowFilters(!showFilters)}
-                            className="flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground md:hidden"
-                        >
-                            <CalendarIcon className="h-4 w-4 text-indigo-600" />
-                            {showFilters
-                                ? t.hideDatePicker
-                                : t.chooseDatePicker}
-                        </Button>
-
                         {/* View Switcher */}
                         <div className="flex rounded-lg border bg-muted/30 p-1">
                             <Button
@@ -816,10 +803,20 @@ export default function Availability({ availabilities }: Props) {
                 </div>
 
                 {/* Main Workspace Layout */}
-                <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+                <div
+                    className={
+                        view === 'day'
+                            ? 'flex flex-1 flex-row overflow-hidden'
+                            : 'flex flex-1 flex-col overflow-hidden md:flex-row'
+                    }
+                >
                     {/* Left Sidebar (Mini Cal, Create, Calendars toggles) */}
                     <div
-                        className={`flex w-full flex-col gap-4 overflow-y-auto border-b bg-card p-4 md:w-64 md:gap-6 md:border-r md:border-b-0 ${showFilters ? 'flex max-h-[45vh]' : 'hidden md:flex'} flex-shrink-0 md:max-h-none`}
+                        className={
+                            view === 'day'
+                                ? 'flex w-[58%] flex-shrink-0 flex-col gap-3 overflow-y-auto border-r bg-card p-2 md:w-64 md:gap-6 md:p-4'
+                                : 'flex max-h-[40vh] w-full flex-shrink-0 flex-col gap-3 overflow-y-auto border-b bg-card p-3 md:max-h-none md:w-64 md:gap-6 md:border-r md:border-b-0 md:p-4'
+                        }
                     >
                         <Button
                             onClick={() => {
@@ -953,7 +950,13 @@ export default function Availability({ availabilities }: Props) {
                     </div>
 
                     {/* Timeline & Columns Workspace */}
-                    <div className="flex flex-1 flex-col overflow-hidden border-t bg-muted/5 md:border-t-0">
+                    <div
+                        className={
+                            view === 'day'
+                                ? 'flex min-w-0 flex-1 flex-col overflow-hidden border-t bg-muted/5 md:border-t-0'
+                                : 'flex min-h-[300px] w-full min-w-0 flex-1 flex-col border-t bg-muted/5 md:min-h-0 md:w-auto md:border-t-0'
+                        }
+                    >
                         <div className="flex w-full min-w-0 flex-1 flex-col">
                             {/* Day/Week header row */}
                             <div className="flex border-b bg-card">
