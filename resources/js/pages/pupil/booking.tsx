@@ -786,7 +786,7 @@ export default function Booking({ teacher }: Props) {
                         className={
                             view === 'day'
                                 ? 'flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/5'
-                                : 'flex min-h-[300px] w-full min-w-0 flex-1 flex-col bg-muted/5 md:min-h-0 md:w-auto'
+                                : 'flex min-h-[300px] w-full min-w-0 flex-1 flex-col overflow-hidden bg-muted/5 md:min-h-0 md:w-auto'
                         }
                     >
                         {/* Day/Week header row */}

@@ -954,10 +954,10 @@ export default function Availability({ availabilities }: Props) {
                         className={
                             view === 'day'
                                 ? 'flex min-w-0 flex-1 flex-col overflow-hidden border-t bg-muted/5 md:border-t-0'
-                                : 'flex min-h-[300px] w-full min-w-0 flex-1 flex-col border-t bg-muted/5 md:min-h-0 md:w-auto md:border-t-0'
+                                : 'flex min-h-[300px] w-full min-w-0 flex-1 flex-col overflow-hidden border-t bg-muted/5 md:min-h-0 md:w-auto md:border-t-0'
                         }
                     >
-                        <div className="flex w-full min-w-0 flex-1 flex-col">
+                        <div className="flex w-full min-w-0 flex-1 flex-col overflow-hidden">
                             {/* Day/Week header row */}
                             <div className="flex border-b bg-card">
                                 <div className="w-14 flex-shrink-0 border-r bg-card md:w-16"></div>

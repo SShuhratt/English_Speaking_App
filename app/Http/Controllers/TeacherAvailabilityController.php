@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -119,7 +120,7 @@ class TeacherAvailabilityController extends Controller
                     ->whereIn('status', ['pending', 'confirmed'])
                     ->where(function ($query) use ($rangeStart, $rangeEnd) {
                         $query->where('start_at', '<', $rangeEnd)
-                              ->where('end_at', '>', $rangeStart);
+                            ->where('end_at', '>', $rangeStart);
                     })
                     ->exists();
 
@@ -134,7 +135,7 @@ class TeacherAvailabilityController extends Controller
                     $availability->delete();
                 } elseif ($rangeStart->gt($origStart) && $rangeEnd->lt($origEnd)) {
                     $availability->update(['end_at' => $rangeStart]);
-                    
+
                     TeacherAvailability::create([
                         'teacher_id' => $teacherId,
                         'type' => 'custom',
@@ -215,7 +216,7 @@ class TeacherAvailabilityController extends Controller
                     ->whereIn('status', ['pending', 'confirmed'])
                     ->where(function ($query) use ($availability) {
                         $query->where('start_at', '<', $availability->end_at)
-                              ->where('end_at', '>', $availability->start_at);
+                            ->where('end_at', '>', $availability->start_at);
                     })
                     ->exists();
 
