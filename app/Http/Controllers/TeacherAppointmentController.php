@@ -23,7 +23,7 @@ class TeacherAppointmentController extends Controller
     public function index(Request $request)
     {
         $appointments = Appointment::where('teacher_id', $request->user()->id)
-            ->with('pupil')
+            ->with(['pupil', 'cancelledBy'])
             ->latest()
             ->paginate();
 
@@ -42,7 +42,7 @@ class TeacherAppointmentController extends Controller
         $appointments = Appointment::where('teacher_id', $request->user()->id)
             ->where('status', 'confirmed')
             ->where('end_at', '>', now())
-            ->with('pupil')
+            ->with(['pupil', 'cancelledBy'])
             ->orderBy('start_at')
             ->get();
 
@@ -57,7 +57,7 @@ class TeacherAppointmentController extends Controller
     public function sessions(Request $request)
     {
         $appointments = Appointment::where('teacher_id', $request->user()->id)
-            ->with(['pupil', 'feedbacks'])
+            ->with(['pupil', 'feedbacks', 'cancelledBy'])
             ->latest()
             ->paginate();
 
@@ -82,9 +82,13 @@ class TeacherAppointmentController extends Controller
     /**
      * Reject appointment
      */
-    public function reject(string $id)
+    public function reject(Request $request, string $id)
     {
-        $appointment = $this->bookingService->reject($id);
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:3', 'max:1000'],
+        ]);
+
+        $appointment = $this->bookingService->reject($id, $validated['reason'], $request->user()->id);
 
         return response()->json([
             'message' => 'Appointment rejected',

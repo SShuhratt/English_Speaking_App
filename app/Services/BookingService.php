@@ -10,6 +10,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BookingService
 {
@@ -35,7 +36,6 @@ class BookingService
             // 2. Prevent overlaps
             $this->ensureNoConflicts($teacher->id, $start, $end);
 
-            // 3. Create appointment (NO Google logic here)
             $appointment = Appointment::create([
                 'teacher_id' => $teacher->id,
                 'pupil_id' => $pupil->id,
@@ -43,6 +43,7 @@ class BookingService
                 'end_at' => $end,
                 'status' => 'pending',
                 'notes' => $meta['notes'] ?? null,
+                'topics' => $meta['topics'] ?? null,
 
                 // Google fields intentionally empty for now
                 'google_event_id' => null,
@@ -65,7 +66,7 @@ class BookingService
                 try {
                     BookingUpdated::dispatch($appointment);
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on booking creation: " . $e->getMessage());
+                    Log::error('Failed to broadcast booking update on booking creation: '.$e->getMessage());
                 }
             });
 
@@ -76,11 +77,20 @@ class BookingService
     /**
      * Cancel appointment
      */
-    public function cancel(string $id): Appointment
+    public function cancel(string $id, string $reason, string $userId): Appointment
     {
-        return DB::transaction(function () use ($id) {
+        return DB::transaction(function () use ($id, $reason, $userId) {
             $appointment = Appointment::with('teacher')->findOrFail($id);
-            $appointment->update(['status' => 'cancelled']);
+
+            if ($appointment->pupil_id !== $userId && $appointment->teacher_id !== $userId) {
+                abort(403, 'Unauthorized');
+            }
+
+            $appointment->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => $reason,
+                'cancelled_by' => $userId,
+            ]);
 
             // Clear cache
             $current = $appointment->start_at->copy()->subDay();
@@ -97,14 +107,14 @@ class BookingService
                 try {
                     app(GoogleCalendarService::class)->deleteEvent($teacher, $appointment->google_event_id);
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error("Failed to delete Google event {$appointment->google_event_id} on cancellation: " . $e->getMessage());
+                    Log::error("Failed to delete Google event {$appointment->google_event_id} on cancellation: ".$e->getMessage());
                 }
             }
 
             try {
                 BookingUpdated::dispatch($appointment);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on cancellation: " . $e->getMessage());
+                Log::error('Failed to broadcast booking update on cancellation: '.$e->getMessage());
             }
 
             return $appointment;
@@ -120,12 +130,12 @@ class BookingService
             $appointment = Appointment::findOrFail($id);
             $appointment->update(['status' => 'confirmed']);
 
-            \App\Jobs\SyncAppointmentToGoogleJob::dispatch($appointment);
+            SyncAppointmentToGoogleJob::dispatch($appointment);
 
             try {
                 BookingUpdated::dispatch($appointment);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on approval: " . $e->getMessage());
+                Log::error('Failed to broadcast booking update on approval: '.$e->getMessage());
             }
 
             return $appointment;
@@ -135,11 +145,20 @@ class BookingService
     /**
      * Reject appointment
      */
-    public function reject(string $id): Appointment
+    public function reject(string $id, string $reason, string $userId): Appointment
     {
-        return DB::transaction(function () use ($id) {
+        return DB::transaction(function () use ($id, $reason, $userId) {
             $appointment = Appointment::with('teacher')->findOrFail($id);
-            $appointment->update(['status' => 'rejected']);
+
+            if ($appointment->teacher_id !== $userId) {
+                abort(403, 'Unauthorized');
+            }
+
+            $appointment->update([
+                'status' => 'rejected',
+                'cancellation_reason' => $reason,
+                'cancelled_by' => $userId,
+            ]);
 
             // Clear cache to make slot available again
             $current = $appointment->start_at->copy()->subDay();
@@ -156,14 +175,14 @@ class BookingService
                 try {
                     app(GoogleCalendarService::class)->deleteEvent($teacher, $appointment->google_event_id);
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error("Failed to delete Google event {$appointment->google_event_id} on rejection: " . $e->getMessage());
+                    Log::error("Failed to delete Google event {$appointment->google_event_id} on rejection: ".$e->getMessage());
                 }
             }
 
             try {
                 BookingUpdated::dispatch($appointment);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to broadcast booking update on rejection: " . $e->getMessage());
+                Log::error('Failed to broadcast booking update on rejection: '.$e->getMessage());
             }
 
             return $appointment;

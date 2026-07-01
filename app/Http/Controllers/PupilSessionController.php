@@ -20,9 +20,6 @@ class PupilSessionController extends Controller
         ]);
     }
 
-    /**
-     * Pupil attempts to join the meeting room.
-     */
     public function join(Request $request, string $id)
     {
         $appointment = Appointment::findOrFail($id);

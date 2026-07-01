@@ -20,6 +20,10 @@ export default function Appointments() {
     const { auth } = usePage<any>().props;
     const { t } = useTranslation();
 
+    const [modalAction, setModalAction] = useState<{ id: string; type: 'cancel' | 'reject' } | null>(null);
+    const [actionReason, setActionReason] = useState('');
+    const [submittingAction, setSubmittingAction] = useState(false);
+
     const fetchAppointments = async () => {
         setLoading(true);
         try {
@@ -50,7 +54,7 @@ export default function Appointments() {
         };
     }, [auth.user?.id]);
 
-    const handleAction = async (id: string, action: 'approve' | 'reject') => {
+    const handleAction = async (id: string, action: 'approve') => {
         try {
             await axios.post(`/teacher/appointments/${id}/${action}`);
             toast.success(t(`teacher.${action}_success`));
@@ -60,16 +64,36 @@ export default function Appointments() {
         }
     };
 
-    const handleCancel = async (id: string) => {
-        if (!confirm(t('teacher.confirm_cancel'))) return;
+    const handleModalActionSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!modalAction) return;
+        if (actionReason.trim().length < 3 || actionReason.trim().length > 1000) {
+            toast.error(t('teacher.reason_length_validation') || 'Reason must be between 3 and 1000 characters');
+            return;
+        }
+
+        setSubmittingAction(true);
         try {
-            await axios.delete(`/bookings/${id}`);
-            toast.success(t('teacher.cancel_success'));
+            if (modalAction.type === 'cancel') {
+                await axios.delete(`/bookings/${modalAction.id}`, {
+                    data: { reason: actionReason.trim() }
+                });
+                toast.success(t('teacher.cancel_success'));
+            } else {
+                await axios.post(`/teacher/appointments/${modalAction.id}/reject`, {
+                    reason: actionReason.trim()
+                });
+                toast.success(t('teacher.reject_success'));
+            }
+            setModalAction(null);
+            setActionReason('');
             fetchAppointments();
         } catch (error: any) {
             toast.error(
-                error.response?.data?.message || t('teacher.cancel_failed'),
+                error.response?.data?.message || t('teacher.action_failed') || 'Action failed',
             );
+        } finally {
+            setSubmittingAction(false);
         }
     };
 
@@ -157,6 +181,39 @@ export default function Appointments() {
                                                     })}
                                                 </span>
                                             </div>
+
+                                            {/* Topics Display */}
+                                            {apt.topics && apt.topics.length > 0 && (
+                                                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                                    {apt.topics.map((topic: string) => (
+                                                        <span
+                                                            key={topic}
+                                                            className="rounded-lg bg-indigo-50/50 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400"
+                                                        >
+                                                            #{topic}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Cancellation/Rejection Reason Display */}
+                                            {(apt.status === 'cancelled' || apt.status === 'rejected') && apt.cancellation_reason && (
+                                                <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs dark:border-red-900/20 dark:bg-red-950/10">
+                                                    <p className="font-extrabold text-red-800 dark:text-red-400">
+                                                        {apt.status === 'rejected'
+                                                            ? (t('bookings.rejected_by_teacher') || 'Rejected by You')
+                                                            : (t('bookings.cancelled_by', {
+                                                                name: apt.cancelled_by === auth.user.id
+                                                                    ? (t('bookings.you') || 'You')
+                                                                    : (apt.pupil?.full_name || t('bookings.pupil') || 'Student')
+                                                            }))
+                                                        }
+                                                    </p>
+                                                    <p className="mt-0.5 font-medium text-muted-foreground italic">
+                                                        "{apt.cancellation_reason}"
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -207,10 +264,10 @@ export default function Appointments() {
                                                 </button>
                                                 <button
                                                     onClick={() =>
-                                                        handleAction(
-                                                            apt.id,
-                                                            'reject',
-                                                        )
+                                                        setModalAction({
+                                                            id: apt.id,
+                                                            type: 'reject',
+                                                        })
                                                     }
                                                     className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/25 px-4 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
                                                 >
@@ -241,7 +298,10 @@ export default function Appointments() {
                                                 {apt.status === 'confirmed' && (
                                                     <button
                                                         onClick={() =>
-                                                            handleCancel(apt.id)
+                                                            setModalAction({
+                                                                id: apt.id,
+                                                                type: 'cancel',
+                                                            })
                                                         }
                                                         className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/25 px-3.5 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
                                                     >
@@ -268,6 +328,63 @@ export default function Appointments() {
                     )}
                 </div>
             </div>
+
+            {modalAction && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95">
+                        <h3 className="text-lg font-bold text-foreground">
+                            {modalAction.type === 'cancel'
+                                ? (t('teacher.cancel_title') || 'Cancel Appointment')
+                                : (t('teacher.reject_title') || 'Reject Request')
+                            }
+                        </h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            {modalAction.type === 'cancel'
+                                ? (t('teacher.cancel_desc') || 'Please state the reason for cancelling this appointment. This will be visible to the student.')
+                                : (t('teacher.reject_desc') || 'Please state the reason for rejecting this booking request. This will be visible to the student.')
+                            }
+                        </p>
+                        <form onSubmit={handleModalActionSubmit} className="mt-4 space-y-4">
+                            <div>
+                                <textarea
+                                    className="w-full min-h-[100px] rounded-xl border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    placeholder={t('teacher.reason_placeholder') || 'Enter your reason here...'}
+                                    value={actionReason}
+                                    onChange={(e) => setActionReason(e.target.value)}
+                                    minLength={3}
+                                    maxLength={1000}
+                                    required
+                                />
+                                <div className="mt-1 text-right text-[10px] text-muted-foreground font-semibold">
+                                    {actionReason.length} / 1000
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setModalAction(null);
+                                        setActionReason('');
+                                    }}
+                                    className="cursor-pointer rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted"
+                                >
+                                    {t('bookings.close_btn') || 'Close'}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submittingAction || actionReason.trim().length < 3}
+                                    className="cursor-pointer rounded-xl bg-destructive px-5 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-destructive/90 disabled:opacity-50"
+                                >
+                                    {submittingAction
+                                        ? (t('bookings.submitting') || 'Submitting...')
+                                        : (t('bookings.confirm_submit') || 'Submit')
+                                    }
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

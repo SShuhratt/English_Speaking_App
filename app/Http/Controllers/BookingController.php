@@ -25,6 +25,8 @@ class BookingController extends Controller
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'notes' => ['nullable', 'string'],
+            'topics' => ['required', 'array', 'min:1'],
+            'topics.*' => ['required', 'string', 'max:255'],
         ]);
 
         try {
@@ -35,6 +37,7 @@ class BookingController extends Controller
                 endAt: $validated['end_at'],
                 meta: [
                     'notes' => $validated['notes'] ?? null,
+                    'topics' => $validated['topics'],
                 ]
             );
 
@@ -66,12 +69,13 @@ class BookingController extends Controller
         return response()->json($slots);
     }
 
-    /**
-     * Cancel appointment
-     */
-    public function cancel(string $id)
+    public function cancel(Request $request, string $id)
     {
-        $appointment = $this->bookingService->cancel($id);
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:3', 'max:1000'],
+        ]);
+
+        $appointment = $this->bookingService->cancel($id, $validated['reason'], $request->user()->id);
 
         return response()->json([
             'message' => 'Appointment cancelled',

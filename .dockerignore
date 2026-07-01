@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker files themselves
+.dockerignore
+docker-compose*.yml
+
+# Node.js
+node_modules
+vendor
+
+# IDE / AI tooling
+.agents
+.codex
+.gemini
+.claude
+.junie
+.fleet
+.idea
+.nova
+.vscode
+.zed
+.phpactor.json
+
+# OS files
+.DS_Store
+
+# Laravel runtime / generated artifacts (rebuilt at boot)
+bootstrap/cache/*.php
+storage/app/private
+storage/framework/cache
+storage/framework/sessions
+storage/framework/testing
+storage/framework/views
+storage/logs
+storage/pail
+
+# Test cache / results
+.phpunit.result.cache
+.phpunit.cache
+
+# Dev-only env files
+.env
+.env.*
+
+# Public build (built inside the image)
+public/build
+public/hot
+
+# Laravel Wayfinder (generated at build time inside image)
+resources/js/actions
+resources/js/routes
+resources/js/wayfinder
+
+# Docs / readme
+*.md
+LICENSE
+
+# Local backups/images
+*.tar

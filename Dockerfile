@@ -1,4 +1,42 @@
-FROM dunglas/frankenphp:1.12-php8.5-bookworm
+# Stage 1: Composer packages installation
+FROM composer:2 AS composer-builder
+ENV COMPOSER_HTTP2=0
+ENV COMPOSER_PROCESS_TIMEOUT=2000
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --ignore-platform-reqs --no-dev --optimize-autoloader --no-scripts --prefer-dist
+COPY . .
+RUN mkdir -p storage/framework/views \
+    storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/logs \
+    bootstrap/cache
+RUN APP_KEY=base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa= \
+    DB_CONNECTION=sqlite \
+    DB_DATABASE=:memory: \
+    php artisan wayfinder:generate --with-form
+
+# Stage 2: Node.js frontend assets build
+FROM node:20-slim AS node-builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+ENV NODE_OPTIONS="--max-old-space-size=512"
+RUN npm install --no-audit --no-fund
+COPY . .
+COPY --from=composer-builder /app/resources/js/actions /app/resources/js/actions
+COPY --from=composer-builder /app/resources/js/routes /app/resources/js/routes
+COPY --from=composer-builder /app/resources/js/wayfinder /app/resources/js/wayfinder
+RUN npm run build
+
+
+# Stage 3: Production environment (FrankenPHP)
+FROM dunglas/frankenphp:1-php8.5-bookworm
+
+# Install required system packages
+RUN apt-get update && apt-get install -y \
+    unzip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
 RUN install-php-extensions \
@@ -6,55 +44,51 @@ RUN install-php-extensions \
     pdo_pgsql \
     intl \
     opcache \
-    redis \
     zip
 
-# Install system dependencies, Node.js and NPM
-RUN apt-get update && apt-get install -y \
-    unzip \
-    git \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
-
-# Copy dependency files first to utilize Docker build cache
-COPY composer.json composer.lock package.json package-lock.json ./
-
-# Install PHP and Node dependencies
-ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefer-dist
-
-RUN npm ci
 
 # Copy application files
 COPY . .
 
-# Generate Laravel Wayfinder route definitions for TypeScript
-RUN php artisan wayfinder:generate --with-form
+# Copy dependencies and compiled assets from previous stages
+COPY --from=composer-builder /app/vendor /app/vendor
+COPY --from=node-builder /app/public/build /app/public/build
 
-# Create storage link
-RUN php artisan storage:link --no-interaction
+# Clear bootstrap cache
+RUN rm -f /app/bootstrap/cache/packages.php /app/bootstrap/cache/services.php
 
-# Run production build for assets
-RUN npm run build
+# Create folders and set permissions
+RUN mkdir -p /app/storage/framework/views \
+    /app/storage/framework/cache/data \
+    /app/storage/framework/sessions \
+    /app/storage/logs \
+    /app/bootstrap/cache \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Run composer autoload optimization and scripts
-RUN composer dump-autoload --no-dev --optimize
+# Generate routes and run package:discover
+RUN APP_KEY=base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa= \
+    DB_CONNECTION=sqlite \
+    DB_DATABASE=:memory: \
+    php artisan wayfinder:generate --with-form
 
-# Set permissions
+RUN APP_KEY=base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa= \
+    DB_CONNECTION=sqlite \
+    DB_DATABASE=:memory: \
+    php artisan package:discover --ansi
+
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Expose port
+COPY Caddyfile /etc/caddy/Caddyfile
+
 EXPOSE 10000
 
-# Remove capabilities from frankenphp binary to avoid permission issues in Render sandbox
 RUN setcap -r /usr/local/bin/frankenphp
 
-# Start up Octane in production worker mode
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
 CMD ["php", "artisan", "octane:frankenphp", "--host=0.0.0.0", "--port=10000"]

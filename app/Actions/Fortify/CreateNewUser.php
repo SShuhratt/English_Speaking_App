@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -23,7 +24,9 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         if (session()->has('google_register')) {
-            $randomPassword = \Illuminate\Support\Str::random(32);
+            // Generate a secure random password that satisfies all strict validation rules:
+            // min length of 12, mixed case, letters, numbers, and symbols.
+            $randomPassword = Str::random(24).'aA1!@#$';
             $input['password'] = $input['password'] ?? $randomPassword;
             $input['password_confirmation'] = $input['password_confirmation'] ?? $randomPassword;
             $input['name'] = $input['name'] ?? session('google_register.name');
@@ -101,6 +104,7 @@ class CreateNewUser implements CreatesNewUsers
                             return false;
                         }
                     }
+
                     return true;
                 }));
             }

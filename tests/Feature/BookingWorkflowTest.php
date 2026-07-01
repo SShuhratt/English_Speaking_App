@@ -43,6 +43,7 @@ class BookingWorkflowTest extends TestCase
             'pupil_id' => $pupil->id,
             'start_at' => $startAt->toDateTimeString(),
             'end_at' => $endAt->toDateTimeString(),
+            'topics' => ['freestyle'],
         ]);
 
         $response->assertStatus(201);
@@ -66,6 +67,7 @@ class BookingWorkflowTest extends TestCase
             'start_at' => now()->addDay(),
             'end_at' => now()->addDay()->addHour(),
             'status' => 'pending',
+            'topics' => ['freestyle'],
         ]);
 
         $response = $this->actingAs($teacher)->postJson("/teacher/appointments/{$appointment->id}/approve");
@@ -88,14 +90,18 @@ class BookingWorkflowTest extends TestCase
             'start_at' => now()->addDay(),
             'end_at' => now()->addDay()->addHour(),
             'status' => 'pending',
+            'topics' => ['freestyle'],
         ]);
 
-        $response = $this->actingAs($teacher)->postJson("/teacher/appointments/{$appointment->id}/reject");
+        $response = $this->actingAs($teacher)->postJson("/teacher/appointments/{$appointment->id}/reject", [
+            'reason' => 'Schedule conflict',
+        ]);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('appointments', [
             'id' => $appointment->id,
             'status' => 'rejected',
+            'cancellation_reason' => 'Schedule conflict',
         ]);
     }
 
@@ -110,6 +116,7 @@ class BookingWorkflowTest extends TestCase
             'start_at' => now()->addDay(),
             'end_at' => now()->addDay()->addHour(),
             'status' => 'confirmed',
+            'topics' => ['freestyle'],
         ]);
 
         $response = $this->actingAs($teacher)->postJson("/teacher/appointments/{$appointment->id}/start");
@@ -144,6 +151,7 @@ class BookingWorkflowTest extends TestCase
             'start_at' => $startAt,
             'end_at' => $endAt,
             'status' => 'confirmed',
+            'topics' => ['freestyle'],
         ]);
 
         // Attempt to book the same slot again
@@ -152,6 +160,7 @@ class BookingWorkflowTest extends TestCase
             'pupil_id' => $otherPupil->id,
             'start_at' => $startAt->toDateTimeString(),
             'end_at' => $endAt->toDateTimeString(),
+            'topics' => ['freestyle'],
         ]);
 
         $response->assertStatus(422);
@@ -185,6 +194,7 @@ class BookingWorkflowTest extends TestCase
             'pupil_id' => $pupil->id,
             'start_at' => $startBefore->toDateTimeString(),
             'end_at' => $endBefore->toDateTimeString(),
+            'topics' => ['freestyle'],
         ]);
         $response->assertStatus(422);
         $response->assertJson([
@@ -199,6 +209,7 @@ class BookingWorkflowTest extends TestCase
             'pupil_id' => $pupil->id,
             'start_at' => $startAfter->toDateTimeString(),
             'end_at' => $endAfter->toDateTimeString(),
+            'topics' => ['freestyle'],
         ]);
         $response->assertStatus(422);
         $response->assertJson([
@@ -213,6 +224,7 @@ class BookingWorkflowTest extends TestCase
             'pupil_id' => $pupil->id,
             'start_at' => $startValid->toDateTimeString(),
             'end_at' => $endValid->toDateTimeString(),
+            'topics' => ['freestyle'],
         ]);
         $response->assertStatus(201);
     }
@@ -241,6 +253,7 @@ class BookingWorkflowTest extends TestCase
             'pupil_id' => $pupil->id,
             'start_at' => $startValid->toIso8601String(),
             'end_at' => $endValid->toIso8601String(),
+            'topics' => ['freestyle'],
         ]);
 
         $response->assertStatus(201);
@@ -278,6 +291,7 @@ class BookingWorkflowTest extends TestCase
             'start_at' => Carbon::parse('next monday 10:00:00'),
             'end_at' => Carbon::parse('next monday 10:45:00'),
             'status' => 'confirmed',
+            'topics' => ['freestyle'],
         ]);
 
         // Refresh cache and get slots

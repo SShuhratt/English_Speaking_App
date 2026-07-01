@@ -7,9 +7,9 @@ services:
     container_name: edtech-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: edtech
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgress
+      - "POSTGRES_DB=edtech"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=postgress"
     ports:
       - "5432:5432"
     volumes:
@@ -17,7 +17,7 @@ services:
     networks:
       - edtech
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d edtech"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d edtech" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,7 +33,7 @@ services:
     networks:
       - edtech
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,26 +42,37 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: edtech-backend-engine-api:latest
     container_name: edtech-laravel-octane
     restart: unless-stopped
-    command: php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --watch
+    command: php artisan octane:frankenphp --host=0.0.0.0 --port=10000 --caddyfile=/etc/caddy/Caddyfile
     ports:
-      - "8080:8000"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./:/app
+      # Named volumes protect these directories from being overwritten by the
+      # host bind mount above. The image builds them with production content.
+      - vendor_cache:/app/vendor
+      - node_modules_cache:/app/node_modules
+      - bootstrap_cache:/app/bootstrap/cache
+      - public_build_cache:/app/public/build
+      - ./certs:/data/caddy/certs:ro
     environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-      OCTANE_SERVER: frankenphp
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: edtech
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgress
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_CLIENT: predis
+      - "SERVER_NAME=${SERVER_NAME:-http://localhost}"
+      - "CADDY_TLS_DIRECTIVE=${CADDY_TLS_DIRECTIVE:-#}"
+      - "APP_ENV=production"
+      - "APP_DEBUG=true"
+      - "OCTANE_SERVER=frankenphp"
+      - "DB_CONNECTION=pgsql"
+      - "DB_HOST=postgres"
+      - "DB_PORT=5432"
+      - "DB_DATABASE=edtech"
+      - "DB_USERNAME=postgres"
+      - "DB_PASSWORD=postgress"
+      - "REDIS_HOST=redis"
+      - "REDIS_PORT=6379"
+      - "REDIS_CLIENT=predis"
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,23 +84,75 @@ services:
       - edtech
 
   horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
     # Reuses the exact same built container image from the api layer instantly
     image: edtech-backend-engine-api:latest
     container_name: edtech-horizon
     restart: unless-stopped
     command: php artisan horizon
+    healthcheck:
+      disable: true
     volumes:
       - ./:/app
+      - vendor_cache:/app/vendor
+      - node_modules_cache:/app/node_modules
+      - bootstrap_cache:/app/bootstrap/cache
     environment:
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: edtech
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgress
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_CLIENT: predis
+      - "SERVER_NAME=https://convomate.uz"
+      - "APP_ENV=production"
+      - "APP_DEBUG=true"
+      - "DB_CONNECTION=pgsql"
+      - "DB_HOST=postgres"
+      - "DB_PORT=5432"
+      - "DB_DATABASE=edtech"
+      - "DB_USERNAME=postgres"
+      - "DB_PASSWORD=postgress"
+      - "REDIS_HOST=redis"
+      - "REDIS_PORT=6379"
+      - "REDIS_CLIENT=predis"
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - edtech
+
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: edtech-backend-engine-api:latest
+    container_name: edtech-reverb
+    restart: unless-stopped
+    command: php artisan reverb:start --host=0.0.0.0 --port=8443 --debug
+    healthcheck:
+      disable: true
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./:/app
+      - vendor_cache:/app/vendor
+      - node_modules_cache:/app/node_modules
+      - bootstrap_cache:/app/bootstrap/cache
+      - ./certs:/app/certs:ro
+    environment:
+      - "SERVER_NAME=${SERVER_NAME:-http://localhost}"
+      - "REVERB_SSL_CERT_PATH=${REVERB_SSL_CERT_PATH:-null}"
+      - "REVERB_SSL_KEY_PATH=${REVERB_SSL_KEY_PATH:-null}"
+      - "APP_ENV=production"
+      - "APP_DEBUG=true"
+      - "DB_CONNECTION=pgsql"
+      - "DB_HOST=postgres"
+      - "DB_PORT=5432"
+      - "DB_DATABASE=edtech"
+      - "DB_USERNAME=postgres"
+      - "DB_PASSWORD=postgress"
+      - "REDIS_HOST=redis"
+      - "REDIS_PORT=6379"
+      - "REDIS_CLIENT=predis"
     depends_on:
       api:
         condition: service_started
@@ -105,3 +168,7 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  vendor_cache:
+  node_modules_cache:
+  bootstrap_cache:
+  public_build_cache:

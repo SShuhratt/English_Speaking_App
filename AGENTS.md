@@ -1,6 +1,19 @@
 <laravel-boost-guidelines>
 === foundation rules ===
 
+# Agent Instructions: Reasoning-First Methodology
+
+## Critical Constraint
+You are strictly prohibited from writing code, modifying files, or creating pull requests immediately upon receiving a feature request or bug report.
+
+## Required Workflow
+Before executing any task, you must pause and complete the following steps:
+1. **Clarify Intent:** Ask sharp, direct questions about missing requirements, database schemas, and external service constraints.
+2. **Identify Edge Cases:** Surface potential failure points, validation rules, or performance implications the user may have missed.
+3. **Establish Testing Strategy:** Outline the test scenarios (TDD mindset) required to verify this feature before any implementation block is generated.
+
+Do not transition into writing code until the user explicitly reviews your initial breakdown and signs off on your clarifying questions.
+
 # Laravel Boost Guidelines
 
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.

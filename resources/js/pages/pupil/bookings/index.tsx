@@ -64,6 +64,10 @@ export default function Bookings({ bookings }: Props) {
     const { auth } = usePage<any>().props;
     const { t } = useTranslation();
 
+    const [cancellingBooking, setCancellingBooking] = useState<any | null>(null);
+    const [cancelReason, setCancelReason] = useState('');
+    const [submittingCancel, setSubmittingCancel] = useState(false);
+
     useEffect(() => {
         if (!auth.user) return;
 
@@ -79,16 +83,29 @@ export default function Bookings({ bookings }: Props) {
         };
     }, [auth.user?.id]);
 
-    const handleCancel = async (id: string) => {
-        if (!confirm(t('dashboard.cancel_booking_confirm'))) return;
+    const handleCancelSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!cancellingBooking) return;
+        if (cancelReason.trim().length < 3 || cancelReason.trim().length > 1000) {
+            toast.error(t('bookings.reason_length_validation') || 'Reason must be between 3 and 1000 characters');
+            return;
+        }
+
+        setSubmittingCancel(true);
         try {
-            await axios.delete(`/bookings/${id}`);
+            await axios.delete(`/bookings/${cancellingBooking.id}`, {
+                data: { reason: cancelReason.trim() }
+            });
             toast.success(t('dashboard.cancel_success'));
+            setCancellingBooking(null);
+            setCancelReason('');
             router.reload();
         } catch (error: any) {
             toast.error(
                 error.response?.data?.message || t('dashboard.cancel_error'),
             );
+        } finally {
+            setSubmittingCancel(false);
         }
     };
 
@@ -126,6 +143,8 @@ export default function Bookings({ bookings }: Props) {
                 return t('bookings.status_pending');
             case 'cancelled':
                 return t('bookings.status_cancelled');
+            case 'rejected':
+                return t('bookings.status_rejected') || 'Rejected';
             default:
                 return status;
         }
@@ -199,6 +218,41 @@ export default function Bookings({ bookings }: Props) {
                                                     })}
                                                 </span>
                                             </div>
+
+                                            {/* Topics Display */}
+                                            {apt.topics && apt.topics.length > 0 && (
+                                                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                                    {apt.topics.map((topic: string) => (
+                                                        <span
+                                                            key={topic}
+                                                            className="rounded-lg bg-indigo-50/50 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400"
+                                                        >
+                                                            #{topic}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Cancellation/Rejection Reason Display */}
+                                            {(apt.status === 'cancelled' || apt.status === 'rejected') && apt.cancellation_reason && (
+                                                <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs dark:border-red-900/20 dark:bg-red-950/10">
+                                                    <p className="font-extrabold text-red-800 dark:text-red-400">
+                                                        {apt.status === 'rejected'
+                                                            ? (t('bookings.rejected_by_teacher') || 'Rejected by Teacher')
+                                                            : (t('bookings.cancelled_by', {
+                                                                name: apt.cancelled_by === auth.user.id
+                                                                    ? (t('bookings.you') || 'You')
+                                                                    : (apt.cancelled_by === apt.teacher_id
+                                                                        ? (apt.teacher?.full_name || t('bookings.teacher') || 'Teacher')
+                                                                        : (t('bookings.pupil') || 'Pupil'))
+                                                            }))
+                                                        }
+                                                    </p>
+                                                    <p className="mt-0.5 font-medium text-muted-foreground italic">
+                                                        "{apt.cancellation_reason}"
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -209,8 +263,7 @@ export default function Bookings({ bookings }: Props) {
                                                     ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400'
                                                     : apt.status === 'pending'
                                                       ? 'border-amber-200/50 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-400'
-                                                      : apt.status ===
-                                                          'cancelled'
+                                                      : (apt.status === 'cancelled' || apt.status === 'rejected')
                                                         ? 'border-red-200/50 bg-red-50 text-red-700 dark:border-red-900/30 dark:bg-red-950/30 dark:text-red-400'
                                                         : 'border-transparent bg-muted text-muted-foreground'
                                             }`}
@@ -242,7 +295,7 @@ export default function Bookings({ bookings }: Props) {
                                                         'pending') && (
                                                     <button
                                                         onClick={() =>
-                                                            handleCancel(apt.id)
+                                                            setCancellingBooking(apt)
                                                         }
                                                         className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/25 px-3.5 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
                                                     >
@@ -278,6 +331,56 @@ export default function Bookings({ bookings }: Props) {
                     )}
                 </div>
             </div>
+
+            {cancellingBooking && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95">
+                        <h3 className="text-lg font-bold text-foreground">
+                            {t('bookings.cancel_title') || 'Cancel Booking'}
+                        </h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            {t('bookings.cancel_desc') || 'Please state the reason for cancellation. This will be visible to the teacher.'}
+                        </p>
+                        <form onSubmit={handleCancelSubmit} className="mt-4 space-y-4">
+                            <div>
+                                <textarea
+                                    className="w-full min-h-[100px] rounded-xl border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    placeholder={t('bookings.cancel_reason_placeholder') || 'Enter your reason here...'}
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    minLength={3}
+                                    maxLength={1000}
+                                    required
+                                />
+                                <div className="mt-1 text-right text-[10px] text-muted-foreground font-semibold">
+                                    {cancelReason.length} / 1000
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setCancellingBooking(null);
+                                        setCancelReason('');
+                                    }}
+                                    className="cursor-pointer rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted"
+                                >
+                                    {t('bookings.close_btn') || 'Close'}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submittingCancel || cancelReason.trim().length < 3}
+                                    className="cursor-pointer rounded-xl bg-destructive px-5 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-destructive/90 disabled:opacity-50"
+                                >
+                                    {submittingCancel
+                                        ? t('bookings.cancelling') || 'Cancelling...'
+                                        : t('bookings.confirm_cancel') || 'Confirm Cancel'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

@@ -11,7 +11,7 @@ class PupilBookingController extends Controller
     public function index(Request $request)
     {
         $bookings = Appointment::where('pupil_id', $request->user()->id)
-            ->with('teacher')
+            ->with(['teacher', 'cancelledBy'])
             ->orderBy('start_at')
             ->paginate();
 

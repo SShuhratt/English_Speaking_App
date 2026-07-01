@@ -16,6 +16,9 @@ class Appointment extends Model
         'end_at',
         'status',
         'notes',
+        'topics',
+        'cancellation_reason',
+        'cancelled_by',
         'google_event_id',
         'google_meet_link',
         'provider',
@@ -24,6 +27,7 @@ class Appointment extends Model
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
+        'topics' => 'array',
     ];
 
     public function teacher()
@@ -34,6 +38,11 @@ class Appointment extends Model
     public function pupil()
     {
         return $this->belongsTo(User::class, 'pupil_id');
+    }
+
+    public function cancelledBy()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 
     public function conversation()

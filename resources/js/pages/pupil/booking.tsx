@@ -103,6 +103,10 @@ export default function Booking({ teacher }: Props) {
     const [selectedStartStr, setSelectedStartStr] = useState('');
     const [selectedEndStr, setSelectedEndStr] = useState('');
 
+    const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+    const [otherChecked, setOtherChecked] = useState(false);
+    const [customTopic, setCustomTopic] = useState('');
+
     const formatTimeToHHMM = (date: Date) => {
         const h = String(date.getHours()).padStart(2, '0');
         const m = String(date.getMinutes()).padStart(2, '0');
@@ -122,6 +126,10 @@ export default function Booking({ teacher }: Props) {
             } else {
                 setSelectedEndStr(formatTimeToHHMM(defaultEnd));
             }
+
+            setSelectedTopics([]);
+            setOtherChecked(false);
+            setCustomTopic('');
         }
     }, [confirmingSlot]);
 
@@ -168,8 +176,84 @@ export default function Booking({ teacher }: Props) {
         );
     };
 
+    const getFinalTopics = () => {
+        const topics = [...selectedTopics];
+        if (otherChecked && customTopic.trim()) {
+            topics.push(customTopic.trim());
+        }
+        return topics;
+    };
+
+    const renderTopicSelection = () => {
+        const labels = teacher.teacher_profile?.labels || [];
+        return (
+            <div className="space-y-2 mt-4 border-t pt-3">
+                <Label className="text-xs font-semibold text-foreground">
+                    {t('booking.select_topics') || 'Select Speaking Topics'} <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                    {labels.map((lbl: string) => {
+                        const isChecked = selectedTopics.includes(lbl);
+                        return (
+                            <button
+                                key={lbl}
+                                type="button"
+                                onClick={() => {
+                                    if (isChecked) {
+                                        setSelectedTopics(selectedTopics.filter(t => t !== lbl));
+                                    } else {
+                                        setSelectedTopics([...selectedTopics, lbl]);
+                                    }
+                                }}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                    isChecked
+                                        ? 'bg-indigo-600 text-white shadow-sm'
+                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                }`}
+                            >
+                                {lbl}
+                            </button>
+                        );
+                    })}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setOtherChecked(!otherChecked);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                            otherChecked
+                                ? 'bg-indigo-600 text-white shadow-sm'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        }`}
+                    >
+                        {t('booking.other_topic') || 'Other'}
+                    </button>
+                </div>
+
+                {otherChecked && (
+                    <div className="mt-2">
+                        <Input
+                            type="text"
+                            placeholder={t('booking.custom_topic_placeholder') || 'Enter custom topic...'}
+                            value={customTopic}
+                            onChange={(e) => setCustomTopic(e.target.value)}
+                            className="text-xs rounded-xl"
+                            maxLength={100}
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const handleConfirmSubmit = () => {
         if (!confirmingSlot) return;
+
+        const finalTopics = getFinalTopics();
+        if (finalTopics.length === 0) {
+            toast.error(t('booking.topics_required') || 'Please select at least one topic');
+            return;
+        }
 
         let startAt = confirmingSlot.start_at;
         let endAt = confirmingSlot.end_at;
@@ -184,7 +268,7 @@ export default function Booking({ teacher }: Props) {
             endAt = dates.end.toISOString();
         }
 
-        handleBook({ start_at: startAt, end_at: endAt });
+        handleBook({ start_at: startAt, end_at: endAt, topics: finalTopics });
         setConfirmingSlot(null);
     };
 
@@ -313,6 +397,7 @@ export default function Booking({ teacher }: Props) {
                 pupil_id: auth.user.id,
                 start_at: slot.start_at,
                 end_at: slot.end_at,
+                topics: slot.topics,
             });
             toast.success(t('booking.success'));
             fetchSlots();
@@ -327,6 +412,12 @@ export default function Booking({ teacher }: Props) {
         e.preventDefault();
         if (!customStartTime || !customEndTime) {
             toast.error('Please select start and end times');
+            return;
+        }
+
+        const finalTopics = getFinalTopics();
+        if (finalTopics.length === 0) {
+            toast.error(t('booking.topics_required') || 'Please select at least one topic');
             return;
         }
 
@@ -367,11 +458,15 @@ export default function Booking({ teacher }: Props) {
                 pupil_id: auth.user.id,
                 start_at: startAt,
                 end_at: endAt,
+                topics: finalTopics,
             });
             toast.success(t('booking.custom_success'));
             fetchSlots();
             setCustomStartTime('');
             setCustomEndTime('');
+            setSelectedTopics([]);
+            setOtherChecked(false);
+            setCustomTopic('');
         } catch (error: any) {
             toast.error(error.response?.data?.message || t('booking.failed'));
         } finally {
@@ -767,6 +862,8 @@ export default function Booking({ teacher }: Props) {
                                         required
                                     />
                                 </div>
+
+                                {renderTopicSelection()}
 
                                 <Button
                                     type="submit"
@@ -1179,6 +1276,8 @@ export default function Booking({ teacher }: Props) {
                                         })}
                                     </p>
                                 )}
+
+                                {renderTopicSelection()}
 
                                 <div className="mt-6 flex items-center justify-end gap-3">
                                     <button
