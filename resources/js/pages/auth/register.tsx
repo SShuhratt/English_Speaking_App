@@ -26,9 +26,9 @@ export default function Register({ passwordRules }: Props) {
             <Head title={t('auth.register')} />
 
             {google_register && (
-                <div className="mb-2 flex items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 text-sm text-indigo-900 dark:border-indigo-900/30 dark:bg-indigo-950/20 dark:text-indigo-200">
+                <div className="mb-2 flex items-center gap-3 rounded-xl border border-brand-brown/10 bg-brand-cream/60 p-4 text-sm text-brand-brown dark:border-brand-yellow/10 dark:bg-brand-yellow/10 dark:text-brand-yellow">
                     <svg
-                        className="h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400"
+                        className="h-5 w-5 shrink-0 text-brand-orange dark:text-brand-orange"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -152,7 +152,7 @@ export default function Register({ passwordRules }: Props) {
                                         onClick={() => setRole('pupil')}
                                         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
                                             role === 'pupil'
-                                                ? 'border-indigo-600 bg-indigo-50/30 text-indigo-900 dark:border-indigo-500 dark:bg-indigo-950/20 dark:text-indigo-200'
+                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown dark:border-brand-orange dark:bg-brand-orange/15 dark:text-brand-yellow'
                                                 : 'border-muted bg-transparent hover:border-muted-foreground'
                                         }`}
                                     >
@@ -168,7 +168,7 @@ export default function Register({ passwordRules }: Props) {
                                         onClick={() => setRole('teacher')}
                                         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
                                             role === 'teacher'
-                                                ? 'border-indigo-600 bg-indigo-50/30 text-indigo-900 dark:border-indigo-500 dark:bg-indigo-950/20 dark:text-indigo-200'
+                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown dark:border-brand-orange dark:bg-brand-orange/15 dark:text-brand-yellow'
                                                 : 'border-muted bg-transparent hover:border-muted-foreground'
                                         }`}
                                     >
@@ -325,7 +325,7 @@ export default function Register({ passwordRules }: Props) {
                                                         type="checkbox"
                                                         name="labels[]"
                                                         value={lbl}
-                                                        className="rounded border-input text-indigo-600 focus:ring-indigo-500"
+                                                        className="rounded border-input text-brand-orange focus:ring-brand-orange"
                                                     />
                                                     <span>
                                                         {t(`labels.${lbl}`)}

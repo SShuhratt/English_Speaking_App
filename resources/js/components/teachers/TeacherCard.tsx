@@ -28,24 +28,24 @@ export default function TeacherCard({ teacher }: TeacherProps) {
     const labels = teacher.teacher_profile?.labels || [];
 
     return (
-        <div className="group flex h-full flex-col justify-between rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/5">
+        <div className="group flex h-full flex-col justify-between rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-brown/30 hover:shadow-xl hover:shadow-brand-brown/5">
             <div>
                 {/* Header Profile Section */}
                 <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/10 transition-transform duration-300 group-hover:scale-105">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-brown text-lg font-bold text-white shadow-lg shadow-brand-brown/10 transition-transform duration-300 group-hover:scale-105">
                         {initials}
                     </div>
                     <div>
-                        <h3 className="text-base font-bold text-foreground transition-colors group-hover:text-indigo-500">
+                        <h3 className="text-base font-bold text-foreground transition-colors group-hover:text-brand-brown">
                             {teacher.full_name}
                         </h3>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                            <span className="border-indigo-150/20 inline-flex items-center rounded-lg border bg-indigo-50/50 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">
+                            <span className="inline-flex items-center rounded-lg border border-brand-brown/20 bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown">
                                 {teacher.teacher_profile?.overall_level ||
                                     t('teachers.certified')}
                             </span>
                             {teacher.teacher_profile?.speaking_band && (
-                                <span className="border-purple-150/20 inline-flex items-center rounded-lg border bg-purple-50/50 px-2 py-0.5 text-[10px] font-bold text-purple-600 dark:bg-purple-950/30 dark:text-purple-400">
+                                <span className="inline-flex items-center rounded-lg border border-brand-orange/20 bg-brand-yellow/50 px-2 py-0.5 text-[10px] font-bold text-brand-orange">
                                     {t('teachers.speaking', {
                                         band: teacher.teacher_profile
                                             .speaking_band,
@@ -95,7 +95,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                 {/* View Profile Button */}
                 <Link
                     href={`/pupil/teachers/${teacher.id}`}
-                    className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-3 text-xs font-bold text-white shadow-md shadow-indigo-500/10 transition-all duration-300 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/20"
+                    className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover py-3 text-xs font-bold text-white shadow-md shadow-brand-button/10 transition-all duration-300 hover:shadow-lg"
                 >
                     {t('teachers.view_profile')}{' '}
                     <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

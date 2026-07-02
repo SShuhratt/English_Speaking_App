@@ -26,9 +26,9 @@ export default function Feedback({ feedbacks }: Props) {
             <Head title={t('teacher.feedback_title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent p-6 md:flex-row md:items-center dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
+                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-brand-brown/10 bg-gradient-to-r from-brand-yellow/30 to-transparent p-6 md:flex-row md:items-center">
                     <div className="space-y-1">
-                        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
+                        <h1 className="text-brand-brown text-3xl font-black tracking-tight">
                             {t('teacher.feedback_title')}
                         </h1>
                         <p className="text-sm font-medium text-muted-foreground">
@@ -69,7 +69,7 @@ export default function Feedback({ feedbacks }: Props) {
                                 >
                                     <div className="mb-4 flex flex-col justify-between gap-4 border-b border-border/60 pb-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-950/40 dark:text-indigo-400">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
                                                 <User className="h-5.5 w-5.5" />
                                             </div>
                                             <div>
@@ -148,7 +148,7 @@ export default function Feedback({ feedbacks }: Props) {
                                         {sessionDate && (
                                             <div className="flex flex-col justify-between gap-3 rounded-2xl border border-border/40 bg-muted/30 p-4 text-xs font-semibold sm:flex-row sm:items-center">
                                                 <div className="flex items-center gap-2 text-muted-foreground">
-                                                    <Calendar className="h-4 w-4 shrink-0 text-indigo-500" />
+                                                    <Calendar className="h-4 w-4 shrink-0 text-brand-brown" />
                                                     <span className="text-foreground">
                                                         {t(
                                                             'teacher.feedback_session_info',
@@ -169,7 +169,7 @@ export default function Feedback({ feedbacks }: Props) {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-muted-foreground">
-                                                    <Clock className="h-4 w-4 shrink-0 text-indigo-500" />
+                                                    <Clock className="h-4 w-4 shrink-0 text-brand-brown" />
                                                     <span>
                                                         {sessionDate.toLocaleTimeString(
                                                             [],
@@ -196,7 +196,7 @@ export default function Feedback({ feedbacks }: Props) {
                                         )}
 
                                         <div className="pt-2">
-                                            <p className="border-l-2 border-indigo-500/35 pl-4 text-sm leading-relaxed font-medium text-muted-foreground italic">
+                                            <p className="border-l-2 border-brand-brown/30 pl-4 text-sm leading-relaxed font-medium text-muted-foreground italic">
                                                 "{fb.comment}"
                                             </p>
                                         </div>
@@ -211,8 +211,7 @@ export default function Feedback({ feedbacks }: Props) {
                                 {t('teacher.no_feedback')}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                Feedback from students will appear here once
-                                submitted.
+                                {t('teacher.feedback_empty_desc')}
                             </p>
                         </div>
                     )}

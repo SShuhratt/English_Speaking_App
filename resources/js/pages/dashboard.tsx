@@ -53,7 +53,7 @@ function PupilMeetingButton({
     return (
         <button
             onClick={() => handleJoin(apt)}
-            className="flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/10 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/20"
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-button/10 transition-all hover:-translate-y-0.5 hover:shadow-lg"
         >
             <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
         </button>
@@ -95,7 +95,7 @@ function TeacherMeetingButton({
         <button
             disabled={startingAptId === apt.id}
             onClick={() => handleStart(apt)}
-            className="flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/10 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/20 disabled:opacity-50"
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-button/10 transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
         >
             <Video className="h-3.5 w-3.5" />
             {startingAptId === apt.id
@@ -164,16 +164,16 @@ function PupilDashboard({
     return (
         <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
             {/* Header / Welcome Back Banner */}
-            <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-700 p-6 text-white shadow-xl shadow-indigo-100 md:flex-row md:items-center md:p-8 dark:shadow-none">
+            <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-brand-brown p-6 text-white shadow-xl shadow-brand-brown/10 md:flex-row md:items-center md:p-8 dark:shadow-none">
                 <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
-                <div className="pointer-events-none absolute right-1/4 -bottom-10 h-32 w-32 rounded-full bg-purple-500/20 blur-xl"></div>
+                <div className="pointer-events-none absolute right-1/4 -bottom-10 h-32 w-32 rounded-full bg-brand-orange/20 blur-xl"></div>
 
                 <div className="z-10 flex items-center space-x-4 md:space-x-6">
                     <div className="relative">
                         <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl font-bold shadow-inner backdrop-blur-md md:h-20 md:w-20">
                             👤
                         </div>
-                        <span className="absolute -right-1 -bottom-1 rounded-full border-2 border-indigo-600 bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                        <span className="absolute -right-1 -bottom-1 rounded-full border-2 border-brand-brown bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                             {t('dashboard.level', { level: 3 })}
                         </span>
                     </div>
@@ -194,7 +194,7 @@ function PupilDashboard({
                             })}{' '}
                             👋
                         </h1>
-                        <p className="mt-1 text-sm font-medium text-indigo-100 opacity-90 md:text-base">
+                        <p className="mt-1 text-sm font-medium text-brand-yellow/80 opacity-90 md:text-base">
                             {t('dashboard.learning_journey_desc')}
                         </p>
                     </div>
@@ -202,7 +202,7 @@ function PupilDashboard({
 
                 <Link
                     href="/pupil/teachers"
-                    className="group z-10 flex shrink-0 items-center justify-center space-x-2 rounded-xl bg-white px-6 py-3.5 font-bold text-indigo-700 shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-indigo-50 active:scale-[0.98]"
+                    className="group z-10 flex shrink-0 items-center justify-center space-x-2 rounded-xl bg-white px-6 py-3.5 font-bold text-brand-brown shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-brand-yellow/10 active:scale-[0.98]"
                 >
                     <Calendar className="h-4 w-4 transition-transform group-hover:rotate-12" />
                     <span>{t('dashboard.book_now')}</span>
@@ -240,7 +240,7 @@ function PupilDashboard({
 
                 {/* Kelgusi darslar */}
                 <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition duration-200 hover:shadow-md dark:border-border dark:bg-card">
-                    <div className="absolute top-0 left-0 h-full w-2 bg-indigo-500"></div>
+                    <div className="absolute top-0 left-0 h-full w-2 bg-brand-brown"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
                             <p className="text-sm font-semibold tracking-wider text-slate-500 uppercase dark:text-muted-foreground">
@@ -255,7 +255,7 @@ function PupilDashboard({
                                 </span>
                             </div>
                         </div>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500 transition duration-200 group-hover:scale-110 dark:bg-indigo-950/40">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-lightblue text-brand-brown transition duration-200 group-hover:scale-110 dark:bg-brand-brown/40">
                             <Calendar className="h-5 w-5" />
                         </div>
                     </div>
@@ -295,7 +295,7 @@ function PupilDashboard({
             {/* Upcoming Sessions List */}
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-10 dark:border-border dark:bg-card">
                 <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-slate-800 dark:text-foreground">
-                    <span className="inline-block h-5 w-2.5 rounded-sm bg-indigo-600"></span>
+                    <span className="inline-block h-5 w-2.5 rounded-sm bg-brand-brown"></span>
                     <span>{t('dashboard.upcoming_sessions')}</span>
                 </h2>
 
@@ -304,11 +304,11 @@ function PupilDashboard({
                         {appointments.map((apt) => (
                             <div
                                 key={apt.id}
-                                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all duration-300 hover:border-indigo-500/20 hover:shadow-md"
+                                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all duration-300 hover:border-brand-brown/20 hover:shadow-md"
                             >
                                 <div className="flex flex-col justify-between gap-4 border-b border-border/60 p-6 sm:flex-row sm:items-center">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-950/40 dark:text-indigo-400">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 dark:bg-brand-brown/40 dark:text-brand-brown">
                                             <Mic className="h-6 w-6" />
                                         </div>
                                         <div>
@@ -327,7 +327,7 @@ function PupilDashboard({
                                         </div>
                                     </div>
                                     <div className="flex flex-col sm:text-right">
-                                        <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                                        <span className="font-bold text-brand-brown dark:text-brand-brown">
                                             {new Date(
                                                 apt.start_at,
                                             ).toLocaleDateString(locale, {
@@ -370,7 +370,7 @@ function PupilDashboard({
                     </div>
                 ) : (
                     <div className="mx-auto flex max-w-md flex-col items-center space-y-5 px-4 py-8 text-center">
-                        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-100 to-violet-100 text-4xl shadow-inner dark:from-indigo-950/40 dark:to-violet-950/40">
+                        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-brand-lightblue text-4xl shadow-inner dark:bg-brand-brown/40">
                             🎙️
                             <div className="absolute -right-1 -bottom-1 flex h-8 w-8 animate-bounce items-center justify-center rounded-full bg-amber-400 text-sm shadow-sm">
                                 ✨
@@ -382,18 +382,15 @@ function PupilDashboard({
                                 {t('dashboard.no_upcoming')}
                             </h3>
                             <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                Sizning gapirish amaliyotingiz shu yerda
-                                boshlanadi! Keling, birgalikda maqsadlaringiz
-                                sari harakat qilamiz va yangi marralarni zabt
-                                etamiz.
+                                {t('dashboard.no_upcoming_sub')}
                             </p>
                         </div>
 
                         <Link
                             href="/pupil/teachers"
-                            className="block rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-center font-bold text-white shadow-md shadow-indigo-100 transition-all duration-150 hover:scale-[1.01] hover:opacity-95 active:scale-[0.99] dark:shadow-none"
+                            className="block rounded-xl bg-brand-button hover:bg-brand-button-hover px-6 py-3 text-center font-bold text-white shadow-md shadow-brand-button/10 transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] dark:shadow-none"
                         >
-                            Hozir dars band qilish seansi / Book Now
+                            {t('dashboard.book_now')}
                         </Link>
                     </div>
                 )}
@@ -473,9 +470,9 @@ function TeacherDashboard({
     return (
         <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
             {/* Header Banner */}
-            <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-700 p-6 text-white shadow-xl shadow-sky-100/40 md:p-8 lg:flex-row lg:items-center dark:shadow-none">
+            <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-brand-brown p-6 text-white shadow-xl shadow-brand-brown/10 md:p-8 lg:flex-row lg:items-center dark:shadow-none">
                 <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
-                <div className="pointer-events-none absolute -top-12 right-1/3 h-36 w-36 rounded-full bg-sky-400/20 blur-xl"></div>
+                <div className="pointer-events-none absolute -top-12 right-1/3 h-36 w-36 rounded-full bg-brand-orange/20 blur-xl"></div>
 
                 <div className="z-10 flex items-center space-x-4 md:space-x-6">
                     <div className="relative">
@@ -496,7 +493,7 @@ function TeacherDashboard({
                             })}{' '}
                             🌟
                         </h1>
-                        <p className="mt-1 text-sm font-medium text-sky-100 opacity-90 md:text-base">
+                        <p className="mt-1 text-sm font-medium text-brand-yellow/80 opacity-90 md:text-base">
                             {t('dashboard.teacher_subtitle', { name: '' })
                                 .replace(/^\s*,\s*/, '')
                                 .trim() ||
@@ -520,7 +517,7 @@ function TeacherDashboard({
                     </Link>
                     <Link
                         href="/teacher/availability"
-                        className="group flex items-center space-x-2 rounded-xl bg-white px-5 py-3 font-bold text-sky-700 shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-sky-50 active:scale-[0.98]"
+                        className="group flex items-center space-x-2 rounded-xl bg-white px-5 py-3 font-bold text-brand-brown shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-brand-yellow/10 active:scale-[0.98]"
                     >
                         <Clock className="h-4 w-4 transition-transform group-hover:rotate-45" />
                         <span>{t('dashboard.manage_availability')}</span>
@@ -552,7 +549,7 @@ function TeacherDashboard({
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {/* Bugungi darslar */}
                 <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition duration-200 hover:shadow-md dark:border-border dark:bg-card">
-                    <div className="absolute top-0 left-0 h-full w-2 bg-indigo-500"></div>
+                    <div className="absolute top-0 left-0 h-full w-2 bg-brand-brown"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
                             <p className="text-sm font-semibold tracking-wider text-slate-500 uppercase dark:text-muted-foreground">
@@ -567,7 +564,7 @@ function TeacherDashboard({
                                 </span>
                             </div>
                         </div>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500 transition duration-200 group-hover:scale-110 dark:bg-indigo-950/40">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-lightblue text-brand-brown transition duration-200 group-hover:scale-110 dark:bg-brand-brown/40">
                             <Video className="h-5 w-5" />
                         </div>
                     </div>
@@ -636,7 +633,7 @@ function TeacherDashboard({
                 <div className="flex flex-col justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8 dark:border-border dark:bg-card">
                     <div>
                         <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-slate-800 dark:text-foreground">
-                            <span className="inline-block h-5 w-2.5 rounded-sm bg-sky-600"></span>
+                            <span className="inline-block h-5 w-2.5 rounded-sm bg-brand-brown"></span>
                             <span>{t('dashboard.todays_schedule')}</span>
                         </h2>
 
@@ -653,10 +650,10 @@ function TeacherDashboard({
                                     return (
                                         <div
                                             key={apt.id}
-                                            className="flex items-center gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/10 p-4 transition-all hover:shadow-md dark:border-indigo-950/20 dark:bg-indigo-950/5"
+                                            className="flex items-center gap-4 rounded-2xl border border-brand-lightblue bg-brand-lightblue/5 p-4 transition-all hover:shadow-md dark:border-brand-brown/20 dark:bg-brand-brown/5"
                                         >
                                             <div className="flex flex-col items-center justify-center rounded-xl border border-border/60 bg-white px-3 py-2.5 text-center shadow-sm dark:bg-card">
-                                                <span className="text-xs font-bold text-indigo-600 uppercase dark:text-indigo-400">
+                                                <span className="text-xs font-bold text-brand-brown uppercase dark:text-brand-brown">
                                                     {start.toLocaleTimeString(
                                                         locale,
                                                         {
@@ -717,9 +714,7 @@ function TeacherDashboard({
                                         {t('dashboard.no_appointments_today')}
                                     </h4>
                                     <p className="mx-auto max-w-xs text-sm text-slate-400">
-                                        Bugun uchun tasdiqlangan dars seanslari
-                                        hali rejalashtirilmagan / No sessions
-                                        scheduled for today.
+                                        {t('dashboard.no_appointments_today_desc')}
                                     </p>
                                 </div>
                             </div>
@@ -730,7 +725,7 @@ function TeacherDashboard({
                         href="/teacher/schedule"
                         className="mt-4 block w-full rounded-xl border border-slate-200/80 bg-slate-50 py-3 text-center font-semibold text-slate-700 transition duration-150 hover:bg-slate-100 dark:border-border/60 dark:bg-muted/40 dark:text-slate-300 dark:hover:bg-muted"
                     >
-                        Jadval taqvimini ko'rish / View Calendar
+                        {t('dashboard.view_calendar')}
                     </Link>
                 </div>
 
@@ -765,7 +760,7 @@ function TeacherDashboard({
                         href="/teacher/sessions"
                         className="mt-4 block w-full rounded-xl bg-emerald-600 py-3 text-center font-bold text-white shadow-md shadow-emerald-100 transition duration-150 hover:bg-emerald-700 dark:shadow-none"
                     >
-                        Tarixni tekshirish / Check History
+                        {t('dashboard.check_history')}
                     </Link>
                 </div>
             </div>

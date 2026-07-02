@@ -56,12 +56,12 @@ services:
       - vendor_cache:/app/vendor
       - node_modules_cache:/app/node_modules
       - bootstrap_cache:/app/bootstrap/cache
-      - public_build_cache:/app/public/build
+      # - public_build_cache:/app/public/build
       - ./certs:/data/caddy/certs:ro
     environment:
       - "SERVER_NAME=${SERVER_NAME:-http://localhost}"
       - "CADDY_TLS_DIRECTIVE=${CADDY_TLS_DIRECTIVE:-#}"
-      - "APP_ENV=production"
+      - "APP_ENV=local"
       - "APP_DEBUG=true"
       - "OCTANE_SERVER=frankenphp"
       - "DB_CONNECTION=pgsql"
@@ -100,8 +100,8 @@ services:
       - node_modules_cache:/app/node_modules
       - bootstrap_cache:/app/bootstrap/cache
     environment:
-      - "SERVER_NAME=https://convomate.uz"
-      - "APP_ENV=production"
+      - "SERVER_NAME=http://localhost"
+      - "APP_ENV=local"
       - "APP_DEBUG=true"
       - "DB_CONNECTION=pgsql"
       - "DB_HOST=postgres"
@@ -142,7 +142,7 @@ services:
       - "SERVER_NAME=${SERVER_NAME:-http://localhost}"
       - "REVERB_SSL_CERT_PATH=${REVERB_SSL_CERT_PATH:-null}"
       - "REVERB_SSL_KEY_PATH=${REVERB_SSL_KEY_PATH:-null}"
-      - "APP_ENV=production"
+      - "APP_ENV=local"
       - "APP_DEBUG=true"
       - "DB_CONNECTION=pgsql"
       - "DB_HOST=postgres"

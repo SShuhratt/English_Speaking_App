@@ -235,6 +235,7 @@ const dictionary = {
         'dashboard.avg_rating': 'Average Rating',
         'dashboard.rating_desc': 'Feedback from your teachers',
         'dashboard.no_upcoming': 'No confirmed upcoming sessions.',
+        'dashboard.no_upcoming_sub': "Your speaking practice starts here! Let's work together towards your goals and reach new heights.",
         'dashboard.book_now': 'Book a Session',
         'dashboard.recent_feedback': 'Recent Feedback',
         'dashboard.no_feedback': 'No feedback received yet.',
@@ -268,6 +269,15 @@ const dictionary = {
         'dashboard.todays_schedule': "Today's Schedule",
         'dashboard.no_appointments_today':
             'No confirmed appointments scheduled for today.',
+        'dashboard.no_appointments_today_desc': 'No sessions scheduled for today.',
+        'dashboard.view_calendar': 'View Calendar',
+        'dashboard.check_history': 'Check History',
+        'teacher.booking_requests_empty_desc': 'Students booking requests will appear here once submitted.',
+        'schedule.empty_desc': "You don't have any scheduled sessions on your agenda.",
+        'teacher.sessions_empty_desc': 'Completed past sessions with your feedback will appear here.',
+        'teacher.feedback_empty_desc': 'Feedback from students will appear here once submitted.',
+        'sessions.empty_desc': "You don't have any past completed sessions.",
+        'Intermediate Speaking': 'Intermediate Speaking',
         'dashboard.pending_feedback': 'Pending Feedback',
         'dashboard.all_caught_up': 'All caught up!',
         'dashboard.all_caught_up_desc':
@@ -349,6 +359,7 @@ const dictionary = {
         'teachers.certified': 'Certified',
         'teachers.speaking': 'Speaking: :band',
         'teachers.years_experience': ':count y experience',
+        'teachers.reviews_count': ':count reviews',
         'teachers.book_session': 'Book Session',
         'teachers.view_profile': 'View Profile',
         'teachers.profile_title': 'Teacher Profile',
@@ -369,6 +380,7 @@ const dictionary = {
         'bookings.desc': 'Manage your upcoming and pending lesson requests.',
         'bookings.teacher_label': 'Teacher: :name',
         'bookings.none': "You haven't booked any sessions yet.",
+        'bookings.none_desc': "Schedule a speaking session with one of our certified teachers to get started.",
         'bookings.status_confirmed': 'Confirmed',
         'bookings.status_pending': 'Pending',
         'bookings.status_cancelled': 'Cancelled',
@@ -403,6 +415,11 @@ const dictionary = {
         'progress.keep_practicing': 'Keep Practicing!',
         'progress.keep_practicing_desc':
             'Your speaking performance is improving. Book more sessions to level up your fluency and accuracy.',
+        'progress.lessons_count': '/ :count lessons',
+        'progress.rating_count': '/ 5.0 rating',
+        'progress.completion_title': 'Learning Journey Completion',
+        'progress.completion_desc':
+            'Completed :completed out of :total scheduled lessons on ConvoMate.',
         'profile.title': 'Profile',
         'profile.desc': 'Update your name and email address',
         'profile.name': 'Name',
@@ -688,6 +705,7 @@ const dictionary = {
         'dashboard.rating_desc':
             "O'qituvchilaringiz tomonidan berilgan baholar",
         'dashboard.no_upcoming': 'Tasdiqlangan kelgusi darslar mavjud emas.',
+        'dashboard.no_upcoming_sub': "Sizning gapirish amaliyotingiz shu yerda boshlanadi! Keling, birgalikda maqsadlaringiz sari harakat qilamiz va yangi marralarni zabt etamiz.",
         'dashboard.book_now': 'Dars band qilish',
         'dashboard.recent_feedback': "So'nggi fikrlar",
         'dashboard.no_feedback': 'Hozircha fikrlar mavjud emas.',
@@ -722,6 +740,15 @@ const dictionary = {
         'dashboard.todays_schedule': 'Bugungi jadval',
         'dashboard.no_appointments_today':
             'Bugun uchun tasdiqlangan darslar mavjud emas.',
+        'dashboard.no_appointments_today_desc': 'Bugun uchun tasdiqlangan dars seanslari hali rejalashtirilmagan.',
+        'dashboard.view_calendar': "Jadval taqvimini ko'rish",
+        'dashboard.check_history': 'Tarixni tekshirish',
+        'teacher.booking_requests_empty_desc': "Talabalarning dars band qilish so'rovlari yuborilgandan keyin shu yerda ko'rinadi.",
+        'schedule.empty_desc': "Sizning kun tartibingizda rejalashtirilgan dars seanslari yo'q.",
+        'teacher.sessions_empty_desc': "Sizning fikr-mulohazangiz bilan yakunlangan darslar shu yerda ko'rinadi.",
+        'teacher.feedback_empty_desc': "Talabalarning fikr-mulohazalari yuborilgandan keyin shu yerda ko'rinadi.",
+        'sessions.empty_desc': "Sizda o'tgan yakunlangan dars seanslari yo'q.",
+        'Intermediate Speaking': 'Intermediate darajadagi gapirish',
         'dashboard.pending_feedback': 'Kutilayotgan fikr-mulohazalar',
         'dashboard.all_caught_up': 'Barcha ishlar bajarildi!',
         'dashboard.all_caught_up_desc':
@@ -807,6 +834,7 @@ const dictionary = {
         'teachers.certified': 'Sertifikatlangan',
         'teachers.speaking': 'Speaking: :band',
         'teachers.years_experience': ':count yillik tajriba',
+        'teachers.reviews_count': ':count ta sharh',
         'teachers.book_session': 'Dars band qilish',
         'teachers.view_profile': "Profilni ko'rish",
         'teachers.profile_title': "O'qituvchi profili",
@@ -828,6 +856,7 @@ const dictionary = {
             "Kelgusi va kutilayotgan dars so'rovlaringizni boshqaring.",
         'bookings.teacher_label': "O'qituvchi: :name",
         'bookings.none': 'Siz hali dars band qilmagansiz.',
+        'bookings.none_desc': "Boshlash uchun sertifikatlangan o'qituvchilarimizdan biri bilan gaplashish darsini rejalashtiring.",
         'bookings.status_confirmed': 'Tasdiqlangan',
         'bookings.status_pending': 'Kutilmoqda',
         'bookings.status_cancelled': 'Bekor qilingan',
@@ -864,6 +893,11 @@ const dictionary = {
         'progress.keep_practicing': 'Mashq qilishda davom eting!',
         'progress.keep_practicing_desc':
             "Gapirish mahoratingiz yaxshilanmoqda. Erkinlik va aniqlik darajangizni oshirish uchun ko'proq dars band qiling.",
+        'progress.lessons_count': '/ :count ta dars',
+        'progress.rating_count': '/ 5.0 baho',
+        'progress.completion_title': 'O‘quv jarayonining bajarilishi',
+        'progress.completion_desc':
+            'ConvoMate-da rejalashtirilgan :total ta darsdan :completed tasi yakunlandi.',
         'profile.title': 'Profil',
         'profile.desc': 'Ismingiz va email manzilingizni yangilang',
         'profile.name': 'Ism',
@@ -1148,6 +1182,7 @@ const dictionary = {
         'dashboard.avg_rating': 'Средний балл',
         'dashboard.rating_desc': 'Отзывы ваших преподавателей',
         'dashboard.no_upcoming': 'Нет подтвержденных предстоящих уроков.',
+        'dashboard.no_upcoming_sub': "Ваша разговорная практика начинается здесь! Давайте вместе двигаться к вашим целям и покорять новые вершины.",
         'dashboard.book_now': 'Забронировать урок',
         'dashboard.recent_feedback': 'Последние отзывы',
         'dashboard.no_feedback': 'Отзывов пока не поступало.',
@@ -1181,6 +1216,15 @@ const dictionary = {
         'dashboard.todays_schedule': 'Расписание на сегодня',
         'dashboard.no_appointments_today':
             'На сегодня нет запланированных уроков.',
+        'dashboard.no_appointments_today_desc': 'На сегодня нет подтверждённых занятий.',
+        'dashboard.view_calendar': 'Просмотр расписания',
+        'dashboard.check_history': 'Проверить историю',
+        'teacher.booking_requests_empty_desc': 'Запросы студентов на бронирование уроков появятся здесь после отправки.',
+        'schedule.empty_desc': 'У вас нет запланированных занятий в расписании.',
+        'teacher.sessions_empty_desc': 'Завершённые занятия с вашими отзывами появятся здесь.',
+        'teacher.feedback_empty_desc': 'Отзывы от студентов появятся здесь после отправки.',
+        'sessions.empty_desc': 'У вас нет завершённых занятий в прошлом.',
+        'Intermediate Speaking': 'Intermediate Speaking',
         'dashboard.pending_feedback': 'Ожидает отзыва',
         'dashboard.all_caught_up': 'Всё сделано!',
         'dashboard.all_caught_up_desc':
@@ -1264,6 +1308,7 @@ const dictionary = {
         'teachers.certified': 'Сертифицирован',
         'teachers.speaking': 'Speaking: :band',
         'teachers.years_experience': ':count лет опыта',
+        'teachers.reviews_count': ':count отзывов',
         'teachers.book_session': 'Забронировать урок',
         'teachers.view_profile': 'Посмотреть профиль',
         'teachers.profile_title': 'Профиль преподавателя',
@@ -1285,6 +1330,7 @@ const dictionary = {
             'Управляйте вашими предстоящими и ожидающими запросами на уроки.',
         'bookings.teacher_label': 'Преподаватель: :name',
         'bookings.none': 'Вы еще не забронировали ни одного урока.',
+        'bookings.none_desc': "Запланируйте практическое занятие с одним из наших сертифицированных преподавателей, чтобы начать.",
         'bookings.status_confirmed': 'Подтверждено',
         'bookings.status_pending': 'В ожидании',
         'bookings.status_cancelled': 'Отменено',
@@ -1318,6 +1364,11 @@ const dictionary = {
         'progress.keep_practicing': 'Продолжайте практиковаться!',
         'progress.keep_practicing_desc':
             'Ваша разговорная речь улучшается. Бронируйте больше занятий, чтобы повысить беглость и точность.',
+        'progress.lessons_count': '/ :count уроков',
+        'progress.rating_count': '/ 5.0 рейтинг',
+        'progress.completion_title': 'Прогресс завершения обучения',
+        'progress.completion_desc':
+            'Завершено :completed из :total запланированных уроков на ConvoMate.',
         'profile.title': 'Профиль',
         'profile.desc': 'Обновите свое имя и адрес электронной почты',
         'profile.name': 'Имя',
@@ -1386,6 +1437,7 @@ export function useTranslation() {
 
     const setLanguage = (newLang: 'en' | 'uz' | 'ru') => {
         document.cookie = `locale=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
+        router.flushAll();
         router.reload();
     };
 

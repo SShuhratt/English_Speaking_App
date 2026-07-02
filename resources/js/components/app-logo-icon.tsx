@@ -4,17 +4,27 @@ export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
     return (
         <svg
             {...props}
-            viewBox="0 0 24 24"
+            viewBox="0 0 120 120"
             xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
         >
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-            <line x1="12" x2="12" y1="19" y2="22" />
+            <defs>
+                <clipPath id="logo-circle-clip">
+                    <circle cx="60" cy="60" r="56" />
+                </clipPath>
+            </defs>
+
+            {/* White Circle Background */}
+            <circle cx="60" cy="60" r="56" fill="white" />
+            
+            {/* Embed the high-fidelity transparent logo image, clipped to the circle */}
+            <image 
+                href="/images/logo.png" 
+                x="14" 
+                y="14" 
+                width="92" 
+                height="92" 
+                clipPath="url(#logo-circle-clip)"
+            />
         </svg>
     );
 }

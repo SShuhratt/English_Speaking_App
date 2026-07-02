@@ -408,7 +408,7 @@ export default function Profile({
                                                                         </div>
                                                                     ) : (
                                                                         <div className="flex aspect-video w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/80 bg-muted/40 p-2">
-                                                                            <FileText className="h-8 w-8 text-indigo-500/80" />
+                                                                            <FileText className="h-8 w-8 text-brand-brown/80" />
                                                                             <span className="max-w-full truncate px-2 text-[10px] font-bold text-muted-foreground">
                                                                                 {cert.substring(
                                                                                     cert.lastIndexOf(
@@ -423,7 +423,7 @@ export default function Profile({
                                                                                 }
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
-                                                                                className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:underline"
+                                                                                className="flex items-center gap-1 text-[10px] font-bold text-brand-brown hover:underline"
                                                                             >
                                                                                 View
                                                                                 Document{' '}
@@ -496,7 +496,7 @@ export default function Profile({
                                                             defaultChecked={
                                                                 isChecked
                                                             }
-                                                            className="rounded border-input text-indigo-600 focus:ring-indigo-500"
+                                                            className="rounded border-input text-brand-brown focus:ring-brand-brown"
                                                         />
                                                         <span>
                                                             {t(`labels.${lbl}`)}
@@ -700,7 +700,7 @@ export default function Profile({
                                                                         </div>
                                                                     ) : (
                                                                         <div className="flex aspect-video w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/80 bg-muted/40 p-2">
-                                                                            <FileText className="h-8 w-8 text-indigo-500/80" />
+                                                                            <FileText className="h-8 w-8 text-brand-brown/80" />
                                                                             <span className="max-w-full truncate px-2 text-[10px] font-bold text-muted-foreground">
                                                                                 {cert.substring(
                                                                                     cert.lastIndexOf(
@@ -715,7 +715,7 @@ export default function Profile({
                                                                                 }
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
-                                                                                className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:underline"
+                                                                                className="flex items-center gap-1 text-[10px] font-bold text-brand-brown hover:underline"
                                                                             >
                                                                                 View
                                                                                 Document{' '}

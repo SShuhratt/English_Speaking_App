@@ -45,7 +45,7 @@ export function AppSidebarHeader({
                     >
                         <span className="text-sm">English</span>
                         {locale === 'en' && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-brand-brown" />
                         )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -54,7 +54,7 @@ export function AppSidebarHeader({
                     >
                         <span className="text-sm">O'zbek</span>
                         {locale === 'uz' && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-brand-brown" />
                         )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -63,7 +63,7 @@ export function AppSidebarHeader({
                     >
                         <span className="text-sm">Русский</span>
                         {locale === 'ru' && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-brand-brown" />
                         )}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
