@@ -150,11 +150,10 @@ export default function Register({ passwordRules }: Props) {
                                     <button
                                         type="button"
                                         onClick={() => setRole('pupil')}
-                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
-                                            role === 'pupil'
+                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${role === 'pupil'
                                                 ? 'border-indigo-600 bg-indigo-50/30 text-indigo-900 dark:border-indigo-500 dark:bg-indigo-950/20 dark:text-indigo-200'
                                                 : 'border-muted bg-transparent hover:border-muted-foreground'
-                                        }`}
+                                            }`}
                                     >
                                         <span className="text-sm font-semibold">
                                             {t('auth.role_pupil')}
@@ -166,11 +165,10 @@ export default function Register({ passwordRules }: Props) {
                                     <button
                                         type="button"
                                         onClick={() => setRole('teacher')}
-                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
-                                            role === 'teacher'
+                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${role === 'teacher'
                                                 ? 'border-indigo-600 bg-indigo-50/30 text-indigo-900 dark:border-indigo-500 dark:bg-indigo-950/20 dark:text-indigo-200'
                                                 : 'border-muted bg-transparent hover:border-muted-foreground'
-                                        }`}
+                                            }`}
                                     >
                                         <span className="text-sm font-semibold">
                                             {t('auth.role_teacher')}

@@ -4,7 +4,7 @@ import {
     Clock,
     Video,
     Star,
-    Mic,
+    MessageCircle,
     Play,
     TrendingUp,
     CheckCircle2,
@@ -309,7 +309,7 @@ function PupilDashboard({
                                 <div className="flex flex-col justify-between gap-4 border-b border-border/60 p-6 sm:flex-row sm:items-center">
                                     <div className="flex items-center gap-4">
                                         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-950/40 dark:text-indigo-400">
-                                            <Mic className="h-6 w-6" />
+                                            <MessageCircle className="h-6 w-6" />
                                         </div>
                                         <div>
                                             <h4 className="text-base font-bold">
@@ -418,16 +418,9 @@ function TeacherDashboard({
 
     useEffect(() => {
         if (!user) return;
-
         const channel = window.Echo.channel(`teacher.${user.id}`);
-
-        channel.listen('.booking.updated', (e: any) => {
-            router.reload();
-        });
-
-        return () => {
-            channel.stopListening('.booking.updated');
-        };
+        channel.listen('.booking.updated', (_e: any) => { router.reload(); });
+        return () => { channel.stopListening('.booking.updated'); };
     }, [user.id]);
 
     const handleCancel = async (id: string) => {
@@ -437,337 +430,181 @@ function TeacherDashboard({
             toast.success(t('dashboard.cancel_conversation_success'));
             router.reload();
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message ||
-                    t('dashboard.cancel_conversation_error'),
-            );
+            toast.error(error.response?.data?.message || t('dashboard.cancel_conversation_error'));
         }
     };
 
     const handleStart = async (apt: any) => {
-        if (apt.google_meet_link) {
-            window.open(apt.google_meet_link, '_blank');
-            return;
-        }
-
+        if (apt.google_meet_link) { window.open(apt.google_meet_link, '_blank'); return; }
         setStartingAptId(apt.id);
         try {
-            const response = await axios.post(
-                `/teacher/appointments/${apt.id}/start`,
-            );
+            const response = await axios.post(`/teacher/appointments/${apt.id}/start`);
             toast.success(t('dashboard.start_conversation_success'));
-            if (response.data.google_meet_link) {
-                window.open(response.data.google_meet_link, '_blank');
-            }
+            if (response.data.google_meet_link) window.open(response.data.google_meet_link, '_blank');
             router.reload();
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message ||
-                    t('dashboard.start_conversation_error'),
-            );
+            toast.error(error.response?.data?.message || t('dashboard.start_conversation_error'));
         } finally {
             setStartingAptId(null);
         }
     };
 
+    const quotes = [
+        '"Education is not the filling of a pail, but the lighting of a fire."',
+        '"The beautiful thing about learning is that no one can take it away from you."',
+        '"Teaching is the greatest act of optimism."',
+    ];
+    const quote = quotes[new Date().getDay() % quotes.length];
+
     return (
-        <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
-            {/* Header Banner */}
-            <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-700 p-6 text-white shadow-xl shadow-sky-100/40 md:p-8 lg:flex-row lg:items-center dark:shadow-none">
-                <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
-                <div className="pointer-events-none absolute -top-12 right-1/3 h-36 w-36 rounded-full bg-sky-400/20 blur-xl"></div>
-
-                <div className="z-10 flex items-center space-x-4 md:space-x-6">
-                    <div className="relative">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl shadow-inner backdrop-blur-md md:h-20 md:w-20">
-                            👨‍🏫
-                        </div>
-                        <span className="absolute -right-1 -bottom-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-slate-900 shadow-sm">
-                            PRO
-                        </span>
-                    </div>
-                    <div>
-                        <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold tracking-wider text-white uppercase backdrop-blur-sm">
-                            {t('dashboard.teacher_title')}
-                        </span>
-                        <h1 className="mt-2 text-2xl font-extrabold tracking-tight md:text-3xl">
-                            {t('dashboard.welcome_back', {
-                                name: user.full_name || user.name,
-                            })}{' '}
-                            🌟
-                        </h1>
-                        <p className="mt-1 text-sm font-medium text-sky-100 opacity-90 md:text-base">
-                            {t('dashboard.teacher_subtitle', { name: '' })
-                                .replace(/^\s*,\s*/, '')
-                                .trim() ||
-                                "Darslaringiz va bo'sh vaqtlarigizni samarali boshqaring."}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="z-10 flex shrink-0 flex-wrap items-center gap-3">
-                    <Link
-                        href="/teacher/appointments"
-                        className="relative flex items-center space-x-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20 active:scale-[0.98]"
-                    >
-                        <Calendar className="h-4 w-4" />
-                        <span>{t('nav.booking_requests')}</span>
-                        {pendingCount > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 animate-pulse items-center justify-center rounded-full border border-white bg-rose-500 text-[10px] font-extrabold text-white shadow-sm">
-                                {pendingCount}
-                            </span>
-                        )}
-                    </Link>
-                    <Link
-                        href="/teacher/availability"
-                        className="group flex items-center space-x-2 rounded-xl bg-white px-5 py-3 font-bold text-sky-700 shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-sky-50 active:scale-[0.98]"
-                    >
-                        <Clock className="h-4 w-4 transition-transform group-hover:rotate-45" />
-                        <span>{t('dashboard.manage_availability')}</span>
-                    </Link>
-                </div>
+        <div className="flex h-full flex-1 flex-col gap-6 bg-[#f8f9fc] p-4 md:p-8">
+            {/* Welcome Header */}
+            <div>
+                <h1 className="text-2xl font-black tracking-tight text-[#061445] md:text-3xl">
+                    {t('dashboard.welcome_back', { name: user.full_name || user.name })}
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">
+                    Manage your upcoming sessions, track pupil progress, and refine your teaching schedule through your central hub.
+                </p>
             </div>
 
-            {/* Google Meet status warning */}
+            {/* Google Calendar warning */}
             {!user.google_connected && (
-                <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-red-200 bg-red-50/40 p-5 md:flex-row dark:border-red-950/20 dark:bg-red-950/5">
-                    <div>
-                        <h4 className="font-bold text-red-800 dark:text-red-400">
-                            {t('dashboard.google_not_connected')}
-                        </h4>
-                        <p className="mt-0.5 text-xs text-red-600 dark:text-red-500">
-                            {t('dashboard.google_not_connected_desc')}
-                        </p>
+                <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-[#fae18e] bg-[#fffbeb] p-5 md:flex-row md:items-center">
+                    <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fae18e]/60">
+                            <Bell className="h-4 w-4 text-[#92700a]" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-black tracking-widest text-[#92700a] uppercase">{t('dashboard.google_not_connected')}</p>
+                            <p className="mt-0.5 text-xs text-[#92700a]/80">{t('dashboard.google_not_connected_desc')}</p>
+                        </div>
                     </div>
-                    <a
-                        href="/auth/google"
-                        className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-xs font-bold whitespace-nowrap text-white shadow-sm transition-colors hover:bg-red-700"
-                    >
+                    <a href="/auth/google" className="shrink-0 rounded-xl bg-[#061445] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#0a1f6b]">
                         {t('dashboard.connect_google')}
                     </a>
                 </div>
             )}
 
-            {/* Stats grid */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                {/* Bugungi darslar */}
-                <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition duration-200 hover:shadow-md dark:border-border dark:bg-card">
-                    <div className="absolute top-0 left-0 h-full w-2 bg-indigo-500"></div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="absolute top-0 left-0 h-full w-1 rounded-l-2xl bg-[#061445]" />
                     <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                            <p className="text-sm font-semibold tracking-wider text-slate-500 uppercase dark:text-muted-foreground">
-                                {t('dashboard.sessions_today')}
-                            </p>
-                            <div className="flex items-baseline space-x-2">
-                                <span className="text-4xl font-extrabold tracking-tight text-slate-800 dark:text-foreground">
-                                    {stats.sessions_today || 0}
-                                </span>
-                                <span className="text-sm font-semibold text-slate-500">
-                                    {t('dashboard.sessions_unit')}
-                                </span>
+                        <div>
+                            <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">{t('dashboard.sessions_today')}</p>
+                            <div className="mt-2 flex items-baseline gap-1.5">
+                                <span className="text-4xl font-black text-[#061445]">{stats.sessions_today || 0}</span>
+                                <span className="text-sm text-slate-400">{t('dashboard.sessions_unit')}</span>
                             </div>
+                            <p className="mt-1 text-xs text-slate-400">{t('dashboard.sessions_today_desc')}</p>
                         </div>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500 transition duration-200 group-hover:scale-110 dark:bg-indigo-950/40">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d0e4ff]/40 text-[#061445]">
                             <Video className="h-5 w-5" />
                         </div>
                     </div>
-                    <div className="mt-4 text-xs font-medium text-slate-500 dark:text-muted-foreground">
-                        {t('dashboard.sessions_today_desc')}
-                    </div>
                 </div>
 
-                {/* Jami o'quvchilar */}
-                <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition duration-200 hover:shadow-md dark:border-border dark:bg-card">
-                    <div className="absolute top-0 left-0 h-full w-2 bg-emerald-500"></div>
+                <div className="relative overflow-hidden rounded-2xl border border-[#fae18e]/60 bg-white p-6 shadow-sm">
+                    <div className="absolute top-0 left-0 h-full w-1 rounded-l-2xl bg-[#fae18e]" />
                     <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                            <p className="text-sm font-semibold tracking-wider text-slate-500 uppercase dark:text-muted-foreground">
-                                {t('dashboard.total_pupils')}
-                            </p>
-                            <div className="flex items-baseline space-x-2">
-                                <span className="text-4xl font-extrabold tracking-tight text-slate-800 dark:text-foreground">
-                                    {stats.total_pupils || 0}
-                                </span>
-                                <span className="text-sm font-semibold text-slate-500">
-                                    {t('dashboard.active_unit')}
-                                </span>
+                        <div>
+                            <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">{t('dashboard.total_pupils')}</p>
+                            <div className="mt-2 flex items-baseline gap-1.5">
+                                <span className="text-4xl font-black text-[#061445]">{stats.total_pupils || 0}</span>
+                                <span className="text-sm text-slate-400">{t('dashboard.active_unit')}</span>
                             </div>
+                            <p className="mt-1 text-xs text-slate-400">{t('dashboard.total_pupils_desc')}</p>
                         </div>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-500 transition duration-200 group-hover:scale-110 dark:bg-emerald-950/40">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fae18e]/30 text-[#92700a]">
                             <Users className="h-5 w-5" />
                         </div>
                     </div>
-                    <div className="mt-4 text-xs font-medium text-slate-500 dark:text-muted-foreground">
-                        {t('dashboard.total_pupils_desc')}
-                    </div>
                 </div>
 
-                {/* Sizning bahoingiz */}
-                <div className="group relative overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 shadow-sm transition duration-200 hover:shadow-md dark:border-amber-950/20 dark:from-amber-950/10 dark:to-orange-950/10">
-                    <div className="absolute top-0 left-0 h-full w-2 bg-amber-500"></div>
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="absolute top-0 left-0 h-full w-1 rounded-l-2xl bg-slate-300" />
                     <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                            <p className="text-sm font-semibold tracking-wider text-amber-800/80 uppercase dark:text-amber-400">
-                                {t('dashboard.your_rating')}
-                            </p>
-                            <div className="flex items-baseline space-x-1">
-                                <span className="dark:text-amber-550 text-4xl font-extrabold tracking-tight text-amber-600">
-                                    {stats.average_rating || '5.0'}
-                                </span>
-                                <span className="text-xl font-medium text-slate-400 dark:text-slate-500">
-                                    /10
-                                </span>
+                        <div>
+                            <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">{t('dashboard.your_rating')}</p>
+                            <div className="mt-2 flex items-baseline gap-1.5">
+                                <span className="text-4xl font-black text-[#061445]">{stats.average_rating || '5'}</span>
+                                <span className="text-sm text-slate-400">/ 10</span>
                             </div>
+                            <p className="mt-1 text-xs text-slate-400">{t('dashboard.your_rating_desc')}</p>
                         </div>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-200 transition duration-200 group-hover:scale-110 dark:shadow-none">
-                            <Star className="h-5 w-5 fill-current text-white" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                            <Star className="h-5 w-5" />
                         </div>
-                    </div>
-                    <div className="mt-4 flex items-center space-x-1.5 text-xs font-bold text-amber-700 dark:text-amber-500">
-                        <TrendingUp className="h-3.5 w-3.5" />
-                        <span>{t('dashboard.your_rating_desc')}</span>
                     </div>
                 </div>
             </div>
 
-            {/* Schedule and feedback sections */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Schedule column */}
-                <div className="flex flex-col justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8 dark:border-border dark:bg-card">
-                    <div>
-                        <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-slate-800 dark:text-foreground">
-                            <span className="inline-block h-5 w-2.5 rounded-sm bg-sky-600"></span>
-                            <span>{t('dashboard.todays_schedule')}</span>
-                        </h2>
-
-                        {appointments.length > 0 ? (
-                            <div className="flex flex-col gap-4">
-                                {appointments.map((apt) => {
-                                    const start = new Date(apt.start_at);
-                                    const end = new Date(apt.end_at);
-                                    const durationMin = Math.round(
-                                        (end.getTime() - start.getTime()) /
-                                            60000,
-                                    );
-
-                                    return (
-                                        <div
-                                            key={apt.id}
-                                            className="flex items-center gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/10 p-4 transition-all hover:shadow-md dark:border-indigo-950/20 dark:bg-indigo-950/5"
-                                        >
-                                            <div className="flex flex-col items-center justify-center rounded-xl border border-border/60 bg-white px-3 py-2.5 text-center shadow-sm dark:bg-card">
-                                                <span className="text-xs font-bold text-indigo-600 uppercase dark:text-indigo-400">
-                                                    {start.toLocaleTimeString(
-                                                        locale,
-                                                        {
-                                                            hour: '2-digit',
-                                                            minute: '2-digit',
-                                                        },
-                                                    )}
-                                                </span>
-                                                <span className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-                                                    {durationMin}m
-                                                </span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="text-sm font-bold">
-                                                    {t(
-                                                        'dashboard.conversation_practice',
-                                                    )}
-                                                </h4>
-                                                <p className="text-xs font-semibold text-muted-foreground">
-                                                    {t('dashboard.with_pupil', {
-                                                        name:
-                                                            apt.pupil
-                                                                ?.full_name ||
-                                                            'Pupil',
-                                                    })}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() =>
-                                                        handleCancel(apt.id)
-                                                    }
-                                                    className="cursor-pointer rounded-xl border border-destructive/20 px-3 py-2 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
-                                                >
-                                                    {t(
-                                                        'dashboard.cancel_button',
-                                                    )}
-                                                </button>
-                                                <TeacherMeetingButton
-                                                    apt={apt}
-                                                    handleStart={handleStart}
-                                                    startingAptId={
-                                                        startingAptId
-                                                    }
-                                                />
-                                            </div>
+            {/* Today + Feedback */}
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    {appointments.length > 0 ? (
+                        <>
+                            <h2 className="mb-4 text-base font-bold text-[#061445]">{t('dashboard.todays_schedule')}</h2>
+                            <div className="flex flex-col gap-3">
+                                {appointments.map((apt) => (
+                                    <div key={apt.id} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3">
+                                        <div className="flex flex-col items-center rounded-lg bg-[#d0e4ff]/30 px-3 py-2">
+                                            <span className="text-xs font-bold text-[#061445]">
+                                                {new Date(apt.start_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
                                         </div>
-                                    );
-                                })}
+                                        <div className="flex-1">
+                                            <p className="text-sm font-bold text-[#061445]">{t('dashboard.conversation_practice')}</p>
+                                            <p className="text-xs text-slate-400">{t('dashboard.with_pupil', { name: apt.pupil?.full_name || 'Pupil' })}</p>
+                                        </div>
+                                        <TeacherMeetingButton apt={apt} handleStart={handleStart} startingAptId={startingAptId} />
+                                    </div>
+                                ))}
                             </div>
-                        ) : (
-                            <div className="flex flex-col items-center space-y-4 px-4 py-10 text-center">
-                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 text-3xl text-slate-400 dark:border-border/60 dark:bg-muted">
-                                    🗓️
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="font-bold text-slate-700 dark:text-slate-200">
-                                        {t('dashboard.no_appointments_today')}
-                                    </h4>
-                                    <p className="mx-auto max-w-xs text-sm text-slate-400">
-                                        Bugun uchun tasdiqlangan dars seanslari
-                                        hali rejalashtirilmagan / No sessions
-                                        scheduled for today.
-                                    </p>
-                                </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-1 flex-col items-center justify-center gap-4 py-8 text-center">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#d0e4ff]/30">
+                                <Calendar className="h-8 w-8 text-[#061445] opacity-60" />
                             </div>
-                        )}
-                    </div>
-
-                    <Link
-                        href="/teacher/schedule"
-                        className="mt-4 block w-full rounded-xl border border-slate-200/80 bg-slate-50 py-3 text-center font-semibold text-slate-700 transition duration-150 hover:bg-slate-100 dark:border-border/60 dark:bg-muted/40 dark:text-slate-300 dark:hover:bg-muted"
-                    >
-                        Jadval taqvimini ko'rish / View Calendar
-                    </Link>
-                </div>
-
-                {/* Feedback column */}
-                <div className="flex flex-col justify-between rounded-3xl border border-slate-100 bg-gradient-to-br from-white to-emerald-50/20 p-6 shadow-sm md:p-8 dark:border-border dark:from-card dark:to-emerald-950/5">
-                    <div>
-                        <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-slate-800 dark:text-foreground">
-                            <span className="inline-block h-5 w-2.5 rounded-sm bg-emerald-500"></span>
-                            <span>{t('dashboard.pending_feedback')}</span>
-                        </h2>
-
-                        <div className="flex flex-col items-center space-y-4 px-4 py-10 text-center">
-                            <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-4xl text-emerald-500 shadow-inner dark:bg-emerald-950/40">
-                                <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-                                <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs shadow-sm">
-                                    🎉
-                                </div>
+                            <div>
+                                <h3 className="text-base font-bold text-[#061445]">{t('dashboard.no_appointments_today')}</h3>
+                                <p className="mt-1 max-w-xs text-sm text-slate-400">You have no confirmed sessions scheduled for today. Relax or prepare for tomorrow!</p>
                             </div>
-
-                            <div className="space-y-1">
-                                <h4 className="text-lg font-extrabold text-emerald-900 dark:text-emerald-400">
-                                    {t('dashboard.all_caught_up')}
-                                </h4>
-                                <p className="dark:text-emerald-450/70 mx-auto max-w-xs text-sm font-medium text-emerald-700/70">
-                                    {t('dashboard.all_caught_up_desc')}
-                                </p>
-                            </div>
+                            <Link href="/teacher/schedule" className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-[#061445] transition hover:bg-slate-50">
+                                View Full Calendar
+                            </Link>
                         </div>
-                    </div>
-
-                    <Link
-                        href="/teacher/sessions"
-                        className="mt-4 block w-full rounded-xl bg-emerald-600 py-3 text-center font-bold text-white shadow-md shadow-emerald-100 transition duration-150 hover:bg-emerald-700 dark:shadow-none"
-                    >
-                        Tarixni tekshirish / Check History
-                    </Link>
+                    )}
                 </div>
+
+                <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="flex flex-1 flex-col items-center justify-center gap-4 py-8 text-center">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#fae18e]/30">
+                            <CheckCircle2 className="h-8 w-8 text-[#92700a]" />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-[#061445]">{t('dashboard.all_caught_up')}</h3>
+                            <p className="mt-1 max-w-xs text-sm text-slate-400">{t('dashboard.all_caught_up_desc')}</p>
+                        </div>
+                        <Link href="/teacher/sessions" className="rounded-xl bg-[#061445] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#0a1f6b]">
+                            Check Feedback History
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Growth Insights */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-3 flex items-center gap-3">
+                    <p className="text-xs font-black tracking-widest text-slate-400 uppercase">Growth Insights</p>
+                    <div className="flex gap-1.5">
+                        <span className="h-0.5 w-6 rounded-full bg-[#fae18e]" />
+                        <span className="h-0.5 w-4 rounded-full bg-[#061445]" />
+                    </div>
+                </div>
+                <p className="text-center text-sm italic text-slate-400">{quote}</p>
             </div>
         </div>
     );

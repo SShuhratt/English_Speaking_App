@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ConvoMate - Features</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-butter-gradient {
+            background: linear-gradient(135deg, #fae18e 0%, #ddc575 100%);
+        }
+        .bg-pale-blue-tint {
+            background-color: rgba(208, 228, 255, 0.28);
+        }
+        .hero-mesh {
+            background: radial-gradient(at 0% 0%, rgba(221, 225, 255, 0.4) 0%, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(250, 225, 142, 0.2) 0%, transparent 50%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#505c8e",
+                        "tertiary-container": "#c0aa5c",
+                        "background": "#fbf8fd",
+                        "on-primary-container": "#8792c9",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#44617e",
+                        "surface-container-high": "#eae7ec",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#acc9eb",
+                        "tertiary-fixed-dim": "#ddc575",
+                        "surface-variant": "#e4e1e6",
+                        "surface-container": "#efedf2",
+                        "on-background": "#1b1b1f",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#f2f0f5",
+                        "secondary-container": "#c0ddff",
+                        "on-tertiary-container": "#4c3e00",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#dbd9de",
+                        "surface-container-highest": "#e4e1e6",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1b1b1f",
+                        "on-secondary-fixed-variant": "#2c4965",
+                        "primary-fixed-dim": "#b8c4fe",
+                        "on-primary-fixed-variant": "#384475",
+                        "on-error-container": "#93000a",
+                        "surface": "#fbf8fd",
+                        "surface-bright": "#fbf8fd",
+                        "outline-variant": "#c6c5d0",
+                        "on-secondary-container": "#45617f",
+                        "on-surface-variant": "#45464f",
+                        "outline": "#767680",
+                        "on-secondary-fixed": "#001d34",
+                        "primary-fixed": "#dde1ff",
+                        "on-tertiary-fixed": "#231b00",
+                        "tertiary": "#6f5d17",
+                        "inverse-surface": "#303034",
+                        "inverse-primary": "#b8c4fe",
+                        "primary": "#061445",
+                        "on-tertiary-fixed-variant": "#554500",
+                        "surface-container-low": "#f5f3f7",
+                        "primary-container": "#1e2a5a",
+                        "tertiary-fixed": "#fae18e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d0e4ff",
+                        "on-primary-fixed": "#091747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">forum</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</span>
+</div>
+<div class="hidden md:flex gap-10 items-center">
+<a class="font-label-md text-label-md text-primary border-b-2 border-tertiary pb-1 transition-colors" href="#">Features</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">How It Works</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Teachers</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-label-md text-label-md text-primary px-4 py-2 active:scale-95 duration-200">Dashboard</button>
+<button class="bg-tertiary-fixed text-on-tertiary-fixed font-label-md text-label-md px-8 py-3 rounded-full hover:shadow-lg transition-all active:scale-95 duration-200">Get Started</button>
+</div>
+</div>
+</nav>
+<main class="pt-32">
+<!-- Hero Section -->
+<section class="px-margin-mobile md:px-margin-desktop mb-24 max-w-container-max mx-auto text-center hero-mesh rounded-xl py-16">
+<h1 class="font-display-lg text-display-lg text-primary mb-6">
+                Everything You Need to <span class="text-secondary">Improve</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto opacity-80">
+                A complete platform designed for serious English learners who want real results through immersion and expert coaching.
+            </p>
+</section>
+<!-- Features Bento Grid -->
+<section class="bg-pale-blue-tint py-32 rounded-xl">
+<div class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Feature Card 1 -->
+<div class="bg-surface-container-lowest p-10 rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col items-start">
+<div class="w-16 h-16 rounded-lg bg-secondary-fixed flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-secondary-container text-3xl">video_call</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Live 1-on-1 Sessions</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            Connect with expert teachers via our integrated HD video platform for interactive speaking practice in real-time.
+                        </p>
+</div>
+<!-- Feature Card 2 -->
+<div class="bg-surface-container-lowest p-10 rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col items-start md:translate-y-8">
+<div class="w-16 h-16 rounded-lg bg-tertiary-fixed flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-tertiary-fixed text-3xl">calendar_today</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Smart Scheduling</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            Book sessions based on global teacher availability. Seamless calendar sync ensures you never miss a class.
+                        </p>
+</div>
+<!-- Feature Card 3 -->
+<div class="bg-surface-container-lowest p-10 rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col items-start">
+<div class="w-16 h-16 rounded-lg bg-secondary-fixed flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-secondary-container text-3xl">school</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Certified Teachers</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            All instructors are IELTS/CEFR certified with verified native proficiency and years of pedagogical experience.
+                        </p>
+</div>
+<!-- Feature Card 4 -->
+<div class="bg-surface-container-lowest p-10 rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col items-start">
+<div class="w-16 h-16 rounded-lg bg-tertiary-fixed flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-tertiary-fixed text-3xl">psychology</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Instant Feedback</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            Get detailed AI-enhanced feedback on pronunciation, grammar, and lexical range immediately after every session.
+                        </p>
+</div>
+<!-- Feature Card 5 -->
+<div class="bg-surface-container-lowest p-10 rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col items-start md:translate-y-8">
+<div class="w-16 h-16 rounded-lg bg-secondary-fixed flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-secondary-container text-3xl">trending_up</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Progress Tracking</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            Monitor your journey with interactive statistics, vocabulary retention maps, and session performance archives.
+                        </p>
+</div>
+<!-- Feature Card 6 -->
+<div class="bg-surface-container-lowest p-10 rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col items-start">
+<div class="w-16 h-16 rounded-lg bg-tertiary-fixed flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-tertiary-fixed text-3xl">menu_book</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">All Levels Welcome</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            From A1 beginners to C2 mastery — our teachers adapt curriculum to your specific career and life goals.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Visual Highlight Section -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row items-center gap-16">
+<div class="flex-1 space-y-8">
+<div class="inline-block bg-tertiary-fixed px-6 py-2 rounded-full font-label-md text-label-md text-on-tertiary-fixed">
+                        PERSONALIZED LEARNING
+                    </div>
+<h2 class="font-display-lg text-display-lg text-primary">Your journey, curated by experts.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        We don't believe in one-size-fits-all. ConvoMate analyzes your speaking patterns to match you with teachers who specialize in your areas of growth.
+                    </p>
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-lg">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+<span class="font-label-md text-label-md text-primary">Targeted Accent Reduction Modules</span>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-lg">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+<span class="font-label-md text-label-md text-primary">Business English Specific Tracks</span>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-lg">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+<span class="font-label-md text-label-md text-primary">Exam Prep (IELTS, TOEFL, Cambridge)</span>
+</div>
+</div>
+</div>
+<div class="flex-1 w-full aspect-square relative">
+<div class="absolute inset-0 bg-secondary-container rounded-lg opacity-20 -rotate-3 scale-105"></div>
+<div class="relative w-full h-full bg-surface shadow-2xl rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist workspace with a modern laptop showing a video call interface. On the screen, a friendly teacher and an engaged student are smiling during a lesson. The room is filled with soft natural light, pale blue accents on the walls, and a warm butter yellow lamp in the corner, reflecting a modern educational aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPQTu3UjiXn2Xwbw-HsmNTFmvyT8bXfqLhP2hkdgSNOCJuUDG2NvOZi_9o7URHG-HAzY1SADXHCAOjI2LV4rPfbmD9k9GdvqqRbaUXkcHmcpowgm0tqFb-WYruGiXj7tmTZdtIoMZEpY6R1W-ibp18KLULZV92Nz7HJpl-mWcaGIr5tgrewH8UM9g24iBZSPZ5nYWNrXhTHL1xqWEM4u9B4ozauPdjvk9DAeadmuIq5tMVlJatBDetQw"/>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop text-center bg-primary text-on-primary">
+<h2 class="font-display-lg text-display-lg mb-8">Ready to speak fluently?</h2>
+<p class="font-body-lg text-body-lg text-primary-fixed mb-12 max-w-xl mx-auto">
+                Join 50,000+ learners who have transformed their confidence and career prospects with ConvoMate.
+            </p>
+<button class="bg-tertiary-fixed text-on-tertiary-fixed font-label-md text-label-md px-12 py-5 rounded-full hover:scale-105 transition-all shadow-xl">
+                Start Your Free Trial
+            </button>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low w-full rounded-t-lg mt-24">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto gap-gutter">
+<div class="flex items-center gap-2 mb-8 md:mb-0">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">forum</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</span>
+</div>
+<div class="flex flex-wrap justify-center gap-8 text-on-surface-variant font-body-md text-body-md">
+<a class="hover:text-primary transition-all" href="#">About Us</a>
+<a class="hover:text-primary transition-all" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-all" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-all" href="#">Help Center</a>
+<a class="hover:text-primary transition-all" href="#">Careers</a>
+</div>
+<div class="text-on-surface-variant opacity-60 font-body-md text-body-md text-center md:text-right">
+                © 2024 ConvoMate. All rights reserved.
+            </div>
+</div>
+</footer>
+<script>
+        // Simple hover interaction for cards
+        document.querySelectorAll('.rounded-lg').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Subtle lift on hover
+            });
+        });
+    </script>
+</body></html>

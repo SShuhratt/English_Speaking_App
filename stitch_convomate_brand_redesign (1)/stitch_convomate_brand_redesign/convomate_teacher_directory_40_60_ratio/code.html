@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ConvoMate - Meet Our Teachers</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#505c8e",
+                    "tertiary-container": "#fae18e", // Butter Yellow mapping
+                    "background": "#ffffff",
+                    "on-primary-container": "#8792c9",
+                    "on-tertiary": "#061445",
+                    "secondary": "#44617e",
+                    "surface-container-high": "#eae7ec",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#acc9eb",
+                    "tertiary-fixed-dim": "#ddc575",
+                    "surface-variant": "#e4e1e6",
+                    "surface-container": "#f5f3f7",
+                    "on-background": "#061445",
+                    "error-container": "#ffdad6",
+                    "inverse-on-surface": "#f2f0f5",
+                    "secondary-container": "#d0e4ff", // Pale Blue mapping
+                    "on-tertiary-container": "#061445",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#dbd9de",
+                    "surface-container-highest": "#e4e1e6",
+                    "on-error": "#ffffff",
+                    "on-surface": "#061445",
+                    "on-secondary-fixed-variant": "#2c4965",
+                    "primary-fixed-dim": "#b8c4fe",
+                    "on-primary-fixed-variant": "#384475",
+                    "on-error-container": "#93000a",
+                    "surface": "#ffffff",
+                    "surface-bright": "#ffffff",
+                    "outline-variant": "#c6c5d0",
+                    "on-secondary-container": "#061445",
+                    "on-surface-variant": "#45464f",
+                    "outline": "#767680",
+                    "on-secondary-fixed": "#001d34",
+                    "primary-fixed": "#dde1ff",
+                    "on-tertiary-fixed": "#231b00",
+                    "tertiary": "#fae18e",
+                    "inverse-surface": "#303034",
+                    "inverse-primary": "#b8c4fe",
+                    "primary": "#061445",
+                    "on-tertiary-fixed-variant": "#554500",
+                    "surface-container-low": "#f5f3f7",
+                    "primary-container": "#061445",
+                    "tertiary-fixed": "#fae18e",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#d0e4ff",
+                    "on-primary-fixed": "#091747"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "1.5rem", // 24px as requested
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "margin-mobile": "20px",
+                    "margin-desktop": "64px",
+                    "container-max": "1280px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .star-filled {
+            font-variation-settings: 'FILL' 1;
+            color: #fae18e; /* Butter Yellow */
+            -webkit-text-stroke: 1px #061445; /* Navy Outline */
+        }
+        .bento-glow {
+            background: radial-gradient(circle at top right, rgba(208, 228, 255, 0.4), transparent);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d0e4ff;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+<!-- Top Navigation -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Features</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">How It Works</a>
+<a class="font-label-md text-label-md text-primary border-b-2 border-tertiary pb-1" href="#">Teachers</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-label-md text-label-md text-primary transition-all active:scale-95">Dashboard</button>
+<button class="bg-tertiary text-on-tertiary px-6 py-3 rounded-full font-label-md text-label-md font-bold transition-all hover:shadow-lg active:scale-95">Get Started</button>
+</div>
+</div>
+</header>
+<main class="pt-32 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Hero Section -->
+<section class="text-center mb-16 space-y-6">
+<h1 class="font-display-lg text-display-lg text-primary max-w-3xl mx-auto">
+                Learn from the world's <span class="text-secondary-container bg-primary px-4 py-1 rounded-lg">best teachers</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                Experienced, certified, and passionate about helping you improve your conversation skills.
+            </p>
+</section>
+<!-- Filters Section -->
+<section class="mb-12">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-gutter">
+<div class="flex gap-3 overflow-x-auto pb-2 w-full md:w-auto custom-scrollbar">
+<button class="flex items-center gap-2 bg-tertiary text-on-tertiary px-6 py-2.5 rounded-full font-label-md text-label-md whitespace-nowrap">
+                        All Specialties
+                    </button>
+<button class="flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-2.5 rounded-full font-label-md text-label-md whitespace-nowrap hover:bg-tertiary/20 transition-colors">
+                        IELTS Preparation
+                    </button>
+<button class="flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-2.5 rounded-full font-label-md text-label-md whitespace-nowrap hover:bg-tertiary/20 transition-colors">
+                        Business English
+                    </button>
+<button class="flex items-center gap-2 bg-secondary-container text-on-secondary-container px-6 py-2.5 rounded-full font-label-md text-label-md whitespace-nowrap hover:bg-tertiary/20 transition-colors">
+                        Kids &amp; Teens
+                    </button>
+</div>
+<div class="flex items-center gap-4 w-full md:w-auto">
+<div class="relative w-full md:w-64">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg pl-12 pr-4 py-3 text-body-md focus:ring-2 focus:ring-primary" placeholder="Search by name or skill" type="text"/>
+</div>
+<button class="flex items-center justify-center p-3 rounded-lg bg-secondary-container text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Teacher Marketplace Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Teacher Card 1 -->
+<div class="group bg-white rounded-lg p-6 shadow-[0_4px_24px_rgba(30,42,90,0.08)] border border-secondary-container/30 hover:shadow-[0_12px_40px_rgba(30,42,90,0.12)] transition-all duration-300 relative overflow-hidden bento-glow">
+<div class="flex items-start justify-between mb-6">
+<div class="relative">
+<img class="w-20 h-20 rounded-lg object-cover" data-alt="A professional studio portrait of Sarah Thompson, a friendly middle-aged woman with glasses and a warm smile, wearing a professional navy blazer. The background is a clean, minimalist educational setting with soft, high-key lighting that creates a bright, modern light-mode aesthetic in line with the ConvoMate brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP6KzU0g88x74eYlZupQlTr4r6Dv61ALDlXgFBOe6zjKF-_MavmbjsELNbj7YIhrgRDSrJHj5MEh-qsrNp6MRFdh0t6qOkYFzSu23BUDQmDWDnG5LRdEtztOlrtjR26oP_Rfb-Vb6DqGlL9V3hpDBVFZIK3oocHjS1nZNZffuFILAamHaOems0riUpZ9OYymFeyi18stuJFZdM1oJGz-nbYzFLqUUn7aVVglr-TLtIPetoS9h_7fRPAg"/>
+<div class="absolute -bottom-2 -right-2 bg-tertiary text-on-tertiary px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider">Top Pro</div>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-primary">Sarah Thompson</div>
+<div class="text-label-md text-on-surface-variant">IELTS 9.0 • Speaking 9.0</div>
+</div>
+</div>
+<div class="space-y-4 mb-6">
+<p class="text-body-md text-on-surface-variant line-clamp-2">
+                        Specializing in advanced conversational techniques and formal exam preparation for over 5 years.
+                    </p>
+<div class="flex gap-2">
+<span class="bg-secondary-container/50 text-primary text-[12px] px-3 py-1 rounded-full font-medium">Native Speaker</span>
+<span class="bg-secondary-container/50 text-primary text-[12px] px-3 py-1 rounded-full font-medium">Cambridge Cert.</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-secondary-container/20">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined star-filled text-[18px]">star</span>
+<span class="font-bold text-primary">4.9</span>
+<span class="text-label-sm text-outline">(142 reviews)</span>
+</div>
+<span class="text-label-sm text-on-surface-variant">5 y experience</span>
+</div>
+<button class="bg-primary text-white px-5 py-2.5 rounded-full font-label-md hover:shadow-md transition-all active:scale-95">Book Now</button>
+</div>
+</div>
+<!-- Teacher Card 2 -->
+<div class="group bg-white rounded-lg p-6 shadow-[0_4px_24px_rgba(30,42,90,0.08)] border border-secondary-container/30 hover:shadow-[0_12px_40px_rgba(30,42,90,0.12)] transition-all duration-300 relative overflow-hidden bento-glow">
+<div class="flex items-start justify-between mb-6">
+<div class="relative">
+<img class="w-20 h-20 rounded-lg object-cover" data-alt="A portrait of James Wilson, a young, energetic male teacher with short brown hair, wearing a casual pale blue shirt. He is sitting in a sun-drenched modern study room. The style is professional and friendly, using a bright, airy palette consistent with a high-end educational marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFi4QKp6n6_j28XeDoQ_U3N2hiOXEzWvPlnzomio0pdEJBN7hHjNLXSs1XYj7PA7SIx8sM-IcDj6x8xd7XOwNZpmATS6mgodbxAM89fTxX-Jbgu2EE8RZQjIl-KW5h11kmkwnv-Pyh0-9DiVTUV2uTOFPqxVIFXBuZMk1yFic_SdpIns1fXijpXPRN-Bska3rMHFq9u8ekOptujySX2QS1VCggcTN3LdPx2wQzlz2S19oy0ljFdg-IPw"/>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-primary">James Wilson</div>
+<div class="text-label-md text-on-surface-variant">CEFR C2 • IELTS 8.5</div>
+</div>
+</div>
+<div class="space-y-4 mb-6">
+<p class="text-body-md text-on-surface-variant line-clamp-2">
+                        Expert in business communication and corporate workshop facilitation. I help you speak like a leader.
+                    </p>
+<div class="flex gap-2">
+<span class="bg-secondary-container/50 text-primary text-[12px] px-3 py-1 rounded-full font-medium">Business English</span>
+<span class="bg-secondary-container/50 text-primary text-[12px] px-3 py-1 rounded-full font-medium">TOEFL Prep</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-secondary-container/20">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined star-filled text-[18px]">star</span>
+<span class="font-bold text-primary">4.8</span>
+<span class="text-label-sm text-outline">(98 reviews)</span>
+</div>
+<span class="text-label-sm text-on-surface-variant">3 y experience</span>
+</div>
+<button class="bg-primary text-white px-5 py-2.5 rounded-full font-label-md hover:shadow-md transition-all active:scale-95">Book Now</button>
+</div>
+</div>
+<!-- Teacher Card 3 -->
+<div class="group bg-white rounded-lg p-6 shadow-[0_4px_24px_rgba(30,42,90,0.08)] border border-secondary-container/30 hover:shadow-[0_12px_40px_rgba(30,42,90,0.12)] transition-all duration-300 relative overflow-hidden bento-glow">
+<div class="flex items-start justify-between mb-6">
+<div class="relative">
+<img class="w-20 h-20 rounded-lg object-cover" data-alt="A studio photograph of Emma Davis, a friendly female teacher with auburn hair tied back, wearing a minimalist white blouse. The lighting is soft and flattering, creating a premium professional look. The background is a pale blue wash that perfectly complements the brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgOv4ov2fPY8-bxY_eaeRe-RpgfhIMMpSqo80QI2nChpo-zmZ6PlOGsWWX_uTXkHwpGIzh_AQ2D9hCA6O8AKKwq3JvktJDO_HtBcTIgVy-9lbg3ib1RrNtMhYK81PNCQNArAzNUJTp3NfALZzeUraagaktMi0W_uYx3per0sQ5ur99r4tMdXcUliSD6ByjgEb5eZ_Ay8SDvSEhZO1lKeQKCcnniADF3SNLmVO4ln3D2SFfu40tRcIEFw"/>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-primary">Emma Davis</div>
+<div class="text-label-md text-on-surface-variant">IELTS 8.5 • Speaking 8.5</div>
+</div>
+</div>
+<div class="space-y-4 mb-6">
+<p class="text-body-md text-on-surface-variant line-clamp-2">
+                        Passionate about teaching younger learners and students starting their English journey from scratch.
+                    </p>
+<div class="flex gap-2">
+<span class="bg-secondary-container/50 text-primary text-[12px] px-3 py-1 rounded-full font-medium">Kids &amp; Teens</span>
+<span class="bg-secondary-container/50 text-primary text-[12px] px-3 py-1 rounded-full font-medium">TESOL Cert.</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-secondary-container/20">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined star-filled text-[18px]">star</span>
+<span class="font-bold text-primary">5.0</span>
+<span class="text-label-sm text-outline">(231 reviews)</span>
+</div>
+<span class="text-label-sm text-on-surface-variant">7 y experience</span>
+</div>
+<button class="bg-primary text-white px-5 py-2.5 rounded-full font-label-md hover:shadow-md transition-all active:scale-95">Book Now</button>
+</div>
+</div>
+<!-- Card 4 (Bento Variation) -->
+<div class="group bg-tertiary/20 rounded-lg p-8 border-2 border-dashed border-tertiary flex flex-col items-center justify-center text-center space-y-4 hover:bg-tertiary/30 transition-all duration-300">
+<div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-primary text-[32px]">school</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Become a Teacher</h3>
+<p class="text-on-surface-variant">Join our global network of elite educators and earn on your schedule.</p>
+<button class="bg-tertiary text-on-tertiary px-8 py-3 rounded-full font-bold shadow-lg transition-transform active:scale-95">Apply Now</button>
+</div>
+<!-- Additional Teacher Cards could follow... -->
+</section>
+<!-- CTA Section -->
+<section class="mt-24 bg-primary text-white rounded-xl p-12 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle cx="80" cy="20" fill="white" r="40"></circle>
+<circle cx="100" cy="80" fill="white" r="30"></circle>
+</svg>
+</div>
+<div class="relative z-10 md:flex items-center justify-between">
+<div class="max-w-xl mb-8 md:mb-0">
+<h2 class="font-headline-lg text-headline-lg mb-4">Ready to start your journey?</h2>
+<p class="text-body-lg text-secondary-container">Get your first session free with any teacher this week. No commitment required.</p>
+</div>
+<button class="bg-tertiary text-on-tertiary px-10 py-5 rounded-full font-display-lg text-[20px] font-bold shadow-[0_10px_30px_rgba(250,225,142,0.3)] hover:translate-y-[-2px] transition-all">Book Free Lesson</button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full rounded-t-lg bg-surface-container-low mt-12">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto gap-gutter">
+<div class="flex flex-col items-center md:items-start gap-4">
+<div class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</div>
+<p class="text-body-md text-on-surface-variant text-center md:text-left max-w-xs">Connecting learners with global mentors for world-class language education.</p>
+</div>
+<nav class="flex flex-wrap justify-center gap-6 md:gap-8">
+<a class="text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">About Us</a>
+<a class="text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Privacy Policy</a>
+<a class="text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Terms of Service</a>
+<a class="text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Help Center</a>
+<a class="text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Careers</a>
+</nav>
+<div class="text-body-md text-on-surface-variant mt-4 md:mt-0">
+                © 2024 ConvoMate. All rights reserved.
+            </div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for the cards
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

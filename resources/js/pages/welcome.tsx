@@ -1,20 +1,23 @@
+import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
 import { useTranslation } from '@/hooks/use-translation';
+import AppLogoIcon from '@/components/app-logo-icon';
 import {
-    BookOpen,
-    Calendar,
-    CheckCircle2,
-    Globe2,
-    GraduationCap,
-    MessageCircle,
     Mic,
     Sparkles,
     Star,
-    Users,
     Video,
-    Zap,
+    Calendar,
+    BookOpen,
+    MessageCircle,
+    Users,
+    Search,
+    SlidersHorizontal,
     Globe,
+    Zap,
+    GraduationCap,
+    Check,
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -24,64 +27,166 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 
+// Teacher profiles array with specialties, tags, realistic images, and localization keys
+const teachers = [
+    {
+        name: 'Sarah Thompson',
+        level: 'IELTS 9.0 • Speaking 9.0',
+        exp: '5 years',
+        rating: 4.9,
+        reviews: 142,
+        specialty: 'IELTS Preparation',
+        tags: ['Native Speaker', 'Cambridge Cert.'],
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCP6KzU0g88x74eYlZupQlTr4r6Dv61ALDlXgFBOe6zjKF-_MavmbjsELNbj7YIhrgRDSrJHj5MEh-qsrNp6MRFdh0t6qOkYFzSu23BUDQmDWDnG5LRdEtztOlrtjR26oP_Rfb-Vb6DqGlL9V3hpDBVFZIK3oocHjS1nZNZffuFILAamHaOems0riUpZ9OYymFeyi18stuJFZdM1oJGz-nbYzFLqUUn7aVVglr-TLtIPetoS9h_7fRPAg',
+        descKey: 'welcome.teachers_sarah_desc',
+        tag1Key: 'welcome.teachers_sarah_tag_1',
+        tag2Key: 'welcome.teachers_sarah_tag_2',
+    },
+    {
+        name: 'James Wilson',
+        level: 'CEFR C2 • IELTS 8.5',
+        exp: '3 years',
+        rating: 4.8,
+        reviews: 98,
+        specialty: 'Business English',
+        tags: ['Business English', 'TOEFL Prep'],
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFi4QKp6n6_j28XeDoQ_U3N2hiOXEzWvPlnzomio0pdEJBN7hHjNLXSs1XYj7PA7SIx8sM-IcDj6x8xd7XOwNZpmATS6mgodbxAM89fTxX-Jbgu2EE8RZQjIl-KW5h11kmkwnv-Pyh0-9DiVTUV2uTOFPqxVIFXBuZMk1yFic_SdpIns1fXijpXPRN-Bska3rMHFq9u8ekOptujySX2QS1VCggcTN3LdPx2wQzlz2S19oy0ljFdg-IPw',
+        descKey: 'welcome.teachers_james_desc',
+        tag1Key: 'welcome.teachers_james_tag_1',
+        tag2Key: 'welcome.teachers_james_tag_2',
+    },
+    {
+        name: 'Emma Davis',
+        level: 'IELTS 8.5 • Speaking 8.5',
+        exp: '7 years',
+        rating: 5.0,
+        reviews: 231,
+        specialty: 'Kids & Teens',
+        tags: ['Kids & Teens', 'TESOL Cert.'],
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgOv4ov2fPY8-bxY_eaeRe-RpgfhIMMpSqo80QI2nChpo-zmZ6PlOGsWWX_uTXkHwpGIzh_AQ2D9hCA6O8AKKwq3JvktJDO_HtBcTIgVy-9lbg3ib1RrNtMhYK81PNCQNArAzNUJTp3NfALZzeUraagaktMi0W_uYx3per0sQ5ur99r4tMdXcUliSD6ByjgEb5eZ_Ay8SDvSEhZO1lKeQKCcnniADF3SNLmVO4ln3D2SFfu40tRcIEFw',
+        descKey: 'welcome.teachers_emma_desc',
+        tag1Key: 'welcome.teachers_emma_tag_1',
+        tag2Key: 'welcome.teachers_emma_tag_2',
+    }
+];
+
+// Inline localization helpers to ensure complete translation of marketplace controls
+const specialtyLabels: Record<string, Record<string, string>> = {
+    All: {
+        en: 'All Specialties',
+        uz: 'Barcha mutaxassisliklar',
+        ru: 'Все специализации'
+    },
+    'IELTS Preparation': {
+        en: 'IELTS Preparation',
+        uz: 'IELTSga tayyorgarlik',
+        ru: 'Подготовка к IELTS'
+    },
+    'Business English': {
+        en: 'Business English',
+        uz: 'Biznes ingliz tili',
+        ru: 'Бизнес-английский'
+    },
+    'Kids & Teens': {
+        en: 'Kids & Teens',
+        uz: 'Bolalar va o‘smirlar',
+        ru: 'Дети и подростки'
+    }
+};
+
+const searchPlaceholder: Record<string, string> = {
+    en: 'Search by name or specialty...',
+    uz: 'Ism yoki mutaxassislik bo‘yicha qidirish...',
+    ru: 'Поиск по имени или специализации...'
+};
+
+const becomeTeacherTitle: Record<string, string> = {
+    en: 'Become a Teacher',
+    uz: 'O‘qituvchi bo‘ling',
+    ru: 'Стать преподавателем'
+};
+
+const becomeTeacherDesc: Record<string, string> = {
+    en: 'Join our network of elite educators and earn on your schedule.',
+    uz: 'Bizning elita o‘qituvchilar tarmog‘imizga qo‘shiling va o‘z jadvalingiz bo‘yicha daromad oling.',
+    ru: 'Присоединяйтесь к нашей сети элитных преподавателей и зарабатывайте по своему расписанию.'
+};
+
+const becomeTeacherBtn: Record<string, string> = {
+    en: 'Apply Now',
+    uz: 'Hozir ro‘yxatdan o‘ting',
+    ru: 'Подать заявку'
+};
+
+const bookNowBtn: Record<string, string> = {
+    en: 'Book Now',
+    uz: 'Bron qilish',
+    ru: 'Забронировать'
+};
+
 export default function Welcome() {
     const { auth } = usePage<{ auth: { user: unknown } }>().props;
     const { t, locale, setLanguage } = useTranslation();
 
+    // Marketplace search and category filter state
+    const [selectedSpecialty, setSelectedSpecialty] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const currentLang = (locale as 'en' | 'uz' | 'ru') || 'en';
+
+    // Dynamic filtering logic
+    const filteredTeachers = teachers.filter((teacher) => {
+        const matchesSpecialty = selectedSpecialty === 'All' || teacher.specialty === selectedSpecialty;
+        const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            teacher.specialty.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSpecialty && matchesSearch;
+    });
+
     return (
         <>
-            <Head title={t('welcome.title')} />
+            <Head title={`ConvoMate - ${t('welcome.title')}`} />
+            
+            {/* Inject smooth scrolling layout rule */}
+            <style dangerouslySetInnerHTML={{ __html: `html { scroll-behavior: smooth; }` }} />
 
-            <div className="min-h-screen overflow-x-hidden bg-[#FAFAFA] font-sans text-[#1A1A2E] transition-colors duration-300 dark:bg-[#080811] dark:text-[#E8E8F0]">
+            <div className="min-h-screen overflow-x-hidden bg-[#FAFAFA] font-sans text-[#061445] transition-colors duration-300 dark:bg-[#080811] dark:text-[#E8E8F0]">
+                
                 {/* ── Navbar ── */}
-                <nav className="fixed top-0 right-0 left-0 z-50 border-b border-white/5 bg-white/70 shadow-sm backdrop-blur-xl dark:bg-[#080811]/75">
-                    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-                        <Link
-                            href="/"
-                            className="group flex items-center gap-2.5"
-                        >
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 shadow-md shadow-indigo-500/20 transition-transform group-hover:scale-105">
-                                <Mic className="h-5 w-5 text-white" />
+                <header className="fixed top-0 right-0 left-0 z-50 border-b border-white/5 bg-white/80 shadow-sm backdrop-blur-md dark:bg-[#080811]/80">
+                    <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+                        <Link href="/" className="group flex items-center gap-2.5">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#061445]/10 bg-white shadow-md shadow-[#061445]/10 transition-transform group-hover:scale-105">
+                                <img src="/logo.png" alt="ConvoMate" className="h-full w-full object-cover" />
                             </div>
-                            <span className="text-lg font-black tracking-tight">
-                                Speak
-                                <span className="text-indigo-500">Flow</span>
+                            <span className="text-lg font-black tracking-tight text-[#061445] dark:text-[#E8E8F0]">
+                                Convo<span className="text-[#f5c518] dark:text-[#f5c518]">Mate</span>
                             </span>
                         </Link>
 
+                        {/* Anchors with smooth scroll functionality */}
                         <div className="hidden items-center gap-8 text-sm font-semibold text-[#555] md:flex dark:text-[#A0A0B0]">
-                            <a
-                                href="#features"
-                                className="transition-colors hover:text-indigo-500"
-                            >
+                            <a href="#features" className="transition-colors hover:text-[#061445] dark:hover:text-[#d0e4ff]">
                                 {t('welcome.nav_features')}
                             </a>
-                            <a
-                                href="#how-it-works"
-                                className="transition-colors hover:text-indigo-500"
-                            >
+                            <a href="#how-it-works" className="transition-colors hover:text-[#061445] dark:hover:text-[#d0e4ff]">
                                 {t('welcome.nav_how_it_works')}
                             </a>
-                            <a
-                                href="#teachers"
-                                className="transition-colors hover:text-indigo-500"
-                            >
+                            <a href="#teachers" className="transition-colors hover:text-[#061445] dark:hover:text-[#d0e4ff]">
                                 {t('welcome.nav_teachers')}
                             </a>
                         </div>
 
                         <div className="flex items-center gap-3">
+                            {/* Localized navigation locale toggle */}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="flex h-9 cursor-pointer items-center gap-1.5 rounded-xl px-3 font-semibold text-[#555] hover:bg-indigo-500/5 hover:text-indigo-500 dark:text-[#A0A0B0]"
+                                        className="flex h-9 cursor-pointer items-center gap-1.5 rounded-xl px-3 font-semibold text-[#061445] hover:bg-[#061445]/5 hover:text-[#061445] dark:text-[#A0A0B0] dark:hover:bg-[#d0e4ff]/10 dark:hover:text-[#d0e4ff]"
                                     >
-                                        <Globe className="h-4 w-4 text-indigo-500" />
-                                        <span className="text-xs font-bold uppercase">
-                                            {locale}
-                                        </span>
+                                        <Globe className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />
+                                        <span className="text-xs font-bold uppercase">{locale}</span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
@@ -90,36 +195,24 @@ export default function Welcome() {
                                 >
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('en')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-indigo-500/10 focus:bg-indigo-500/10"
+                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-[#d0e4ff]/20 focus:bg-[#d0e4ff]/20"
                                     >
-                                        <span className="text-sm font-medium">
-                                            English
-                                        </span>
-                                        {locale === 'en' && (
-                                            <span className="h-2 w-2 rounded-full bg-indigo-600" />
-                                        )}
+                                        <span className="text-sm font-medium">English</span>
+                                        {locale === 'en' && <Check className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('uz')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-indigo-500/10 focus:bg-indigo-500/10"
+                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-[#d0e4ff]/20 focus:bg-[#d0e4ff]/20"
                                     >
-                                        <span className="text-sm font-medium">
-                                            O'zbek
-                                        </span>
-                                        {locale === 'uz' && (
-                                            <span className="h-2 w-2 rounded-full bg-indigo-600" />
-                                        )}
+                                        <span className="text-sm font-medium">O'zbek</span>
+                                        {locale === 'uz' && <Check className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('ru')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-indigo-500/10 focus:bg-indigo-500/10"
+                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-[#d0e4ff]/20 focus:bg-[#d0e4ff]/20"
                                     >
-                                        <span className="text-sm font-medium">
-                                            Русский
-                                        </span>
-                                        {locale === 'ru' && (
-                                            <span className="h-2 w-2 rounded-full bg-indigo-600" />
-                                        )}
+                                        <span className="text-sm font-medium">Русский</span>
+                                        {locale === 'ru' && <Check className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />}
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -127,7 +220,7 @@ export default function Welcome() {
                             {auth.user ? (
                                 <Link
                                     href={dashboard()}
-                                    className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 text-sm font-bold text-white shadow-md shadow-indigo-500/10 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/20"
+                                    className="rounded-xl bg-[#061445] px-5 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg dark:bg-[#d0e4ff] dark:text-[#061445]"
                                 >
                                     {t('nav.dashboard')}
                                 </Link>
@@ -135,418 +228,522 @@ export default function Welcome() {
                                 <>
                                     <Link
                                         href={login()}
-                                        className="rounded-xl px-4 py-2 text-sm font-semibold text-[#555] transition-colors hover:text-indigo-500 dark:text-[#A0A0B0]"
+                                        className="rounded-xl px-4 py-2 text-sm font-semibold text-[#555] transition-colors hover:text-[#061445] dark:text-[#A0A0B0] dark:hover:text-[#d0e4ff]"
                                     >
                                         {t('auth.login')}
                                     </Link>
                                     <Link
                                         href={register()}
-                                        className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 text-sm font-bold text-white shadow-md shadow-indigo-500/10 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/20"
+                                        className="rounded-xl bg-[#fae18e] px-5 py-2 text-sm font-bold text-[#061445] shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-[#fae18e]/95"
                                     >
                                         {t('welcome.get_started')}
                                     </Link>
                                 </>
                             )}
                         </div>
-                    </div>
-                </nav>
+                    </nav>
+                </header>
 
-                {/* ── Hero Section ── */}
-                <section className="relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-32">
-                    {/* Decorative blurs */}
-                    <div className="pointer-events-none absolute top-20 -left-32 h-[500px] w-[500px] rounded-full bg-indigo-500/20 blur-[128px] dark:bg-indigo-500/10" />
-                    <div className="pointer-events-none absolute top-40 -right-32 h-[400px] w-[400px] rounded-full bg-purple-500/15 blur-[128px] dark:bg-purple-500/5" />
-                    <div className="pointer-events-none absolute bottom-0 left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-cyan-400/10 blur-[100px] dark:bg-cyan-500/5" />
-
-                    <div className="relative mx-auto max-w-7xl px-6">
-                        <div className="grid items-center gap-12 lg:grid-cols-12">
-                            {/* Left Side: Content */}
-                            <div className="space-y-6 text-left lg:col-span-7">
-                                {/* Badge */}
-                                <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/50 px-4 py-1.5 text-sm font-semibold text-indigo-600 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-400">
-                                    <Sparkles className="h-4 w-4 animate-pulse text-indigo-500" />
-                                    <span>{t('welcome.badge')}</span>
+                <main className="pt-16">
+                    {/* ── Hero Section (Pale Blue Background Band) ── */}
+                    <section className="relative px-6 py-16 md:py-24 max-w-7xl mx-auto">
+                        {/* Background Band shaped panel */}
+                        <div className="absolute inset-0 top-0 h-[92%] bg-[#d0e4ff]/30 -z-10 rounded-[3rem] mx-4 md:mx-0 dark:bg-[#d0e4ff]/5"></div>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                            {/* Left Content Column */}
+                            <div className="lg:col-span-6 space-y-8">
+                                <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm dark:bg-[#080811] dark:border dark:border-white/10">
+                                    <Sparkles className="text-[#061445] dark:text-[#d0e4ff] h-5 w-5" />
+                                    <span className="text-sm font-bold tracking-tight text-[#061445] dark:text-[#d0e4ff]">
+                                        {t('welcome.badge')}
+                                    </span>
                                 </div>
-
-                                <h1 className="text-4xl leading-[1.15] font-black tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+                                
+                                <h1 className="font-sans text-5xl font-black tracking-tight text-[#061445] dark:text-white sm:text-6xl md:text-7xl leading-[1.1] mb-6">
                                     {t('welcome.title')}{' '}
-                                    <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                                    <span className="relative inline-block z-10 whitespace-nowrap">
                                         {t('welcome.title_fluently')}
+                                        {/* Yellow Highlight Line */}
+                                        <span className="absolute bottom-1 left-0 w-full h-3 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
                                     </span>
-                                    <br />
-                                    {t('welcome.title_with_teachers')}{' '}
-                                    <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                                        {t('welcome.one_on_one')}
-                                    </span>
+                                    {t('welcome.title_today') && t('welcome.title_today') !== 'welcome.title_today' && <> {t('welcome.title_today')}</>}
                                 </h1>
 
-                                <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+                                <p className="font-sans text-lg text-[#45464f] dark:text-[#cbd5e1] max-w-lg">
                                     {t('welcome.subtitle')}
                                 </p>
 
-                                <div className="flex flex-col gap-4 pt-4 sm:flex-row">
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
                                     <Link
                                         href={register()}
-                                        className="group flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-indigo-500/35"
+                                        className="bg-[#061445] text-white h-14 px-8 rounded-lg flex items-center justify-center gap-2 font-bold hover:bg-[#061445]/90 transition-all active:scale-95 shadow-md dark:bg-[#d0e4ff] dark:text-[#061445] dark:hover:bg-[#d0e4ff]/90"
                                     >
                                         {t('welcome.cta_start')}
-                                        <Zap className="h-4 w-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
+                                        <Zap className="h-5 w-5 fill-current" />
                                     </Link>
                                     <a
-                                        href="#how-it-works"
-                                        className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card px-8 py-4 text-base font-bold text-foreground shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:bg-accent"
+                                        href="#teachers"
+                                        className="bg-white border-2 border-[#061445]/10 text-[#061445] h-14 px-8 rounded-lg flex items-center justify-center gap-2 font-bold hover:bg-[#d0e4ff]/20 transition-all dark:bg-[#080811] dark:border-white/10 dark:text-[#E8E8F0] dark:hover:bg-white/5"
                                     >
-                                        <Video className="h-4 w-4 animate-pulse text-indigo-500" />
                                         {t('welcome.cta_how_it_works')}
                                     </a>
                                 </div>
 
-                                {/* Trust Badges */}
-                                <div className="flex flex-wrap items-center gap-8 border-t border-border pt-8 text-sm text-[#888] dark:text-[#999]">
+                                <div className="flex flex-wrap gap-8 pt-6">
                                     <div className="flex items-center gap-2">
-                                        <Users className="h-4 w-4 text-indigo-500" />
-                                        <span>
+                                        <Users className="text-[#061445] dark:text-[#d0e4ff] h-5 w-5" />
+                                        <span className="text-sm font-semibold text-[#45464f] dark:text-[#A0A0B0]">
                                             {t('welcome.trust_learners')}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                        <span>{t('welcome.trust_rating')}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Globe2 className="h-4 w-4 text-emerald-500" />
-                                        <span>
-                                            {t('welcome.trust_experts')}
+                                        <Star className="text-[#061445] fill-[#fae18e] h-5 w-5" />
+                                        <span className="text-sm font-semibold text-[#45464f] dark:text-[#A0A0B0]">
+                                            {t('welcome.trust_rating')}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Right Side: Graphic Visual */}
-                            <div className="relative mt-12 flex items-center justify-center lg:col-span-5 lg:mt-0">
-                                {/* Floating glowing background blobs */}
-                                <div className="animate-pulse-slow pointer-events-none absolute -inset-4 rounded-full bg-gradient-to-r from-indigo-500/30 to-purple-500/30 blur-3xl" />
-
-                                {/* Main Graphic Container */}
-                                <div className="animate-float relative w-full max-w-md overflow-hidden rounded-3xl border border-white/20 bg-white/5 p-4 shadow-2xl shadow-indigo-500/15 backdrop-blur-md md:max-w-lg lg:max-w-none">
-                                    {/* Glowing border overlay */}
-                                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-transparent to-purple-500/10" />
-
-                                    {/* Main image */}
-                                    <img
-                                        src="/images/online-lesson.png"
-                                        alt="1-on-1 Online Lesson"
-                                        className="relative z-10 h-auto w-full rounded-2xl border border-white/10 shadow-inner"
-                                    />
-
-                                    {/* Floating badge 1 */}
-                                    <div className="animate-float-delayed absolute top-8 left-8 z-20 flex items-center gap-2 rounded-2xl border border-white/20 bg-white/80 px-4 py-2.5 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-[#0B0B1A]/80">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500">
-                                            <Mic className="h-4 w-4 text-white" />
+                            {/* Right Video Call Visual Column */}
+                            <div className="lg:col-span-6 relative">
+                                <div className="relative bg-white p-4 rounded-3xl shadow-xl border border-[#d0e4ff]/50 overflow-hidden dark:bg-[#0c0c16] dark:border-white/10">
+                                    {/* Mock Video Feed Container */}
+                                    <div className="grid grid-cols-2 gap-3 aspect-video">
+                                        
+                                        {/* Teacher Feed */}
+                                        <div className="relative rounded-2xl overflow-hidden bg-[#d0e4ff]/20 aspect-square">
+                                            <img
+                                                className="w-full h-full object-cover"
+                                                alt="Sarah M."
+                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2XLftemZ5TAP_21DqZkHVpVLWepGEfQ00ARVxd9B7YKdWvmgxsoALkGQ2oUmOkMWv5c_rGxgDH_ws_pnU9BhzLnHjWpIqr5B9LdSMDEL872u9nO10wfUr_YIx7XFltYgXrHEaOKPy2UyrXzPv2sb4-RS58HvR0226wiUSSvm9dEg_T76Bc7Ta_QZCMb5ztLyLmBm8d7x5H9DkUxE4GIsoWuJq43xyawaALSSVmfoqxdYYMyZNZ7U5zw"
+                                            />
+                                            <div className="absolute bottom-3 left-3 bg-[#061445]/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs flex items-center gap-1">
+                                                <Globe className="h-3.5 w-3.5 text-[#d0e4ff]" />
+                                                Sarah M. (UK)
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                                                Active Practice
-                                            </p>
-                                            <p className="text-xs font-extrabold">
-                                                Speak Freely
-                                            </p>
+
+                                        {/* Student Feed */}
+                                        <div className="relative rounded-2xl overflow-hidden bg-[#d0e4ff]/20 aspect-square">
+                                            <img
+                                                className="w-full h-full object-cover"
+                                                alt="David L."
+                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhujsEFUDvRAaFMwwWE_B7_HZbSZhuomMvsCA2kNw38-q1C56nEdPKa1Y6HSOnExpxOG9spZFt93oBoqD69ywneJ0Aal-sge2gIUw3TCdrCIlWULKSVyanKWGHCWbWfCunIRWU5PV5fiRcRfWUIk7OPcJ-IDK9MbBhDKDSxDNx3VJEnYu0wzao_4PZSJZNEqoU0kI0FbMbZFgWzoeOKUmr2Fhzk9CqDw0YP69BGiAeRE6bU-KmVsbVXQ"
+                                            />
+                                            <div className="absolute bottom-3 left-3 bg-[#061445]/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs flex items-center gap-1">
+                                                <Users className="h-3.5 w-3.5 text-[#fae18e]" />
+                                                David L. (US)
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Floating badge 2 */}
-                                    <div className="animate-float absolute right-8 bottom-8 z-20 flex items-center gap-2 rounded-2xl border border-white/20 bg-white/80 px-4 py-2.5 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-[#0B0B1A]/80">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500">
-                                            <CheckCircle2 className="h-4 w-4 text-white" />
+                                    {/* Live Badge UI Overlay */}
+                                    <div className="absolute top-8 right-8 flex flex-col gap-3">
+                                        <div className="bg-[#fae18e] text-[#061445] px-4 py-2 rounded-lg font-bold text-sm shadow-md animate-pulse">
+                                            Live Practice
+                                        </div>
+                                    </div>
+
+                                    {/* Feedback Floating Panel */}
+                                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-white/90 border border-[#d0e4ff] p-4 rounded-xl flex items-center gap-4 shadow-lg min-w-[280px] dark:bg-[#080811]/90 dark:border-white/10">
+                                        <div className="w-10 h-10 rounded-full bg-[#fae18e] flex items-center justify-center text-[#061445]">
+                                            <Sparkles className="w-5 h-5 fill-current" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                                                Expert Feedback
-                                            </p>
-                                            <p className="text-xs font-extrabold">
-                                                CEFR / IELTS
-                                            </p>
+                                            <div className="text-xs text-muted-foreground">Real-time Feedback</div>
+                                            <div className="text-sm font-bold text-[#061445] dark:text-[#E8E8F0]">CEFR Level: B2 Advanced</div>
                                         </div>
+                                    </div>
+
+                                    {/* Mock Call Control Buttons */}
+                                    <div className="flex justify-center gap-4 mt-6">
+                                        <div className="w-12 h-12 rounded-full bg-[#d0e4ff]/30 flex items-center justify-center text-[#061445] cursor-pointer hover:bg-[#fae18e] transition-all dark:text-[#d0e4ff] dark:hover:bg-[#fae18e] dark:hover:text-[#061445]">
+                                            <Mic className="w-5 h-5" />
+                                        </div>
+                                        <div className="w-12 h-12 rounded-full bg-[#d0e4ff]/30 flex items-center justify-center text-[#061445] cursor-pointer hover:bg-[#fae18e] transition-all dark:text-[#d0e4ff] dark:hover:bg-[#fae18e] dark:hover:text-[#061445]">
+                                            <Video className="w-5 h-5" />
+                                        </div>
+                                        <div className="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white cursor-pointer hover:bg-rose-600 transition-all">
+                                            <Zap className="w-5 h-5 rotate-180" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Decorative floaters */}
+                                <div className="absolute -top-6 -left-6 bg-white p-4 rounded-xl shadow-lg border border-[#d0e4ff]/50 hidden md:block dark:bg-[#0c0c16] dark:border-white/10">
+                                    <div className="flex gap-2 items-start max-w-[150px]">
+                                        <div className="w-6 h-6 bg-[#fae18e] rounded-full flex-shrink-0 flex items-center justify-center text-[#061445]">
+                                            <MessageCircle className="w-3.5 h-3.5" />
+                                        </div>
+                                        <p className="text-xs leading-tight font-semibold text-[#061445] dark:text-[#E8E8F0]">"Focus on word stress here."</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                {/* ── Features Section ── */}
-                <section id="features" className="relative py-20 lg:py-28">
-                    <div className="pointer-events-none absolute top-0 right-0 h-[300px] w-[300px] rounded-full bg-indigo-500/5 blur-[100px]" />
-                    <div className="mx-auto max-w-7xl px-6">
-                        <div className="space-y-4 text-center">
-                            <h2 className="text-3xl font-black tracking-tight md:text-4xl lg:text-5xl">
-                                {t('welcome.features_title')}{' '}
-                                <span className="text-indigo-500">
-                                    {t('welcome.features_title_highlight')}
+                    {/* ── Features Bento Grid Section ── */}
+                    <section id="features" className="px-6 py-24 max-w-7xl mx-auto">
+                        <div className="text-center mb-16 space-y-4">
+                            <h2 className="font-sans text-4xl font-black text-[#061445] dark:text-white">
+                                {t('welcome.home_bento_title_1')}{' '}
+                                <span className="relative inline-block z-10 whitespace-nowrap">
+                                    {t('welcome.home_bento_title_highlight')}
+                                    {/* Yellow Highlight Line */}
+                                    <span className="absolute bottom-1 left-0 w-full h-2 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
                                 </span>
+                                {t('welcome.home_bento_title_2')}
                             </h2>
-                            <p className="mx-auto max-w-2xl text-muted-foreground">
-                                {t('welcome.features_subtitle')}
+                            <p className="text-[#45464f] max-w-2xl mx-auto dark:text-[#A0A0B0]">
+                                {t('welcome.home_bento_subtitle')}
                             </p>
                         </div>
 
-                        <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                            {[
-                                {
-                                    icon: Video,
-                                    title: t('welcome.feature_1_title'),
-                                    desc: t('welcome.feature_1_desc'),
-                                    color: 'from-indigo-500 to-blue-600',
-                                    shadow: 'shadow-indigo-500/20',
-                                },
-                                {
-                                    icon: Calendar,
-                                    title: t('welcome.feature_2_title'),
-                                    desc: t('welcome.feature_2_desc'),
-                                    color: 'from-purple-500 to-pink-600',
-                                    shadow: 'shadow-purple-500/20',
-                                },
-                                {
-                                    icon: GraduationCap,
-                                    title: t('welcome.feature_3_title'),
-                                    desc: t('welcome.feature_3_desc'),
-                                    color: 'from-emerald-500 to-teal-600',
-                                    shadow: 'shadow-emerald-500/20',
-                                },
-                                {
-                                    icon: MessageCircle,
-                                    title: t('welcome.feature_4_title'),
-                                    desc: t('welcome.feature_4_desc'),
-                                    color: 'from-amber-500 to-orange-600',
-                                    shadow: 'shadow-amber-500/20',
-                                },
-                                {
-                                    icon: Sparkles,
-                                    title: t('welcome.feature_5_title'),
-                                    desc: t('welcome.feature_5_desc'),
-                                    color: 'from-pink-500 to-rose-600',
-                                    shadow: 'shadow-pink-500/20',
-                                },
-                                {
-                                    icon: BookOpen,
-                                    title: t('welcome.feature_6_title'),
-                                    desc: t('welcome.feature_6_desc'),
-                                    color: 'from-cyan-500 to-blue-600',
-                                    shadow: 'shadow-cyan-500/20',
-                                },
-                            ].map((feature) => (
-                                <div
-                                    key={feature.title}
-                                    className="group relative rounded-3xl border border-border bg-card p-8 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/5"
-                                >
-                                    <div
-                                        className={`mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${feature.color} shadow-lg ${feature.shadow} transition-transform duration-300 group-hover:scale-110`}
-                                    >
-                                        <feature.icon className="h-6 w-6 text-white" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            
+                            {/* Card 1: AI-Powered Analysis (Desktop 2-Col Span) */}
+                            <div className="md:col-span-2 bg-white p-8 rounded-3xl border border-[#d0e4ff]/30 shadow-md group hover:border-[#fae18e] transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5 dark:hover:border-[#fae18e]/50">
+                                <div className="flex flex-col md:flex-row gap-8 items-center">
+                                    <div className="space-y-4 flex-1">
+                                        <div className="w-12 h-12 bg-[#d0e4ff]/50 rounded-xl flex items-center justify-center text-[#061445] dark:bg-[#d0e4ff]/10 dark:text-[#d0e4ff]">
+                                            <MessageCircle className="w-6 h-6" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-[#061445] dark:text-white">
+                                            {t('welcome.home_bento_1_title')}
+                                        </h3>
+                                        <p className="text-sm text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">
+                                            {t('welcome.home_bento_1_desc')}
+                                        </p>
                                     </div>
-                                    <h3 className="mb-3 text-lg font-bold">
-                                        {feature.title}
+                                    <div className="flex-1 w-full bg-[#d0e4ff]/20 rounded-2xl p-6 relative overflow-hidden dark:bg-[#1a2d47]/20">
+                                        <div className="space-y-3">
+                                            <div className="h-2 w-3/4 bg-[#061445]/10 rounded dark:bg-white/10"></div>
+                                            <div className="h-2 w-1/2 bg-[#fae18e] rounded"></div>
+                                            <div className="h-2 w-2/3 bg-[#061445]/10 rounded dark:bg-white/10"></div>
+                                        </div>
+                                        <div className="absolute top-2 right-2 bg-white px-2.5 py-1 rounded-md text-[10px] font-bold text-[#061445] shadow-sm dark:bg-[#080811] dark:text-[#d0e4ff] dark:border dark:border-white/10">
+                                            ACCURACY 94%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 2: Flexible Scheduling */}
+                            <div className="bg-[#fae18e] p-8 rounded-3xl shadow-md text-[#061445] flex flex-col justify-between hover:scale-[1.01] transition-transform">
+                                <div className="space-y-4">
+                                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[#061445]">
+                                        <Calendar className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-bold">
+                                        {t('welcome.home_bento_2_title')}
                                     </h3>
-                                    <p className="text-sm leading-relaxed text-muted-foreground">
-                                        {feature.desc}
+                                    <p className="text-sm text-[#061445]/85 leading-relaxed">
+                                        {t('welcome.home_bento_2_desc')}
                                     </p>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+                                <div className="mt-8 flex -space-x-2">
+                                    <div className="w-9 h-9 rounded-full border-2 border-[#fae18e] bg-indigo-500"></div>
+                                    <div className="w-9 h-9 rounded-full border-2 border-[#fae18e] bg-purple-500"></div>
+                                    <div className="w-9 h-9 rounded-full border-2 border-[#fae18e] bg-emerald-500"></div>
+                                </div>
+                            </div>
 
-                {/* ── How It Works ── */}
-                <section
-                    id="how-it-works"
-                    className="relative bg-gradient-to-b from-white via-indigo-50/30 to-white py-20 lg:py-28 dark:from-[#080811] dark:via-[#0E0E25]/30 dark:to-[#080811]"
-                >
-                    <div className="mx-auto max-w-7xl px-6">
-                        <div className="space-y-4 text-center">
-                            <h2 className="text-3xl font-black tracking-tight md:text-4xl lg:text-5xl">
+                            {/* Card 3: Topic Discovery */}
+                            <div className="bg-white p-8 rounded-3xl border border-[#d0e4ff]/30 shadow-md hover:border-[#fae18e] transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5 dark:hover:border-[#fae18e]/50">
+                                <div className="space-y-4">
+                                    <div className="w-12 h-12 bg-[#d0e4ff]/50 rounded-xl flex items-center justify-center text-[#061445] dark:bg-[#d0e4ff]/10 dark:text-[#d0e4ff]">
+                                        <BookOpen className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-[#061445] dark:text-white">
+                                        {t('welcome.home_bento_3_title')}
+                                    </h3>
+                                    <p className="text-sm text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">
+                                        {t('welcome.home_bento_3_desc')}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Card 4: Google Meet Integration (Desktop 2-Col Span) */}
+                            <div className="md:col-span-2 bg-[#d0e4ff]/40 p-8 rounded-3xl flex items-center justify-between overflow-hidden relative border border-[#d0e4ff]/20 dark:bg-[#d0e4ff]/5 dark:border-white/5">
+                                <div className="space-y-4 z-10">
+                                    <h3 className="text-xl font-bold text-[#061445] dark:text-white">
+                                        {t('welcome.home_bento_4_title')}
+                                    </h3>
+                                    <p className="text-sm text-[#45464f] max-w-sm leading-relaxed dark:text-[#A0A0B0]">
+                                        {t('welcome.home_bento_4_desc')}
+                                    </p>
+                                </div>
+                                <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-20 text-[#061445] dark:text-[#d0e4ff]">
+                                    <Video className="w-48 h-48 stroke-1" />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ── How It Works Section ── */}
+                    <section id="how-it-works" className="relative py-24 bg-gradient-to-b from-white via-[#d0e4ff]/10 to-white dark:from-[#080811] dark:via-[#1a2d47]/5 dark:to-[#080811]">
+                        <div className="max-w-7xl mx-auto px-6 text-center">
+                            <span className="inline-block px-4 py-1.5 rounded-full bg-[#fae18e] text-[#061445] text-xs font-bold tracking-wider mb-6">
+                                SIMPLE JOURNEY
+                            </span>
+                            <h2 className="font-sans text-4xl font-black text-[#061445] dark:text-white mb-6">
                                 {t('welcome.how_title')}{' '}
-                                <span className="text-indigo-500">
+                                <span className="relative inline-block z-10 whitespace-nowrap">
                                     {t('welcome.how_title_highlight')}
+                                    {/* Yellow Highlight Line */}
+                                    <span className="absolute bottom-1 left-0 w-full h-2 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
                                 </span>
                             </h2>
-                            <p className="mx-auto max-w-2xl text-muted-foreground">
+                            <p className="text-lg text-[#45464f] max-w-2xl mx-auto opacity-90 dark:text-[#A0A0B0]">
                                 {t('welcome.how_subtitle')}
                             </p>
-                        </div>
 
-                        <div className="relative mt-16 grid gap-8 md:grid-cols-3">
-                            {[
-                                {
-                                    step: '01',
-                                    title: t('welcome.how_step_1_title'),
-                                    desc: t('welcome.how_step_1_desc'),
-                                },
-                                {
-                                    step: '02',
-                                    title: t('welcome.how_step_2_title'),
-                                    desc: t('welcome.how_step_2_desc'),
-                                },
-                                {
-                                    step: '03',
-                                    title: t('welcome.how_step_3_title'),
-                                    desc: t('welcome.how_step_3_desc'),
-                                },
-                            ].map((item) => (
-                                <div
-                                    key={item.step}
-                                    className="group relative rounded-3xl border border-transparent p-8 text-center transition-all duration-300 hover:border-indigo-500/20 hover:bg-indigo-500/5"
-                                >
-                                    <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
-                                        <div className="animate-pulse-slow absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" />
-                                        <span className="relative bg-gradient-to-br from-indigo-500 to-purple-600 bg-clip-text text-3xl font-black text-transparent">
-                                            {item.step}
-                                        </span>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+                                {/* Timeline Step 1 */}
+                                <div className="bg-white p-10 rounded-3xl border border-[#d0e4ff]/30 shadow-md flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5">
+                                    <div className="w-16 h-16 mb-6 rounded-full bg-[#fae18e] flex items-center justify-center border-2 border-[#061445] dark:border-[#fae18e]">
+                                        <Users className="text-[#061445] w-7 h-7" />
                                     </div>
-                                    <h3 className="mb-3 text-xl font-bold">
-                                        {item.title}
+                                    <div className="text-xs font-bold text-[#fae18e] tracking-widest mb-3 uppercase">STEP 01</div>
+                                    <h3 className="text-lg font-bold text-[#061445] mb-3 dark:text-white">{t('welcome.how_step_1_title')}</h3>
+                                    <p className="text-xs text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">{t('welcome.how_step_1_desc')}</p>
+                                </div>
+
+                                {/* Timeline Step 2 */}
+                                <div className="bg-white p-10 rounded-3xl border border-[#d0e4ff]/30 shadow-md flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5">
+                                    <div className="w-16 h-16 mb-6 rounded-full bg-[#d0e4ff] flex items-center justify-center border-2 border-[#061445] dark:border-[#d0e4ff]">
+                                        <Search className="text-[#061445] w-7 h-7" />
+                                    </div>
+                                    <div className="text-xs font-bold text-[#fae18e] tracking-widest mb-3 uppercase">STEP 02</div>
+                                    <h3 className="text-lg font-bold text-[#061445] mb-3 dark:text-white">{t('welcome.how_step_2_title')}</h3>
+                                    <p className="text-xs text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">{t('welcome.how_step_2_desc')}</p>
+                                </div>
+
+                                {/* Timeline Step 3 */}
+                                <div className="bg-white p-10 rounded-3xl border border-[#d0e4ff]/30 shadow-md flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5">
+                                    <div className="w-16 h-16 mb-6 rounded-full bg-[#fae18e] flex items-center justify-center border-2 border-[#061445] dark:border-[#fae18e]">
+                                        <MessageCircle className="text-[#061445] w-7 h-7" />
+                                    </div>
+                                    <div className="text-xs font-bold text-[#fae18e] tracking-widest mb-3 uppercase">STEP 03</div>
+                                    <h3 className="text-lg font-bold text-[#061445] mb-3 dark:text-white">{t('welcome.how_step_3_title')}</h3>
+                                    <p className="text-xs text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">{t('welcome.how_step_3_desc')}</p>
+                                </div>
+                            </div>
+
+                            {/* Intermediate CTA Banner (Pale Blue Container) */}
+                            <div className="mt-20 bg-[#d0e4ff]/30 rounded-3xl p-10 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8 text-left dark:bg-[#1a2d47]/20 border border-[#d0e4ff]/10">
+                                <div className="max-w-xl">
+                                    <h3 className="text-2xl font-black text-[#061445] dark:text-white mb-2">
+                                        Ready to find your voice?
                                     </h3>
-                                    <p className="mx-auto max-w-xs text-sm leading-relaxed text-muted-foreground">
-                                        {item.desc}
+                                    <p className="text-sm text-[#45464f] dark:text-[#A0A0B0]">
+                                        Join thousands of students who have improved their fluency with ConvoMate's personalized teaching approach.
                                     </p>
                                 </div>
-                            ))}
+                                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                                    <Link
+                                        href={register()}
+                                        className="bg-[#061445] text-white px-8 py-4 rounded-xl font-bold shadow-md hover:bg-[#061445]/90 transition-all text-center dark:bg-[#d0e4ff] dark:text-[#061445] dark:hover:bg-[#d0e4ff]/90"
+                                    >
+                                        Start Free Trial
+                                    </Link>
+                                    <a
+                                        href="#teachers"
+                                        className="bg-white border-2 border-[#061445]/15 text-[#061445] px-8 py-4 rounded-xl font-bold hover:bg-[#d0e4ff]/20 transition-all text-center dark:bg-[#080811] dark:border-white/10 dark:text-[#E8E8F0]"
+                                    >
+                                        View Teachers
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                {/* ── Teacher Showcase ── */}
-                <section id="teachers" className="relative py-20 lg:py-28">
-                    <div className="pointer-events-none absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-purple-500/5 blur-[100px]" />
-                    <div className="mx-auto max-w-7xl px-6">
-                        <div className="space-y-4 text-center">
-                            <h2 className="text-3xl font-black tracking-tight md:text-4xl lg:text-5xl">
+                    {/* ── Teacher Directory Section with Live Filtering ── */}
+                    <section id="teachers" className="px-6 py-24 max-w-7xl mx-auto">
+                        <div className="text-center mb-16 space-y-4">
+                            <h2 className="font-sans text-4xl font-black text-[#061445] dark:text-white">
                                 {t('welcome.teachers_title')}{' '}
-                                <span className="text-indigo-500">
+                                <span className="relative inline-block z-10 whitespace-nowrap">
                                     {t('welcome.teachers_title_highlight')}
+                                    {/* Yellow Highlight Line */}
+                                    <span className="absolute bottom-1 left-0 w-full h-2 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
                                 </span>
                             </h2>
-                            <p className="mx-auto max-w-2xl text-muted-foreground">
+                            <p className="text-lg text-[#45464f] max-w-2xl mx-auto dark:text-[#A0A0B0]">
                                 {t('welcome.teachers_subtitle')}
                             </p>
                         </div>
 
-                        <div className="mt-16 grid gap-8 md:grid-cols-3">
-                            {[
-                                {
-                                    name: 'Sarah Thompson',
-                                    level: 'IELTS 9.0 · Speaking 9.0',
-                                    exp: '5 years',
-                                    rating: 4.9,
-                                    reviews: 142,
-                                    initials: 'ST',
-                                    gradient:
-                                        'from-indigo-400 via-indigo-500 to-blue-500',
-                                },
-                                {
-                                    name: 'James Wilson',
-                                    level: 'CEFR C2 · IELTS 8.5',
-                                    exp: '3 years',
-                                    rating: 4.8,
-                                    reviews: 98,
-                                    initials: 'JW',
-                                    gradient:
-                                        'from-purple-400 via-purple-500 to-pink-500',
-                                },
-                                {
-                                    name: 'Emma Davis',
-                                    level: 'IELTS 8.5 · Speaking 8.5',
-                                    exp: '7 years',
-                                    rating: 5.0,
-                                    reviews: 231,
-                                    initials: 'ED',
-                                    gradient:
-                                        'from-emerald-400 via-emerald-500 to-teal-500',
-                                },
-                            ].map((teacher) => (
+                        {/* Interactive Filter Bar */}
+                        <div className="mb-10 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                            {/* specialty filter buttons */}
+                            <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
+                                {Object.keys(specialtyLabels).map((key) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setSelectedSpecialty(key)}
+                                        className={`px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                                            selectedSpecialty === key
+                                                ? 'bg-[#fae18e] text-[#061445] border-2 border-[#061445] dark:border-[#fae18e]'
+                                                : 'bg-[#d0e4ff]/30 text-[#061445] hover:bg-[#d0e4ff]/50 dark:bg-white/5 dark:text-[#A0A0B0] dark:hover:bg-white/10'
+                                        }`}
+                                    >
+                                        {specialtyLabels[key][currentLang]}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Search Box */}
+                            <div className="flex items-center gap-3 w-full md:w-80">
+                                <div className="relative w-full">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#061445]/40 dark:text-[#A0A0B0] w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder={searchPlaceholder[currentLang]}
+                                        className="w-full bg-[#d0e4ff]/10 border border-[#d0e4ff]/30 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-[#061445] focus:outline-none dark:bg-white/5 dark:border-white/10 dark:text-white"
+                                    />
+                                </div>
+                                <button className="flex items-center justify-center p-3 rounded-xl bg-[#d0e4ff]/30 text-[#061445] hover:bg-[#d0e4ff]/50 transition-colors dark:bg-white/5 dark:text-white">
+                                    <SlidersHorizontal className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Marketplace Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            
+                            {/* Dynamically Filtered Teacher Cards */}
+                            {filteredTeachers.map((teacher) => (
                                 <div
                                     key={teacher.name}
-                                    className="group rounded-3xl border border-border bg-card p-8 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/5"
+                                    className="group bg-white rounded-3xl p-6 border border-[#d0e4ff]/30 shadow-md hover:shadow-xl hover:border-[#fae18e] transition-all duration-300 flex flex-col justify-between dark:bg-[#0c0c16] dark:border-white/5 dark:hover:border-[#fae18e]/50"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${teacher.gradient} text-lg font-bold text-white shadow-lg shadow-indigo-500/10 transition-transform duration-300 group-hover:scale-105`}
-                                        >
-                                            {teacher.initials}
+                                    <div>
+                                        <div className="flex items-start justify-between mb-6">
+                                            <div className="relative">
+                                                <img
+                                                    className="w-20 h-20 rounded-xl object-cover border border-[#d0e4ff]/50"
+                                                    alt={teacher.name}
+                                                    src={teacher.image}
+                                                />
+                                                <div className="absolute -bottom-2 -right-2 bg-[#fae18e] text-[#061445] px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm border border-[#061445]">
+                                                    Top Pro
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <h3 className="font-bold text-lg text-[#061445] dark:text-white">
+                                                    {teacher.name}
+                                                </h3>
+                                                <div className="text-xs font-semibold text-[#45464f] dark:text-[#A0A0B0]">
+                                                    {teacher.level}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold">
-                                                {teacher.name}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {teacher.level}
-                                            </p>
+
+                                        <p className="text-sm text-[#45464f] leading-relaxed mb-6 dark:text-[#A0A0B0] line-clamp-2">
+                                            {t(teacher.descKey)}
+                                        </p>
+
+                                        <div className="flex gap-2 mb-6">
+                                            <span className="bg-[#d0e4ff]/30 text-[#061445] text-xs px-3 py-1 rounded-full font-bold dark:bg-white/5 dark:text-[#d0e4ff]">
+                                                {t(teacher.tag1Key)}
+                                            </span>
+                                            <span className="bg-[#d0e4ff]/30 text-[#061445] text-xs px-3 py-1 rounded-full font-bold dark:bg-white/5 dark:text-[#d0e4ff]">
+                                                {t(teacher.tag2Key)}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    <div className="mt-6 flex items-center justify-between border-t border-border pt-6 text-sm">
-                                        <div className="flex items-center gap-1.5">
-                                            <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                            <span className="font-bold">
-                                                {teacher.rating}
-                                            </span>
-                                            <span className="text-muted-foreground">
-                                                ({teacher.reviews} reviews)
+                                    <div className="flex items-center justify-between pt-4 border-t border-[#d0e4ff]/25 dark:border-white/5">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-1">
+                                                <Star className="w-4 h-4 fill-[#fae18e] text-[#061445] dark:text-[#fae18e]" />
+                                                <span className="font-bold text-[#061445] dark:text-white">
+                                                    {teacher.rating}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    ({teacher.reviews})
+                                                </span>
+                                            </div>
+                                            <span className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+                                                {teacher.exp} {t('welcome.teachers_experience')}
                                             </span>
                                         </div>
-                                        <span className="font-semibold text-muted-foreground">
-                                            {teacher.exp}{' '}
-                                            {t('welcome.teachers_experience')}
-                                        </span>
+
+                                        <Link
+                                            href={register()}
+                                            className="bg-[#061445] text-white px-5 py-2.5 rounded-full font-bold text-xs hover:shadow-md transition-all active:scale-95 dark:bg-[#d0e4ff] dark:text-[#061445]"
+                                        >
+                                            {bookNowBtn[currentLang]}
+                                        </Link>
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-                </section>
 
-                {/* ── CTA Section ── */}
-                <section className="relative py-20 lg:py-28">
-                    <div className="mx-auto max-w-4xl px-6 text-center">
-                        <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-12 shadow-2xl shadow-indigo-500/20 md:p-16">
-                            {/* Decorative glowing light overlays */}
-                            <div className="absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-white/10 blur-[80px] transition-transform group-hover:scale-110" />
-                            <div className="absolute bottom-0 left-0 h-[200px] w-[200px] rounded-full bg-white/10 blur-[80px] transition-transform group-hover:scale-110" />
-
-                            <h2 className="relative z-10 text-3xl font-black text-white md:text-4xl lg:text-5xl">
-                                {t('welcome.cta_ready')}
-                            </h2>
-                            <p className="relative z-10 mx-auto mt-4 max-w-lg text-lg text-indigo-100">
-                                {t('welcome.cta_sub')}
-                            </p>
-                            <Link
-                                href={register()}
-                                className="relative z-10 mt-8 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-bold text-indigo-600 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                            >
-                                {t('welcome.cta_btn')}
-                                <Zap className="h-4 w-4 fill-indigo-600" />
-                            </Link>
+                            {/* "Become a Teacher" Bento Variant Card */}
+                            <div className="group bg-[#fae18e]/10 rounded-3xl p-8 border-2 border-dashed border-[#fae18e] flex flex-col items-center justify-center text-center space-y-4 hover:bg-[#fae18e]/20 transition-all duration-300">
+                                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md dark:bg-[#0c0c16]">
+                                    <GraduationCap className="text-[#061445] w-7 h-7 dark:text-[#fae18e]" />
+                                </div>
+                                <h3 className="font-bold text-lg text-[#061445] dark:text-white">
+                                    {becomeTeacherTitle[currentLang]}
+                                </h3>
+                                <p className="text-xs text-[#45464f] dark:text-[#A0A0B0] max-w-[220px] leading-relaxed">
+                                    {becomeTeacherDesc[currentLang]}
+                                </p>
+                                <button className="bg-[#fae18e] text-[#061445] border border-[#061445] px-6 py-2.5 rounded-full font-bold text-xs shadow-md transition-transform active:scale-95 hover:bg-[#fae18e]/95">
+                                    {becomeTeacherBtn[currentLang]}
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </section>
+
+                        {/* Final CTA Card (Navy Background / Yellow Button) */}
+                        <div className="mt-24 bg-[#061445] text-white rounded-3xl p-12 relative overflow-hidden shadow-2xl dark:bg-[#0c1f60]">
+                            {/* Decorative graphic SVG lines overlay */}
+                            <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+                                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <circle cx="80" cy="20" fill="white" r="40"></circle>
+                                    <circle cx="100" cy="80" fill="white" r="30"></circle>
+                                </svg>
+                            </div>
+                            <div className="relative z-10 md:flex items-center justify-between">
+                                <div className="max-w-xl mb-8 md:mb-0">
+                                    <h2 className="text-3xl font-black mb-4">
+                                        {t('welcome.features_cta_ready')}
+                                    </h2>
+                                    <p className="text-sm text-[#d0e4ff] leading-relaxed opacity-95">
+                                        {t('welcome.features_cta_sub')}
+                                    </p>
+                                </div>
+                                <Link
+                                    href={register()}
+                                    className="bg-[#fae18e] text-[#061445] px-8 py-4 rounded-xl font-bold shadow-lg hover:scale-105 transition-all text-center inline-block whitespace-nowrap"
+                                >
+                                    {t('welcome.features_cta_btn')}
+                                </Link>
+                            </div>
+                        </div>
+                    </section>
+                </main>
 
                 {/* ── Footer ── */}
-                <footer className="border-t border-border bg-white py-12 dark:bg-[#080811]">
+                <footer className="border-t border-[#d0e4ff]/30 bg-white py-12 dark:bg-[#080811] dark:border-white/5">
                     <div className="mx-auto max-w-7xl px-6">
                         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
                             <div className="flex items-center gap-2.5">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
-                                    <Mic className="h-4 w-4 text-white" />
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#061445]/10 bg-white shadow-md shadow-[#061445]/10">
+                                    <img src="/logo.png" alt="ConvoMate" className="h-full w-full object-cover" />
                                 </div>
-                                <span className="text-sm font-black tracking-tight">
-                                    Speak
-                                    <span className="text-indigo-500">
-                                        Flow
-                                    </span>
+                                <span className="text-sm font-black tracking-tight text-[#061445] dark:text-[#E8E8F0]">
+                                    Convo<span className="text-[#f5c518] dark:text-[#f5c518]">Mate</span>
                                 </span>
                             </div>
-                            <p className="text-sm font-medium text-muted-foreground">
-                                © {new Date().getFullYear()} SpeakFlow.{' '}
-                                {t('welcome.footer_rights')}
+                            <p className="text-xs font-semibold text-muted-foreground">
+                                © {new Date().getFullYear()} ConvoMate. {t('welcome.footer_rights')}
                             </p>
                         </div>
                     </div>

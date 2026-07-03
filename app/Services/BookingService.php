@@ -27,6 +27,23 @@ class BookingService
 
         return DB::transaction(function () use ($pupil, $teacher, $startAt, $endAt, $meta) {
 
+            if (is_null($pupil->role)) {
+                $pupil->update(['role' => 'pupil',]);
+            }
+            
+            if(!$pupil->pupilProfile()->exists()) {
+                $pupil->pupilProfile()->create([]);
+                $pupil->load('pupilProfile');
+            }
+
+            if (is_null($teacher->role)) {
+                $teacher->update(['role' => 'teacher']);
+            }
+
+            if (! $teacher->teacherProfile()->exists()) {
+                $teacher->teacherProfile()->create([]);
+            }
+
             $start = Carbon::parse($startAt);
             $end = Carbon::parse($endAt);
 

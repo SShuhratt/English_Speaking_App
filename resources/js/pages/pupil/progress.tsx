@@ -127,8 +127,7 @@ export default function Progress({ progress }: Props) {
                         </div>
                         <p className="mt-3 text-xs font-semibold text-muted-foreground">
                             Completed {progress.completed_sessions} out of{' '}
-                            {progress.total_sessions} scheduled lessons on
-                            SpeakFlow.
+                            {progress.total_sessions} scheduled lessons on ConvoMate.
                         </p>
                     </div>
                 )}

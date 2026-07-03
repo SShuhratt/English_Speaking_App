@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ConvoMate - Speak English Fluently</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#505c8e",
+                        "tertiary-container": "#fae18e", // Adjusted to match "Butter Yellow" intent
+                        "background": "#ffffff",
+                        "on-primary-container": "#8792c9",
+                        "on-tertiary": "#061445",
+                        "secondary": "#44617e",
+                        "surface-container-high": "#eae7ec",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#acc9eb",
+                        "tertiary-fixed-dim": "#ddc575",
+                        "surface-variant": "#e4e1e6",
+                        "surface-container": "#efedf2",
+                        "on-background": "#1b1b1f",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#f2f0f5",
+                        "secondary-container": "#d0e4ff", // Pale Blue Tint
+                        "on-tertiary-container": "#4c3e00",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#dbd9de",
+                        "surface-container-highest": "#e4e1e6",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1b1b1f",
+                        "on-secondary-fixed-variant": "#2c4965",
+                        "primary-fixed-dim": "#b8c4fe",
+                        "on-primary-fixed-variant": "#384475",
+                        "on-error-container": "#93000a",
+                        "surface": "#ffffff",
+                        "surface-bright": "#ffffff",
+                        "outline-variant": "#c6c5d0",
+                        "on-secondary-container": "#45617f",
+                        "on-surface-variant": "#45464f",
+                        "outline": "#767680",
+                        "on-secondary-fixed": "#001d34",
+                        "primary-fixed": "#dde1ff",
+                        "on-tertiary-fixed": "#231b00",
+                        "tertiary": "#fae18e", // Butter Yellow
+                        "inverse-surface": "#303034",
+                        "inverse-primary": "#b8c4fe",
+                        "primary": "#061445", // Navy
+                        "on-tertiary-fixed-variant": "#554500",
+                        "surface-container-low": "#f5f3f7",
+                        "primary-container": "#1e2a5a",
+                        "tertiary-fixed": "#fae18e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d0e4ff",
+                        "on-primary-fixed": "#091747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "1.5rem", // 24px as per prompt
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["56px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-lg": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        
+        /* Custom UI Elements */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .ambient-lift {
+            box-shadow: 0 12px 40px -12px rgba(30, 42, 90, 0.08);
+        }
+
+        .butter-underline {
+            box-shadow: inset 0 -12px 0 0 #fae18e;
+        }
+    </style>
+</head>
+<body class="bg-background text-primary font-body-md overflow-x-hidden selection:bg-tertiary-fixed selection:text-primary">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md">
+<nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-5 max-w-container-max mx-auto">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-label-md text-label-md text-primary border-b-2 border-tertiary pb-1 transition-all" href="#">Features</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">How It Works</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Teachers</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-label-md text-label-md text-primary px-4 py-2 hover:bg-secondary-container rounded-lg transition-all">Log in</button>
+<button class="bg-tertiary text-primary font-label-md text-label-md px-6 py-3 rounded-lg font-bold hover:shadow-lg active:scale-95 transition-all">Get Started</button>
+</div>
+</nav>
+</header>
+<main class="pt-24 min-h-screen">
+<!-- Hero Section -->
+<section class="relative px-margin-mobile md:px-margin-desktop py-16 md:py-24 max-w-container-max mx-auto">
+<!-- Background Band -->
+<div class="absolute inset-0 top-0 h-[85%] bg-secondary-container/30 -z-10 rounded-[3rem] mx-4 md:mx-0"></div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<!-- Content Column -->
+<div class="lg:col-span-6 space-y-8">
+<div class="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full ambient-lift">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-label-md font-label-md text-primary">#1 Ranked Language Platform</span>
+</div>
+<h1 class="font-display-lg text-display-lg md:text-[64px] text-primary leading-[1.1]">
+                        Speak English <br/>
+<span class="butter-underline">Fluently</span> Today
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">
+                        Book 1-on-1 speaking sessions with certified English teachers. Practice real conversations and get instant AI-powered feedback—all via Google Meet.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4 pt-4">
+<button class="bg-primary text-white h-14 px-8 rounded-lg flex items-center justify-center gap-2 font-bold hover:bg-primary/90 transition-all active:scale-95">
+                            Start Speaking Today
+                            <span class="material-symbols-outlined">bolt</span>
+</button>
+<button class="bg-white border-2 border-primary/10 text-primary h-14 px-8 rounded-lg flex items-center justify-center gap-2 font-bold hover:bg-secondary-container/20 transition-all">
+                            View Teachers
+                        </button>
+</div>
+<div class="flex flex-wrap gap-8 pt-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="text-label-md font-label-md text-on-surface-variant">2,500+ Learners</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-label-md font-label-md text-on-surface-variant">4.9/5 Average</span>
+</div>
+</div>
+</div>
+<!-- Visual Column -->
+<div class="lg:col-span-6 relative">
+<!-- Main Video Call Visual -->
+<div class="relative bg-white p-4 rounded-lg ambient-lift border border-secondary-container/50 overflow-hidden">
+<!-- Mock Video Feed Container -->
+<div class="grid grid-cols-2 gap-3 aspect-video">
+<!-- Teacher Feed -->
+<div class="relative rounded-lg overflow-hidden bg-secondary-container/20 aspect-square group">
+<img class="w-full h-full object-cover" data-alt="A portrait of a smiling female English teacher in a bright, modern minimalist office setting. She is wearing a professional yet friendly outfit, sitting in front of a laptop. The lighting is soft, warm, and sun-drenched, creating an inviting educational atmosphere with high-key whites and subtle navy accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2XLftemZ5TAP_21DqZkHVpVLWepGEfQ00ARVxd9B7YKdWvmgxsoALkGQ2oUmOkMWv5c_rGxgDH_ws_pnU9BhzLnHjWpIqr5B9LdSMDEL872u9nO10wfUr_YIx7XFltYgXrHEaOKPy2UyrXzPv2sb4-RS58HvR0226wiUSSvm9dEg_T76Bc7Ta_QZCMb5ztLyLmBm8d7x5H9DkUxE4GIsoWuJq43xyawaALSSVmfoqxdYYMyZNZ7U5zw"/>
+<div class="absolute bottom-3 left-3 bg-primary/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">public</span>
+                                    Sarah M. (UK)
+                                </div>
+</div>
+<!-- Student Feed -->
+<div class="relative rounded-lg overflow-hidden bg-secondary-container/20 aspect-square">
+<img class="w-full h-full object-cover" data-alt="A portrait of a young male student in a minimalist, light-filled bedroom, smiling at his computer screen while wearing headphones. The room has clean white walls and simple wooden furniture. The aesthetic is modern and professional, following a light-mode palette with butter yellow highlights on the desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhujsEFUDvRAaFMwwWE_B7_HZbSZhuomMvsCA2kNw38-q1C56nEdPKa1Y6HSOnExpxOG9spZFt93oBoqD69ywneJ0Aal-sge2gIUw3TCdrCIlWULKSVyanKWGHCWbWfCunIRWU5PV5fiRcRfWUIk7OPcJ-IDK9MbBhDKDSxDNx3VJEnYu0wzao_4PZSJZNEqoU0kI0FbMbZFgWzoeOKUmr2Fhzk9CqDw0YP69BGiAeRE6bU-KmVsbVXQ"/>
+<div class="absolute bottom-3 left-3 bg-primary/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">person</span>
+                                    David L. (US)
+                                </div>
+</div>
+</div>
+<!-- UI Overlays -->
+<div class="absolute top-8 right-8 flex flex-col gap-3">
+<div class="bg-tertiary text-primary px-4 py-2 rounded-lg font-bold text-label-md ambient-lift animate-pulse">
+                                Live Practice
+                            </div>
+</div>
+<!-- Feedback Chip -->
+<div class="absolute bottom-10 left-1/2 -translate-x-1/2 glass-panel p-4 rounded-lg flex items-center gap-4 ambient-lift min-w-[280px]">
+<div class="w-10 h-10 rounded-full bg-tertiary flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+<div>
+<div class="text-label-sm text-on-surface-variant">Real-time Feedback</div>
+<div class="text-label-md font-bold text-primary">CEFR Level: B2 Advanced</div>
+</div>
+</div>
+<!-- Interaction Buttons -->
+<div class="flex justify-center gap-4 mt-6">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-primary cursor-pointer hover:bg-tertiary transition-all">
+<span class="material-symbols-outlined">mic</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-primary cursor-pointer hover:bg-tertiary transition-all">
+<span class="material-symbols-outlined">videocam</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-error flex items-center justify-center text-white cursor-pointer hover:opacity-90 transition-all">
+<span class="material-symbols-outlined">call_end</span>
+</div>
+</div>
+</div>
+<!-- Floating decorative element 1 (Chat Bubble) -->
+<div class="absolute -top-6 -left-6 bg-white p-4 rounded-lg ambient-lift border border-secondary-container/50 hidden md:block">
+<div class="flex gap-2 items-start max-w-[140px]">
+<div class="w-6 h-6 bg-tertiary rounded-full flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">chat</span>
+</div>
+<p class="text-label-sm leading-tight text-primary">"Focus on word stress here."</p>
+</div>
+</div>
+<!-- Floating decorative element 2 (Vocabulary) -->
+<div class="absolute -bottom-4 -right-4 bg-white p-5 rounded-lg ambient-lift border border-secondary-container/50 hidden md:block">
+<div class="space-y-2">
+<div class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Lesson Topic</div>
+<div class="text-headline-md font-bold text-primary">Business English</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-secondary-container/40 rounded text-[10px] font-bold text-primary">NEGOTIATION</span>
+<span class="px-2 py-1 bg-secondary-container/40 rounded text-[10px] font-bold text-primary">STRATEGY</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Bento Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-24 max-w-container-max mx-auto">
+<div class="text-center mb-16 space-y-4">
+<h2 class="font-headline-lg text-headline-lg text-primary">Everything you need to <span class="butter-underline">master</span> English</h2>
+<p class="text-on-surface-variant max-w-2xl mx-auto">Designed for professionals and lifelong learners who value quality and efficiency.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="md:col-span-2 bg-white p-8 rounded-lg ambient-lift border border-secondary-container/20 group hover:border-tertiary transition-all duration-300">
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="space-y-4 flex-1">
+<div class="w-12 h-12 bg-secondary-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">record_voice_over</span>
+</div>
+<h3 class="font-headline-md text-headline-md">AI-Powered Conversation Analysis</h3>
+<p class="text-on-surface-variant">Our engine analyzes your pronunciation and grammar during live sessions, providing personalized corrections instantly.</p>
+</div>
+<div class="flex-1 w-full bg-secondary-container/20 rounded-lg p-6 relative overflow-hidden">
+<div class="space-y-3">
+<div class="h-2 w-3/4 bg-primary/10 rounded"></div>
+<div class="h-2 w-1/2 bg-tertiary rounded"></div>
+<div class="h-2 w-2/3 bg-primary/10 rounded"></div>
+</div>
+<div class="absolute top-2 right-2 bg-white px-2 py-1 rounded text-[10px] font-bold">ACCURACY 94%</div>
+</div>
+</div>
+</div>
+<div class="bg-tertiary p-8 rounded-lg ambient-lift text-primary flex flex-col justify-between">
+<div class="space-y-4">
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<h3 class="font-headline-md text-headline-md">Flexible Scheduling</h3>
+<p class="text-primary/80">Book sessions 24/7 across any time zone. Your learning never stops.</p>
+</div>
+<div class="mt-8 flex -space-x-2">
+<div class="w-10 h-10 rounded-full border-2 border-tertiary bg-white"></div>
+<div class="w-10 h-10 rounded-full border-2 border-tertiary bg-white"></div>
+<div class="w-10 h-10 rounded-full border-2 border-tertiary bg-white"></div>
+<div class="w-10 h-10 rounded-full border-2 border-tertiary bg-primary text-white flex items-center justify-center text-[10px]">+12</div>
+</div>
+</div>
+<div class="bg-white p-8 rounded-lg ambient-lift border border-secondary-container/20">
+<div class="space-y-4">
+<div class="w-12 h-12 bg-secondary-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<h3 class="font-headline-md text-headline-md">Topic Discovery</h3>
+<p class="text-on-surface-variant">Choose from 500+ topics from technology to daily life idioms.</p>
+</div>
+</div>
+<div class="md:col-span-2 bg-secondary-container/40 p-8 rounded-lg flex items-center justify-between overflow-hidden relative">
+<div class="space-y-4 z-10">
+<h3 class="font-headline-md text-headline-md">Integrated with Google Meet</h3>
+<p class="text-on-surface-variant max-w-sm">No new software to install. Use the tools you already know and love for your sessions.</p>
+</div>
+<div class="absolute -right-8 top-1/2 -translate-y-1/2 opacity-20">
+<span class="material-symbols-outlined text-[200px]">video_call</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full rounded-t-lg bg-surface-container-low mt-24">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto gap-gutter">
+<div class="flex flex-col items-center md:items-start gap-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</span>
+</div>
+<p class="text-on-surface-variant text-label-md">© 2024 ConvoMate. All rights reserved.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">About Us</a>
+<a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Privacy Policy</a>
+<a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Terms of Service</a>
+<a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Help Center</a>
+<a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Careers</a>
+</div>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary hover:bg-tertiary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">share</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary hover:bg-tertiary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">language</span>
+</div>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for the video call mock
+        document.querySelectorAll('.aspect-square').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'scale(1.02)';
+                card.style.transition = 'transform 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

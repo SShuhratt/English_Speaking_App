@@ -77,6 +77,8 @@ export default function Profile({
     const [uploadedCerts, setUploadedCerts] =
         React.useState<string[]>(initialUploadedCerts);
 
+    const [activeModalCert, setActiveModalCert] = React.useState<string | null>(null);
+
     return (
         <>
             <Head title={t('profile.title')} />
@@ -344,125 +346,142 @@ export default function Profile({
 
                                             {uploadedCerts.length > 0 && (
                                                 <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                    {uploadedCerts.map(
-                                                        (cert, index) => {
-                                                            const isImg =
-                                                                isImageFile(
-                                                                    cert,
-                                                                );
-                                                            const isPdf =
-                                                                isPdfFile(cert);
-                                                            return (
-                                                                <div
-                                                                    key={index}
-                                                                    className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-muted/20 p-2.5 transition-all hover:shadow-sm"
-                                                                >
-                                                                    {isImg ? (
-                                                                        <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
-                                                                            <img
-                                                                                src={
-                                                                                    cert
-                                                                                }
-                                                                                alt="Certificate"
-                                                                                className="h-full w-full object-cover"
-                                                                            />
-                                                                            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                                                                                <a
-                                                                                    href={
-                                                                                        cert
-                                                                                    }
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="scale-90 rounded-lg bg-white/95 p-1.5 text-slate-800 transition-all group-hover:scale-100 hover:bg-white"
-                                                                                >
-                                                                                    <ExternalLink className="h-4 w-4" />
-                                                                                </a>
-                                                                            </div>
-                                                                        </div>
-                                                                    ) : isPdf ? (
-                                                                        <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white">
-                                                                            <iframe
-                                                                                src={`${cert}#toolbar=0&navpanes=0`}
-                                                                                className="pointer-events-none h-full w-full border-0"
-                                                                            />
-                                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 p-2 text-center opacity-0 transition-opacity group-hover:opacity-100">
-                                                                                <span className="mb-1 max-w-full truncate px-2 text-[10px] font-semibold text-white">
-                                                                                    {cert.substring(
-                                                                                        cert.lastIndexOf(
-                                                                                            '/',
-                                                                                        ) +
-                                                                                            1,
-                                                                                    )}
-                                                                                </span>
-                                                                                <a
-                                                                                    href={
-                                                                                        cert
-                                                                                    }
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="scale-90 rounded-lg bg-white/95 p-1.5 text-slate-800 transition-all group-hover:scale-100 hover:bg-white"
-                                                                                >
-                                                                                    <ExternalLink className="h-4 w-4" />
-                                                                                </a>
-                                                                            </div>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="flex aspect-video w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/80 bg-muted/40 p-2">
-                                                                            <FileText className="h-8 w-8 text-indigo-500/80" />
-                                                                            <span className="max-w-full truncate px-2 text-[10px] font-bold text-muted-foreground">
-                                                                                {cert.substring(
-                                                                                    cert.lastIndexOf(
-                                                                                        '/',
-                                                                                    ) +
-                                                                                        1,
-                                                                                )}
-                                                                            </span>
-                                                                            <a
-                                                                                href={
-                                                                                    cert
-                                                                                }
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:underline"
+                                                    {uploadedCerts.map((cert, index) => {
+                                                        const isImg = isImageFile(cert);
+                                                        const isPdf = isPdfFile(cert);
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-muted/20 p-2.5 transition-all hover:shadow-sm"
+                                                            >
+                                                                {isImg ? (
+                                                                    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
+                                                                        <img
+                                                                            src={cert}
+                                                                            alt="Certificate Thumbnail"
+                                                                            className="h-full w-full object-cover"
+                                                                        />
+                                                                        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                                                                            {/* Clicking triggers the inline modal overlay frame popup window state */}
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setActiveModalCert(cert)}
+                                                                                className="scale-90 rounded-lg bg-white/95 p-1.5 text-slate-800 transition-all group-hover:scale-100 hover:bg-white"
                                                                             >
-                                                                                View
-                                                                                Document{' '}
-                                                                                <ExternalLink className="h-3 w-3" />
-                                                                            </a>
+                                                                                <ExternalLink className="h-4 w-4" />
+                                                                            </button>
                                                                         </div>
-                                                                    )}
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() =>
-                                                                            setUploadedCerts(
-                                                                                (
-                                                                                    prev,
-                                                                                ) =>
-                                                                                    prev.filter(
-                                                                                        (
-                                                                                            _,
-                                                                                            i,
-                                                                                        ) =>
-                                                                                            i !==
-                                                                                            index,
-                                                                                    ),
-                                                                            )
-                                                                        }
-                                                                        className="absolute top-2.5 right-2.5 rounded-full bg-red-500 p-1 text-white opacity-0 shadow transition-all group-hover:opacity-100 hover:bg-red-600 focus:opacity-100 focus:outline-none"
+                                                                    </div>
+                                                                ) : isPdf ? (
+                                                                    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white">
+                                                                        <iframe
+                                                                            src={`${cert}#toolbar=0&navpanes=0`}
+                                                                            className="pointer-events-none h-full w-full border-0"
+                                                                        />
+                                                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 p-2 text-center opacity-0 transition-opacity group-hover:opacity-100">
+                                                                            <span className="mb-1 max-w-full truncate px-2 text-[10px] font-semibold text-white">
+                                                                                {cert.substring(cert.lastIndexOf('/') + 1)}
+                                                                            </span>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setActiveModalCert(cert)}
+                                                                                className="scale-90 rounded-lg bg-white/95 p-1.5 text-slate-800 transition-all group-hover:scale-100 hover:bg-white"
+                                                                            >
+                                                                                <ExternalLink className="h-4 w-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex aspect-video w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/80 bg-muted/40 p-2">
+                                                                        <FileText className="h-8 w-8 text-indigo-500/80" />
+                                                                        <span className="max-w-full truncate px-2 text-[10px] font-bold text-muted-foreground">
+                                                                            {cert.substring(cert.lastIndexOf('/') + 1)}
+                                                                        </span>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setActiveModalCert(cert)}
+                                                                            className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:underline"
+                                                                        >
+                                                                            View Document <ExternalLink className="h-3 w-3" />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setUploadedCerts((prev) =>
+                                                                            prev.filter((_, i) => i !== index),
+                                                                        )
+                                                                    }
+                                                                    className="absolute top-2.5 right-2.5 rounded-full bg-red-500 p-1 text-white opacity-0 shadow transition-all group-hover:opacity-100 hover:bg-red-600 focus:opacity-100 focus:outline-none"
+                                                                >
+                                                                    <Trash2 className="h-3 w-3" />
+                                                                </button>
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="existing_certificates[]"
+                                                                    value={cert}
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {activeModalCert && (
+                                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs transition-opacity animate-fade-in">
+                                                    <div className="relative flex h-[85vh] w-full max-w-5xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden">
+
+                                                        <div className="flex items-center justify-between border-b px-6 py-4 bg-slate-50">
+                                                            <h4 className="text-sm font-semibold text-slate-800 truncate pr-4">
+                                                                Document Viewer: {activeModalCert.substring(activeModalCert.lastIndexOf('/') + 1).split('?')[0]}
+                                                            </h4>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setActiveModalCert(null)}
+                                                                className="rounded-full p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors focus:outline-none"
+                                                            >
+                                                                <span className="text-xl font-bold leading-none block w-5 h-5">×</span>
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="flex-1 bg-slate-100 p-4 flex items-center justify-center overflow-auto">
+                                                            {isImageFile(activeModalCert) ? (
+                                                                <img
+                                                                    src={activeModalCert}
+                                                                    alt="Certificate Full View"
+                                                                    className="max-h-full max-w-full object-contain rounded-lg shadow-sm"
+                                                                />
+                                                            ) : isPdfFile(activeModalCert) ? (
+                                                                <iframe
+                                                                    src={`${activeModalCert}#toolbar=1`}
+                                                                    className="h-full w-full border-0 rounded-lg bg-white"
+                                                                    title="PDF Certificate Viewer"
+                                                                />
+                                                            ) : (
+                                                                <div className="text-center p-8 bg-white rounded-xl shadow-xs border">
+                                                                    <FileText className="h-16 w-16 text-indigo-500 mx-auto mb-4 animate-pulse" />
+                                                                    <p className="text-sm font-medium text-slate-700 mb-4">
+                                                                        Preview generation unavailable for this specific file format.
+                                                                    </p>
+                                                                    <a
+                                                                        href={activeModalCert}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
                                                                     >
-                                                                        <Trash2 className="h-3 w-3" />
-                                                                    </button>
-                                                                    <input
-                                                                        type="hidden"
-                                                                        name="existing_certificates[]"
-                                                                        value={
-                                                                            cert
-                                                                        }
-                                                                    />
+                                                                        Download Raw Document <ExternalLink className="h-4 w-4" />
+                                                                    </a>
                                                                 </div>
-                                                            );
-                                                        },
-                                                    )}
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        className="absolute inset-0 -z-10 cursor-pointer"
+                                                        onClick={() => setActiveModalCert(null)}
+                                                    />
                                                 </div>
                                             )}
                                         </div>
@@ -683,7 +702,7 @@ export default function Profile({
                                                                                         cert.lastIndexOf(
                                                                                             '/',
                                                                                         ) +
-                                                                                            1,
+                                                                                        1,
                                                                                     )}
                                                                                 </span>
                                                                                 <a
@@ -706,7 +725,7 @@ export default function Profile({
                                                                                     cert.lastIndexOf(
                                                                                         '/',
                                                                                     ) +
-                                                                                        1,
+                                                                                    1,
                                                                                 )}
                                                                             </span>
                                                                             <a
@@ -778,10 +797,10 @@ export default function Profile({
 
                                         {status ===
                                             'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                {t('profile.resend_sent')}
-                                            </div>
-                                        )}
+                                                <div className="mt-2 text-sm font-medium text-green-600">
+                                                    {t('profile.resend_sent')}
+                                                </div>
+                                            )}
                                     </div>
                                 )}
 

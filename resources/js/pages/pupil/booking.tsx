@@ -189,7 +189,7 @@ export default function Booking({ teacher }: Props) {
         return (
             <div className="space-y-2 mt-4 border-t pt-3">
                 <Label className="text-xs font-semibold text-foreground">
-                    {t('booking.select_topics') || 'Select Speaking Topics'} <span className="text-destructive">*</span>
+                    {t('Select Speaking Topics')} <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex flex-wrap gap-2">
                     {labels.map((lbl: string) => {
@@ -205,11 +205,10 @@ export default function Booking({ teacher }: Props) {
                                         setSelectedTopics([...selectedTopics, lbl]);
                                     }
                                 }}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                                    isChecked
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${isChecked
                                         ? 'bg-indigo-600 text-white shadow-sm'
                                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                }`}
+                                    }`}
                             >
                                 {lbl}
                             </button>
@@ -220,13 +219,12 @@ export default function Booking({ teacher }: Props) {
                         onClick={() => {
                             setOtherChecked(!otherChecked);
                         }}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                            otherChecked
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${otherChecked
                                 ? 'bg-indigo-600 text-white shadow-sm'
                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        }`}
+                            }`}
                     >
-                        {t('booking.other_topic') || 'Other'}
+                        {t('Other')}
                     </button>
                 </div>
 
@@ -234,7 +232,7 @@ export default function Booking({ teacher }: Props) {
                     <div className="mt-2">
                         <Input
                             type="text"
-                            placeholder={t('booking.custom_topic_placeholder') || 'Enter custom topic...'}
+                            placeholder={t('Enter custom topic...')}
                             value={customTopic}
                             onChange={(e) => setCustomTopic(e.target.value)}
                             className="text-xs rounded-xl"
@@ -251,7 +249,7 @@ export default function Booking({ teacher }: Props) {
 
         const finalTopics = getFinalTopics();
         if (finalTopics.length === 0) {
-            toast.error(t('booking.topics_required') || 'Please select at least one topic');
+            toast.error(t('Please select at least one topic'));
             return;
         }
 
@@ -261,7 +259,7 @@ export default function Booking({ teacher }: Props) {
         if (confirmingSlot.is_all_time) {
             const dates = getSelectedStartAndEnd();
             if (!dates || !validateSelectedRange()) {
-                toast.error(t('booking.invalid_range'));
+                toast.error(t('Invalid range of time for teacher availability. Please select a valid range'));
                 return;
             }
             startAt = dates.start.toISOString();
@@ -368,7 +366,7 @@ export default function Booking({ teacher }: Props) {
                 }));
             }
         } catch (error) {
-            toast.error('Failed to load slots');
+            toast.error(t('Failed to load slots'));
         } finally {
             setLoading(false);
         }
@@ -399,10 +397,10 @@ export default function Booking({ teacher }: Props) {
                 end_at: slot.end_at,
                 topics: slot.topics,
             });
-            toast.success(t('booking.success'));
+            toast.success('Booking successful');
             fetchSlots();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || t('booking.failed'));
+            toast.error(error.response?.data?.message || 'Failed to book');
         } finally {
             setBooking(false);
         }
@@ -417,7 +415,7 @@ export default function Booking({ teacher }: Props) {
 
         const finalTopics = getFinalTopics();
         if (finalTopics.length === 0) {
-            toast.error(t('booking.topics_required') || 'Please select at least one topic');
+            toast.error('Please select at least one topic');
             return;
         }
 
@@ -460,7 +458,7 @@ export default function Booking({ teacher }: Props) {
                 end_at: endAt,
                 topics: finalTopics,
             });
-            toast.success(t('booking.custom_success'));
+            toast.success('Booking is successful');
             fetchSlots();
             setCustomStartTime('');
             setCustomEndTime('');
@@ -468,7 +466,7 @@ export default function Booking({ teacher }: Props) {
             setOtherChecked(false);
             setCustomTopic('');
         } catch (error: any) {
-            toast.error(error.response?.data?.message || t('booking.failed'));
+            toast.error(error.response?.data?.message || 'Failed to book');
         } finally {
             setBooking(false);
         }
@@ -809,13 +807,12 @@ export default function Booking({ teacher }: Props) {
                                                 setSelectedDate(day);
                                                 setCurrentDate(day);
                                             }}
-                                            className={`relative flex aspect-square items-center justify-center rounded-full text-xs font-semibold transition-all ${
-                                                isSelected
+                                            className={`relative flex aspect-square items-center justify-center rounded-full text-xs font-semibold transition-all ${isSelected
                                                     ? 'bg-indigo-600 text-white shadow-sm'
                                                     : isToday
-                                                      ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-400'
-                                                      : 'text-foreground hover:bg-muted'
-                                            }`}
+                                                        ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                        : 'text-foreground hover:bg-muted'
+                                                }`}
                                         >
                                             <span>{day.getDate()}</span>
                                         </button>
@@ -899,14 +896,13 @@ export default function Booking({ teacher }: Props) {
                                             )}
                                         </span>
                                         <span
-                                            className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold ${
-                                                formatDateString(
-                                                    selectedDate,
-                                                ) ===
-                                                formatDateString(new Date())
+                                            className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold ${formatDateString(
+                                                selectedDate,
+                                            ) ===
+                                                    formatDateString(new Date())
                                                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                                                     : ''
-                                            }`}
+                                                }`}
                                         >
                                             {selectedDate.getDate()}
                                         </span>
@@ -941,13 +937,12 @@ export default function Booking({ teacher }: Props) {
                                                             );
                                                             setCurrentDate(day);
                                                         }}
-                                                        className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${
-                                                            isToday
+                                                        className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${isToday
                                                                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                                                                 : isSelected
-                                                                  ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400'
-                                                                  : 'text-foreground hover:bg-muted'
-                                                        }`}
+                                                                    ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                                    : 'text-foreground hover:bg-muted'
+                                                            }`}
                                                     >
                                                         {day.getDate()}
                                                     </button>
@@ -978,10 +973,10 @@ export default function Booking({ teacher }: Props) {
                                         {hour === 0
                                             ? '12 AM'
                                             : hour === 12
-                                              ? '12 PM'
-                                              : hour > 12
-                                                ? `${hour - 12} PM`
-                                                : `${hour} AM`}
+                                                ? '12 PM'
+                                                : hour > 12
+                                                    ? `${hour - 12} PM`
+                                                    : `${hour} AM`}
                                     </div>
                                 ))}
                             </div>
@@ -1068,15 +1063,15 @@ export default function Booking({ teacher }: Props) {
                                                 formatDateString(
                                                     new Date(),
                                                 ) && (
-                                                <div
-                                                    className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
-                                                    style={{
-                                                        top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
-                                                    }}
-                                                >
-                                                    <div className="-ml-1 h-2 w-2 rounded-full bg-red-500"></div>
-                                                </div>
-                                            )}
+                                                    <div
+                                                        className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                        style={{
+                                                            top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                        }}
+                                                    >
+                                                        <div className="-ml-1 h-2 w-2 rounded-full bg-red-500"></div>
+                                                    </div>
+                                                )}
                                         </div>
                                     ) : (
                                         getWeekDays(selectedDate).map(
@@ -1134,15 +1129,15 @@ export default function Booking({ teacher }: Props) {
                                                             formatDateString(
                                                                 new Date(),
                                                             ) && (
-                                                            <div
-                                                                className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
-                                                                style={{
-                                                                    top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
-                                                                }}
-                                                            >
-                                                                <div className="-ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></div>
-                                                            </div>
-                                                        )}
+                                                                <div
+                                                                    className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                                    style={{
+                                                                        top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                                    }}
+                                                                >
+                                                                    <div className="-ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></div>
+                                                                </div>
+                                                            )}
                                                     </div>
                                                 );
                                             },

@@ -26,9 +26,12 @@ export default function AuthCardLayout({
                     href={home()}
                     className="flex items-center gap-2 self-center font-medium"
                 >
-                    <div className="flex h-9 w-9 items-center justify-center">
-                        <AppLogoIcon className="size-9 fill-current text-black dark:text-white" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#061445]/10 bg-white shadow-md shadow-[#061445]/10">
+                        <img src="/logo.png" alt="ConvoMate" className="h-full w-full object-cover" />
                     </div>
+                    <span className="text-lg font-bold text-[#061445]">
+                        Convo<span className="text-[#f5c518]">Mate</span>
+                    </span>
                 </Link>
 
                 <div className="flex flex-col gap-6">

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ConvoMate - Teacher Profile Settings</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#505c8e",
+                        "tertiary-container": "#fae18e", // Butter Yellow
+                        "background": "#ffffff", // White focus as requested
+                        "on-primary-container": "#8792c9",
+                        "on-tertiary": "#061445", // Navy text for butter
+                        "secondary": "#44617e",
+                        "surface-container-high": "#eae7ec",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#acc9eb",
+                        "tertiary-fixed-dim": "#ddc575",
+                        "surface-variant": "#f1f5f9", // Pale blue tint
+                        "surface-container": "#f8fafc",
+                        "on-background": "#061445", // Navy
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#f2f0f5",
+                        "secondary-container": "#c0ddff",
+                        "on-tertiary-container": "#4c3e00",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#dbd9de",
+                        "surface-container-highest": "#e4e1e6",
+                        "on-error": "#ffffff",
+                        "on-surface": "#061445", // Navy
+                        "on-secondary-fixed-variant": "#2c4965",
+                        "primary-fixed-dim": "#b8c4fe",
+                        "on-primary-fixed-variant": "#384475",
+                        "on-error-container": "#93000a",
+                        "surface": "#ffffff",
+                        "surface-bright": "#ffffff",
+                        "outline-variant": "#A9C6E8", // Pale Blue Border
+                        "on-secondary-container": "#45617f",
+                        "on-surface-variant": "#45464f",
+                        "outline": "#A9C6E8", // Pale Blue
+                        "on-secondary-fixed": "#001d34",
+                        "primary-fixed": "#dde1ff",
+                        "on-tertiary-fixed": "#231b00",
+                        "tertiary": "#fae18e", // Butter Yellow
+                        "inverse-surface": "#303034",
+                        "inverse-primary": "#b8c4fe",
+                        "primary": "#061445", // Navy
+                        "on-tertiary-fixed-variant": "#554500",
+                        "surface-container-low": "#f5f3f7",
+                        "primary-container": "#061445", // Navy
+                        "tertiary-fixed": "#fae18e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d0e4ff",
+                        "on-primary-fixed": "#091747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "24px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #ffffff; color: #061445; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .sidebar-item-active { background-color: #f1f5f9; color: #061445; font-weight: 600; border-radius: 16px; }
+        .settings-nav-active { border-bottom: 2px solid #fae18e; color: #061445; font-weight: 700; }
+        .input-focus:focus { border-color: #061445; outline: none; box-shadow: 0 0 0 2px rgba(6, 20, 69, 0.05); }
+        .custom-shadow { box-shadow: 0 4px 20px -2px rgba(30, 42, 90, 0.08); }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation (Shell Implementation) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-body-md" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</h1>
+</div>
+<nav class="hidden md:flex items-center gap-gutter">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Features</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">How It Works</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Teachers</a>
+<button class="bg-primary text-white px-6 py-2.5 rounded-full font-label-md text-label-md active:scale-95 duration-200">Dashboard</button>
+</nav>
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</header>
+<div class="flex max-w-container-max mx-auto pt-24 min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="hidden md:flex flex-col w-64 p-gutter gap-4 border-r border-outline-variant/30">
+<div class="flex flex-col gap-2">
+<p class="px-4 py-2 text-label-sm font-label-sm text-on-surface-variant/60 uppercase tracking-widest">Platform</p>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">grid_view</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">notification_important</span>
+<span class="font-label-md text-label-md">Booking Requests</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">calendar_today</span>
+<span class="font-label-md text-label-md">My Schedule</span>
+</a>
+<a class="sidebar-item-active flex items-center gap-3 px-4 py-3" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</div>
+<div class="mt-auto p-4 bg-surface-container rounded-xl flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-primary font-bold">TM</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md">Teacher Master</span>
+<span class="text-[10px] text-on-surface-variant uppercase">Pro Account</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-margin-mobile md:px-margin-desktop py-8 bg-surface">
+<!-- Header Section -->
+<div class="mb-12">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">Settings</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage your professional account settings and preferences.</p>
+</div>
+<!-- Settings Sub-Navigation -->
+<div class="flex gap-gutter mb-10 border-b border-outline-variant/20">
+<button class="settings-nav-active pb-4 font-label-md text-label-md">Profile</button>
+<button class="text-on-surface-variant pb-4 font-label-md text-label-md hover:text-primary transition-colors">Security</button>
+<button class="text-on-surface-variant pb-4 font-label-md text-label-md hover:text-primary transition-colors">Appearance</button>
+<button class="text-on-surface-variant pb-4 font-label-md text-label-md hover:text-primary transition-colors">Notifications</button>
+</div>
+<!-- Form Content -->
+<section class="max-w-3xl">
+<!-- Basic Information -->
+<div class="mb-12">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">person</span>
+<h3 class="font-headline-md text-headline-md text-primary">Personal Profile</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Full Name</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-surface-container/30 input-focus font-body-md text-body-md" type="text" value="Teacher Master"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Email Address</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-surface-container/30 input-focus font-body-md text-body-md" type="email" value="teacher@convo-mate.com"/>
+</div>
+</div>
+</div>
+<!-- Teacher Specific Information (Bento Style Card) -->
+<div class="p-8 bg-surface-container/40 rounded-xl border border-outline-variant/30 custom-shadow mb-12">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">school</span>
+<div>
+<h3 class="font-headline-md text-headline-md text-primary leading-tight">Teacher Profile Information</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Update certifications, IELTS scores, and availability.</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Age</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-white input-focus font-body-md text-body-md" type="number" value="30"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Phone Number</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-white input-focus font-body-md text-body-md" type="tel" value="+998909876543"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Overall IELTS Level / Grade</label>
+<select class="h-14 px-5 rounded-[16px] border border-outline-variant bg-white input-focus font-body-md text-body-md appearance-none">
+<option>IELTS 8.5</option>
+<option>IELTS 9.0</option>
+<option>IELTS 8.0</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Speaking Band Score</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-white input-focus font-body-md text-body-md" type="text" value="8.5"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Years of Experience</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-white input-focus font-body-md text-body-md" type="number" value="5"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Current Workplace / Institution</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-white input-focus font-body-md text-body-md" placeholder="e.g. British Council" type="text"/>
+</div>
+<div class="md:col-span-2 flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Certificates (Comma-separated)</label>
+<input class="h-14 px-5 rounded-[16px] border border-outline-variant bg-white input-focus font-body-md text-body-md" type="text" value="CELTA, IELTS Trainer, TESOL"/>
+</div>
+<div class="md:col-span-2 flex flex-col gap-2">
+<label class="font-label-md text-label-md text-primary ml-1">Upload IELTS Certificate(s)</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-white hover:bg-surface-variant transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-[48px] text-outline-variant group-hover:text-primary transition-colors mb-3">cloud_upload</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Click to upload or drag and drop</p>
+<p class="text-[10px] text-on-surface-variant/60 mt-1 uppercase">PDF, PNG, JPG up to 10MB</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="flex items-center justify-end gap-gutter pt-8 border-t border-outline-variant/20 mb-20">
+<button class="px-8 py-3.5 rounded-full font-label-md text-label-md text-primary hover:bg-surface-variant transition-all">Discard Changes</button>
+<button class="px-12 py-4 rounded-full font-label-md text-label-md bg-tertiary text-primary font-bold shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200">
+                        Save Profile Settings
+                    </button>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer (Shell Implementation) -->
+<footer class="w-full bg-surface-container-low mt-auto border-t border-outline-variant/10">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto gap-gutter">
+<div class="flex items-center gap-2 mb-6 md:mb-0">
+<div class="w-6 h-6 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[14px]" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary">ConvoMate</span>
+</div>
+<div class="flex flex-wrap justify-center gap-gutter">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">About Us</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Help Center</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Careers</a>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant/60">© 2024 ConvoMate. All rights reserved.</p>
+</div>
+</footer>
+<script>
+        // Micro-interaction for form inputs
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('scale-[1.01]');
+                input.parentElement.style.transition = 'transform 0.2s ease-out';
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+    </script>
+</body></html>
