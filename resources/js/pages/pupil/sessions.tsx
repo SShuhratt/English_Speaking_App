@@ -171,7 +171,7 @@ export default function Sessions({ sessions }: Props) {
                                                     )}
                                                 </button>
                                             ) : (
-                                                <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
+                                                <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase">
                                                     {t(
                                                         'sessions.feedback_left',
                                                     )}

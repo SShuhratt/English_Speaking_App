@@ -45,46 +45,41 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     };
 
     return (
-        <div className="px-4 py-6">
-            <Heading
-                title={t('settings.title')}
-                description={t('settings.subtitle')}
-            />
+        <div className="px-4 py-8 max-w-6xl mx-auto">
+            {/* Header Section */}
+            <div className="mb-8">
+                <h2 className="text-3xl font-extrabold tracking-tight text-brand-navy mb-2">
+                    {t('settings.title') || 'Settings'}
+                </h2>
+                <p className="text-sm font-medium text-brand-navy/60">
+                    {t('settings.subtitle') || 'Manage your professional account settings and preferences.'}
+                </p>
+            </div>
 
-            <div className="mt-6 flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav
-                        className="flex flex-col space-y-1 space-x-0"
-                        aria-label="Settings"
-                    >
-                        {sidebarNavItems.map((item, index) => (
-                            <Button
-                                key={`${toUrl(item.href)}-${index}`}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isCurrentOrParentUrl(item.href),
-                                })}
-                            >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="h-4 w-4" />
-                                    )}
-                                    {getTranslatedTitle(item.title)}
-                                </Link>
-                            </Button>
-                        ))}
-                    </nav>
-                </aside>
+            {/* Horizontal Settings Sub-Navigation */}
+            <div className="flex gap-6 mb-10 border-b border-brand-pale-blue/30 overflow-x-auto whitespace-nowrap scrollbar-none">
+                {sidebarNavItems.map((item, index) => {
+                    const isActive = isCurrentOrParentUrl(item.href);
+                    return (
+                        <Link
+                            key={`${toUrl(item.href)}-${index}`}
+                            href={item.href}
+                            className={cn(
+                                "pb-4 text-sm font-bold tracking-wide transition-colors relative",
+                                isActive
+                                    ? "text-brand-navy border-b-2 border-brand-yellow -mb-[2px]"
+                                    : "text-brand-navy/50 hover:text-brand-navy"
+                            )}
+                        >
+                            {getTranslatedTitle(item.title)}
+                        </Link>
+                    );
+                })}
+            </div>
 
-                <Separator className="my-6 lg:hidden" />
-
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">
-                        {children}
-                    </section>
-                </div>
+            {/* Form Content Wrapper */}
+            <div className="w-full">
+                {children}
             </div>
         </div>
     );

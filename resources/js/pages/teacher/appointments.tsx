@@ -198,8 +198,8 @@ export default function Appointments() {
 
                                             {/* Cancellation/Rejection Reason Display */}
                                             {(apt.status === 'cancelled' || apt.status === 'rejected') && apt.cancellation_reason && (
-                                                <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs dark:border-red-900/20 dark:bg-red-950/10">
-                                                    <p className="font-extrabold text-red-800 dark:text-red-400">
+                                                <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs">
+                                                    <p className="font-extrabold text-red-800">
                                                         {apt.status === 'rejected'
                                                             ? (t('bookings.rejected_by_teacher') || 'Rejected by You')
                                                             : (t('bookings.cancelled_by', {
@@ -224,13 +224,13 @@ export default function Appointments() {
                                                     className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
                                                         apt.status ===
                                                         'confirmed'
-                                                            ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                                            ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700'
                                                             : apt.status ===
                                                                 'rejected'
-                                                              ? 'border-red-200/50 bg-red-50 text-red-700 dark:border-red-900/30 dark:bg-red-950/30 dark:text-red-400'
+                                                              ? 'border-red-200/50 bg-red-50 text-red-700'
                                                               : apt.status ===
                                                                   'cancelled'
-                                                                ? 'border-red-200/50 bg-red-50 text-red-700 dark:border-red-900/30 dark:bg-red-950/30 dark:text-red-400'
+                                                                ? 'border-red-200/50 bg-red-50 text-red-700'
                                                                 : 'border-transparent bg-muted text-muted-foreground'
                                                     }`}
                                                 >
@@ -281,13 +281,13 @@ export default function Appointments() {
                                                     className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
                                                         apt.status ===
                                                         'confirmed'
-                                                            ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                                            ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700'
                                                             : apt.status ===
                                                                 'rejected'
-                                                              ? 'border-red-200/50 bg-red-50 text-red-700 dark:border-red-900/30 dark:bg-red-950/30 dark:text-red-400'
+                                                              ? 'border-red-200/50 bg-red-50 text-red-700'
                                                               : apt.status ===
                                                                   'cancelled'
-                                                                ? 'border-red-200/50 bg-red-50 text-red-700 dark:border-red-900/30 dark:bg-red-950/30 dark:text-red-400'
+                                                                ? 'border-red-200/50 bg-red-50 text-red-700'
                                                                 : 'border-transparent bg-muted text-muted-foreground'
                                                     }`}
                                                 >

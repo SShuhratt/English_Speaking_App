@@ -77,7 +77,7 @@ export default function Progress({ progress }: Props) {
                     {/* Rating Card */}
                     <div className="group rounded-3xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-emerald-500/30 hover:shadow-md hover:shadow-emerald-500/5">
                         <div className="mb-4 flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
                                 <TrendingUp className="h-5 w-5" />
                             </div>
                             <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
@@ -95,7 +95,7 @@ export default function Progress({ progress }: Props) {
                     {/* Certificates Card */}
                     <div className="group rounded-3xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-amber-500/30 hover:shadow-md hover:shadow-amber-500/5">
                         <div className="mb-4 flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600">
                                 <Award className="h-5 w-5" />
                             </div>
                             <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
@@ -119,7 +119,7 @@ export default function Progress({ progress }: Props) {
                                 {percent}%
                             </span>
                         </div>
-                        <div className="h-3 w-full overflow-hidden rounded-full border border-border/30 bg-secondary dark:bg-accent/40">
+                        <div className="h-3 w-full overflow-hidden rounded-full border border-border/30 bg-secondary">
                             <div
                                  className="h-full rounded-full bg-brand-brown transition-all duration-500"
                                 style={{ width: `${percent}%` }}

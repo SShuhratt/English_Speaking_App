@@ -45,22 +45,13 @@ services:
     image: edtech-backend-engine-api:latest
     container_name: edtech-laravel-octane
     restart: unless-stopped
-    command: php artisan octane:frankenphp --host=0.0.0.0 --port=10000 --caddyfile=/etc/caddy/Caddyfile
+    command: php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --watch
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:8000"
     volumes:
       - ./:/app
-      # Named volumes protect these directories from being overwritten by the
-      # host bind mount above. The image builds them with production content.
-      - vendor_cache:/app/vendor
-      - node_modules_cache:/app/node_modules
-      - bootstrap_cache:/app/bootstrap/cache
-      # - public_build_cache:/app/public/build
-      - ./certs:/data/caddy/certs:ro
     environment:
-      - "SERVER_NAME=${SERVER_NAME:-http://localhost}"
-      - "CADDY_TLS_DIRECTIVE=${CADDY_TLS_DIRECTIVE:-#}"
+      - "SERVER_NAME=http://localhost:8000"
       - "APP_ENV=local"
       - "APP_DEBUG=true"
       - "OCTANE_SERVER=frankenphp"
@@ -72,7 +63,7 @@ services:
       - "DB_PASSWORD=postgress"
       - "REDIS_HOST=redis"
       - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=predis"
+      - "REDIS_CLIENT=phpredis"
     depends_on:
       postgres:
         condition: service_healthy
@@ -96,11 +87,8 @@ services:
       disable: true
     volumes:
       - ./:/app
-      - vendor_cache:/app/vendor
-      - node_modules_cache:/app/node_modules
-      - bootstrap_cache:/app/bootstrap/cache
     environment:
-      - "SERVER_NAME=http://localhost"
+      - "SERVER_NAME=http://localhost:8000"
       - "APP_ENV=local"
       - "APP_DEBUG=true"
       - "DB_CONNECTION=pgsql"
@@ -111,7 +99,7 @@ services:
       - "DB_PASSWORD=postgress"
       - "REDIS_HOST=redis"
       - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=predis"
+      - "REDIS_CLIENT=phpredis"
     depends_on:
       api:
         condition: service_started
@@ -134,14 +122,10 @@ services:
       - "8443:8443"
     volumes:
       - ./:/app
-      - vendor_cache:/app/vendor
-      - node_modules_cache:/app/node_modules
-      - bootstrap_cache:/app/bootstrap/cache
-      - ./certs:/app/certs:ro
     environment:
-      - "SERVER_NAME=${SERVER_NAME:-http://localhost}"
-      - "REVERB_SSL_CERT_PATH=${REVERB_SSL_CERT_PATH:-null}"
-      - "REVERB_SSL_KEY_PATH=${REVERB_SSL_KEY_PATH:-null}"
+      - "SERVER_NAME=http://localhost:8000"
+      - "REVERB_SSL_CERT_PATH=null"
+      - "REVERB_SSL_KEY_PATH=null"
       - "APP_ENV=local"
       - "APP_DEBUG=true"
       - "DB_CONNECTION=pgsql"
@@ -152,7 +136,7 @@ services:
       - "DB_PASSWORD=postgress"
       - "REDIS_HOST=redis"
       - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=predis"
+      - "REDIS_CLIENT=phpredis"
     depends_on:
       api:
         condition: service_started

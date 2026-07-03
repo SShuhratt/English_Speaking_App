@@ -52,3 +52,7 @@ frankenphp-worker.php
 *.pem
 *.crt
 *.csr
+
+# Stitch Design Assets
+stitch_convomate_brand_redesign*/
+stitch_convomate_brand_redesign*.zip

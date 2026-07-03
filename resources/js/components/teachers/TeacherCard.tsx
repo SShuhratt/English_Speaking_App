@@ -62,7 +62,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                         {labels.map((label) => (
                             <span
                                 key={label}
-                                className="inline-flex items-center rounded-lg border border-border/40 bg-secondary/50 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground dark:bg-accent/40"
+                                className="inline-flex items-center rounded-lg border border-border/40 bg-secondary/50 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
                             >
                                 {t(`labels.${label}`)}
                             </span>

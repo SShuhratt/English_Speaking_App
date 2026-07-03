@@ -1,50 +1,53 @@
 @import 'tailwindcss';
-
 @import 'tw-animate-css';
 
 @source '../views';
 @source '../js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
-@custom-variant dark (&:is(.dark *));
-
 @theme {
+    /* Plus Jakarta Sans — ConvoMate brand typeface */
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
-    --radius-lg: var(--radius);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-sm: calc(var(--radius) - 4px);
+    /* Radii */
+    --radius-sm: 0.5rem;      /* 8px  — chips/tags */
+    --radius:    1rem;         /* 16px — inputs, small cards */
+    --radius-md: 1.5rem;       /* 24px — medium cards */
+    --radius-lg: 2rem;         /* 32px — primary cards */
+    --radius-xl: 3rem;         /* 48px — hero sections */
+    --radius-full: 9999px;     /* pills */
 
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
+    /* Semantic colour bridges (for shadcn-style components) */
+    --color-background:   var(--background);
+    --color-foreground:   var(--foreground);
 
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
+    --color-card:             var(--card);
+    --color-card-foreground:  var(--card-foreground);
 
-    --color-popover: var(--popover);
+    --color-popover:            var(--popover);
     --color-popover-foreground: var(--popover-foreground);
 
-    --color-primary: var(--primary);
+    --color-primary:            var(--primary);
     --color-primary-foreground: var(--primary-foreground);
 
-    --color-secondary: var(--secondary);
+    --color-secondary:            var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
 
-    --color-muted: var(--muted);
+    --color-muted:            var(--muted);
     --color-muted-foreground: var(--muted-foreground);
 
-    --color-accent: var(--accent);
+    --color-accent:            var(--accent);
     --color-accent-foreground: var(--accent-foreground);
 
-    --color-destructive: var(--destructive);
+    --color-destructive:            var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
 
     --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
+    --color-input:  var(--input);
+    --color-ring:   var(--ring);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -52,111 +55,83 @@
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar:                    var(--sidebar);
+    --color-sidebar-foreground:         var(--sidebar-foreground);
+    --color-sidebar-primary:            var(--sidebar-primary);
     --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-accent:             var(--sidebar-accent);
+    --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+    --color-sidebar-border:             var(--sidebar-border);
+    --color-sidebar-ring:               var(--sidebar-ring);
 
-    /* Bread and Butter Brand Palette */
-    --color-brand-yellow: var(--brand-yellow);
-    --color-brand-cream: var(--brand-cream);
-    --color-brand-brown: var(--brand-brown);
-    --color-brand-orange: var(--brand-orange);
-    --color-brand-button: var(--brand-button);
-    --color-brand-button-hover: var(--brand-button-hover);
-    --color-brand-lightblue: var(--brand-lightblue);
-    --color-brand-blue: var(--brand-blue);
+    /* ── ConvoMate Brand Palette ─────────────────────────────────────── */
+    --color-brand-navy:       var(--brand-navy);
+    --color-brand-yellow:     var(--brand-yellow);
+    --color-brand-pale-blue:  var(--brand-pale-blue);
+    --color-brand-blue:       var(--brand-blue);
+
+    /* Legacy aliases — kept so existing JSX (brand-brown, brand-button, etc.) still compiles */
+    --color-brand-brown:        var(--brand-navy);
+    --color-brand-cream:        var(--brand-cream);
+    --color-brand-orange:       var(--brand-blue);
+    --color-brand-button:       var(--brand-yellow);
+    --color-brand-button-hover: var(--brand-yellow-hover);
+    --color-brand-lightblue:    var(--brand-pale-blue);
 }
 
+/* ── Light mode (only mode) ───────────────────────────────────────────── */
 :root {
-    --brand-yellow: #ffe4a0;
-    --brand-cream: #ffffff;
-    --brand-brown: #1e293b;
-    --brand-orange: #3b82f6;
-    --brand-button: #ffe4a0;
-    --brand-button-hover: #fcd34d;
-    --brand-lightblue: #a2c1f2;
-    --brand-blue: #2563eb;
+    /* ConvoMate palette */
+    --brand-navy:        #061445;
+    --brand-yellow:      #fae18e;
+    --brand-yellow-hover:#f0d070;
+    --brand-pale-blue:   #d0e4ff;
+    --brand-blue:        #44617e;
+    --brand-cream:       #ffffff;
 
-    --background: var(--brand-lightblue);
-    --foreground: var(--brand-brown);
-    --card: var(--brand-cream);
-    --card-foreground: var(--brand-brown);
-    --popover: var(--brand-cream);
-    --popover-foreground: var(--brand-brown);
-    --primary: var(--brand-button);
-    --primary-foreground: var(--brand-brown);
-    --secondary: #e2e8f0;
-    --secondary-foreground: var(--brand-brown);
-    --muted: #f1f5f9;
-    --muted-foreground: #64748b;
-    --accent: #f1f5f9;
-    --accent-foreground: var(--brand-brown);
-    --destructive: #dc2626;
+    /* Legacy aliases */
+    --brand-brown:        #061445;
+    --brand-orange:       #44617e;
+    --brand-button:       #fae18e;
+    --brand-button-hover: #f0d070;
+    --brand-lightblue:    #d0e4ff;
+
+    /* Semantic tokens */
+    --background:          #fbf8fd;
+    --foreground:          #1b1b1f;
+    --card:                #ffffff;
+    --card-foreground:     #1b1b1f;
+    --popover:             #ffffff;
+    --popover-foreground:  #1b1b1f;
+    --primary:             #061445;
+    --primary-foreground:  #ffffff;
+    --secondary:           #d0e4ff;
+    --secondary-foreground:#061445;
+    --muted:               #f5f3f7;
+    --muted-foreground:    #45464f;
+    --accent:              #fae18e;
+    --accent-foreground:   #061445;
+    --destructive:         #ba1a1a;
     --destructive-foreground: #ffffff;
-    --border: #e2e8f0;
-    --input: #e2e8f0;
-    --ring: var(--brand-orange);
-    --radius: 0.75rem;
+    --border:              #c6c5d0;
+    --input:               #c6c5d0;
+    --ring:                #061445;
+    --radius:              1rem;
 
-    --chart-1: #3b82f6;
-    --chart-2: #2563eb;
-    --chart-3: #1e293b;
-    --chart-4: #ffe4a0;
-    --chart-5: #fcd34d;
+    --chart-1: #061445;
+    --chart-2: #44617e;
+    --chart-3: #fae18e;
+    --chart-4: #d0e4ff;
+    --chart-5: #6f5d17;
 
-    --sidebar: #f8fafc;
-    --sidebar-foreground: var(--brand-brown);
-    --sidebar-primary: var(--brand-orange);
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #e2e8f0;
-    --sidebar-accent-foreground: var(--brand-brown);
-    --sidebar-border: #e2e8f0;
-    --sidebar-ring: var(--brand-orange);
-}
-
-.dark {
-    --brand-yellow: #ffe4a0;
-    --brand-cream: #1e293b;
-    --brand-brown: #f8fafc;
-    --brand-orange: #60a5fa;
-    --brand-button: #ffe4a0;
-    --brand-button-hover: #fcd34d;
-    --brand-lightblue: #0f172a;
-    --brand-blue: #3b82f6;
-
-    --background: var(--brand-lightblue);
-    --foreground: var(--brand-brown);
-    --card: var(--brand-cream);
-    --card-foreground: var(--brand-brown);
-    --popover: var(--brand-cream);
-    --popover-foreground: var(--brand-brown);
-    --primary: var(--brand-button);
-    --primary-foreground: #0f172a;
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
-    --destructive: #7f1d1d;
-    --destructive-foreground: #fca5a5;
-    --border: #334155;
-    --input: #334155;
-    --ring: var(--brand-orange);
-
-    --sidebar: #0b0f19;
-    --sidebar-foreground: var(--brand-brown);
-    --sidebar-primary: var(--brand-orange);
-    --sidebar-primary-foreground: #0b0f19;
-    --sidebar-accent: #1e293b;
-    --sidebar-accent-foreground: var(--brand-brown);
-    --sidebar-border: #1e293b;
-    --sidebar-ring: var(--brand-orange);
+    --sidebar:                    #ffffff;
+    --sidebar-foreground:         #1b1b1f;
+    --sidebar-primary:            #fae18e;
+    --sidebar-primary-foreground: #061445;
+    --sidebar-accent:             #f5f3f7;
+    --sidebar-accent-foreground:  #061445;
+    --sidebar-border:             #e4e1e6;
+    --sidebar-ring:               #061445;
 }
 
 @layer base {
@@ -165,54 +140,55 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground font-sans antialiased;
     }
 }
 
+/* ── Utility helpers ─────────────────────────────────────────────────── */
+
+/* Ambient card shadow — replaces hard grey borders */
+.shadow-ambient {
+    box-shadow: 0 12px 40px -12px rgba(6, 20, 69, 0.08);
+}
+
+.shadow-ambient-md {
+    box-shadow: 0 24px 48px -12px rgba(6, 20, 69, 0.12);
+}
+
+/* Butter-yellow text underline highlight (hero headlines) */
+.butter-underline {
+    box-shadow: inset 0 -10px 0 0 #fae18e;
+}
+
+/* Glass panel for overlays */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* ── Animations ──────────────────────────────────────────────────────── */
 @keyframes float {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-12px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-12px); }
+}
+
+@keyframes float-delayed {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
 }
 
 @keyframes pulse-slow {
-    0%,
-    100% {
-        opacity: 0.95;
-        filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.2));
-    }
-    50% {
-        opacity: 0.7;
-        filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.4));
-    }
+    0%, 100% { opacity: 0.95; }
+    50%       { opacity: 0.70; }
 }
 
 @keyframes spin-slow {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 
-.animate-float {
-    animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-delayed {
-    animation: float 6s ease-in-out infinite;
-    animation-delay: 2s;
-}
-
-.animate-pulse-slow {
-    animation: pulse-slow 4s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-    animation: spin-slow 30s linear infinite;
-}
+.animate-float          { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed  { animation: float-delayed 6s ease-in-out infinite; animation-delay: 2s; }
+.animate-pulse-slow     { animation: pulse-slow 4s ease-in-out infinite; }
+.animate-spin-slow      { animation: spin-slow 30s linear infinite; }

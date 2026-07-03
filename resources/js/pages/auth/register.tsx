@@ -26,9 +26,9 @@ export default function Register({ passwordRules }: Props) {
             <Head title={t('auth.register')} />
 
             {google_register && (
-                <div className="mb-2 flex items-center gap-3 rounded-xl border border-brand-brown/10 bg-brand-cream/60 p-4 text-sm text-brand-brown dark:border-brand-yellow/10 dark:bg-brand-yellow/10 dark:text-brand-yellow">
+                <div className="mb-2 flex items-center gap-3 rounded-xl border border-brand-brown/10 bg-brand-cream/60 p-4 text-sm text-brand-brown">
                     <svg
-                        className="h-5 w-5 shrink-0 text-brand-orange dark:text-brand-orange"
+                        className="h-5 w-5 shrink-0 text-brand-orange"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -152,7 +152,7 @@ export default function Register({ passwordRules }: Props) {
                                         onClick={() => setRole('pupil')}
                                         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
                                             role === 'pupil'
-                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown dark:border-brand-orange dark:bg-brand-orange/15 dark:text-brand-yellow'
+                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown'
                                                 : 'border-muted bg-transparent hover:border-muted-foreground'
                                         }`}
                                     >
@@ -168,7 +168,7 @@ export default function Register({ passwordRules }: Props) {
                                         onClick={() => setRole('teacher')}
                                         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
                                             role === 'teacher'
-                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown dark:border-brand-orange dark:bg-brand-orange/15 dark:text-brand-yellow'
+                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown'
                                                 : 'border-muted bg-transparent hover:border-muted-foreground'
                                         }`}
                                     >

@@ -149,10 +149,10 @@ export default function Sessions({ appointments }: Props) {
                                             <span
                                                 className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
                                                     apt.status === 'confirmed'
-                                                        ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                                        ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700'
                                                         : apt.status ===
                                                             'pending'
-                                                          ? 'border-amber-200/50 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-400'
+                                                          ? 'border-amber-200/50 bg-amber-50 text-amber-700'
                                                           : 'border-transparent bg-muted text-muted-foreground'
                                                 }`}
                                             >
@@ -178,7 +178,7 @@ export default function Sessions({ appointments }: Props) {
                                                             )}
                                                         </button>
                                                     ) : (
-                                                        <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
+                                                        <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase">
                                                             {t(
                                                                 'teacher.sessions_feedback_left',
                                                             )}

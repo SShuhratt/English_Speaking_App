@@ -1116,7 +1116,7 @@ export default function Availability({ availabilities }: Props) {
                                                         className={`availability-block absolute right-2 left-2 flex cursor-pointer flex-col overflow-hidden rounded-xl border-l-4 p-2.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
                                                             avail.type ===
                                                             'custom'
-                                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700'
                                                                 : 'border-brand-brown bg-brand-lightblue text-brand-brown'
                                                         }`}
                                                     >
@@ -1191,7 +1191,7 @@ export default function Availability({ availabilities }: Props) {
                                                                 className={`availability-block absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border-l-2 p-0.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md md:rounded-xl md:border-l-4 md:p-2 ${
                                                                     avail.type ===
                                                                     'custom'
-                                                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700'
                                                                         : 'border-brand-brown bg-brand-lightblue text-brand-brown'
                                                                 }`}
                                                             >
@@ -1373,7 +1373,7 @@ export default function Availability({ availabilities }: Props) {
                                 type="button"
                                 variant="outline"
                                 onClick={handleDeleteRange}
-                                className="mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-950/20"
+                                className="mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
                             >
                                 <Trash2 className="h-3.5 w-3.5" />
                                 {t.deleteRangeButton}

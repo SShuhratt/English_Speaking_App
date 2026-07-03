@@ -720,7 +720,7 @@ export default function Booking({ teacher }: Props) {
                                         <span className="text-muted-foreground">
                                             {t('booking.rating')}
                                         </span>
-                                        <span className="font-semibold text-amber-600 dark:text-amber-400">
+                                        <span className="font-semibold text-amber-600">
                                             ★{' '}
                                             {
                                                 teacher.teacher_profile
@@ -813,7 +813,7 @@ export default function Booking({ teacher }: Props) {
                                                 isSelected
                                                     ? 'bg-brand-brown text-white shadow-sm'
                                                     : isToday
-                                                      ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown dark:border-brand-brown/50 dark:bg-brand-brown/40 dark:text-brand-brown'
+                                                      ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown'
                                                       : 'text-foreground hover:bg-muted'
                                             }`}
                                         >
@@ -945,7 +945,7 @@ export default function Booking({ teacher }: Props) {
                                                             isToday
                                                                 ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/10'
                                                                 : isSelected
-                                                                  ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown dark:border-brand-brown/50 dark:bg-brand-brown/40 dark:text-brand-brown'
+                                                                  ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown'
                                                                   : 'text-foreground hover:bg-muted'
                                                         }`}
                                                     >
@@ -1030,7 +1030,7 @@ export default function Booking({ teacher }: Props) {
                                                             slot,
                                                             selectedDate,
                                                         )}
-                                                        className="absolute right-2.5 left-2.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-brand-lightblue bg-brand-lightblue/50 p-2 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow-md dark:border-brand-brown/40 dark:bg-brand-brown/40 dark:text-brand-brown dark:hover:bg-brand-brown/60"
+                                                        className="absolute right-2.5 left-2.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-brand-lightblue bg-brand-lightblue/50 p-2 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow-md"
                                                     >
                                                         <span className="flex items-center gap-1 text-[10px] font-extrabold tracking-wider uppercase">
                                                             <BookOpen className="h-3 w-3" />
@@ -1105,7 +1105,7 @@ export default function Booking({ teacher }: Props) {
                                                                         slot,
                                                                         day,
                                                                     )}
-                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border border-brand-lightblue/50 bg-brand-lightblue/50 p-0.5 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow md:rounded-xl md:p-1.5 dark:border-brand-brown/40 dark:bg-brand-brown/40 dark:text-brand-brown dark:hover:bg-brand-brown/60"
+                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border border-brand-lightblue/50 bg-brand-lightblue/50 p-0.5 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow md:rounded-xl md:p-1.5"
                                                                 >
                                                                     <span className="hidden items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase md:flex">
                                                                         {t(
