@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-DUAcabCT.js";var t=e();function n(){return(0,t.jsxs)(`div`,{className:`space-y-6`,children:[(0,t.jsx)(`h1`,{className:`text-3xl font-bold`,children:`Teacher Dashboard`}),(0,t.jsx)(`p`,{children:`Welcome back.`})]})}export{n as default};
