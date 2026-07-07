@@ -33,18 +33,20 @@ const dictionary = {
         'welcome.nav_how_it_works': 'How It Works',
         'welcome.nav_teachers': 'Teachers',
         'welcome.nav_pricing': 'Pricing',
-        'welcome.badge': 'AI-Enhanced Speaking Practice',
+        'welcome.badge': '#1 Ranked Language Platform',
         'welcome.title': 'Speak English',
         'welcome.title_fluently': 'Fluently',
         'welcome.title_with_teachers': 'with Expert Teachers',
         'welcome.one_on_one': '1-on-1',
+        'welcome.title_today': 'Today',
+        'welcome.view_teachers': 'View Teachers',
         'welcome.subtitle':
-            'Book 1-on-1 speaking sessions with certified English teachers. Practice conversations, get instant feedback, and track your progress — all via Google Meet.',
+            'Book 1-on-1 speaking sessions with certified English teachers. Practice real conversations and get instant AI-powered feedback—all via Google Meet.',
         'welcome.get_started': 'Get Started',
         'welcome.cta_start': 'Start Speaking Today',
         'welcome.cta_how_it_works': 'See How It Works',
-        'welcome.trust_learners': '2,500+ Active Learners',
-        'welcome.trust_rating': '4.9/5 Average Rating',
+        'welcome.trust_learners': '2,500+ Learners',
+        'welcome.trust_rating': '4.9/5 Average',
         'welcome.trust_experts': 'Certified IELTS Experts',
         'welcome.features_title': 'Everything You Need to',
         'welcome.features_title_highlight': 'Improve',
@@ -116,38 +118,72 @@ const dictionary = {
             'Join thousands of learners improving their English speaking skills every day.',
         'welcome.cta_btn': 'Create Free Account',
         'welcome.footer_rights': 'All rights reserved.',
-        'welcome.title_today': 'Today',
-        'welcome.view_teachers': 'View Teachers',
-        'welcome.home_bento_title_1': 'Everything you need to ',
-        'welcome.home_bento_title_highlight': 'master',
-        'welcome.home_bento_title_2': ' English',
-        'welcome.home_bento_subtitle': 'Designed for professionals and lifelong learners who value quality and efficiency.',
+        'welcome.home_bento_title': 'Everything you need to master English',
+        'welcome.home_bento_subtitle':
+            'Designed for professionals and lifelong learners who value quality and efficiency.',
         'welcome.home_bento_1_title': 'AI-Powered Conversation Analysis',
-        'welcome.home_bento_1_desc': 'Our engine analyzes your pronunciation and grammar during live sessions, providing personalized corrections instantly.',
+        'welcome.home_bento_1_desc':
+            'Our engine analyzes your pronunciation and grammar during live sessions, providing personalized corrections instantly.',
+        'welcome.home_bento_1_accuracy': 'ACCURACY 94%',
         'welcome.home_bento_2_title': 'Flexible Scheduling',
-        'welcome.home_bento_2_desc': 'Book sessions 24/7 across any time zone. Your learning never stops.',
+        'welcome.home_bento_2_desc':
+            'Book sessions 24/7 across any time zone. Your learning never stops.',
         'welcome.home_bento_3_title': 'Topic Discovery',
-        'welcome.home_bento_3_desc': 'Choose from 500+ topics from technology to daily life idioms.',
+        'welcome.home_bento_3_desc':
+            'Choose from 500+ topics from technology to daily life idioms.',
         'welcome.home_bento_4_title': 'Integrated with Google Meet',
-        'welcome.home_bento_4_desc': 'No new software to install. Use the tools you already know and love for your sessions.',
-        'welcome.teachers_sarah_desc': 'Specializing in advanced conversational techniques and formal exam preparation...',
-        'welcome.teachers_james_desc': 'Expert in business communication and corporate workshop facilitation...',
-        'welcome.teachers_emma_desc': 'Passionate about teaching younger learners and students starting their English...',
-        'welcome.teachers_sarah_tag_1': 'Native Speaker',
-        'welcome.teachers_sarah_tag_2': 'Cambridge Cert.',
-        'welcome.teachers_james_tag_1': 'Business English',
-        'welcome.teachers_james_tag_2': 'TOEFL Prep',
-        'welcome.teachers_emma_tag_1': 'Kids & Teens',
-        'welcome.teachers_emma_tag_2': 'TESOL Cert.',
-        'welcome.features_pers_learning': 'Personalized Learning',
-        'welcome.features_journey_title': 'Your journey, curated by experts',
-        'welcome.features_journey_desc': 'We pair you with teachers who specialize in your goals and build a curriculum around your speaking interests.',
-        'welcome.features_journey_item_1': 'Custom interest tags based on your profile',
-        'welcome.features_journey_item_2': 'Automatic calendar sync with Google Meet',
-        'welcome.features_journey_item_3': 'Pronunciation analysis and correction tips',
-        'welcome.features_cta_ready': 'Ready to start your journey?',
-        'welcome.features_cta_sub': 'Get your first session free with any teacher this week. No commitment required.',
-        'welcome.features_cta_btn': 'Start speaking today',
+        'welcome.home_bento_4_desc':
+            'No new software to install. Use the tools you already know and love for your sessions.',
+        'welcome.features_hero_title': 'Everything You Need to Improve',
+        'welcome.features_hero_subtitle':
+            'A complete platform designed for serious English learners who want real results through immersion and expert coaching.',
+        'welcome.features_pers_learning': 'PERSONALIZED LEARNING',
+        'welcome.features_journey_title': 'Your journey, curated by experts.',
+        'welcome.features_journey_desc':
+            "We don't believe in one-size-fits-all. ConvoMate analyzes your speaking patterns to match you with teachers who specialize in your areas of growth.",
+        'welcome.features_journey_item_1': 'Targeted Accent Reduction Modules',
+        'welcome.features_journey_item_2': 'Business English Specific Tracks',
+        'welcome.features_journey_item_3':
+            'Exam Prep (IELTS, TOEFL, Cambridge)',
+        'welcome.features_cta_ready': 'Ready to speak fluently?',
+        'welcome.features_cta_sub':
+            'Join 50,000+ learners who have transformed their confidence and career prospects with ConvoMate.',
+        'welcome.features_cta_btn': 'Start Your Free Trial',
+        'welcome.how_badge': 'SIMPLE JOURNEY',
+        'welcome.how_step_1_title_new': 'Create Your Account',
+        'welcome.how_step_1_desc_new':
+            'Sign up as a pupil, choose your English level, and set your learning goals in under two minutes.',
+        'welcome.how_step_2_title_new': 'Browse & Book',
+        'welcome.how_step_2_desc_new':
+            'Find certified teachers by rating, availability, and specialization. Book a session that fits your schedule.',
+        'welcome.how_step_3_title_new': 'Start Speaking',
+        'welcome.how_step_3_desc_new':
+            'Join the Google Meet session, practice speaking with your tutor, and get instant feedback to improve.',
+        'welcome.how_cta_ready': 'Ready to find your voice?',
+        'welcome.how_cta_sub':
+            "Join thousands of students who have improved their fluency with ConvoMate's personalized teaching approach.",
+        'welcome.teachers_hero_title': "Learn from the world's best teachers",
+        'welcome.teachers_hero_subtitle':
+            'Experienced, certified, and passionate about helping you improve your conversation skills.',
+        'welcome.teachers_search_placeholder': 'Search by name or skill',
+        'welcome.teachers_all_specialties': 'All Specialties',
+        'welcome.teachers_ielts_prep': 'IELTS Preparation',
+        'welcome.teachers_business_english': 'Business English',
+        'welcome.teachers_kids_teens': 'Kids & Teens',
+        'welcome.teachers_sarah_desc':
+            'Specializing in advanced conversational techniques and formal exam preparation for over 5 years.',
+        'welcome.teachers_james_desc':
+            'Expert in business communication and corporate workshop facilitation. I help you speak like a leader.',
+        'welcome.teachers_emma_desc':
+            'Passionate about teaching younger learners and students starting their English journey from scratch.',
+        'welcome.teachers_become_teacher': 'Become a Teacher',
+        'welcome.teachers_become_desc':
+            'Join our global network of elite educators and earn on your schedule.',
+        'welcome.teachers_apply_now': 'Apply Now',
+        'welcome.teachers_cta_ready': 'Ready to start your journey?',
+        'welcome.teachers_cta_sub':
+            'Get your first session free with any teacher this week. No commitment required.',
+        'welcome.teachers_cta_btn': 'Book Free Lesson',
 
         // Auth pages
         'auth.login': 'Log in',
@@ -267,6 +303,8 @@ const dictionary = {
         'dashboard.avg_rating': 'Average Rating',
         'dashboard.rating_desc': 'Feedback from your teachers',
         'dashboard.no_upcoming': 'No confirmed upcoming sessions.',
+        'dashboard.no_upcoming_sub':
+            "Your speaking practice starts here! Let's work together towards your goals and reach new heights.",
         'dashboard.book_now': 'Book a Session',
         'dashboard.recent_feedback': 'Recent Feedback',
         'dashboard.no_feedback': 'No feedback received yet.',
@@ -300,6 +338,20 @@ const dictionary = {
         'dashboard.todays_schedule': "Today's Schedule",
         'dashboard.no_appointments_today':
             'No confirmed appointments scheduled for today.',
+        'dashboard.no_appointments_today_desc':
+            'No sessions scheduled for today.',
+        'dashboard.view_calendar': 'View Calendar',
+        'dashboard.check_history': 'Check History',
+        'teacher.booking_requests_empty_desc':
+            'Students booking requests will appear here once submitted.',
+        'schedule.empty_desc':
+            "You don't have any scheduled sessions on your agenda.",
+        'teacher.sessions_empty_desc':
+            'Completed past sessions with your feedback will appear here.',
+        'teacher.feedback_empty_desc':
+            'Feedback from students will appear here once submitted.',
+        'sessions.empty_desc': "You don't have any past completed sessions.",
+        'Intermediate Speaking': 'Intermediate Speaking',
         'dashboard.pending_feedback': 'Pending Feedback',
         'dashboard.all_caught_up': 'All caught up!',
         'dashboard.all_caught_up_desc':
@@ -381,6 +433,7 @@ const dictionary = {
         'teachers.certified': 'Certified',
         'teachers.speaking': 'Speaking: :band',
         'teachers.years_experience': ':count y experience',
+        'teachers.reviews_count': ':count reviews',
         'teachers.book_session': 'Book Session',
         'teachers.view_profile': 'View Profile',
         'teachers.profile_title': 'Teacher Profile',
@@ -401,6 +454,8 @@ const dictionary = {
         'bookings.desc': 'Manage your upcoming and pending lesson requests.',
         'bookings.teacher_label': 'Teacher: :name',
         'bookings.none': "You haven't booked any sessions yet.",
+        'bookings.none_desc':
+            'Schedule a speaking session with one of our certified teachers to get started.',
         'bookings.status_confirmed': 'Confirmed',
         'bookings.status_pending': 'Pending',
         'bookings.status_cancelled': 'Cancelled',
@@ -435,6 +490,11 @@ const dictionary = {
         'progress.keep_practicing': 'Keep Practicing!',
         'progress.keep_practicing_desc':
             'Your speaking performance is improving. Book more sessions to level up your fluency and accuracy.',
+        'progress.lessons_count': '/ :count lessons',
+        'progress.rating_count': '/ 5.0 rating',
+        'progress.completion_title': 'Learning Journey Completion',
+        'progress.completion_desc':
+            'Completed :completed out of :total scheduled lessons on ConvoMate.',
         'profile.title': 'Profile',
         'profile.desc': 'Update your name and email address',
         'profile.name': 'Name',
@@ -512,11 +572,13 @@ const dictionary = {
         'welcome.nav_how_it_works': 'Qanday ishlaydi',
         'welcome.nav_teachers': "O'qituvchilar",
         'welcome.nav_pricing': 'Tariflar',
-        'welcome.badge': "AI orqali kuchaytirilgan so'zlashuv amaliyoti",
-        'welcome.title': 'Malakali o‘qituvchilar bilan',
-        'welcome.title_fluently': '1 ga 1',
+        'welcome.badge': '#1 Reytingdagi til platformasi',
+        'welcome.title': 'Ingliz tilida',
+        'welcome.title_fluently': 'Erkin',
         'welcome.title_with_teachers': 'ingliz tilida erkin',
         'welcome.one_on_one': 'so‘zlashing',
+        'welcome.title_today': 'gapiring',
+        'welcome.view_teachers': "O'qituvchilarni ko'rish",
         'welcome.subtitle':
             "Sertifikatlangan ingliz tili o'qituvchilari bilan 1 ga 1 darslar bron qiling. Google Meet orqali muloqot amaliyotini o'tang, tezkor fikr-mulohaza oling va natijangizni kuzating.",
         'welcome.get_started': 'Boshlash',
@@ -598,38 +660,79 @@ const dictionary = {
             "Har kuni ingliz tili so'zlashuv ko'nikmalarini oshirayotgan minglab o'quvchilarga qo'shiling.",
         'welcome.cta_btn': 'Bepul hisob yaratish',
         'welcome.footer_rights': 'Barcha huquqlar himoyalangan.',
-        'welcome.title_today': 'so‘zlashing',
-        'welcome.view_teachers': "O'qituvchilarni ko'rish",
-        'welcome.home_bento_title_1': 'Ingliz tilini ',
-        'welcome.home_bento_title_highlight': 'mukammal',
-        'welcome.home_bento_title_2': ' o‘rganish uchun hamma narsa',
-        'welcome.home_bento_subtitle': 'Sifat va samaradorlikni qadrlaydigan professionallar va umrbod o‘rganuvchilar uchun mo‘ljallangan.',
-        'welcome.home_bento_1_title': 'AI yordamida nutq tahlili',
-        'welcome.home_bento_1_desc': 'Tizimimiz jonli darslar davomida talaffuz va grammatikangizni tahlil qilib, tezkor tuzatishlar beradi.',
+        'welcome.home_bento_title':
+            "Ingliz tilini mukammal o'rganish uchun barcha imkoniyatlar",
+        'welcome.home_bento_subtitle':
+            "Sifat va samaradorlikni qadrlaydigan mutaxassislar va umrbod o'rganuvchilar uchun mo'ljallangan.",
+        'welcome.home_bento_1_title':
+            "Sun'iy intellekt asosida muloqot tahlili",
+        'welcome.home_bento_1_desc':
+            'Dasturimiz jonli darslar davomida talaffuzingiz va grammatikangizni tahlil qilib, tezkor tavsiyalar beradi.',
+        'welcome.home_bento_1_accuracy': 'ANIQLIK 94%',
         'welcome.home_bento_2_title': 'Moslashuvchan dars jadvali',
-        'welcome.home_bento_2_desc': 'Istalgan vaqt zonasida 24/7 darslarni bron qiling. O‘rganish hech qachon to‘xtamaydi.',
-        'welcome.home_bento_3_title': 'Mavzularni kashf qilish',
-        'welcome.home_bento_3_desc': 'Texnologiyalardan tortib kundalik hayot iboralarigacha bo‘lgan 500 dan ortiq mavzularni tanlang.',
-        'welcome.home_bento_4_title': 'Google Meet integratsiyasi',
-        'welcome.home_bento_4_desc': 'Yangi dastur o‘rnatish shart emas. O‘zingiz biladigan va sevadigan vositalardan foydalaning.',
-        'welcome.teachers_sarah_desc': 'Ilg‘or so‘zlashuv texnikasi va imtihonga tayyorgarlik bo‘yicha mutaxassis...',
-        'welcome.teachers_james_desc': 'Biznes aloqalari va korporativ treninglar bo‘yicha ekspert...',
-        'welcome.teachers_emma_desc': 'Yosh o‘quvchilar va boshlang‘ich talabalar bilan ishlashga ishtiyoqmand...',
-        'welcome.teachers_sarah_tag_1': 'Mahalliy ma‘ruzachi',
-        'welcome.teachers_sarah_tag_2': 'Kembrij sertifikati',
-        'welcome.teachers_james_tag_1': 'Biznes ingliz tili',
-        'welcome.teachers_james_tag_2': 'TOEFL tayyorgarligi',
-        'welcome.teachers_emma_tag_1': 'Bolalar va o‘smirlar',
-        'welcome.teachers_emma_tag_2': 'TESOL sertifikati',
-        'welcome.features_pers_learning': 'Shaxsiylashtirilgan o‘rganish',
-        'welcome.features_journey_title': 'Sizning sayohatingiz, ekspertlar tomonidan boshqariladi',
-        'welcome.features_journey_desc': 'Biz sizni maqsadlaringizga mos keladigan o‘qituvchilar bilan bog‘laymiz va so‘zlashuv qiziqishlaringiz atrofida o‘quv dasturini tuzamiz.',
-        'welcome.features_journey_item_1': 'Profilingizga asoslangan maxsus qiziqish teglari',
-        'welcome.features_journey_item_2': 'Google Meet bilan avtomatik kalendar sinxronizatsiyasi',
-        'welcome.features_journey_item_3': 'Talaffuz tahlili va tuzatish bo‘yicha maslahatlar',
-        'welcome.features_cta_ready': 'Sayohatni boshlashga tayyormisiz?',
-        'welcome.features_cta_sub': 'Shu haftada istalgan o‘qituvchi bilan birinchi bepul darsingizni oling. Majburiyatlarsiz.',
-        'welcome.features_cta_btn': 'Bugunoq gapirishni boshlang',
+        'welcome.home_bento_2_desc':
+            "Sutka davomida istalgan vaqtda dars bron qiling. O'rganishdan to'xtamang.",
+        'welcome.home_bento_3_title': "Mavzular to'plami",
+        'welcome.home_bento_3_desc':
+            "Texnologiyadan kundalik iboralargacha bo'lgan 500 dan ortiq mavzulardan tanlang.",
+        'welcome.home_bento_4_title': 'Google Meet bilan integratsiya',
+        'welcome.home_bento_4_desc':
+            "Yangi dasturlar o'rnatish shart emas. Darslar uchun o'zingiz bilgan va sevadigan vositadan foydalaning.",
+        'welcome.features_hero_title':
+            'Rivojlanishingiz uchun barcha sharoitlar',
+        'welcome.features_hero_subtitle':
+            "Chuqur o'rganish va ekspertlar yordamida haqiqiy natijalarga erishmoqchi bo'lgan ingliz tili o'rganuvchilari uchun to'liq platforma.",
+        'welcome.features_pers_learning': "SHAXSIYLASHTIRILGAN O'QITISH",
+        'welcome.features_journey_title':
+            "Sizning yo'lingiz ekspertlar tomonidan tuzilgan.",
+        'welcome.features_journey_desc':
+            "Biz hammaga bir xil yondashuvga ishonmaymiz. ConvoMate sizning gapirish uslubingizni tahlil qilib, sizni eng kerakli yo'nalishdagi o'qituvchilar bilan bog'laydi.",
+        'welcome.features_journey_item_1':
+            "Aksentni kamaytirish bo'yicha maxsus modullar",
+        'welcome.features_journey_item_2': "Biznes ingliz tili yo'nalishlari",
+        'welcome.features_journey_item_3':
+            'Imtihonlarga tayyorgarlik (IELTS, TOEFL, Cambridge)',
+        'welcome.features_cta_ready': 'Erkin gapirishga tayyormisiz?',
+        'welcome.features_cta_sub':
+            "ConvoMate yordamida o'ziga bo'lgan ishonchini va martabasini oshirgan 50,000+ o'rganuvchilarga qo'shiling.",
+        'welcome.features_cta_btn': 'Bepul sinovni boshlash',
+        'welcome.how_badge': 'ODDIY JARAYON',
+        'welcome.how_step_1_title_new': 'Profil yaratish',
+        'welcome.how_step_1_desc_new':
+            "O'quvchi sifatida ro'yxatdan o'ting, ingliz tili darajangizni tanlang va ikki daqiqa ichida maqsadlaringizni belgilang.",
+        'welcome.how_step_2_title_new': 'Tanlash va bron qilish',
+        'welcome.how_step_2_desc_new':
+            "O'qituvchilarni reytingi, boş vaqti va ixtisosligiga qarab toping. Jadvalingizga mos keladigan dars bron qiling.",
+        'welcome.how_step_3_title_new': 'Gapirishni boshlang',
+        'welcome.how_step_3_desc_new':
+            "Google Meet darsiga qo'shiling, ustoz bilan so'zlashuv amaliyotini o'tang va yaxshilanish uchun tezkor baho oling.",
+        'welcome.how_cta_ready': "O'z ovozingizni topishga tayyormisiz?",
+        'welcome.how_cta_sub':
+            "ConvoMate-ning shaxsiylashtirilgan yondashuvi yordamida nutq ravonligini oshirgan minglab o'quvchilarga qo'shiling.",
+        'welcome.teachers_hero_title':
+            "Dunyoning eng yaxshi o'qituvchilaridan o'rganing",
+        'welcome.teachers_hero_subtitle':
+            "Muloqot ko'nikmalaringizni rivojlantirishga yordam beradigan tajribali, sertifikatlangan va g'ayratli mutaxassislar.",
+        'welcome.teachers_search_placeholder':
+            "Ism yoki ko'nikma bo'yicha qidirish",
+        'welcome.teachers_all_specialties': "Barcha yo'nalishlar",
+        'welcome.teachers_ielts_prep': 'IELTS-ga tayyorgarlik',
+        'welcome.teachers_business_english': 'Biznes ingliz tili',
+        'welcome.teachers_kids_teens': "Bolalar va o'smirlar",
+        'welcome.teachers_sarah_desc':
+            "5 yildan ortiq vaqt davomida chuqur muloqot texnikasi va rasmiy imtihonlarga tayyorlash bo'yicha ixtisoslashgan.",
+        'welcome.teachers_james_desc':
+            "Biznes muloqot va korporativ treninglar bo'yicha ekspert. Men sizga yetakchidek gapirishga yordam beraman.",
+        'welcome.teachers_emma_desc':
+            "Yosh o'rganuvchilarga va ingliz tilini noldan boshlayotgan talabalarga dars berishga ishtiyoqi baland.",
+        'welcome.teachers_become_teacher': "O'qituvchi bo'ling",
+        'welcome.teachers_become_desc':
+            "Elita o'qituvchilari tarmog'imizga qo'shiling va o'z jadvalingiz bo'yicha daromad oling.",
+        'welcome.teachers_apply_now': 'Hozir topshirish',
+        'welcome.teachers_cta_ready': "Yo'lingizni boshlashga tayyormisiz?",
+        'welcome.teachers_cta_sub':
+            "Shu haftada istalgan o'qituvchi bilan birinchi darsingizni bepul oling. Hech qanday majburiyat yo'q.",
+        'welcome.teachers_cta_btn': 'Bepul dars bron qilish',
 
         // Auth pages
         'auth.login': 'Tizimga kirish',
@@ -752,6 +855,8 @@ const dictionary = {
         'dashboard.rating_desc':
             "O'qituvchilaringiz tomonidan berilgan baholar",
         'dashboard.no_upcoming': 'Tasdiqlangan kelgusi darslar mavjud emas.',
+        'dashboard.no_upcoming_sub':
+            'Sizning gapirish amaliyotingiz shu yerda boshlanadi! Keling, birgalikda maqsadlaringiz sari harakat qilamiz va yangi marralarni zabt etamiz.',
         'dashboard.book_now': 'Dars band qilish',
         'dashboard.recent_feedback': "So'nggi fikrlar",
         'dashboard.no_feedback': 'Hozircha fikrlar mavjud emas.',
@@ -786,6 +891,20 @@ const dictionary = {
         'dashboard.todays_schedule': 'Bugungi jadval',
         'dashboard.no_appointments_today':
             'Bugun uchun tasdiqlangan darslar mavjud emas.',
+        'dashboard.no_appointments_today_desc':
+            'Bugun uchun tasdiqlangan dars seanslari hali rejalashtirilmagan.',
+        'dashboard.view_calendar': "Jadval taqvimini ko'rish",
+        'dashboard.check_history': 'Tarixni tekshirish',
+        'teacher.booking_requests_empty_desc':
+            "Talabalarning dars band qilish so'rovlari yuborilgandan keyin shu yerda ko'rinadi.",
+        'schedule.empty_desc':
+            "Sizning kun tartibingizda rejalashtirilgan dars seanslari yo'q.",
+        'teacher.sessions_empty_desc':
+            "Sizning fikr-mulohazangiz bilan yakunlangan darslar shu yerda ko'rinadi.",
+        'teacher.feedback_empty_desc':
+            "Talabalarning fikr-mulohazalari yuborilgandan keyin shu yerda ko'rinadi.",
+        'sessions.empty_desc': "Sizda o'tgan yakunlangan dars seanslari yo'q.",
+        'Intermediate Speaking': 'Intermediate darajadagi gapirish',
         'dashboard.pending_feedback': 'Kutilayotgan fikr-mulohazalar',
         'dashboard.all_caught_up': 'Barcha ishlar bajarildi!',
         'dashboard.all_caught_up_desc':
@@ -871,6 +990,7 @@ const dictionary = {
         'teachers.certified': 'Sertifikatlangan',
         'teachers.speaking': 'Speaking: :band',
         'teachers.years_experience': ':count yillik tajriba',
+        'teachers.reviews_count': ':count ta sharh',
         'teachers.book_session': 'Dars band qilish',
         'teachers.view_profile': "Profilni ko'rish",
         'teachers.profile_title': "O'qituvchi profili",
@@ -892,6 +1012,8 @@ const dictionary = {
             "Kelgusi va kutilayotgan dars so'rovlaringizni boshqaring.",
         'bookings.teacher_label': "O'qituvchi: :name",
         'bookings.none': 'Siz hali dars band qilmagansiz.',
+        'bookings.none_desc':
+            "Boshlash uchun sertifikatlangan o'qituvchilarimizdan biri bilan gaplashish darsini rejalashtiring.",
         'bookings.status_confirmed': 'Tasdiqlangan',
         'bookings.status_pending': 'Kutilmoqda',
         'bookings.status_cancelled': 'Bekor qilingan',
@@ -928,6 +1050,11 @@ const dictionary = {
         'progress.keep_practicing': 'Mashq qilishda davom eting!',
         'progress.keep_practicing_desc':
             "Gapirish mahoratingiz yaxshilanmoqda. Erkinlik va aniqlik darajangizni oshirish uchun ko'proq dars band qiling.",
+        'progress.lessons_count': '/ :count ta dars',
+        'progress.rating_count': '/ 5.0 baho',
+        'progress.completion_title': 'O‘quv jarayonining bajarilishi',
+        'progress.completion_desc':
+            'ConvoMate-da rejalashtirilgan :total ta darsdan :completed tasi yakunlandi.',
         'profile.title': 'Profil',
         'profile.desc': 'Ismingiz va email manzilingizni yangilang',
         'profile.name': 'Ism',
@@ -1006,11 +1133,13 @@ const dictionary = {
         'welcome.nav_how_it_works': 'Как это работает',
         'welcome.nav_teachers': 'Преподаватели',
         'welcome.nav_pricing': 'Цены',
-        'welcome.badge': 'Разговорная практика на базе ИИ',
+        'welcome.badge': '#1 Языковая платформа в рейтинге',
         'welcome.title': 'Говорите по-английски',
         'welcome.title_fluently': 'Свободно',
         'welcome.title_with_teachers': 'с экспертными преподавателями',
         'welcome.one_on_one': '1 на 1',
+        'welcome.title_today': 'Сегодня',
+        'welcome.view_teachers': 'Посмотреть учителей',
         'welcome.subtitle':
             'Бронируйте индивидуальные уроки с сертифицированными преподавателями. Практируйте общение, получайте мгновенные отзывы и отслеживайте прогресс — всё через Google Meet.',
         'welcome.get_started': 'Начать',
@@ -1091,38 +1220,75 @@ const dictionary = {
             'Присоединяйтесь к тысячам студентов, улучшающих свой английский каждый день.',
         'welcome.cta_btn': 'Создать бесплатный аккаунт',
         'welcome.footer_rights': 'Все права защищены.',
-        'welcome.title_today': '',
-        'welcome.view_teachers': 'Посмотреть преподавателей',
-        'welcome.home_bento_title_1': 'Все, что нужно для ',
-        'welcome.home_bento_title_highlight': 'овладения',
-        'welcome.home_bento_title_2': ' английским',
-        'welcome.home_bento_subtitle': 'Разработано для профессионалов и непрерывного обучения с акцентом на качество.',
-        'welcome.home_bento_1_title': 'Анализ разговора на базе ИИ',
-        'welcome.home_bento_1_desc': 'Наша система анализирует ваше произношение и грамматику во время уроков, мгновенно давая рекомендации.',
+        'welcome.home_bento_title': 'Всё, что нужно для освоения английского',
+        'welcome.home_bento_subtitle':
+            'Разработано для профессионалов и тех, кто ценит качество и эффективность.',
+        'welcome.home_bento_1_title': 'Анализ разговора с помощью ИИ',
+        'welcome.home_bento_1_desc':
+            'Наша система анализирует ваше произношение и грамматику во время занятий, мгновенно предоставляя отчет.',
+        'welcome.home_bento_1_accuracy': 'ТОЧНОСТЬ 94%',
         'welcome.home_bento_2_title': 'Гибкое расписание',
-        'welcome.home_bento_2_desc': 'Бронируйте уроки 24/7 в любом часовом поясе. Обучение никогда не прекращается.',
-        'welcome.home_bento_3_title': 'Поиск тем для разговора',
-        'welcome.home_bento_3_desc': 'Выбирайте из более чем 500 тем — от технологий до повседневных идиом.',
+        'welcome.home_bento_2_desc':
+            'Бронируйте занятия 24/7 в любом часовом поясе. Обучение никогда не останавливается.',
+        'welcome.home_bento_3_title': 'Поиск тем',
+        'welcome.home_bento_3_desc':
+            'Выбирайте из более чем 500 тем — от технологий до повседневных идиом.',
         'welcome.home_bento_4_title': 'Интеграция с Google Meet',
-        'welcome.home_bento_4_desc': 'Не нужно устанавливать новые программы. Используйте привычные и удобные инструменты.',
-        'welcome.teachers_sarah_desc': 'Специализируется на продвинутых разговорных техниках и подготовке к экзаменам...',
-        'welcome.teachers_james_desc': 'Эксперт в бизнес-коммуникации и проведении корпоративных воркшопов...',
-        'welcome.teachers_emma_desc': 'С увлечением работает с детьми и начинающими студентами...',
-        'welcome.teachers_sarah_tag_1': 'Носитель языка',
-        'welcome.teachers_sarah_tag_2': 'Кембриджский серт.',
-        'welcome.teachers_james_tag_1': 'Бизнес-английский',
-        'welcome.teachers_james_tag_2': 'Подготовка к TOEFL',
-        'welcome.teachers_emma_tag_1': 'Дети и подростки',
-        'welcome.teachers_emma_tag_2': 'Сертификат TESOL',
-        'welcome.features_pers_learning': 'Персонализированное обучение',
-        'welcome.features_journey_title': 'Ваш путь под руководством экспертов',
-        'welcome.features_journey_desc': 'Мы подберем для вас преподавателей, специализирующихся на ваших целях, и составим программу вокруг ваших интересов.',
-        'welcome.features_journey_item_1': 'Индивидуальные теги интересов на основе вашего профиля',
-        'welcome.features_journey_item_2': 'Автоматическая синхронизация календаря с Google Meet',
-        'welcome.features_journey_item_3': 'Анализ произношения и советы по исправлению ошибок',
-        'welcome.features_cta_ready': 'Готовы начать свое обучение?',
-        'welcome.features_cta_sub': 'Получите первое занятие бесплатно с любым преподавателем на этой неделе. Без обязательств.',
-        'welcome.features_cta_btn': 'Начать говорить сегодня',
+        'welcome.home_bento_4_desc':
+            'Не нужно устанавливать новые программы. Используйте знакомые и любимые инструменты для занятий.',
+        'welcome.features_hero_title': 'Всё, что вам нужно для улучшения',
+        'welcome.features_hero_subtitle':
+            'Полная платформа, созданная для серьезных студентов, желающих достичь результатов за счет погружения и помощи экспертов.',
+        'welcome.features_pers_learning': 'ПЕРСОНАЛИЗИРОВАННОЕ ОБУЧЕНИЕ',
+        'welcome.features_journey_title':
+            'Ваш путь обучения, разработанный экспертами.',
+        'welcome.features_journey_desc':
+            'Мы не верим в универсальные решения. ConvoMate анализирует вашу речь, чтобы подобрать преподавателей, специализирующихся на ваших точках роста.',
+        'welcome.features_journey_item_1':
+            'Модули для прицельного уменьшения акцента',
+        'welcome.features_journey_item_2':
+            'Специализированные курсы делового английского',
+        'welcome.features_journey_item_3':
+            'Подготовка к экзаменам (IELTS, TOEFL, Cambridge)',
+        'welcome.features_cta_ready': 'Готовы заговорить свободно?',
+        'welcome.features_cta_sub':
+            'Присоединяйтесь к более чем 50 000 студентов, которые обрели уверенность и улучшили карьерные перспективы с ConvoMate.',
+        'welcome.features_cta_btn': 'Начать бесплатный период',
+        'welcome.how_badge': 'ПРОСТОЙ ПУТЬ',
+        'welcome.how_step_1_title_new': 'Создайте аккаунт',
+        'welcome.how_step_1_desc_new':
+            'Зарегистрируйтесь как студент, выберите уровень английского и укажите свои цели менее чем за две минуты.',
+        'welcome.how_step_2_title_new': 'Найдите и забронируйте',
+        'welcome.how_step_2_desc_new':
+            'Найдите сертифицированных учителей по рейтингу, доступности и специализации. Забронируйте урок.',
+        'welcome.how_step_3_title_new': 'Начните говорить',
+        'welcome.how_step_3_desc_new':
+            'Подключитесь к Google Meet, практикуйте речь с репетитором и получайте мгновенные отзывы для улучшения.',
+        'welcome.how_cta_ready': 'Готовы заговорить уверенно?',
+        'welcome.how_cta_sub':
+            'Присоединяйтесь к тысячам студентов, которые улучшили беглость речи благодаря индивидуальному подходу ConvoMate.',
+        'welcome.teachers_hero_title': 'Учитесь у лучших преподавателей мира',
+        'welcome.teachers_hero_subtitle':
+            'Опытные, сертифицированные и стремящиеся помочь вам улучшить разговорные навыки.',
+        'welcome.teachers_search_placeholder': 'Поиск по имени или навыку',
+        'welcome.teachers_all_specialties': 'Все направления',
+        'welcome.teachers_ielts_prep': 'Подготовка к IELTS',
+        'welcome.teachers_business_english': 'Деловой английский',
+        'welcome.teachers_kids_teens': 'Дети и подростки',
+        'welcome.teachers_sarah_desc':
+            'Специализируется на продвинутых разговорных техниках и подготовке к экзаменам более 5 лет.',
+        'welcome.teachers_james_desc':
+            'Эксперт в деловом общении и проведении корпоративных воркшопов. Помогу вам звучать как лидер.',
+        'welcome.teachers_emma_desc':
+            'С большим удовольствием обучаю детей и тех, кто начинает учить английский с нуля.',
+        'welcome.teachers_become_teacher': 'Стать преподавателем',
+        'welcome.teachers_become_desc':
+            'Присоединяйтесь к нашей глобальной сети элитных преподавателей и зарабатывайте в удобное время.',
+        'welcome.teachers_apply_now': 'Подать заявку',
+        'welcome.teachers_cta_ready': 'Готовы начать свой путь?',
+        'welcome.teachers_cta_sub':
+            'Получите первое бесплатное занятие с любым преподавателем на этой неделе. Без обязательств.',
+        'welcome.teachers_cta_btn': 'Забронировать бесплатный урок',
 
         // Auth pages
         'auth.login': 'Войти',
@@ -1244,6 +1410,8 @@ const dictionary = {
         'dashboard.avg_rating': 'Средний балл',
         'dashboard.rating_desc': 'Отзывы ваших преподавателей',
         'dashboard.no_upcoming': 'Нет подтвержденных предстоящих уроков.',
+        'dashboard.no_upcoming_sub':
+            'Ваша разговорная практика начинается здесь! Давайте вместе двигаться к вашим целям и покорять новые вершины.',
         'dashboard.book_now': 'Забронировать урок',
         'dashboard.recent_feedback': 'Последние отзывы',
         'dashboard.no_feedback': 'Отзывов пока не поступало.',
@@ -1277,6 +1445,20 @@ const dictionary = {
         'dashboard.todays_schedule': 'Расписание на сегодня',
         'dashboard.no_appointments_today':
             'На сегодня нет запланированных уроков.',
+        'dashboard.no_appointments_today_desc':
+            'На сегодня нет подтверждённых занятий.',
+        'dashboard.view_calendar': 'Просмотр расписания',
+        'dashboard.check_history': 'Проверить историю',
+        'teacher.booking_requests_empty_desc':
+            'Запросы студентов на бронирование уроков появятся здесь после отправки.',
+        'schedule.empty_desc':
+            'У вас нет запланированных занятий в расписании.',
+        'teacher.sessions_empty_desc':
+            'Завершённые занятия с вашими отзывами появятся здесь.',
+        'teacher.feedback_empty_desc':
+            'Отзывы от студентов появятся здесь после отправки.',
+        'sessions.empty_desc': 'У вас нет завершённых занятий в прошлом.',
+        'Intermediate Speaking': 'Intermediate Speaking',
         'dashboard.pending_feedback': 'Ожидает отзыва',
         'dashboard.all_caught_up': 'Всё сделано!',
         'dashboard.all_caught_up_desc':
@@ -1360,6 +1542,7 @@ const dictionary = {
         'teachers.certified': 'Сертифицирован',
         'teachers.speaking': 'Speaking: :band',
         'teachers.years_experience': ':count лет опыта',
+        'teachers.reviews_count': ':count отзывов',
         'teachers.book_session': 'Забронировать урок',
         'teachers.view_profile': 'Посмотреть профиль',
         'teachers.profile_title': 'Профиль преподавателя',
@@ -1381,6 +1564,8 @@ const dictionary = {
             'Управляйте вашими предстоящими и ожидающими запросами на уроки.',
         'bookings.teacher_label': 'Преподаватель: :name',
         'bookings.none': 'Вы еще не забронировали ни одного урока.',
+        'bookings.none_desc':
+            'Запланируйте практическое занятие с одним из наших сертифицированных преподавателей, чтобы начать.',
         'bookings.status_confirmed': 'Подтверждено',
         'bookings.status_pending': 'В ожидании',
         'bookings.status_cancelled': 'Отменено',
@@ -1414,6 +1599,11 @@ const dictionary = {
         'progress.keep_practicing': 'Продолжайте практиковаться!',
         'progress.keep_practicing_desc':
             'Ваша разговорная речь улучшается. Бронируйте больше занятий, чтобы повысить беглость и точность.',
+        'progress.lessons_count': '/ :count уроков',
+        'progress.rating_count': '/ 5.0 рейтинг',
+        'progress.completion_title': 'Прогресс завершения обучения',
+        'progress.completion_desc':
+            'Завершено :completed из :total запланированных уроков на ConvoMate.',
         'profile.title': 'Профиль',
         'profile.desc': 'Обновите свое имя и адрес электронной почты',
         'profile.name': 'Имя',
@@ -1469,8 +1659,7 @@ export function useTranslation() {
     const t = (key: string, replacements?: Record<string, string | number>) => {
         const langDict =
             dictionary[locale as 'en' | 'uz' | 'ru'] || dictionary.en;
-        const val = langDict[key as keyof typeof langDict];
-        let text = val !== undefined ? val : (dictionary.en[key as keyof typeof dictionary.en] || key);
+        let text = langDict[key as keyof typeof langDict] || key;
 
         if (replacements) {
             Object.entries(replacements).forEach(([k, v]) => {
@@ -1483,6 +1672,7 @@ export function useTranslation() {
 
     const setLanguage = (newLang: 'en' | 'uz' | 'ru') => {
         document.cookie = `locale=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
+        router.flushAll();
         router.reload();
     };
 

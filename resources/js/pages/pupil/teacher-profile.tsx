@@ -79,12 +79,12 @@ export default function TeacherProfile({ teacher }: Props) {
                 {/* ── Top Header Card ── */}
                 <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm transition-all duration-350 md:p-8">
                     {/* Background decorative gradient */}
-                    <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
+                    <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-brand-brown/10 blur-3xl" />
+                    <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-brand-yellow/10 blur-3xl" />
 
                     <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-start">
                         {/* Avatar */}
-                        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 text-3xl font-black text-white shadow-xl shadow-indigo-500/20 md:h-28 md:w-28">
+                        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-brand-brown text-3xl font-black text-white shadow-xl shadow-brand-brown/10 md:h-28 md:w-28">
                             {initials}
                         </div>
 
@@ -96,13 +96,13 @@ export default function TeacherProfile({ teacher }: Props) {
                                 </h1>
 
                                 <div className="mt-2.5 flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
-                                    <span className="border-indigo-150/20 inline-flex items-center rounded-lg border bg-indigo-50/50 px-2.5 py-1 text-[11px] font-bold text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">
+                                    <span className="inline-flex items-center rounded-lg border border-brand-brown/20 bg-brand-lightblue px-2.5 py-1 text-[11px] font-bold text-brand-brown">
                                         {teacher.teacher_profile
                                             ?.overall_level ||
                                             t('teachers.certified')}
                                     </span>
                                     {teacher.teacher_profile?.speaking_band && (
-                                        <span className="border-purple-150/20 inline-flex items-center rounded-lg border bg-purple-50/50 px-2.5 py-1 text-[11px] font-bold text-purple-600 dark:bg-purple-950/30 dark:text-purple-400">
+                                        <span className="inline-flex items-center rounded-lg border border-brand-orange/20 bg-brand-yellow/50 px-2.5 py-1 text-[11px] font-bold text-brand-orange">
                                             {t('teachers.speaking', {
                                                 band: teacher.teacher_profile
                                                     .speaking_band,
@@ -124,7 +124,7 @@ export default function TeacherProfile({ teacher }: Props) {
                                 </div>
                                 <div className="h-4 w-px bg-border" />
                                 <div className="flex items-center gap-2">
-                                    <Clock className="h-5 w-5 text-indigo-500" />
+                                    <Clock className="h-5 w-5 text-brand-brown" />
                                     <span className="text-sm font-bold text-foreground">
                                         {t('teachers.years_experience', {
                                             count: experience,
@@ -136,9 +136,9 @@ export default function TeacherProfile({ teacher }: Props) {
 
                         {/* CTA Book Now */}
                         <div className="w-full shrink-0 self-stretch md:w-auto md:self-center">
-                            <Link
+                             <Link
                                 href={`/pupil/booking?teacher_id=${teacher.id}`}
-                                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02] hover:from-indigo-600 hover:to-purple-700 active:scale-[0.98]"
+                                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-button/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                             >
                                 {t('teachers.book_now')}{' '}
                                 <ChevronRight className="h-5 w-5" />
@@ -156,7 +156,7 @@ export default function TeacherProfile({ teacher }: Props) {
                             teacher.teacher_profile.labels.length > 0 && (
                                 <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
                                     <h2 className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3 text-base font-bold">
-                                        <Award className="h-4.5 w-4.5 text-indigo-500" />
+                                        <Award className="h-4.5 w-4.5 text-brand-brown" />
                                         {t('labels.title') || 'Teaching Focus'}
                                     </h2>
                                     <div className="flex flex-wrap gap-2">
@@ -164,7 +164,7 @@ export default function TeacherProfile({ teacher }: Props) {
                                             (lbl) => (
                                                 <span
                                                     key={lbl}
-                                                    className="inline-flex items-center rounded-xl border border-indigo-500/10 bg-indigo-500/5 px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400"
+                                                    className="inline-flex items-center rounded-xl border border-brand-brown/10 bg-brand-lightblue px-3 py-1.5 text-xs font-semibold text-brand-brown"
                                                 >
                                                     {t(`labels.${lbl}`)}
                                                 </span>
@@ -177,7 +177,7 @@ export default function TeacherProfile({ teacher }: Props) {
                         {/* Profile Details */}
                         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
                             <h2 className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3 text-base font-bold">
-                                <User className="h-4.5 w-4.5 text-indigo-500" />
+                                <User className="h-4.5 w-4.5 text-brand-brown" />
                                 {t('settings.profile')}
                             </h2>
 
@@ -188,7 +188,7 @@ export default function TeacherProfile({ teacher }: Props) {
                                             {t('teachers.workplace')}
                                         </span>
                                         <span className="mt-0.5 flex items-center gap-2 text-foreground">
-                                            <Briefcase className="h-4 w-4 shrink-0 text-indigo-500/80" />
+                                            <Briefcase className="h-4 w-4 shrink-0 text-brand-brown/80" />
                                             {teacher.teacher_profile.workplace}
                                         </span>
                                     </div>
@@ -199,7 +199,7 @@ export default function TeacherProfile({ teacher }: Props) {
                                             {t('teachers.age')}
                                         </span>
                                         <span className="mt-0.5 flex items-center gap-2 text-foreground">
-                                            <Calendar className="h-4 w-4 shrink-0 text-indigo-500/80" />
+                                            <Calendar className="h-4 w-4 shrink-0 text-brand-brown/80" />
                                             {teacher.teacher_profile.age} years
                                             old
                                         </span>
@@ -211,7 +211,7 @@ export default function TeacherProfile({ teacher }: Props) {
                         {/* Certificates */}
                         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
                             <h2 className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3 text-base font-bold">
-                                <Award className="h-4.5 w-4.5 text-indigo-500" />
+                                <Award className="h-4.5 w-4.5 text-brand-brown" />
                                 {t('teachers.certificates')}
                             </h2>
 
@@ -366,7 +366,7 @@ export default function TeacherProfile({ teacher }: Props) {
                                                                     </div>
                                                                 ) : (
                                                                     <div className="flex aspect-[3/1] w-full items-center gap-3 rounded-xl border border-dashed border-border/80 bg-muted/40 p-3">
-                                                                        <FileText className="h-7 w-7 shrink-0 text-indigo-500/80" />
+                                                                         <FileText className="h-7 w-7 shrink-0 text-brand-brown/80" />
                                                                         <div className="flex min-w-0 flex-1 flex-col">
                                                                             <span className="truncate text-[10px] font-bold text-foreground">
                                                                                 {cert.substring(
@@ -382,7 +382,7 @@ export default function TeacherProfile({ teacher }: Props) {
                                                                                 }
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
-                                                                                className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:underline"
+                                                                                 className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-brand-brown hover:underline"
                                                                             >
                                                                                 Open
                                                                                 Document{' '}
@@ -410,7 +410,7 @@ export default function TeacherProfile({ teacher }: Props) {
                     <div className="space-y-6 md:col-span-2">
                         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
                             <h2 className="mb-6 flex items-center gap-2 border-b border-border/60 pb-4 text-base font-bold">
-                                <MessageCircle className="h-5 w-5 text-indigo-500" />
+                                <MessageCircle className="h-5 w-5 text-brand-brown" />
                                 {t('teachers.feedback_title')}
                             </h2>
 
@@ -424,7 +424,7 @@ export default function TeacherProfile({ teacher }: Props) {
                                         >
                                             <div className="mb-3 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-lightblue text-xs font-bold text-brand-brown">
                                                         {fb.author?.full_name
                                                             ?.substring(0, 2)
                                                             .toUpperCase() ||

@@ -9,9 +9,7 @@ abstract class TestCase extends BaseTestCase
 {
     protected function setUp(): void
     {
-        if (! $this->app) {
-            $this->refreshApplication();
-        }
+        parent::setUp();
 
         $defaultConnection = config('database.default');
         $defaultDatabase = config("database.connections.{$defaultConnection}.database");
@@ -20,8 +18,6 @@ abstract class TestCase extends BaseTestCase
         if ($defaultDatabase === 'edtech' || ($defaultConnection === 'pgsql' && $pgsqlDatabase === 'edtech')) {
             throw new \RuntimeException("SAFETY DANGER: Tests are attempting to run on the main database ('edtech')!");
         }
-
-        parent::setUp();
     }
 
     protected function skipUnlessFortifyHas(string $feature, ?string $message = null): void

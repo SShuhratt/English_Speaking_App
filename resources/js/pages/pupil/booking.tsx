@@ -189,7 +189,7 @@ export default function Booking({ teacher }: Props) {
         return (
             <div className="space-y-2 mt-4 border-t pt-3">
                 <Label className="text-xs font-semibold text-foreground">
-                    {t('Select Speaking Topics')} <span className="text-destructive">*</span>
+                    {t('booking.select_topics') || 'Select Speaking Topics'} <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex flex-wrap gap-2">
                     {labels.map((lbl: string) => {
@@ -205,10 +205,11 @@ export default function Booking({ teacher }: Props) {
                                         setSelectedTopics([...selectedTopics, lbl]);
                                     }
                                 }}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${isChecked
-                                        ? 'bg-indigo-600 text-white shadow-sm'
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                    isChecked
+                                        ? 'bg-brand-brown text-white shadow-sm'
                                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                    }`}
+                                }`}
                             >
                                 {lbl}
                             </button>
@@ -219,12 +220,13 @@ export default function Booking({ teacher }: Props) {
                         onClick={() => {
                             setOtherChecked(!otherChecked);
                         }}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${otherChecked
-                                ? 'bg-indigo-600 text-white shadow-sm'
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                            otherChecked
+                                ? 'bg-brand-brown text-white shadow-sm'
                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                            }`}
+                        }`}
                     >
-                        {t('Other')}
+                        {t('booking.other_topic') || 'Other'}
                     </button>
                 </div>
 
@@ -232,7 +234,7 @@ export default function Booking({ teacher }: Props) {
                     <div className="mt-2">
                         <Input
                             type="text"
-                            placeholder={t('Enter custom topic...')}
+                            placeholder={t('booking.custom_topic_placeholder') || 'Enter custom topic...'}
                             value={customTopic}
                             onChange={(e) => setCustomTopic(e.target.value)}
                             className="text-xs rounded-xl"
@@ -249,7 +251,7 @@ export default function Booking({ teacher }: Props) {
 
         const finalTopics = getFinalTopics();
         if (finalTopics.length === 0) {
-            toast.error(t('Please select at least one topic'));
+            toast.error(t('booking.topics_required') || 'Please select at least one topic');
             return;
         }
 
@@ -259,7 +261,7 @@ export default function Booking({ teacher }: Props) {
         if (confirmingSlot.is_all_time) {
             const dates = getSelectedStartAndEnd();
             if (!dates || !validateSelectedRange()) {
-                toast.error(t('Invalid range of time for teacher availability. Please select a valid range'));
+                toast.error(t('booking.invalid_range'));
                 return;
             }
             startAt = dates.start.toISOString();
@@ -366,7 +368,7 @@ export default function Booking({ teacher }: Props) {
                 }));
             }
         } catch (error) {
-            toast.error(t('Failed to load slots'));
+            toast.error('Failed to load slots');
         } finally {
             setLoading(false);
         }
@@ -397,10 +399,10 @@ export default function Booking({ teacher }: Props) {
                 end_at: slot.end_at,
                 topics: slot.topics,
             });
-            toast.success('Booking successful');
+            toast.success(t('booking.success'));
             fetchSlots();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to book');
+            toast.error(error.response?.data?.message || t('booking.failed'));
         } finally {
             setBooking(false);
         }
@@ -415,7 +417,7 @@ export default function Booking({ teacher }: Props) {
 
         const finalTopics = getFinalTopics();
         if (finalTopics.length === 0) {
-            toast.error('Please select at least one topic');
+            toast.error(t('booking.topics_required') || 'Please select at least one topic');
             return;
         }
 
@@ -458,7 +460,7 @@ export default function Booking({ teacher }: Props) {
                 end_at: endAt,
                 topics: finalTopics,
             });
-            toast.success('Booking is successful');
+            toast.success(t('booking.custom_success'));
             fetchSlots();
             setCustomStartTime('');
             setCustomEndTime('');
@@ -466,7 +468,7 @@ export default function Booking({ teacher }: Props) {
             setOtherChecked(false);
             setCustomTopic('');
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to book');
+            toast.error(error.response?.data?.message || t('booking.failed'));
         } finally {
             setBooking(false);
         }
@@ -582,7 +584,7 @@ export default function Booking({ teacher }: Props) {
                 <div className="flex items-center justify-between border-b bg-card px-6 py-3.5">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2.5">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-brown text-white shadow-md shadow-brand-brown/10">
                                 <CalendarIcon className="h-5 w-5" />
                             </div>
                             <span className="text-xl font-bold tracking-tight text-foreground">
@@ -666,7 +668,7 @@ export default function Booking({ teacher }: Props) {
                     >
                         {/* Teacher Profile Card */}
                         <div className="flex flex-col items-center rounded-2xl border bg-muted/20 p-4 text-center shadow-sm">
-                            <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl font-bold text-white shadow-lg">
+                            <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-brown text-2xl font-bold text-white shadow-lg shadow-brand-brown/10">
                                 {teacher.full_name
                                     .split(' ')
                                     .map((n: string) => n[0])
@@ -695,7 +697,7 @@ export default function Booking({ teacher }: Props) {
                                         <span className="text-muted-foreground">
                                             {t('booking.speaking_band')}
                                         </span>
-                                        <span className="font-semibold text-purple-600 dark:text-purple-400">
+                                        <span className="font-semibold text-brand-brown">
                                             {
                                                 teacher.teacher_profile
                                                     .speaking_band
@@ -718,7 +720,7 @@ export default function Booking({ teacher }: Props) {
                                         <span className="text-muted-foreground">
                                             {t('booking.rating')}
                                         </span>
-                                        <span className="font-semibold text-amber-600 dark:text-amber-400">
+                                        <span className="font-semibold text-amber-600">
                                             ★{' '}
                                             {
                                                 teacher.teacher_profile
@@ -807,12 +809,13 @@ export default function Booking({ teacher }: Props) {
                                                 setSelectedDate(day);
                                                 setCurrentDate(day);
                                             }}
-                                            className={`relative flex aspect-square items-center justify-center rounded-full text-xs font-semibold transition-all ${isSelected
-                                                    ? 'bg-indigo-600 text-white shadow-sm'
+                                            className={`relative flex aspect-square items-center justify-center rounded-full text-xs font-semibold transition-all ${
+                                                isSelected
+                                                    ? 'bg-brand-brown text-white shadow-sm'
                                                     : isToday
-                                                        ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-400'
-                                                        : 'text-foreground hover:bg-muted'
-                                                }`}
+                                                      ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown'
+                                                      : 'text-foreground hover:bg-muted'
+                                            }`}
                                         >
                                             <span>{day.getDate()}</span>
                                         </button>
@@ -824,7 +827,7 @@ export default function Booking({ teacher }: Props) {
                         {/* Request Custom Time Form */}
                         <div className="flex flex-col gap-3 border-t pt-4">
                             <h3 className="flex items-center gap-1.5 text-sm font-bold text-foreground">
-                                <Clock className="h-4 w-4 text-indigo-500" />
+                                <Clock className="h-4 w-4 text-brand-brown" />
                                 {t('booking.custom_title')}
                             </h3>
                             <form
@@ -841,7 +844,7 @@ export default function Booking({ teacher }: Props) {
                                         onChange={(e) =>
                                             setCustomStartTime(e.target.value)
                                         }
-                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-button/20 focus:outline-none"
                                         required
                                     />
                                 </div>
@@ -855,7 +858,7 @@ export default function Booking({ teacher }: Props) {
                                         onChange={(e) =>
                                             setCustomEndTime(e.target.value)
                                         }
-                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                        className="w-full rounded-xl border bg-background px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-button/20 focus:outline-none"
                                         required
                                     />
                                 </div>
@@ -865,7 +868,7 @@ export default function Booking({ teacher }: Props) {
                                 <Button
                                     type="submit"
                                     disabled={booking}
-                                    className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 py-4 text-xs font-semibold text-white shadow-md transition-all hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
+                                    className="w-full rounded-xl bg-brand-button hover:bg-brand-button-hover py-4 text-xs font-semibold text-white shadow-md transition-all disabled:opacity-50"
                                 >
                                     {booking
                                         ? t('booking.requesting')
@@ -896,13 +899,14 @@ export default function Booking({ teacher }: Props) {
                                             )}
                                         </span>
                                         <span
-                                            className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold ${formatDateString(
-                                                selectedDate,
-                                            ) ===
-                                                    formatDateString(new Date())
-                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                            className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold ${
+                                                formatDateString(
+                                                    selectedDate,
+                                                ) ===
+                                                formatDateString(new Date())
+                                                    ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/10'
                                                     : ''
-                                                }`}
+                                            }`}
                                         >
                                             {selectedDate.getDate()}
                                         </span>
@@ -937,12 +941,13 @@ export default function Booking({ teacher }: Props) {
                                                             );
                                                             setCurrentDate(day);
                                                         }}
-                                                        className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${isToday
-                                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                                        className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${
+                                                            isToday
+                                                                ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/10'
                                                                 : isSelected
-                                                                    ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400'
-                                                                    : 'text-foreground hover:bg-muted'
-                                                            }`}
+                                                                  ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown'
+                                                                  : 'text-foreground hover:bg-muted'
+                                                        }`}
                                                     >
                                                         {day.getDate()}
                                                     </button>
@@ -973,10 +978,10 @@ export default function Booking({ teacher }: Props) {
                                         {hour === 0
                                             ? '12 AM'
                                             : hour === 12
-                                                ? '12 PM'
-                                                : hour > 12
-                                                    ? `${hour - 12} PM`
-                                                    : `${hour} AM`}
+                                              ? '12 PM'
+                                              : hour > 12
+                                                ? `${hour - 12} PM`
+                                                : `${hour} AM`}
                                     </div>
                                 ))}
                             </div>
@@ -1008,7 +1013,7 @@ export default function Booking({ teacher }: Props) {
                                             {/* Render Slots */}
                                             {loading ? (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-[1px]">
-                                                    <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-indigo-600"></div>
+                                                    <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-brand-brown"></div>
                                                 </div>
                                             ) : (
                                                 getSlotsForDate(
@@ -1025,7 +1030,7 @@ export default function Booking({ teacher }: Props) {
                                                             slot,
                                                             selectedDate,
                                                         )}
-                                                        className="absolute right-2.5 left-2.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50/70 p-2 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow-md dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
+                                                        className="absolute right-2.5 left-2.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-brand-lightblue bg-brand-lightblue/50 p-2 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow-md"
                                                     >
                                                         <span className="flex items-center gap-1 text-[10px] font-extrabold tracking-wider uppercase">
                                                             <BookOpen className="h-3 w-3" />
@@ -1063,15 +1068,15 @@ export default function Booking({ teacher }: Props) {
                                                 formatDateString(
                                                     new Date(),
                                                 ) && (
-                                                    <div
-                                                        className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
-                                                        style={{
-                                                            top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
-                                                        }}
-                                                    >
-                                                        <div className="-ml-1 h-2 w-2 rounded-full bg-red-500"></div>
-                                                    </div>
-                                                )}
+                                                <div
+                                                    className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                    style={{
+                                                        top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                    }}
+                                                >
+                                                    <div className="-ml-1 h-2 w-2 rounded-full bg-red-500"></div>
+                                                </div>
+                                            )}
                                         </div>
                                     ) : (
                                         getWeekDays(selectedDate).map(
@@ -1100,7 +1105,7 @@ export default function Booking({ teacher }: Props) {
                                                                         slot,
                                                                         day,
                                                                     )}
-                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border border-indigo-100/50 bg-indigo-50/70 p-0.5 text-left text-indigo-700 shadow-sm transition-all hover:scale-[1.01] hover:bg-indigo-100/90 hover:shadow md:rounded-xl md:p-1.5 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/60"
+                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border border-brand-lightblue/50 bg-brand-lightblue/50 p-0.5 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow md:rounded-xl md:p-1.5"
                                                                 >
                                                                     <span className="hidden items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase md:flex">
                                                                         {t(
@@ -1129,15 +1134,15 @@ export default function Booking({ teacher }: Props) {
                                                             formatDateString(
                                                                 new Date(),
                                                             ) && (
-                                                                <div
-                                                                    className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
-                                                                    style={{
-                                                                        top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
-                                                                    }}
-                                                                >
-                                                                    <div className="-ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></div>
-                                                                </div>
-                                                            )}
+                                                            <div
+                                                                className="pointer-events-none absolute right-0 left-0 flex items-center border-t-2 border-red-500"
+                                                                style={{
+                                                                    top: `${(nowTime.getHours() + nowTime.getMinutes() / 60) * 60}px`,
+                                                                }}
+                                                            >
+                                                                <div className="-ml-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 );
                                             },
@@ -1164,7 +1169,7 @@ export default function Booking({ teacher }: Props) {
                         </Button>
 
                         <div className="mt-2 flex items-start gap-4">
-                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-lightblue text-brand-brown">
                                 <Info className="h-5 w-5" />
                             </div>
                             <div className="flex-1">
@@ -1286,7 +1291,7 @@ export default function Booking({ teacher }: Props) {
                                         disabled={
                                             booking || !validateSelectedRange()
                                         }
-                                        className="cursor-pointer rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-600/10 transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                                        className="cursor-pointer rounded-xl bg-brand-button hover:bg-brand-button-hover px-5 py-2 text-sm font-semibold text-white shadow-md shadow-brand-button/10 transition-colors disabled:opacity-50"
                                     >
                                         {booking
                                             ? t('booking.requesting')

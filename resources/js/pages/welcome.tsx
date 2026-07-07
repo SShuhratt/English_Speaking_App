@@ -1,24 +1,7 @@
-import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
 import { useTranslation } from '@/hooks/use-translation';
-import AppLogoIcon from '@/components/app-logo-icon';
-import {
-    Mic,
-    Sparkles,
-    Star,
-    Video,
-    Calendar,
-    BookOpen,
-    MessageCircle,
-    Users,
-    Search,
-    SlidersHorizontal,
-    Globe,
-    Zap,
-    GraduationCap,
-    Check,
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -26,201 +9,227 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-
-// Teacher profiles array with specialties, tags, realistic images, and localization keys
-const teachers = [
-    {
-        name: 'Sarah Thompson',
-        level: 'IELTS 9.0 • Speaking 9.0',
-        exp: '5 years',
-        rating: 4.9,
-        reviews: 142,
-        specialty: 'IELTS Preparation',
-        tags: ['Native Speaker', 'Cambridge Cert.'],
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCP6KzU0g88x74eYlZupQlTr4r6Dv61ALDlXgFBOe6zjKF-_MavmbjsELNbj7YIhrgRDSrJHj5MEh-qsrNp6MRFdh0t6qOkYFzSu23BUDQmDWDnG5LRdEtztOlrtjR26oP_Rfb-Vb6DqGlL9V3hpDBVFZIK3oocHjS1nZNZffuFILAamHaOems0riUpZ9OYymFeyi18stuJFZdM1oJGz-nbYzFLqUUn7aVVglr-TLtIPetoS9h_7fRPAg',
-        descKey: 'welcome.teachers_sarah_desc',
-        tag1Key: 'welcome.teachers_sarah_tag_1',
-        tag2Key: 'welcome.teachers_sarah_tag_2',
-    },
-    {
-        name: 'James Wilson',
-        level: 'CEFR C2 • IELTS 8.5',
-        exp: '3 years',
-        rating: 4.8,
-        reviews: 98,
-        specialty: 'Business English',
-        tags: ['Business English', 'TOEFL Prep'],
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFi4QKp6n6_j28XeDoQ_U3N2hiOXEzWvPlnzomio0pdEJBN7hHjNLXSs1XYj7PA7SIx8sM-IcDj6x8xd7XOwNZpmATS6mgodbxAM89fTxX-Jbgu2EE8RZQjIl-KW5h11kmkwnv-Pyh0-9DiVTUV2uTOFPqxVIFXBuZMk1yFic_SdpIns1fXijpXPRN-Bska3rMHFq9u8ekOptujySX2QS1VCggcTN3LdPx2wQzlz2S19oy0ljFdg-IPw',
-        descKey: 'welcome.teachers_james_desc',
-        tag1Key: 'welcome.teachers_james_tag_1',
-        tag2Key: 'welcome.teachers_james_tag_2',
-    },
-    {
-        name: 'Emma Davis',
-        level: 'IELTS 8.5 • Speaking 8.5',
-        exp: '7 years',
-        rating: 5.0,
-        reviews: 231,
-        specialty: 'Kids & Teens',
-        tags: ['Kids & Teens', 'TESOL Cert.'],
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgOv4ov2fPY8-bxY_eaeRe-RpgfhIMMpSqo80QI2nChpo-zmZ6PlOGsWWX_uTXkHwpGIzh_AQ2D9hCA6O8AKKwq3JvktJDO_HtBcTIgVy-9lbg3ib1RrNtMhYK81PNCQNArAzNUJTp3NfALZzeUraagaktMi0W_uYx3per0sQ5ur99r4tMdXcUliSD6ByjgEb5eZ_Ay8SDvSEhZO1lKeQKCcnniADF3SNLmVO4ln3D2SFfu40tRcIEFw',
-        descKey: 'welcome.teachers_emma_desc',
-        tag1Key: 'welcome.teachers_emma_tag_1',
-        tag2Key: 'welcome.teachers_emma_tag_2',
-    }
-];
-
-// Inline localization helpers to ensure complete translation of marketplace controls
-const specialtyLabels: Record<string, Record<string, string>> = {
-    All: {
-        en: 'All Specialties',
-        uz: 'Barcha mutaxassisliklar',
-        ru: 'Все специализации'
-    },
-    'IELTS Preparation': {
-        en: 'IELTS Preparation',
-        uz: 'IELTSga tayyorgarlik',
-        ru: 'Подготовка к IELTS'
-    },
-    'Business English': {
-        en: 'Business English',
-        uz: 'Biznes ingliz tili',
-        ru: 'Бизнес-английский'
-    },
-    'Kids & Teens': {
-        en: 'Kids & Teens',
-        uz: 'Bolalar va o‘smirlar',
-        ru: 'Дети и подростки'
-    }
-};
-
-const searchPlaceholder: Record<string, string> = {
-    en: 'Search by name or specialty...',
-    uz: 'Ism yoki mutaxassislik bo‘yicha qidirish...',
-    ru: 'Поиск по имени или специализации...'
-};
-
-const becomeTeacherTitle: Record<string, string> = {
-    en: 'Become a Teacher',
-    uz: 'O‘qituvchi bo‘ling',
-    ru: 'Стать преподавателем'
-};
-
-const becomeTeacherDesc: Record<string, string> = {
-    en: 'Join our network of elite educators and earn on your schedule.',
-    uz: 'Bizning elita o‘qituvchilar tarmog‘imizga qo‘shiling va o‘z jadvalingiz bo‘yicha daromad oling.',
-    ru: 'Присоединяйтесь к нашей сети элитных преподавателей и зарабатывайте по своему расписанию.'
-};
-
-const becomeTeacherBtn: Record<string, string> = {
-    en: 'Apply Now',
-    uz: 'Hozir ro‘yxatdan o‘ting',
-    ru: 'Подать заявку'
-};
-
-const bookNowBtn: Record<string, string> = {
-    en: 'Book Now',
-    uz: 'Bron qilish',
-    ru: 'Забронировать'
-};
+import AppLogoIcon from '@/components/app-logo-icon';
 
 export default function Welcome() {
     const { auth } = usePage<{ auth: { user: unknown } }>().props;
     const { t, locale, setLanguage } = useTranslation();
+    const [activeTab, setActiveTab] = useState<
+        'home' | 'features' | 'how-it-works' | 'teachers'
+    >('home');
 
-    // Marketplace search and category filter state
-    const [selectedSpecialty, setSelectedSpecialty] = useState('All');
+    // Filter states for Teachers view
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedSpecialty, setSelectedSpecialty] = useState<
+        'all' | 'ielts' | 'business' | 'kids'
+    >('all');
 
-    const currentLang = (locale as 'en' | 'uz' | 'ru') || 'en';
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.replace('#', '');
+            if (
+                hash === 'features' ||
+                hash === 'how-it-works' ||
+                hash === 'teachers'
+            ) {
+                setActiveTab(hash);
+            } else {
+                setActiveTab('home');
+            }
+        };
 
-    // Dynamic filtering logic
+        handleHashChange();
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
+
+    const handleTabClick = (
+        tab: 'home' | 'features' | 'how-it-works' | 'teachers',
+        e: React.MouseEvent,
+    ) => {
+        e.preventDefault();
+        setActiveTab(tab);
+        if (tab === 'home') {
+            window.history.pushState(null, '', '/');
+        } else {
+            window.location.hash = tab;
+        }
+    };
+
+    const teachers = [
+        {
+            name: 'Sarah Thompson',
+            level: 'IELTS 9.0 • Speaking 9.0',
+            desc: t('welcome.teachers_sarah_desc'),
+            specialties: ['ielts'],
+            tags: [
+                t('welcome.teachers_sarah_tag_1') || 'Native Speaker',
+                t('welcome.teachers_sarah_tag_2') || 'Cambridge Cert.',
+            ],
+            rating: 4.9,
+            reviews: 142,
+            experience: '5 y experience',
+            img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCP6KzU0g88x74eYlZupQlTr4r6Dv61ALDlXgFBOe6zjKF-_MavmbjsELNbj7YIhrgRDSrJHj5MEh-qsrNp6MRFdh0t6qOkYFzSu23BUDQmDWDnG5LRdEtztOlrtjR26oP_Rfb-Vb6DqGlL9V3hpDBVFZIK3oocHjS1nZNZffuFILAamHaOems0riUpZ9OYymFeyi18stuJFZdM1oJGz-nbYzFLqUUn7aVVglr-TLtIPetoS9h_7fRPAg',
+        },
+        {
+            name: 'James Wilson',
+            level: 'CEFR C2 • IELTS 8.5',
+            desc: t('welcome.teachers_james_desc'),
+            specialties: ['business'],
+            tags: [
+                t('welcome.teachers_james_tag_1') || 'Business English',
+                t('welcome.teachers_james_tag_2') || 'TOEFL Prep',
+            ],
+            rating: 4.8,
+            reviews: 98,
+            experience: '3 y experience',
+            img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFi4QKp6n6_j28XeDoQ_U3N2hiOXEzWvPlnzomio0pdEJBN7hHjNLXSs1XYj7PA7SIx8sM-IcDj6x8xd7XOwNZpmATS6mgodbxAM89fTxX-Jbgu2EE8RZQjIl-KW5h11kmkwnv-Pyh0-9DiVTUV2uTOFPqxVIFXBuZMk1yFic_SdpIns1fXijpXPRN-Bska3rMHFq9u8ekOptujySX2QS1VCggcTN3LdPx2wQzlz2S19oy0ljFdg-IPw',
+        },
+        {
+            name: 'Emma Davis',
+            level: 'IELTS 8.5 • Speaking 8.5',
+            desc: t('welcome.teachers_emma_desc'),
+            specialties: ['kids'],
+            tags: [
+                t('welcome.teachers_emma_tag_1') || 'Kids & Teens',
+                t('welcome.teachers_emma_tag_2') || 'TESOL Cert.',
+            ],
+            rating: 5.0,
+            reviews: 231,
+            experience: '7 y experience',
+            img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgOv4ov2fPY8-bxY_eaeRe-RpgfhIMMpSqo80QI2nChpo-zmZ6PlOGsWWX_uTXkHwpGIzh_AQ2D9hCA6O8AKKwq3JvktJDO_HtBcTIgVy-9lbg3ib1RrNtMhYK81PNCQNArAzNUJTp3NfALZzeUraagaktMi0W_uYx3per0sQ5ur99r4tMdXcUliSD6ByjgEb5eZ_Ay8SDvSEhZO1lKeQKCcnniADF3SNLmVO4ln3D2SFfu40tRcIEFw',
+        },
+    ];
+
     const filteredTeachers = teachers.filter((teacher) => {
-        const matchesSpecialty = selectedSpecialty === 'All' || teacher.specialty === selectedSpecialty;
-        const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            teacher.specialty.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSpecialty =
+            selectedSpecialty === 'all' ||
+            teacher.specialties.includes(selectedSpecialty);
+        const matchesSearch =
+            teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            teacher.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            teacher.tags.some((tag) =>
+                tag.toLowerCase().includes(searchQuery.toLowerCase()),
+            );
         return matchesSpecialty && matchesSearch;
     });
 
     return (
         <>
-            <Head title={`ConvoMate - ${t('welcome.title')}`} />
-            
-            {/* Inject smooth scrolling layout rule */}
-            <style dangerouslySetInnerHTML={{ __html: `html { scroll-behavior: smooth; }` }} />
+            <Head title={t('welcome.title') + ' - ConvoMate'} />
 
-            <div className="min-h-screen overflow-x-hidden bg-[#FAFAFA] font-sans text-[#061445] transition-colors duration-300 dark:bg-[#080811] dark:text-[#E8E8F0]">
-                
+            <div className="min-h-screen bg-white font-sans text-[#1b1b1f] selection:bg-[#fae18e] selection:text-[#061445]">
                 {/* ── Navbar ── */}
-                <header className="fixed top-0 right-0 left-0 z-50 border-b border-white/5 bg-white/80 shadow-sm backdrop-blur-md dark:bg-[#080811]/80">
-                    <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-                        <Link href="/" className="group flex items-center gap-2.5">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#061445]/10 bg-white shadow-md shadow-[#061445]/10 transition-transform group-hover:scale-105">
-                                <img src="/logo.png" alt="ConvoMate" className="h-full w-full object-cover" />
+                <header className="fixed top-0 right-0 left-0 z-50 border-b border-[#c6c5d0]/30 bg-white/80 backdrop-blur-lg transition-all duration-300">
+                    <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 md:px-12">
+                        <Link
+                            href="/"
+                            onClick={(e) => handleTabClick('home', e)}
+                            className="group flex items-center gap-3"
+                        >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#061445] transition-transform group-hover:scale-105">
+                                <AppLogoIcon className="h-5 w-5 text-[#fae18e]" />
                             </div>
-                            <span className="text-lg font-black tracking-tight text-[#061445] dark:text-[#E8E8F0]">
-                                Convo<span className="text-[#f5c518] dark:text-[#f5c518]">Mate</span>
+                            <span className="text-2xl font-extrabold tracking-tight text-[#061445]">
+                                Convo
+                                <span
+                                    className="text-[#fae18e]"
+                                    style={{
+                                        WebkitTextStroke: '0.5px #d4a900',
+                                    }}
+                                >
+                                    Mate
+                                </span>
                             </span>
                         </Link>
 
-                        {/* Anchors with smooth scroll functionality */}
-                        <div className="hidden items-center gap-8 text-sm font-semibold text-[#555] md:flex dark:text-[#A0A0B0]">
-                            <a href="#features" className="transition-colors hover:text-[#061445] dark:hover:text-[#d0e4ff]">
+                        <nav className="hidden items-center gap-10 md:flex">
+                            <a
+                                href="#features"
+                                onClick={(e) => handleTabClick('features', e)}
+                                className={`pb-1 text-[15px] font-semibold transition-all ${
+                                    activeTab === 'features'
+                                        ? 'border-b-2 border-[#fae18e] font-bold text-[#061445]'
+                                        : 'text-[#45464f] hover:text-[#061445]'
+                                }`}
+                            >
                                 {t('welcome.nav_features')}
                             </a>
-                            <a href="#how-it-works" className="transition-colors hover:text-[#061445] dark:hover:text-[#d0e4ff]">
+                            <a
+                                href="#how-it-works"
+                                onClick={(e) =>
+                                    handleTabClick('how-it-works', e)
+                                }
+                                className={`pb-1 text-[15px] font-semibold transition-all ${
+                                    activeTab === 'how-it-works'
+                                        ? 'border-b-2 border-[#fae18e] font-bold text-[#061445]'
+                                        : 'text-[#45464f] hover:text-[#061445]'
+                                }`}
+                            >
                                 {t('welcome.nav_how_it_works')}
                             </a>
-                            <a href="#teachers" className="transition-colors hover:text-[#061445] dark:hover:text-[#d0e4ff]">
+                            <a
+                                href="#teachers"
+                                onClick={(e) => handleTabClick('teachers', e)}
+                                className={`pb-1 text-[15px] font-semibold transition-all ${
+                                    activeTab === 'teachers'
+                                        ? 'border-b-2 border-[#fae18e] font-bold text-[#061445]'
+                                        : 'text-[#45464f] hover:text-[#061445]'
+                                }`}
+                            >
                                 {t('welcome.nav_teachers')}
                             </a>
-                        </div>
+                        </nav>
 
-                        <div className="flex items-center gap-3">
-                            {/* Localized navigation locale toggle */}
+                        <div className="flex items-center gap-4">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="flex h-9 cursor-pointer items-center gap-1.5 rounded-xl px-3 font-semibold text-[#061445] hover:bg-[#061445]/5 hover:text-[#061445] dark:text-[#A0A0B0] dark:hover:bg-[#d0e4ff]/10 dark:hover:text-[#d0e4ff]"
+                                        className="flex h-10 cursor-pointer items-center gap-2 rounded-xl px-3 font-semibold text-[#45464f] hover:bg-[#d0e4ff]/40 hover:text-[#061445]"
                                     >
-                                        <Globe className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />
-                                        <span className="text-xs font-bold uppercase">{locale}</span>
+                                        <span className="material-symbols-outlined text-[20px]">
+                                            globe
+                                        </span>
+                                        <span className="text-xs font-bold uppercase">
+                                            {locale}
+                                        </span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                     align="end"
-                                    className="rounded-2xl border border-white/10 p-1.5 shadow-xl dark:bg-[#0F0F1E]"
+                                    className="rounded-2xl border border-[#c6c5d0]/50 bg-white p-1.5 shadow-xl"
                                 >
-                                    <DropdownMenuItem
-                                        onClick={() => setLanguage('en')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-[#d0e4ff]/20 focus:bg-[#d0e4ff]/20"
-                                    >
-                                        <span className="text-sm font-medium">English</span>
-                                        {locale === 'en' && <Check className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() => setLanguage('uz')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-[#d0e4ff]/20 focus:bg-[#d0e4ff]/20"
-                                    >
-                                        <span className="text-sm font-medium">O'zbek</span>
-                                        {locale === 'uz' && <Check className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() => setLanguage('ru')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 hover:bg-[#d0e4ff]/20 focus:bg-[#d0e4ff]/20"
-                                    >
-                                        <span className="text-sm font-medium">Русский</span>
-                                        {locale === 'ru' && <Check className="h-4 w-4 text-[#061445] dark:text-[#d0e4ff]" />}
-                                    </DropdownMenuItem>
+                                    {(['en', 'uz', 'ru'] as const).map(
+                                        (lang) => (
+                                            <DropdownMenuItem
+                                                key={lang}
+                                                onClick={() =>
+                                                    setLanguage(lang)
+                                                }
+                                                className="flex cursor-pointer items-center justify-between rounded-xl px-4 py-2.5 hover:bg-[#d0e4ff]/40"
+                                            >
+                                                <span className="text-sm font-semibold text-[#061445]">
+                                                    {lang === 'en'
+                                                        ? 'English'
+                                                        : lang === 'uz'
+                                                          ? "O'zbek"
+                                                          : 'Русский'}
+                                                </span>
+                                                {locale === lang && (
+                                                    <span className="h-2 w-2 rounded-full bg-[#fae18e]" />
+                                                )}
+                                            </DropdownMenuItem>
+                                        ),
+                                    )}
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
                             {auth.user ? (
                                 <Link
                                     href={dashboard()}
-                                    className="rounded-xl bg-[#061445] px-5 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg dark:bg-[#d0e4ff] dark:text-[#061445]"
+                                    className="rounded-full bg-[#061445] px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95"
                                 >
                                     {t('nav.dashboard')}
                                 </Link>
@@ -228,526 +237,1038 @@ export default function Welcome() {
                                 <>
                                     <Link
                                         href={login()}
-                                        className="rounded-xl px-4 py-2 text-sm font-semibold text-[#555] transition-colors hover:text-[#061445] dark:text-[#A0A0B0] dark:hover:text-[#d0e4ff]"
+                                        className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#45464f] transition-colors hover:text-[#061445]"
                                     >
                                         {t('auth.login')}
                                     </Link>
                                     <Link
                                         href={register()}
-                                        className="rounded-xl bg-[#fae18e] px-5 py-2 text-sm font-bold text-[#061445] shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-[#fae18e]/95"
+                                        className="rounded-full bg-[#fae18e] px-6 py-3 text-sm font-bold text-[#061445] shadow-md transition-all hover:scale-105 hover:bg-[#f0d070] active:scale-95"
                                     >
                                         {t('welcome.get_started')}
                                     </Link>
                                 </>
                             )}
                         </div>
-                    </nav>
+                    </div>
                 </header>
 
-                <main className="pt-16">
-                    {/* ── Hero Section (Pale Blue Background Band) ── */}
-                    <section className="relative px-6 py-16 md:py-24 max-w-7xl mx-auto">
-                        {/* Background Band shaped panel */}
-                        <div className="absolute inset-0 top-0 h-[92%] bg-[#d0e4ff]/30 -z-10 rounded-[3rem] mx-4 md:mx-0 dark:bg-[#d0e4ff]/5"></div>
-                        
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                            {/* Left Content Column */}
-                            <div className="lg:col-span-6 space-y-8">
-                                <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm dark:bg-[#080811] dark:border dark:border-white/10">
-                                    <Sparkles className="text-[#061445] dark:text-[#d0e4ff] h-5 w-5" />
-                                    <span className="text-sm font-bold tracking-tight text-[#061445] dark:text-[#d0e4ff]">
-                                        {t('welcome.badge')}
-                                    </span>
+                {/* ── Main Content Views ── */}
+                <main className="pt-20">
+                    {activeTab === 'home' && (
+                        <>
+                            {/* ── Home Hero Section ── */}
+                            <section className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
+                                {/* Pale Blue background band */}
+                                <div className="absolute inset-x-4 top-0 -z-10 h-[85%] rounded-[3rem] bg-[#d0e4ff]/30 md:inset-x-8" />
+
+                                <div className="mx-auto max-w-7xl px-6 md:px-12">
+                                    <div className="grid items-center gap-12 lg:grid-cols-12">
+                                        {/* Left: Content */}
+                                        <div className="space-y-8 lg:col-span-6">
+                                            <div className="inline-flex items-center gap-2 rounded-full border border-[#c6c5d0]/30 bg-white px-4 py-2 shadow-sm">
+                                                <span
+                                                    className="material-symbols-outlined text-[20px] text-[#061445]"
+                                                    style={{
+                                                        fontVariationSettings:
+                                                            "'FILL' 1",
+                                                    }}
+                                                >
+                                                    verified
+                                                </span>
+                                                <span className="text-xs font-bold tracking-wider text-[#061445] uppercase">
+                                                    {t('welcome.badge')}
+                                                </span>
+                                            </div>
+
+                                            <h1 className="text-5xl leading-[1.1] font-extrabold tracking-tight text-[#061445] sm:text-6xl lg:text-[68px]">
+                                                {t('welcome.title')}
+                                                <br />
+                                                <span className="butter-underline">
+                                                    {t(
+                                                        'welcome.title_fluently',
+                                                    )}
+                                                </span>{' '}
+                                                {t('welcome.title_today')}
+                                            </h1>
+
+                                            <p className="max-w-lg text-lg leading-relaxed text-[#45464f]">
+                                                {t('welcome.subtitle')}
+                                            </p>
+
+                                            <div className="flex flex-col gap-4 pt-2 sm:flex-row">
+                                                <Link
+                                                    href={register()}
+                                                    className="flex h-14 cursor-pointer items-center justify-center gap-2 rounded-full bg-[#061445] px-8 font-bold text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                                                >
+                                                    {t('welcome.cta_start')}
+                                                    <span
+                                                        className="material-symbols-outlined text-[20px] text-white"
+                                                        style={{
+                                                            fontVariationSettings:
+                                                                "'FILL' 1",
+                                                        }}
+                                                    >
+                                                        bolt
+                                                    </span>
+                                                </Link>
+                                                <a
+                                                    href="#teachers"
+                                                    onClick={(e) =>
+                                                        handleTabClick(
+                                                            'teachers',
+                                                            e,
+                                                        )
+                                                    }
+                                                    className="flex h-14 cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-[#061445]/15 bg-white px-8 font-bold text-[#061445] transition-all hover:bg-[#d0e4ff]/30 active:scale-95"
+                                                >
+                                                    {t('welcome.view_teachers')}
+                                                </a>
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-8 border-t border-[#c6c5d0]/30 pt-6 text-sm text-[#45464f]">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[20px] text-[#44617e]">
+                                                        group
+                                                    </span>
+                                                    <span>
+                                                        {t(
+                                                            'welcome.trust_learners',
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span
+                                                        className="material-symbols-outlined text-[20px] text-[#fae18e]"
+                                                        style={{
+                                                            fontVariationSettings:
+                                                                "'FILL' 1",
+                                                        }}
+                                                    >
+                                                        star
+                                                    </span>
+                                                    <span>
+                                                        {t(
+                                                            'welcome.trust_rating',
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Right: Video Call Mock visual */}
+                                        <div className="relative lg:col-span-6">
+                                            <div className="shadow-ambient-md relative rounded-[2rem] border border-[#c6c5d0]/40 bg-white p-4">
+                                                <div className="grid aspect-video grid-cols-2 gap-3 overflow-hidden rounded-xl bg-[#d0e4ff]/10">
+                                                    <div className="relative overflow-hidden rounded-xl">
+                                                        <img
+                                                            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400"
+                                                            alt="Sarah M."
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                        <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-[#061445]/80 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
+                                                            🇬🇧 Sarah M. (UK)
+                                                        </div>
+                                                    </div>
+                                                    <div className="relative overflow-hidden rounded-xl">
+                                                        <img
+                                                            src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400"
+                                                            alt="David L."
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                        <div className="absolute top-2 right-2 rounded-full bg-[#fae18e] px-2.5 py-1 text-[10px] font-bold text-[#061445]">
+                                                            Live Practice
+                                                        </div>
+                                                        <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-[#061445]/80 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
+                                                            🇺🇸 David L. (US)
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Feedback pill */}
+                                                <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#c6c5d0]/30 bg-[#f5f3f7] p-3">
+                                                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#fae18e] text-[#061445]">
+                                                        <span className="material-symbols-outlined text-[20px]">
+                                                            auto_awesome
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold tracking-wider text-[#45464f] uppercase">
+                                                            Real-time Feedback
+                                                        </p>
+                                                        <p className="text-sm font-bold text-[#061445]">
+                                                            CEFR Level: B2
+                                                            Advanced
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Controls */}
+                                                <div className="mt-3 flex justify-center gap-3">
+                                                    {['mic', 'videocam'].map(
+                                                        (icon, i) => (
+                                                            <div
+                                                                key={i}
+                                                                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#d0e4ff] text-[#061445] transition-all hover:bg-[#fae18e]"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[20px]">
+                                                                    {icon}
+                                                                </span>
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                    <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#ba1a1a] text-white transition-all hover:opacity-90">
+                                                        <span className="material-symbols-outlined text-[20px]">
+                                                            call_end
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Floating lesson chip */}
+                                            <div className="shadow-ambient absolute -right-4 -bottom-4 hidden rounded-[1.5rem] border border-[#c6c5d0]/50 bg-white p-4 md:block">
+                                                <p className="text-[10px] font-bold tracking-wider text-[#45464f] uppercase">
+                                                    Lesson Topic
+                                                </p>
+                                                <p className="text-lg font-bold text-[#061445]">
+                                                    Business English
+                                                </p>
+                                                <div className="mt-1 flex gap-1.5">
+                                                    <span className="rounded bg-[#d0e4ff]/60 px-2 py-0.5 text-[9px] font-bold text-[#061445]">
+                                                        NEGOTIATION
+                                                    </span>
+                                                    <span className="rounded bg-[#d0e4ff]/60 px-2 py-0.5 text-[9px] font-bold text-[#061445]">
+                                                        STRATEGY
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                
-                                <h1 className="font-sans text-5xl font-black tracking-tight text-[#061445] dark:text-white sm:text-6xl md:text-7xl leading-[1.1] mb-6">
-                                    {t('welcome.title')}{' '}
-                                    <span className="relative inline-block z-10 whitespace-nowrap">
-                                        {t('welcome.title_fluently')}
-                                        {/* Yellow Highlight Line */}
-                                        <span className="absolute bottom-1 left-0 w-full h-3 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
+                            </section>
+
+                            {/* ── Bento Grid Section ── */}
+                            <section className="mx-auto max-w-7xl px-6 py-24 md:px-12">
+                                <div className="mb-16 space-y-4 text-center">
+                                    <h2 className="text-3xl font-extrabold tracking-tight text-[#061445] md:text-4xl lg:text-5xl">
+                                        {t('welcome.home_bento_title').replace(
+                                            'master',
+                                            '',
+                                        )}
+                                        <span className="butter-underline">
+                                            master
+                                        </span>{' '}
+                                        English
+                                    </h2>
+                                    <p className="mx-auto max-w-2xl text-lg text-[#45464f]">
+                                        {t('welcome.home_bento_subtitle')}
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                    {/* Card 1: AI-Powered (2-column on md) */}
+                                    <div className="shadow-ambient hover:shadow-ambient-md flex flex-col items-start justify-between gap-8 rounded-2xl bg-[#f5f3f7] p-8 transition-shadow md:col-span-2 md:flex-row">
+                                        <div className="max-w-md space-y-4">
+                                            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#fae18e]/35 px-3.5 py-1 text-xs font-bold tracking-wider text-[#061445] uppercase">
+                                                {t(
+                                                    'welcome.home_bento_1_accuracy',
+                                                )}
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-[#061445]">
+                                                {t(
+                                                    'welcome.home_bento_1_title',
+                                                )}
+                                            </h3>
+                                            <p className="text-sm leading-relaxed text-[#45464f]">
+                                                {t('welcome.home_bento_1_desc')}
+                                            </p>
+                                        </div>
+                                        <div className="w-full space-y-3 rounded-xl border border-[#c6c5d0]/30 bg-white p-4 shadow-sm md:w-64">
+                                            <div className="flex items-center gap-2 border-b border-[#c6c5d0]/20 pb-2 text-xs text-[#45464f]">
+                                                <span className="material-symbols-outlined text-[16px] text-green-600">
+                                                    check_circle
+                                                </span>
+                                                <span className="font-bold">
+                                                    Pronunciation Check
+                                                </span>
+                                            </div>
+                                            <p className="text-xs font-medium text-[#061445] italic">
+                                                "I want to{' '}
+                                                <span className="text-red-500 line-through">
+                                                    improve
+                                                </span>{' '}
+                                                my vocabulary."
+                                            </p>
+                                            <p className="rounded-lg bg-[#d0e4ff]/30 p-2 text-[11px] leading-relaxed text-[#45464f]">
+                                                💡{' '}
+                                                <strong className="text-[#061445]">
+                                                    AI Tip:
+                                                </strong>{' '}
+                                                Replace "improve" with{' '}
+                                                <strong className="text-[#061445]">
+                                                    "expand"
+                                                </strong>{' '}
+                                                for professional settings.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Card 2: Flexible Scheduling (Yellow card) */}
+                                    <div className="shadow-ambient hover:shadow-ambient-md flex flex-col items-start justify-between rounded-2xl bg-[#fae18e]/30 p-8 transition-shadow">
+                                        <div className="space-y-4">
+                                            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#fae18e] text-[#061445]">
+                                                <span className="material-symbols-outlined text-[24px]">
+                                                    calendar_today
+                                                </span>
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-[#061445]">
+                                                {t(
+                                                    'welcome.home_bento_2_title',
+                                                )}
+                                            </h3>
+                                            <p className="text-sm leading-relaxed text-[#45464f]">
+                                                {t('welcome.home_bento_2_desc')}
+                                            </p>
+                                        </div>
+                                        <div className="mt-8 flex -space-x-3 overflow-hidden">
+                                            {['JW', 'ED', 'ST'].map(
+                                                (initials, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-[#061445] text-xs font-bold text-white"
+                                                    >
+                                                        {initials}
+                                                    </div>
+                                                ),
+                                            )}
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-[#d0e4ff] text-xs font-bold text-[#061445]">
+                                                +9
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Card 3: Topic Discovery */}
+                                    <div className="shadow-ambient hover:shadow-ambient-md flex flex-col items-start justify-between rounded-2xl bg-[#f5f3f7] p-8 transition-shadow">
+                                        <div className="space-y-4">
+                                            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#d0e4ff] text-[#061445]">
+                                                <span className="material-symbols-outlined text-[24px]">
+                                                    explore
+                                                </span>
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-[#061445]">
+                                                {t(
+                                                    'welcome.home_bento_3_title',
+                                                )}
+                                            </h3>
+                                            <p className="text-sm leading-relaxed text-[#45464f]">
+                                                {t('welcome.home_bento_3_desc')}
+                                            </p>
+                                        </div>
+                                        <div className="mt-8 flex flex-wrap gap-2">
+                                            {[
+                                                'Tech Talk',
+                                                'Job Interview',
+                                                'Travel Idioms',
+                                            ].map((topic) => (
+                                                <span
+                                                    key={topic}
+                                                    className="rounded-full border border-[#c6c5d0]/30 bg-white px-3 py-1 text-xs font-bold text-[#061445] shadow-sm"
+                                                >
+                                                    {topic}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Card 4: Google Meet Integration (2-column on md) */}
+                                    <div className="shadow-ambient hover:shadow-ambient-md flex flex-col items-start justify-between gap-8 rounded-2xl bg-[#d0e4ff]/20 p-8 transition-shadow md:col-span-2 md:flex-row">
+                                        <div className="max-w-md space-y-4">
+                                            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#d0e4ff] text-[#061445]">
+                                                <span className="material-symbols-outlined text-[24px]">
+                                                    video_call
+                                                </span>
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-[#061445]">
+                                                {t(
+                                                    'welcome.home_bento_4_title',
+                                                )}
+                                            </h3>
+                                            <p className="text-sm leading-relaxed text-[#45464f]">
+                                                {t('welcome.home_bento_4_desc')}
+                                            </p>
+                                        </div>
+                                        <div className="flex aspect-[2/1] w-full items-center justify-center rounded-xl border border-[#c6c5d0]/30 bg-white p-4 shadow-sm md:w-64">
+                                            <span className="material-symbols-outlined text-[48px] text-green-600">
+                                                videocam
+                                            </span>
+                                            <span className="ml-2 text-lg font-bold text-[#061445]">
+                                                Google Meet
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* ── Home Footer ── */}
+                            <footer className="rounded-t-[3rem] border-t border-[#c6c5d0]/30 bg-[#f5f3f7] py-16">
+                                <div className="mx-auto max-w-7xl px-6 md:px-12">
+                                    <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#061445]">
+                                                <AppLogoIcon className="h-5 w-5 text-[#fae18e]" />
+                                            </div>
+                                            <span className="text-xl font-extrabold tracking-tight text-[#061445]">
+                                                Convo
+                                                <span className="text-[#d4a900]">
+                                                    Mate
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-[#45464f]">
+                                            © {new Date().getFullYear()}{' '}
+                                            ConvoMate.{' '}
+                                            {t('welcome.footer_rights')}
+                                        </p>
+                                        <div className="flex flex-wrap justify-center gap-6 text-sm text-[#45464f]">
+                                            {[
+                                                'About Us',
+                                                'Privacy Policy',
+                                                'Terms of Service',
+                                                'Help Center',
+                                            ].map((label) => (
+                                                <a
+                                                    key={label}
+                                                    href="#"
+                                                    className="transition-colors hover:text-[#061445]"
+                                                >
+                                                    {label}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </footer>
+                        </>
+                    )}
+
+                    {activeTab === 'features' && (
+                        <>
+                            {/* ── Features Header Section ── */}
+                            <section className="mx-auto max-w-4xl space-y-6 px-6 py-20 text-center">
+                                <h1 className="text-4xl font-extrabold tracking-tight text-[#061445] md:text-5xl lg:text-6xl">
+                                    {t('welcome.features_hero_title').replace(
+                                        'Improve',
+                                        '',
+                                    )}
+                                    <span className="butter-underline">
+                                        Improve
                                     </span>
-                                    {t('welcome.title_today') && t('welcome.title_today') !== 'welcome.title_today' && <> {t('welcome.title_today')}</>}
                                 </h1>
-
-                                <p className="font-sans text-lg text-[#45464f] dark:text-[#cbd5e1] max-w-lg">
-                                    {t('welcome.subtitle')}
+                                <p className="text-lg leading-relaxed text-[#45464f]">
+                                    {t('welcome.features_hero_subtitle')}
                                 </p>
+                            </section>
 
-                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                    <Link
-                                        href={register()}
-                                        className="bg-[#061445] text-white h-14 px-8 rounded-lg flex items-center justify-center gap-2 font-bold hover:bg-[#061445]/90 transition-all active:scale-95 shadow-md dark:bg-[#d0e4ff] dark:text-[#061445] dark:hover:bg-[#d0e4ff]/90"
-                                    >
-                                        {t('welcome.cta_start')}
-                                        <Zap className="h-5 w-5 fill-current" />
-                                    </Link>
-                                    <a
-                                        href="#teachers"
-                                        className="bg-white border-2 border-[#061445]/10 text-[#061445] h-14 px-8 rounded-lg flex items-center justify-center gap-2 font-bold hover:bg-[#d0e4ff]/20 transition-all dark:bg-[#080811] dark:border-white/10 dark:text-[#E8E8F0] dark:hover:bg-white/5"
-                                    >
-                                        {t('welcome.cta_how_it_works')}
-                                    </a>
-                                </div>
-
-                                <div className="flex flex-wrap gap-8 pt-6">
-                                    <div className="flex items-center gap-2">
-                                        <Users className="text-[#061445] dark:text-[#d0e4ff] h-5 w-5" />
-                                        <span className="text-sm font-semibold text-[#45464f] dark:text-[#A0A0B0]">
-                                            {t('welcome.trust_learners')}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Star className="text-[#061445] fill-[#fae18e] h-5 w-5" />
-                                        <span className="text-sm font-semibold text-[#45464f] dark:text-[#A0A0B0]">
-                                            {t('welcome.trust_rating')}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right Video Call Visual Column */}
-                            <div className="lg:col-span-6 relative">
-                                <div className="relative bg-white p-4 rounded-3xl shadow-xl border border-[#d0e4ff]/50 overflow-hidden dark:bg-[#0c0c16] dark:border-white/10">
-                                    {/* Mock Video Feed Container */}
-                                    <div className="grid grid-cols-2 gap-3 aspect-video">
-                                        
-                                        {/* Teacher Feed */}
-                                        <div className="relative rounded-2xl overflow-hidden bg-[#d0e4ff]/20 aspect-square">
-                                            <img
-                                                className="w-full h-full object-cover"
-                                                alt="Sarah M."
-                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2XLftemZ5TAP_21DqZkHVpVLWepGEfQ00ARVxd9B7YKdWvmgxsoALkGQ2oUmOkMWv5c_rGxgDH_ws_pnU9BhzLnHjWpIqr5B9LdSMDEL872u9nO10wfUr_YIx7XFltYgXrHEaOKPy2UyrXzPv2sb4-RS58HvR0226wiUSSvm9dEg_T76Bc7Ta_QZCMb5ztLyLmBm8d7x5H9DkUxE4GIsoWuJq43xyawaALSSVmfoqxdYYMyZNZ7U5zw"
-                                            />
-                                            <div className="absolute bottom-3 left-3 bg-[#061445]/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs flex items-center gap-1">
-                                                <Globe className="h-3.5 w-3.5 text-[#d0e4ff]" />
-                                                Sarah M. (UK)
+                            {/* ── 6-Card Bento Grid ── */}
+                            <section className="mx-auto max-w-7xl px-6 py-12 md:px-12">
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                    {[
+                                        {
+                                            icon: 'videocam',
+                                            title: t('welcome.feature_1_title'),
+                                            desc: t('welcome.feature_1_desc'),
+                                            color: 'bg-[#d0e4ff]',
+                                        },
+                                        {
+                                            icon: 'calendar_today',
+                                            title: t('welcome.feature_2_title'),
+                                            desc: t('welcome.feature_2_desc'),
+                                            color: 'bg-[#fae18e]/55',
+                                        },
+                                        {
+                                            icon: 'school',
+                                            title: t('welcome.feature_3_title'),
+                                            desc: t('welcome.feature_3_desc'),
+                                            color: 'bg-[#d0e4ff]',
+                                        },
+                                        {
+                                            icon: 'psychology',
+                                            title: t('welcome.feature_4_title'),
+                                            desc: t('welcome.feature_4_desc'),
+                                            color: 'bg-[#fae18e]/55',
+                                        },
+                                        {
+                                            icon: 'trending_up',
+                                            title: t('welcome.feature_5_title'),
+                                            desc: t('welcome.feature_5_desc'),
+                                            color: 'bg-[#d0e4ff]',
+                                        },
+                                        {
+                                            icon: 'menu_book',
+                                            title: t('welcome.feature_6_title'),
+                                            desc: t('welcome.feature_6_desc'),
+                                            color: 'bg-[#fae18e]/55',
+                                        },
+                                    ].map((feat, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="shadow-ambient hover:shadow-ambient-md group flex flex-col items-start rounded-2xl border border-[#c6c5d0]/30 bg-white p-10 transition-all"
+                                        >
+                                            <div
+                                                className={`h-14 w-14 rounded-xl ${feat.color} mb-8 flex items-center justify-center text-[#061445] transition-transform group-hover:scale-110`}
+                                            >
+                                                <span className="material-symbols-outlined text-3xl">
+                                                    {feat.icon}
+                                                </span>
                                             </div>
+                                            <h3 className="mb-4 text-xl font-bold text-[#061445]">
+                                                {feat.title}
+                                            </h3>
+                                            <p className="text-sm leading-relaxed text-[#45464f]">
+                                                {feat.desc}
+                                            </p>
                                         </div>
-
-                                        {/* Student Feed */}
-                                        <div className="relative rounded-2xl overflow-hidden bg-[#d0e4ff]/20 aspect-square">
-                                            <img
-                                                className="w-full h-full object-cover"
-                                                alt="David L."
-                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhujsEFUDvRAaFMwwWE_B7_HZbSZhuomMvsCA2kNw38-q1C56nEdPKa1Y6HSOnExpxOG9spZFt93oBoqD69ywneJ0Aal-sge2gIUw3TCdrCIlWULKSVyanKWGHCWbWfCunIRWU5PV5fiRcRfWUIk7OPcJ-IDK9MbBhDKDSxDNx3VJEnYu0wzao_4PZSJZNEqoU0kI0FbMbZFgWzoeOKUmr2Fhzk9CqDw0YP69BGiAeRE6bU-KmVsbVXQ"
-                                            />
-                                            <div className="absolute bottom-3 left-3 bg-[#061445]/80 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs flex items-center gap-1">
-                                                <Users className="h-3.5 w-3.5 text-[#fae18e]" />
-                                                David L. (US)
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Live Badge UI Overlay */}
-                                    <div className="absolute top-8 right-8 flex flex-col gap-3">
-                                        <div className="bg-[#fae18e] text-[#061445] px-4 py-2 rounded-lg font-bold text-sm shadow-md animate-pulse">
-                                            Live Practice
-                                        </div>
-                                    </div>
-
-                                    {/* Feedback Floating Panel */}
-                                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-white/90 border border-[#d0e4ff] p-4 rounded-xl flex items-center gap-4 shadow-lg min-w-[280px] dark:bg-[#080811]/90 dark:border-white/10">
-                                        <div className="w-10 h-10 rounded-full bg-[#fae18e] flex items-center justify-center text-[#061445]">
-                                            <Sparkles className="w-5 h-5 fill-current" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs text-muted-foreground">Real-time Feedback</div>
-                                            <div className="text-sm font-bold text-[#061445] dark:text-[#E8E8F0]">CEFR Level: B2 Advanced</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Mock Call Control Buttons */}
-                                    <div className="flex justify-center gap-4 mt-6">
-                                        <div className="w-12 h-12 rounded-full bg-[#d0e4ff]/30 flex items-center justify-center text-[#061445] cursor-pointer hover:bg-[#fae18e] transition-all dark:text-[#d0e4ff] dark:hover:bg-[#fae18e] dark:hover:text-[#061445]">
-                                            <Mic className="w-5 h-5" />
-                                        </div>
-                                        <div className="w-12 h-12 rounded-full bg-[#d0e4ff]/30 flex items-center justify-center text-[#061445] cursor-pointer hover:bg-[#fae18e] transition-all dark:text-[#d0e4ff] dark:hover:bg-[#fae18e] dark:hover:text-[#061445]">
-                                            <Video className="w-5 h-5" />
-                                        </div>
-                                        <div className="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white cursor-pointer hover:bg-rose-600 transition-all">
-                                            <Zap className="w-5 h-5 rotate-180" />
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
+                            </section>
 
-                                {/* Decorative floaters */}
-                                <div className="absolute -top-6 -left-6 bg-white p-4 rounded-xl shadow-lg border border-[#d0e4ff]/50 hidden md:block dark:bg-[#0c0c16] dark:border-white/10">
-                                    <div className="flex gap-2 items-start max-w-[150px]">
-                                        <div className="w-6 h-6 bg-[#fae18e] rounded-full flex-shrink-0 flex items-center justify-center text-[#061445]">
-                                            <MessageCircle className="w-3.5 h-3.5" />
+                            {/* ── Personalized Learning Section ── */}
+                            <section className="mx-auto max-w-7xl px-6 py-24 md:px-12">
+                                <div className="flex flex-col items-center gap-16 md:flex-row">
+                                    <div className="flex-1 space-y-8">
+                                        <div className="inline-block rounded-full bg-[#fae18e] px-6 py-2 text-xs font-bold tracking-wider text-[#061445] uppercase">
+                                            {t(
+                                                'welcome.features_pers_learning',
+                                            )}
                                         </div>
-                                        <p className="text-xs leading-tight font-semibold text-[#061445] dark:text-[#E8E8F0]">"Focus on word stress here."</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ── Features Bento Grid Section ── */}
-                    <section id="features" className="px-6 py-24 max-w-7xl mx-auto">
-                        <div className="text-center mb-16 space-y-4">
-                            <h2 className="font-sans text-4xl font-black text-[#061445] dark:text-white">
-                                {t('welcome.home_bento_title_1')}{' '}
-                                <span className="relative inline-block z-10 whitespace-nowrap">
-                                    {t('welcome.home_bento_title_highlight')}
-                                    {/* Yellow Highlight Line */}
-                                    <span className="absolute bottom-1 left-0 w-full h-2 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
-                                </span>
-                                {t('welcome.home_bento_title_2')}
-                            </h2>
-                            <p className="text-[#45464f] max-w-2xl mx-auto dark:text-[#A0A0B0]">
-                                {t('welcome.home_bento_subtitle')}
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            
-                            {/* Card 1: AI-Powered Analysis (Desktop 2-Col Span) */}
-                            <div className="md:col-span-2 bg-white p-8 rounded-3xl border border-[#d0e4ff]/30 shadow-md group hover:border-[#fae18e] transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5 dark:hover:border-[#fae18e]/50">
-                                <div className="flex flex-col md:flex-row gap-8 items-center">
-                                    <div className="space-y-4 flex-1">
-                                        <div className="w-12 h-12 bg-[#d0e4ff]/50 rounded-xl flex items-center justify-center text-[#061445] dark:bg-[#d0e4ff]/10 dark:text-[#d0e4ff]">
-                                            <MessageCircle className="w-6 h-6" />
-                                        </div>
-                                        <h3 className="text-xl font-bold text-[#061445] dark:text-white">
-                                            {t('welcome.home_bento_1_title')}
-                                        </h3>
-                                        <p className="text-sm text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">
-                                            {t('welcome.home_bento_1_desc')}
+                                        <h2 className="text-4xl font-extrabold text-[#061445] md:text-5xl">
+                                            {t(
+                                                'welcome.features_journey_title',
+                                            )}
+                                        </h2>
+                                        <p className="text-lg leading-relaxed text-[#45464f]">
+                                            {t('welcome.features_journey_desc')}
                                         </p>
-                                    </div>
-                                    <div className="flex-1 w-full bg-[#d0e4ff]/20 rounded-2xl p-6 relative overflow-hidden dark:bg-[#1a2d47]/20">
-                                        <div className="space-y-3">
-                                            <div className="h-2 w-3/4 bg-[#061445]/10 rounded dark:bg-white/10"></div>
-                                            <div className="h-2 w-1/2 bg-[#fae18e] rounded"></div>
-                                            <div className="h-2 w-2/3 bg-[#061445]/10 rounded dark:bg-white/10"></div>
+                                        <div className="flex flex-col gap-4">
+                                            {[
+                                                t(
+                                                    'welcome.features_journey_item_1',
+                                                ),
+                                                t(
+                                                    'welcome.features_journey_item_2',
+                                                ),
+                                                t(
+                                                    'welcome.features_journey_item_3',
+                                                ),
+                                            ].map((item, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="flex items-center gap-4 rounded-xl border border-[#c6c5d0]/20 bg-[#f5f3f7] p-4"
+                                                >
+                                                    <span className="material-symbols-outlined text-[#061445]">
+                                                        check_circle
+                                                    </span>
+                                                    <span className="text-sm font-semibold text-[#061445]">
+                                                        {item}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div className="absolute top-2 right-2 bg-white px-2.5 py-1 rounded-md text-[10px] font-bold text-[#061445] shadow-sm dark:bg-[#080811] dark:text-[#d0e4ff] dark:border dark:border-white/10">
-                                            ACCURACY 94%
+                                    </div>
+                                    <div className="relative aspect-square w-full flex-1">
+                                        <div className="absolute inset-0 scale-105 -rotate-3 rounded-2xl bg-[#d0e4ff] opacity-20"></div>
+                                        <div className="shadow-ambient-md relative h-full w-full overflow-hidden rounded-2xl border border-[#c6c5d0]/30 bg-white">
+                                            <img
+                                                className="h-full w-full object-cover"
+                                                alt="Workspace"
+                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPQTu3UjiXn2Xwbw-HsmNTFmvyT8bXfqLhP2hkdgSNOCJuUDG2NvOZi_9o7URHG-HAzY1SADXHCAOjI2LV4rPfbmD9k9GdvqqRbaUXkcHmcpowgm0tqFb-WYruGiXj7tmTZdtIoMZEpY6R1W-ibp18KLULZV92Nz7HJpl-mWcaGIr5tgrewH8UM9g24iBZSPZ5nYWNrXhTHL1xqWEM4u9B4ozauPdjvk9DAeadmuIq5tMVlJatBDetQw"
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </section>
 
-                            {/* Card 2: Flexible Scheduling */}
-                            <div className="bg-[#fae18e] p-8 rounded-3xl shadow-md text-[#061445] flex flex-col justify-between hover:scale-[1.01] transition-transform">
-                                <div className="space-y-4">
-                                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[#061445]">
-                                        <Calendar className="w-6 h-6" />
-                                    </div>
-                                    <h3 className="text-xl font-bold">
-                                        {t('welcome.home_bento_2_title')}
-                                    </h3>
-                                    <p className="text-sm text-[#061445]/85 leading-relaxed">
-                                        {t('welcome.home_bento_2_desc')}
+                            {/* ── Features CTA & Footer ── */}
+                            <section className="bg-[#061445] py-24 text-center text-white">
+                                <div className="mx-auto max-w-3xl space-y-8 px-6">
+                                    <h2 className="text-4xl font-extrabold md:text-5xl">
+                                        {t('welcome.features_cta_ready')}
+                                    </h2>
+                                    <p className="mx-auto max-w-xl text-lg text-white/80">
+                                        {t('welcome.features_cta_sub')}
                                     </p>
-                                </div>
-                                <div className="mt-8 flex -space-x-2">
-                                    <div className="w-9 h-9 rounded-full border-2 border-[#fae18e] bg-indigo-500"></div>
-                                    <div className="w-9 h-9 rounded-full border-2 border-[#fae18e] bg-purple-500"></div>
-                                    <div className="w-9 h-9 rounded-full border-2 border-[#fae18e] bg-emerald-500"></div>
-                                </div>
-                            </div>
-
-                            {/* Card 3: Topic Discovery */}
-                            <div className="bg-white p-8 rounded-3xl border border-[#d0e4ff]/30 shadow-md hover:border-[#fae18e] transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5 dark:hover:border-[#fae18e]/50">
-                                <div className="space-y-4">
-                                    <div className="w-12 h-12 bg-[#d0e4ff]/50 rounded-xl flex items-center justify-center text-[#061445] dark:bg-[#d0e4ff]/10 dark:text-[#d0e4ff]">
-                                        <BookOpen className="w-6 h-6" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-[#061445] dark:text-white">
-                                        {t('welcome.home_bento_3_title')}
-                                    </h3>
-                                    <p className="text-sm text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">
-                                        {t('welcome.home_bento_3_desc')}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Card 4: Google Meet Integration (Desktop 2-Col Span) */}
-                            <div className="md:col-span-2 bg-[#d0e4ff]/40 p-8 rounded-3xl flex items-center justify-between overflow-hidden relative border border-[#d0e4ff]/20 dark:bg-[#d0e4ff]/5 dark:border-white/5">
-                                <div className="space-y-4 z-10">
-                                    <h3 className="text-xl font-bold text-[#061445] dark:text-white">
-                                        {t('welcome.home_bento_4_title')}
-                                    </h3>
-                                    <p className="text-sm text-[#45464f] max-w-sm leading-relaxed dark:text-[#A0A0B0]">
-                                        {t('welcome.home_bento_4_desc')}
-                                    </p>
-                                </div>
-                                <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-20 text-[#061445] dark:text-[#d0e4ff]">
-                                    <Video className="w-48 h-48 stroke-1" />
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ── How It Works Section ── */}
-                    <section id="how-it-works" className="relative py-24 bg-gradient-to-b from-white via-[#d0e4ff]/10 to-white dark:from-[#080811] dark:via-[#1a2d47]/5 dark:to-[#080811]">
-                        <div className="max-w-7xl mx-auto px-6 text-center">
-                            <span className="inline-block px-4 py-1.5 rounded-full bg-[#fae18e] text-[#061445] text-xs font-bold tracking-wider mb-6">
-                                SIMPLE JOURNEY
-                            </span>
-                            <h2 className="font-sans text-4xl font-black text-[#061445] dark:text-white mb-6">
-                                {t('welcome.how_title')}{' '}
-                                <span className="relative inline-block z-10 whitespace-nowrap">
-                                    {t('welcome.how_title_highlight')}
-                                    {/* Yellow Highlight Line */}
-                                    <span className="absolute bottom-1 left-0 w-full h-2 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
-                                </span>
-                            </h2>
-                            <p className="text-lg text-[#45464f] max-w-2xl mx-auto opacity-90 dark:text-[#A0A0B0]">
-                                {t('welcome.how_subtitle')}
-                            </p>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-                                {/* Timeline Step 1 */}
-                                <div className="bg-white p-10 rounded-3xl border border-[#d0e4ff]/30 shadow-md flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5">
-                                    <div className="w-16 h-16 mb-6 rounded-full bg-[#fae18e] flex items-center justify-center border-2 border-[#061445] dark:border-[#fae18e]">
-                                        <Users className="text-[#061445] w-7 h-7" />
-                                    </div>
-                                    <div className="text-xs font-bold text-[#fae18e] tracking-widest mb-3 uppercase">STEP 01</div>
-                                    <h3 className="text-lg font-bold text-[#061445] mb-3 dark:text-white">{t('welcome.how_step_1_title')}</h3>
-                                    <p className="text-xs text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">{t('welcome.how_step_1_desc')}</p>
-                                </div>
-
-                                {/* Timeline Step 2 */}
-                                <div className="bg-white p-10 rounded-3xl border border-[#d0e4ff]/30 shadow-md flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5">
-                                    <div className="w-16 h-16 mb-6 rounded-full bg-[#d0e4ff] flex items-center justify-center border-2 border-[#061445] dark:border-[#d0e4ff]">
-                                        <Search className="text-[#061445] w-7 h-7" />
-                                    </div>
-                                    <div className="text-xs font-bold text-[#fae18e] tracking-widest mb-3 uppercase">STEP 02</div>
-                                    <h3 className="text-lg font-bold text-[#061445] mb-3 dark:text-white">{t('welcome.how_step_2_title')}</h3>
-                                    <p className="text-xs text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">{t('welcome.how_step_2_desc')}</p>
-                                </div>
-
-                                {/* Timeline Step 3 */}
-                                <div className="bg-white p-10 rounded-3xl border border-[#d0e4ff]/30 shadow-md flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300 dark:bg-[#0c0c16] dark:border-white/5">
-                                    <div className="w-16 h-16 mb-6 rounded-full bg-[#fae18e] flex items-center justify-center border-2 border-[#061445] dark:border-[#fae18e]">
-                                        <MessageCircle className="text-[#061445] w-7 h-7" />
-                                    </div>
-                                    <div className="text-xs font-bold text-[#fae18e] tracking-widest mb-3 uppercase">STEP 03</div>
-                                    <h3 className="text-lg font-bold text-[#061445] mb-3 dark:text-white">{t('welcome.how_step_3_title')}</h3>
-                                    <p className="text-xs text-[#45464f] leading-relaxed dark:text-[#A0A0B0]">{t('welcome.how_step_3_desc')}</p>
-                                </div>
-                            </div>
-
-                            {/* Intermediate CTA Banner (Pale Blue Container) */}
-                            <div className="mt-20 bg-[#d0e4ff]/30 rounded-3xl p-10 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8 text-left dark:bg-[#1a2d47]/20 border border-[#d0e4ff]/10">
-                                <div className="max-w-xl">
-                                    <h3 className="text-2xl font-black text-[#061445] dark:text-white mb-2">
-                                        Ready to find your voice?
-                                    </h3>
-                                    <p className="text-sm text-[#45464f] dark:text-[#A0A0B0]">
-                                        Join thousands of students who have improved their fluency with ConvoMate's personalized teaching approach.
-                                    </p>
-                                </div>
-                                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                                     <Link
                                         href={register()}
-                                        className="bg-[#061445] text-white px-8 py-4 rounded-xl font-bold shadow-md hover:bg-[#061445]/90 transition-all text-center dark:bg-[#d0e4ff] dark:text-[#061445] dark:hover:bg-[#d0e4ff]/90"
+                                        className="inline-block rounded-full bg-[#fae18e] px-12 py-5 font-bold text-[#061445] shadow-xl transition-all hover:scale-105 active:scale-95"
                                     >
-                                        Start Free Trial
+                                        {t('welcome.features_cta_btn')}
                                     </Link>
-                                    <a
-                                        href="#teachers"
-                                        className="bg-white border-2 border-[#061445]/15 text-[#061445] px-8 py-4 rounded-xl font-bold hover:bg-[#d0e4ff]/20 transition-all text-center dark:bg-[#080811] dark:border-white/10 dark:text-[#E8E8F0]"
-                                    >
-                                        View Teachers
-                                    </a>
                                 </div>
-                            </div>
-                        </div>
-                    </section>
+                            </section>
 
-                    {/* ── Teacher Directory Section with Live Filtering ── */}
-                    <section id="teachers" className="px-6 py-24 max-w-7xl mx-auto">
-                        <div className="text-center mb-16 space-y-4">
-                            <h2 className="font-sans text-4xl font-black text-[#061445] dark:text-white">
-                                {t('welcome.teachers_title')}{' '}
-                                <span className="relative inline-block z-10 whitespace-nowrap">
-                                    {t('welcome.teachers_title_highlight')}
-                                    {/* Yellow Highlight Line */}
-                                    <span className="absolute bottom-1 left-0 w-full h-2 bg-[#fae18e] -z-10 rounded-full dark:bg-[#fae18e]/70"></span>
-                                </span>
-                            </h2>
-                            <p className="text-lg text-[#45464f] max-w-2xl mx-auto dark:text-[#A0A0B0]">
-                                {t('welcome.teachers_subtitle')}
-                            </p>
-                        </div>
-
-                        {/* Interactive Filter Bar */}
-                        <div className="mb-10 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-                            {/* specialty filter buttons */}
-                            <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
-                                {Object.keys(specialtyLabels).map((key) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => setSelectedSpecialty(key)}
-                                        className={`px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                                            selectedSpecialty === key
-                                                ? 'bg-[#fae18e] text-[#061445] border-2 border-[#061445] dark:border-[#fae18e]'
-                                                : 'bg-[#d0e4ff]/30 text-[#061445] hover:bg-[#d0e4ff]/50 dark:bg-white/5 dark:text-[#A0A0B0] dark:hover:bg-white/10'
-                                        }`}
-                                    >
-                                        {specialtyLabels[key][currentLang]}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Search Box */}
-                            <div className="flex items-center gap-3 w-full md:w-80">
-                                <div className="relative w-full">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#061445]/40 dark:text-[#A0A0B0] w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder={searchPlaceholder[currentLang]}
-                                        className="w-full bg-[#d0e4ff]/10 border border-[#d0e4ff]/30 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-[#061445] focus:outline-none dark:bg-white/5 dark:border-white/10 dark:text-white"
-                                    />
+                            <footer className="bg-[#f5f3f7] py-12">
+                                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 md:flex-row md:px-12">
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className="material-symbols-outlined text-2xl text-[#061445]"
+                                            style={{
+                                                fontVariationSettings:
+                                                    "'FILL' 1",
+                                            }}
+                                        >
+                                            forum
+                                        </span>
+                                        <span className="text-xl font-extrabold text-[#061445]">
+                                            ConvoMate
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-[#45464f]">
+                                        {[
+                                            'About Us',
+                                            'Privacy Policy',
+                                            'Terms of Service',
+                                            'Help Center',
+                                            'Careers',
+                                        ].map((link) => (
+                                            <a
+                                                key={link}
+                                                className="transition-colors hover:text-[#061445]"
+                                                href="#"
+                                            >
+                                                {link}
+                                            </a>
+                                        ))}
+                                    </div>
+                                    <div className="text-sm text-[#45464f] opacity-60">
+                                        © {new Date().getFullYear()} ConvoMate.{' '}
+                                        {t('welcome.footer_rights')}
+                                    </div>
                                 </div>
-                                <button className="flex items-center justify-center p-3 rounded-xl bg-[#d0e4ff]/30 text-[#061445] hover:bg-[#d0e4ff]/50 transition-colors dark:bg-white/5 dark:text-white">
-                                    <SlidersHorizontal className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
+                            </footer>
+                        </>
+                    )}
 
-                        {/* Marketplace Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            
-                            {/* Dynamically Filtered Teacher Cards */}
-                            {filteredTeachers.map((teacher) => (
-                                <div
-                                    key={teacher.name}
-                                    className="group bg-white rounded-3xl p-6 border border-[#d0e4ff]/30 shadow-md hover:shadow-xl hover:border-[#fae18e] transition-all duration-300 flex flex-col justify-between dark:bg-[#0c0c16] dark:border-white/5 dark:hover:border-[#fae18e]/50"
-                                >
-                                    <div>
-                                        <div className="flex items-start justify-between mb-6">
-                                            <div className="relative">
-                                                <img
-                                                    className="w-20 h-20 rounded-xl object-cover border border-[#d0e4ff]/50"
-                                                    alt={teacher.name}
-                                                    src={teacher.image}
-                                                />
-                                                <div className="absolute -bottom-2 -right-2 bg-[#fae18e] text-[#061445] px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm border border-[#061445]">
-                                                    Top Pro
+                    {activeTab === 'how-it-works' && (
+                        <>
+                            {/* ── How It Works Header & Bands ── */}
+                            <section className="relative overflow-hidden pt-12 pb-24">
+                                <div className="absolute inset-0 z-0 flex flex-col">
+                                    <div className="h-1/3 bg-white"></div>
+                                    <div className="h-1/4 bg-[#fae18e]/35"></div>
+                                    <div className="h-1/4 bg-[#d0e4ff]/35"></div>
+                                    <div className="h-1/6 bg-white"></div>
+                                </div>
+                                <div className="relative z-10 mx-auto max-w-7xl px-6 pt-12 pb-20 text-center md:px-12">
+                                    <span className="mb-6 inline-block rounded-full bg-[#fae18e] px-4 py-1.5 text-xs font-bold tracking-wider text-[#061445] uppercase">
+                                        {t('welcome.how_badge')}
+                                    </span>
+                                    <h1 className="mb-6 text-4xl font-extrabold text-[#061445] md:text-5xl lg:text-6xl">
+                                        {t('welcome.how_title_new') ||
+                                            'Start Speaking in 3 Steps'}
+                                    </h1>
+                                    <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-[#061445] opacity-90">
+                                        {t('welcome.how_subtitle')}
+                                    </p>
+                                </div>
+
+                                {/* Steps Grid */}
+                                <div className="relative z-20 mx-auto -mt-8 max-w-7xl px-6 md:px-12">
+                                    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                                        {[
+                                            {
+                                                step: 'STEP 01',
+                                                icon: 'person_add',
+                                                title: t(
+                                                    'welcome.how_step_1_title_new',
+                                                ),
+                                                desc: t(
+                                                    'welcome.how_step_1_desc_new',
+                                                ),
+                                                bandColor: 'bg-[#fae18e]/40',
+                                            },
+                                            {
+                                                step: 'STEP 02',
+                                                icon: 'search',
+                                                title: t(
+                                                    'welcome.how_step_2_title_new',
+                                                ),
+                                                desc: t(
+                                                    'welcome.how_step_2_desc_new',
+                                                ),
+                                                bandColor: 'bg-[#d0e4ff]/40',
+                                            },
+                                            {
+                                                step: 'STEP 03',
+                                                icon: 'chat',
+                                                title: t(
+                                                    'welcome.how_step_3_title_new',
+                                                ),
+                                                desc: t(
+                                                    'welcome.how_step_3_desc_new',
+                                                ),
+                                                bandColor: 'bg-[#fae18e]/40',
+                                            },
+                                        ].map((card, i) => (
+                                            <div
+                                                key={i}
+                                                className="shadow-ambient flex flex-col items-center rounded-2xl border border-[#c6c5d0]/30 bg-white p-10 text-center transition-transform duration-300 hover:-translate-y-2"
+                                            >
+                                                <div
+                                                    className={`mb-8 h-20 w-20 rounded-full ${card.bandColor} flex items-center justify-center border-2 border-[#061445]`}
+                                                >
+                                                    <span className="material-symbols-outlined text-3xl text-[#061445]">
+                                                        {card.icon}
+                                                    </span>
                                                 </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <h3 className="font-bold text-lg text-[#061445] dark:text-white">
-                                                    {teacher.name}
+                                                <div className="mb-3 text-xs font-bold tracking-wider text-[#44617e] uppercase">
+                                                    {card.step}
+                                                </div>
+                                                <h3 className="mb-4 text-xl font-bold text-[#061445]">
+                                                    {card.title}
                                                 </h3>
-                                                <div className="text-xs font-semibold text-[#45464f] dark:text-[#A0A0B0]">
-                                                    {teacher.level}
-                                                </div>
+                                                <p className="text-sm leading-relaxed text-[#45464f]">
+                                                    {card.desc}
+                                                </p>
                                             </div>
-                                        </div>
-
-                                        <p className="text-sm text-[#45464f] leading-relaxed mb-6 dark:text-[#A0A0B0] line-clamp-2">
-                                            {t(teacher.descKey)}
-                                        </p>
-
-                                        <div className="flex gap-2 mb-6">
-                                            <span className="bg-[#d0e4ff]/30 text-[#061445] text-xs px-3 py-1 rounded-full font-bold dark:bg-white/5 dark:text-[#d0e4ff]">
-                                                {t(teacher.tag1Key)}
-                                            </span>
-                                            <span className="bg-[#d0e4ff]/30 text-[#061445] text-xs px-3 py-1 rounded-full font-bold dark:bg-white/5 dark:text-[#d0e4ff]">
-                                                {t(teacher.tag2Key)}
-                                            </span>
-                                        </div>
+                                        ))}
                                     </div>
+                                </div>
+                            </section>
 
-                                    <div className="flex items-center justify-between pt-4 border-t border-[#d0e4ff]/25 dark:border-white/5">
-                                        <div className="flex flex-col">
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-4 h-4 fill-[#fae18e] text-[#061445] dark:text-[#fae18e]" />
-                                                <span className="font-bold text-[#061445] dark:text-white">
-                                                    {teacher.rating}
-                                                </span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    ({teacher.reviews})
-                                                </span>
-                                            </div>
-                                            <span className="text-[11px] font-semibold text-muted-foreground mt-0.5">
-                                                {teacher.exp} {t('welcome.teachers_experience')}
-                                            </span>
-                                        </div>
-
+                            {/* ── How It Works CTA & Footer ── */}
+                            <section className="mx-auto max-w-7xl px-6 py-12 md:px-12">
+                                <div className="flex flex-col items-center justify-between gap-12 rounded-3xl border border-[#c6c5d0]/20 bg-[#d0e4ff]/30 p-12 md:flex-row md:p-20">
+                                    <div className="max-w-xl space-y-4">
+                                        <h2 className="text-3xl font-extrabold text-[#061445] md:text-4xl">
+                                            {t('welcome.how_cta_ready')}
+                                        </h2>
+                                        <p className="text-lg leading-relaxed font-medium text-[#061445]">
+                                            {t('welcome.how_cta_sub')}
+                                        </p>
+                                    </div>
+                                    <div className="flex w-full flex-col gap-4 sm:flex-row md:w-auto">
                                         <Link
                                             href={register()}
-                                            className="bg-[#061445] text-white px-5 py-2.5 rounded-full font-bold text-xs hover:shadow-md transition-all active:scale-95 dark:bg-[#d0e4ff] dark:text-[#061445]"
+                                            className="flex items-center justify-center rounded-full bg-[#061445] px-10 py-5 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
                                         >
-                                            {bookNowBtn[currentLang]}
+                                            {t('welcome.features_cta_btn')}
+                                        </Link>
+                                        <a
+                                            href="#teachers"
+                                            onClick={(e) =>
+                                                handleTabClick('teachers', e)
+                                            }
+                                            className="flex items-center justify-center rounded-full border-2 border-[#061445] bg-white px-10 py-5 text-sm font-bold text-[#061445] transition-all hover:scale-105 hover:bg-[#f5f3f7] active:scale-95"
+                                        >
+                                            {t('welcome.view_teachers')}
+                                        </a>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <footer className="mt-20 bg-[#f5f3f7] py-12">
+                                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 md:flex-row md:px-12">
+                                    <div className="text-xl font-extrabold text-[#061445]">
+                                        ConvoMate
+                                    </div>
+                                    <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-[#45464f]">
+                                        {[
+                                            'About Us',
+                                            'Privacy Policy',
+                                            'Terms of Service',
+                                            'Help Center',
+                                            'Careers',
+                                        ].map((link) => (
+                                            <a
+                                                key={link}
+                                                className="transition-colors hover:text-[#061445]"
+                                                href="#"
+                                            >
+                                                {link}
+                                            </a>
+                                        ))}
+                                    </div>
+                                    <div className="text-sm text-[#45464f] opacity-60">
+                                        © {new Date().getFullYear()} ConvoMate.
+                                        All rights reserved.
+                                    </div>
+                                </div>
+                            </footer>
+                        </>
+                    )}
+
+                    {activeTab === 'teachers' && (
+                        <>
+                            {/* ── Teachers Directory Hero Section ── */}
+                            <section className="mx-auto max-w-4xl space-y-6 px-6 py-16 text-center">
+                                <h1 className="text-4xl leading-tight font-extrabold tracking-tight text-[#061445] md:text-5xl lg:text-6xl">
+                                    {t('welcome.teachers_hero_title').replace(
+                                        'best teachers',
+                                        '',
+                                    )}
+                                    <span className="rounded-xl bg-[#fae18e] px-4 py-1 text-[#061445]">
+                                        {t(
+                                            'welcome.teachers_title_highlight',
+                                        ) || 'best teachers'}
+                                    </span>
+                                </h1>
+                                <p className="mx-auto max-w-2xl text-lg text-[#45464f]">
+                                    {t('welcome.teachers_hero_subtitle')}
+                                </p>
+                            </section>
+
+                            {/* ── Filters Section ── */}
+                            <section className="mx-auto mb-12 max-w-7xl px-6 md:px-12">
+                                <div className="flex flex-col items-stretch justify-between gap-4 md:flex-row md:items-center">
+                                    <div className="custom-scrollbar flex gap-2 overflow-x-auto pb-2">
+                                        {[
+                                            {
+                                                id: 'all',
+                                                label: t(
+                                                    'welcome.teachers_all_specialties',
+                                                ),
+                                            },
+                                            {
+                                                id: 'ielts',
+                                                label: t(
+                                                    'welcome.teachers_ielts_prep',
+                                                ),
+                                            },
+                                            {
+                                                id: 'business',
+                                                label: t(
+                                                    'welcome.teachers_business_english',
+                                                ),
+                                            },
+                                            {
+                                                id: 'kids',
+                                                label: t(
+                                                    'welcome.teachers_kids_teens',
+                                                ),
+                                            },
+                                        ].map((spec) => (
+                                            <button
+                                                key={spec.id}
+                                                onClick={() =>
+                                                    setSelectedSpecialty(
+                                                        spec.id as any,
+                                                    )
+                                                }
+                                                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold whitespace-nowrap transition-all ${
+                                                    selectedSpecialty ===
+                                                    spec.id
+                                                        ? 'bg-[#fae18e] text-[#061445] shadow-sm'
+                                                        : 'bg-[#d0e4ff]/35 text-[#061445] hover:bg-[#d0e4ff]/55'
+                                                }`}
+                                            >
+                                                {spec.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="relative flex-grow md:max-w-xs">
+                                        <span className="material-symbols-outlined absolute top-1/2 left-4 -translate-y-1/2 text-[20px] text-[#45464f]/70">
+                                            search
+                                        </span>
+                                        <input
+                                            value={searchQuery}
+                                            onChange={(e) =>
+                                                setSearchQuery(e.target.value)
+                                            }
+                                            className="w-full rounded-xl border-0 bg-[#f5f3f7] py-3 pr-4 pl-12 text-sm text-[#061445] placeholder-[#45464f]/60 outline-none focus:ring-2 focus:ring-[#061445]"
+                                            placeholder={t(
+                                                'welcome.teachers_search_placeholder',
+                                            )}
+                                            type="text"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* ── Teacher Grid Marketplace ── */}
+                            <section className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 md:grid-cols-2 md:px-12 lg:grid-cols-3">
+                                {filteredTeachers.map((teacher, i) => (
+                                    <div
+                                        key={i}
+                                        className="group shadow-ambient hover:shadow-ambient-md relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#d0e4ff]/30 bg-white p-6 transition-all duration-300"
+                                    >
+                                        <div>
+                                            <div className="mb-6 flex items-start justify-between">
+                                                <div className="relative">
+                                                    <img
+                                                        className="h-20 w-20 rounded-xl object-cover"
+                                                        alt={teacher.name}
+                                                        src={teacher.img}
+                                                    />
+                                                    {i === 0 && (
+                                                        <div className="absolute -right-2 -bottom-2 rounded-md bg-[#fae18e] px-2 py-0.5 text-[9px] font-black tracking-wider text-[#061445] uppercase">
+                                                            Top Pro
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1 text-right">
+                                                    <h3 className="text-lg font-bold text-[#061445]">
+                                                        {teacher.name}
+                                                    </h3>
+                                                    <p className="text-xs font-semibold text-[#45464f]">
+                                                        {teacher.level}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="mb-6 space-y-4">
+                                                <p className="line-clamp-2 text-sm leading-relaxed text-[#45464f]">
+                                                    {teacher.desc}
+                                                </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {teacher.tags.map(
+                                                        (tag, tIdx) => (
+                                                            <span
+                                                                key={tIdx}
+                                                                className="rounded-full bg-[#d0e4ff]/40 px-3 py-1 text-[11px] font-bold text-[#061445]"
+                                                            >
+                                                                {tag}
+                                                            </span>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between border-t border-[#c6c5d0]/30 pt-4">
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-1">
+                                                    <span
+                                                        className="material-symbols-outlined text-[18px] text-[#fae18e]"
+                                                        style={{
+                                                            fontVariationSettings:
+                                                                "'FILL' 1",
+                                                        }}
+                                                    >
+                                                        star
+                                                    </span>
+                                                    <span className="text-sm font-bold text-[#061445]">
+                                                        {teacher.rating}
+                                                    </span>
+                                                    <span className="text-xs font-medium text-[#45464f]">
+                                                        ({teacher.reviews}{' '}
+                                                        reviews)
+                                                    </span>
+                                                </div>
+                                                <span className="text-xs font-semibold text-[#45464f]/70">
+                                                    {teacher.experience}
+                                                </span>
+                                            </div>
+                                            <Link
+                                                href={register()}
+                                                className="rounded-full bg-[#061445] px-5 py-2.5 text-xs font-bold text-white transition-all hover:shadow-md active:scale-95"
+                                            >
+                                                Book Now
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Card 4 (Bento Variation) */}
+                                <div className="group flex flex-col items-center justify-center space-y-4 rounded-2xl border-2 border-dashed border-[#fae18e] bg-[#fae18e]/15 p-8 text-center transition-all duration-300 hover:bg-[#fae18e]/25">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-md">
+                                        <span className="material-symbols-outlined text-[32px] text-[#061445]">
+                                            school
+                                        </span>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-[#061445]">
+                                        {t('welcome.teachers_become_teacher')}
+                                    </h3>
+                                    <p className="text-sm leading-relaxed text-[#45464f]">
+                                        {t('welcome.teachers_become_desc')}
+                                    </p>
+                                    <Link
+                                        href={register()}
+                                        className="rounded-full bg-[#fae18e] px-8 py-3 text-xs font-bold text-[#061445] shadow-md transition-transform hover:scale-105 active:scale-95"
+                                    >
+                                        {t('welcome.teachers_apply_now')}
+                                    </Link>
+                                </div>
+                            </section>
+
+                            {/* ── Teachers CTA & Footer ── */}
+                            <section className="mx-auto mt-24 max-w-7xl px-6 md:px-12">
+                                <div className="shadow-ambient-md relative overflow-hidden rounded-3xl border border-[#c6c5d0]/20 bg-[#061445] p-12 text-white">
+                                    <div className="pointer-events-none absolute top-0 right-0 h-full w-1/3 opacity-10">
+                                        <svg
+                                            className="h-full w-full"
+                                            viewBox="0 0 100 100"
+                                        >
+                                            <circle
+                                                cx="80"
+                                                cy="20"
+                                                fill="white"
+                                                r="40"
+                                            ></circle>
+                                            <circle
+                                                cx="100"
+                                                cy="80"
+                                                fill="white"
+                                                r="30"
+                                            ></circle>
+                                        </svg>
+                                    </div>
+                                    <div className="relative z-10 flex flex-col items-center justify-between gap-8 md:flex-row">
+                                        <div className="mb-6 max-w-xl space-y-4 md:mb-0">
+                                            <h2 className="text-3xl font-extrabold md:text-4xl">
+                                                {t(
+                                                    'welcome.teachers_cta_ready',
+                                                )}
+                                            </h2>
+                                            <p className="text-lg leading-relaxed text-white/80">
+                                                {t('welcome.teachers_cta_sub')}
+                                            </p>
+                                        </div>
+                                        <Link
+                                            href={register()}
+                                            className="rounded-full bg-[#fae18e] px-10 py-5 text-sm font-extrabold text-[#061445] shadow-lg transition-all hover:scale-105 active:scale-95"
+                                        >
+                                            {t('welcome.teachers_cta_btn')}
                                         </Link>
                                     </div>
                                 </div>
-                            ))}
+                            </section>
 
-                            {/* "Become a Teacher" Bento Variant Card */}
-                            <div className="group bg-[#fae18e]/10 rounded-3xl p-8 border-2 border-dashed border-[#fae18e] flex flex-col items-center justify-center text-center space-y-4 hover:bg-[#fae18e]/20 transition-all duration-300">
-                                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md dark:bg-[#0c0c16]">
-                                    <GraduationCap className="text-[#061445] w-7 h-7 dark:text-[#fae18e]" />
+                            <footer className="mt-24 w-full rounded-t-[3rem] border-t border-[#c6c5d0]/30 bg-[#f5f3f7] py-12">
+                                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 md:flex-row md:px-12">
+                                    <div className="flex flex-col items-center gap-4 md:items-start">
+                                        <div className="text-xl font-extrabold text-[#061445]">
+                                            ConvoMate
+                                        </div>
+                                        <p className="max-w-xs text-center text-sm leading-relaxed text-[#45464f] md:text-left">
+                                            Connecting learners with global
+                                            mentors for world-class language
+                                            education.
+                                        </p>
+                                    </div>
+                                    <nav className="flex flex-wrap justify-center gap-6 text-sm font-semibold text-[#45464f] md:gap-8">
+                                        {[
+                                            'About Us',
+                                            'Privacy Policy',
+                                            'Terms of Service',
+                                            'Help Center',
+                                            'Careers',
+                                        ].map((link) => (
+                                            <a
+                                                key={link}
+                                                className="transition-colors hover:text-[#061445]"
+                                                href="#"
+                                            >
+                                                {link}
+                                            </a>
+                                        ))}
+                                    </nav>
+                                    <div className="mt-4 text-sm text-[#45464f] md:mt-0">
+                                        © {new Date().getFullYear()} ConvoMate.
+                                        All rights reserved.
+                                    </div>
                                 </div>
-                                <h3 className="font-bold text-lg text-[#061445] dark:text-white">
-                                    {becomeTeacherTitle[currentLang]}
-                                </h3>
-                                <p className="text-xs text-[#45464f] dark:text-[#A0A0B0] max-w-[220px] leading-relaxed">
-                                    {becomeTeacherDesc[currentLang]}
-                                </p>
-                                <button className="bg-[#fae18e] text-[#061445] border border-[#061445] px-6 py-2.5 rounded-full font-bold text-xs shadow-md transition-transform active:scale-95 hover:bg-[#fae18e]/95">
-                                    {becomeTeacherBtn[currentLang]}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Final CTA Card (Navy Background / Yellow Button) */}
-                        <div className="mt-24 bg-[#061445] text-white rounded-3xl p-12 relative overflow-hidden shadow-2xl dark:bg-[#0c1f60]">
-                            {/* Decorative graphic SVG lines overlay */}
-                            <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
-                                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                    <circle cx="80" cy="20" fill="white" r="40"></circle>
-                                    <circle cx="100" cy="80" fill="white" r="30"></circle>
-                                </svg>
-                            </div>
-                            <div className="relative z-10 md:flex items-center justify-between">
-                                <div className="max-w-xl mb-8 md:mb-0">
-                                    <h2 className="text-3xl font-black mb-4">
-                                        {t('welcome.features_cta_ready')}
-                                    </h2>
-                                    <p className="text-sm text-[#d0e4ff] leading-relaxed opacity-95">
-                                        {t('welcome.features_cta_sub')}
-                                    </p>
-                                </div>
-                                <Link
-                                    href={register()}
-                                    className="bg-[#fae18e] text-[#061445] px-8 py-4 rounded-xl font-bold shadow-lg hover:scale-105 transition-all text-center inline-block whitespace-nowrap"
-                                >
-                                    {t('welcome.features_cta_btn')}
-                                </Link>
-                            </div>
-                        </div>
-                    </section>
+                            </footer>
+                        </>
+                    )}
                 </main>
-
-                {/* ── Footer ── */}
-                <footer className="border-t border-[#d0e4ff]/30 bg-white py-12 dark:bg-[#080811] dark:border-white/5">
-                    <div className="mx-auto max-w-7xl px-6">
-                        <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-                            <div className="flex items-center gap-2.5">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#061445]/10 bg-white shadow-md shadow-[#061445]/10">
-                                    <img src="/logo.png" alt="ConvoMate" className="h-full w-full object-cover" />
-                                </div>
-                                <span className="text-sm font-black tracking-tight text-[#061445] dark:text-[#E8E8F0]">
-                                    Convo<span className="text-[#f5c518] dark:text-[#f5c518]">Mate</span>
-                                </span>
-                            </div>
-                            <p className="text-xs font-semibold text-muted-foreground">
-                                © {new Date().getFullYear()} ConvoMate. {t('welcome.footer_rights')}
-                            </p>
-                        </div>
-                    </div>
-                </footer>
             </div>
         </>
     );

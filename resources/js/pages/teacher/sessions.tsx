@@ -70,9 +70,9 @@ export default function Sessions({ appointments }: Props) {
             <Head title={t('teacher.sessions_title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent p-6 md:flex-row md:items-center dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
+                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-brand-brown/10 bg-gradient-to-r from-brand-yellow/30 to-transparent p-6 md:flex-row md:items-center">
                     <div className="space-y-1">
-                        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
+                        <h1 className="text-brand-brown text-3xl font-black tracking-tight">
                             {t('teacher.sessions_title')}
                         </h1>
                         <p className="text-sm font-medium text-muted-foreground">
@@ -96,7 +96,7 @@ export default function Sessions({ appointments }: Props) {
                                 >
                                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-950/40 dark:text-indigo-400">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
                                                 <User className="h-6 w-6" />
                                             </div>
                                             <div>
@@ -106,7 +106,7 @@ export default function Sessions({ appointments }: Props) {
                                                 </h4>
                                                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                     <span className="flex items-center gap-1">
-                                                        <Calendar className="h-3.5 w-3.5 text-indigo-500" />
+                                                        <Calendar className="h-3.5 w-3.5 text-brand-brown" />
                                                         {new Date(
                                                             apt.start_at,
                                                         ).toLocaleDateString(
@@ -120,7 +120,7 @@ export default function Sessions({ appointments }: Props) {
                                                     </span>
                                                     <div className="hidden h-2 w-px bg-border sm:block" />
                                                     <span className="flex items-center gap-1">
-                                                        <Clock className="h-3.5 w-3.5 text-indigo-500" />
+                                                        <Clock className="h-3.5 w-3.5 text-brand-brown" />
                                                         {new Date(
                                                             apt.start_at,
                                                         ).toLocaleTimeString(
@@ -149,10 +149,10 @@ export default function Sessions({ appointments }: Props) {
                                             <span
                                                 className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
                                                     apt.status === 'confirmed'
-                                                        ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                                        ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700'
                                                         : apt.status ===
                                                             'pending'
-                                                          ? 'border-amber-200/50 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-400'
+                                                          ? 'border-amber-200/50 bg-amber-50 text-amber-700'
                                                           : 'border-transparent bg-muted text-muted-foreground'
                                                 }`}
                                             >
@@ -170,7 +170,7 @@ export default function Sessions({ appointments }: Props) {
                                                                     apt,
                                                                 )
                                                             }
-                                                            className="flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/10 bg-indigo-500/5 px-4 py-2.5 text-xs font-bold text-indigo-600 transition-all hover:bg-indigo-500/10 dark:text-indigo-400"
+                                                            className="flex cursor-pointer items-center gap-2 rounded-xl border border-brand-brown/10 bg-brand-lightblue px-4 py-2.5 text-xs font-bold text-brand-brown transition-all"
                                                         >
                                                             <MessageSquare className="h-3.5 w-3.5" />{' '}
                                                             {t(
@@ -178,7 +178,7 @@ export default function Sessions({ appointments }: Props) {
                                                             )}
                                                         </button>
                                                     ) : (
-                                                        <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
+                                                        <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase">
                                                             {t(
                                                                 'teacher.sessions_feedback_left',
                                                             )}
@@ -203,7 +203,7 @@ export default function Sessions({ appointments }: Props) {
 
                                     {teacherFeedback && (
                                         <div className="mt-1 rounded-2xl border border-dashed border-border/80 bg-muted/30 p-4 text-sm font-semibold">
-                                            <div className="mb-2 flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                                            <div className="mb-2 flex items-center gap-1.5 text-brand-brown">
                                                 <MessageSquare className="h-4 w-4" />
                                                 <span>
                                                     {t(
@@ -226,8 +226,7 @@ export default function Sessions({ appointments }: Props) {
                                 {t('teacher.sessions_none')}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                Completed past sessions with your feedback will
-                                appear here.
+                                {t('teacher.sessions_empty_desc')}
                             </p>
                         </div>
                     )}
@@ -260,7 +259,7 @@ export default function Sessions({ appointments }: Props) {
                                 placeholder={t(
                                     'teacher.sessions_feedback_placeholder',
                                 )}
-                                className="min-h-[150px] w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm font-medium transition-all focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                className="min-h-[150px] w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm font-medium transition-all focus:ring-2 focus:ring-brand-button focus:outline-none"
                                 required
                             />
                             {errors.comment_text && (
@@ -281,7 +280,7 @@ export default function Sessions({ appointments }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="cursor-pointer rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/10 transition-all hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50"
+                                className="cursor-pointer rounded-xl bg-brand-button hover:bg-brand-button-hover px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-button/10 transition-all disabled:opacity-50"
                             >
                                 {processing
                                     ? t('sessions.submitting')

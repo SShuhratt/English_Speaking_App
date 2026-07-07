@@ -53,7 +53,7 @@ function PupilMeetingButton({
     return (
         <button
             onClick={() => handleJoin(apt)}
-            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/20"
+            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
         >
             <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
         </button>
@@ -155,9 +155,9 @@ export default function Bookings({ bookings }: Props) {
             <Head title={t('bookings.title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/40 via-purple-50/20 to-transparent p-6 md:flex-row md:items-center dark:border-indigo-950/20 dark:from-indigo-950/5 dark:via-purple-950/20">
+                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-brand-brown/10 bg-gradient-to-r from-brand-yellow/30 to-transparent p-6 md:flex-row md:items-center">
                     <div className="space-y-1">
-                        <h1 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
+                        <h1 className="text-brand-brown text-3xl font-black tracking-tight">
                             {t('bookings.title')}
                         </h1>
                         <p className="text-sm font-medium text-muted-foreground">
@@ -177,7 +177,7 @@ export default function Bookings({ bookings }: Props) {
                                     className="group flex flex-col justify-between gap-6 rounded-3xl border border-border bg-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:flex-row md:items-center"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-105 dark:bg-indigo-950/40 dark:text-indigo-400">
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
                                             <User className="h-6 w-6" />
                                         </div>
                                         <div>
@@ -191,7 +191,7 @@ export default function Bookings({ bookings }: Props) {
                                             </h4>
                                             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                 <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3.5 w-3.5 text-indigo-500" />
+                                                    <Calendar className="h-3.5 w-3.5 text-brand-brown" />
                                                     {new Date(
                                                         apt.start_at,
                                                     ).toLocaleDateString([], {
@@ -202,7 +202,7 @@ export default function Bookings({ bookings }: Props) {
                                                 </span>
                                                 <div className="hidden h-2 w-px bg-border sm:block" />
                                                 <span className="flex items-center gap-1">
-                                                    <Clock className="h-3.5 w-3.5 text-indigo-500" />
+                                                    <Clock className="h-3.5 w-3.5 text-brand-brown" />
                                                     {new Date(
                                                         apt.start_at,
                                                     ).toLocaleTimeString([], {
@@ -225,7 +225,7 @@ export default function Bookings({ bookings }: Props) {
                                                     {apt.topics.map((topic: string) => (
                                                         <span
                                                             key={topic}
-                                                            className="rounded-lg bg-indigo-50/50 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400"
+                                                            className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown"
                                                         >
                                                             #{topic}
                                                         </span>
@@ -235,8 +235,8 @@ export default function Bookings({ bookings }: Props) {
 
                                             {/* Cancellation/Rejection Reason Display */}
                                             {(apt.status === 'cancelled' || apt.status === 'rejected') && apt.cancellation_reason && (
-                                                <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs dark:border-red-900/20 dark:bg-red-950/10">
-                                                    <p className="font-extrabold text-red-800 dark:text-red-400">
+                                                <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs">
+                                                    <p className="font-extrabold text-red-800">
                                                         {apt.status === 'rejected'
                                                             ? (t('bookings.rejected_by_teacher') || 'Rejected by Teacher')
                                                             : (t('bookings.cancelled_by', {
@@ -260,11 +260,11 @@ export default function Bookings({ bookings }: Props) {
                                         <span
                                             className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
                                                 apt.status === 'confirmed'
-                                                    ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                                    ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700'
                                                     : apt.status === 'pending'
-                                                      ? 'border-amber-200/50 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-400'
+                                                      ? 'border-amber-200/50 bg-amber-50 text-amber-700'
                                                       : (apt.status === 'cancelled' || apt.status === 'rejected')
-                                                        ? 'border-red-200/50 bg-red-50 text-red-700 dark:border-red-900/30 dark:bg-red-950/30 dark:text-red-400'
+                                                        ? 'border-red-200/50 bg-red-50 text-red-700'
                                                         : 'border-transparent bg-muted text-muted-foreground'
                                             }`}
                                         >
@@ -318,13 +318,13 @@ export default function Bookings({ bookings }: Props) {
                                 {t('bookings.none')}
                             </p>
                             <p className="mb-5 text-sm text-muted-foreground">
-                                You haven't scheduled any speaking lessons yet.
+                                {t('bookings.none_desc')}
                             </p>
                             <Link
                                 href="/pupil/teachers"
-                                className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-102 hover:shadow-lg"
+                                className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-button hover:bg-brand-button-hover px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-102"
                             >
-                                Browse Teachers{' '}
+                                {t('teachers.browse')}{' '}
                                 <Sparkles className="h-3.5 w-3.5" />
                             </Link>
                         </div>
@@ -344,7 +344,7 @@ export default function Bookings({ bookings }: Props) {
                         <form onSubmit={handleCancelSubmit} className="mt-4 space-y-4">
                             <div>
                                 <textarea
-                                    className="w-full min-h-[100px] rounded-xl border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                                    className="w-full min-h-[100px] rounded-xl border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-brand-button/20 focus:outline-none"
                                     placeholder={t('bookings.cancel_reason_placeholder') || 'Enter your reason here...'}
                                     value={cancelReason}
                                     onChange={(e) => setCancelReason(e.target.value)}

@@ -736,7 +736,7 @@ export default function Availability({ availabilities }: Props) {
                 <div className="flex items-center justify-between border-b bg-card px-6 py-3.5">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2.5">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-brown text-white shadow-md shadow-brand-brown/20">
                                 <CalendarIcon className="h-5 w-5" />
                             </div>
                             <span className="text-xl font-bold tracking-tight text-foreground">
@@ -825,7 +825,7 @@ export default function Availability({ availabilities }: Props) {
                             }}
                             className="w-full justify-start gap-3 rounded-full border bg-white px-5 py-6 text-gray-800 shadow-md transition-all hover:bg-muted hover:shadow-lg"
                         >
-                            <Plus className="h-6 w-6 text-indigo-600" />
+                             <Plus className="h-6 w-6 text-brand-brown" />
                             <span className="text-sm font-semibold tracking-wide">
                                 {t.createAvailability}
                             </span>
@@ -891,9 +891,9 @@ export default function Availability({ availabilities }: Props) {
                                             }}
                                             className={`relative flex aspect-square items-center justify-center rounded-full text-xs font-semibold transition-all ${
                                                 isSelected
-                                                    ? 'bg-indigo-600 text-white shadow-sm'
+                                                    ? 'bg-brand-brown text-white shadow-sm'
                                                     : isToday
-                                                      ? 'border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                      ? 'border border-brand-brown/20 bg-brand-lightblue text-brand-brown'
                                                       : 'text-foreground hover:bg-muted'
                                             }`}
                                         >
@@ -903,7 +903,7 @@ export default function Availability({ availabilities }: Props) {
                                                     className={`absolute bottom-0.5 h-1 w-1 rounded-full ${
                                                         isSelected
                                                             ? 'bg-white'
-                                                            : 'bg-indigo-500'
+                                                            : 'bg-brand-brown'
                                                     }`}
                                                 />
                                             )}
@@ -928,7 +928,7 @@ export default function Availability({ availabilities }: Props) {
                                     }
                                     className="h-4.5 w-4.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                 />
-                                <span className="text-sm font-medium text-foreground transition-all group-hover:text-indigo-600">
+                                 <span className="text-sm font-medium text-foreground transition-all group-hover:text-brand-brown">
                                     {t.singleDateOverride}
                                 </span>
                             </label>
@@ -940,9 +940,9 @@ export default function Availability({ availabilities }: Props) {
                                     onChange={(e) =>
                                         setShowRecurring(e.target.checked)
                                     }
-                                    className="h-4.5 w-4.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                     className="h-4.5 w-4.5 rounded border-gray-300 text-brand-brown focus:ring-brand-brown"
                                 />
-                                <span className="text-sm font-medium text-foreground transition-all group-hover:text-indigo-600">
+                                <span className="text-sm font-medium text-foreground transition-all group-hover:text-brand-brown">
                                     {t.weeklyRecurring}
                                 </span>
                             </label>
@@ -976,7 +976,7 @@ export default function Availability({ availabilities }: Props) {
                                                         selectedDate,
                                                     ) ===
                                                     formatDateString(new Date())
-                                                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                                         ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/20'
                                                         : ''
                                                 }`}
                                             >
@@ -1021,9 +1021,9 @@ export default function Availability({ availabilities }: Props) {
                                                             }}
                                                             className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${
                                                                 isToday
-                                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                                                    ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/20'
                                                                     : isSelected
-                                                                      ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                                      ? 'bg-brand-lightblue text-brand-brown'
                                                                       : 'text-foreground hover:bg-muted'
                                                             }`}
                                                         >
@@ -1089,7 +1089,7 @@ export default function Availability({ availabilities }: Props) {
                                     <div className="absolute inset-0 flex">
                                         {view === 'day' ? (
                                             <div
-                                                className="relative h-full flex-1 cursor-pointer transition-colors hover:bg-indigo-50/5"
+                                                 className="relative h-full flex-1 cursor-pointer transition-colors hover:bg-brand-brown/5"
                                                 onClick={(e) =>
                                                     handleGridClick(
                                                         e,
@@ -1116,8 +1116,8 @@ export default function Availability({ availabilities }: Props) {
                                                         className={`availability-block absolute right-2 left-2 flex cursor-pointer flex-col overflow-hidden rounded-xl border-l-4 p-2.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
                                                             avail.type ===
                                                             'custom'
-                                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                                                                : 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700'
+                                                                : 'border-brand-brown bg-brand-lightblue text-brand-brown'
                                                         }`}
                                                     >
                                                         <span className="text-[11px] font-extrabold tracking-wide uppercase">
@@ -1162,7 +1162,7 @@ export default function Availability({ availabilities }: Props) {
                                                 (day, colIdx) => (
                                                     <div
                                                         key={colIdx}
-                                                        className="relative h-full min-w-[35px] flex-1 cursor-pointer border-r border-muted-foreground/10 transition-colors last:border-r-0 hover:bg-indigo-50/5 md:min-w-[100px]"
+                                                         className="relative h-full min-w-[35px] flex-1 cursor-pointer border-r border-muted-foreground/10 transition-colors last:border-r-0 hover:bg-brand-brown/5 md:min-w-[100px]"
                                                         onClick={(e) =>
                                                             handleGridClick(
                                                                 e,
@@ -1191,8 +1191,8 @@ export default function Availability({ availabilities }: Props) {
                                                                 className={`availability-block absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border-l-2 p-0.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md md:rounded-xl md:border-l-4 md:p-2 ${
                                                                     avail.type ===
                                                                     'custom'
-                                                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                                                                        : 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                                                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700'
+                                                                        : 'border-brand-brown bg-brand-lightblue text-brand-brown'
                                                                 }`}
                                                             >
                                                                 <span className="hidden text-[9px] font-extrabold tracking-wide uppercase md:inline-block">
@@ -1279,7 +1279,7 @@ export default function Availability({ availabilities }: Props) {
                                 className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${
                                     selectedEvent.type === 'custom'
                                         ? 'bg-emerald-500/10 text-emerald-600'
-                                        : 'bg-indigo-500/10 text-indigo-600'
+                                        : 'bg-brand-lightblue text-brand-brown'
                                 }`}
                             >
                                 <Info className="h-5 w-5" />
@@ -1373,7 +1373,7 @@ export default function Availability({ availabilities }: Props) {
                                 type="button"
                                 variant="outline"
                                 onClick={handleDeleteRange}
-                                className="mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-950/20"
+                                className="mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
                             >
                                 <Trash2 className="h-3.5 w-3.5" />
                                 {t.deleteRangeButton}
@@ -1433,7 +1433,7 @@ export default function Availability({ availabilities }: Props) {
                                         }
                                         className={`rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all ${
                                             data.type === 'custom'
-                                                ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
+                                                ? 'border-brand-brown bg-brand-brown text-white shadow-sm'
                                                 : 'bg-card text-foreground hover:bg-muted'
                                         }`}
                                     >
@@ -1450,7 +1450,7 @@ export default function Availability({ availabilities }: Props) {
                                         }
                                         className={`rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all ${
                                             data.type === 'recurring'
-                                                ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
+                                                ? 'border-brand-brown bg-brand-brown text-white shadow-sm'
                                                 : 'bg-card text-foreground hover:bg-muted'
                                         }`}
                                     >
@@ -1594,7 +1594,7 @@ export default function Availability({ availabilities }: Props) {
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                className="rounded-lg bg-indigo-600 font-semibold text-white hover:bg-indigo-700"
+                                className="rounded-lg bg-brand-button hover:bg-brand-button-hover font-semibold text-white"
                             >
                                 {processing ? t.saving : t.save}
                             </Button>
