@@ -50,6 +50,8 @@ services:
       - "8080:8000"
     volumes:
       - ./:/app
+      - /app/vendor
+      - /app/public/build
     environment:
       - "SERVER_NAME=http://localhost:8000"
       - "APP_ENV=local"
@@ -87,6 +89,8 @@ services:
       disable: true
     volumes:
       - ./:/app
+      - /app/vendor
+      - /app/public/build
     environment:
       - "SERVER_NAME=http://localhost:8000"
       - "APP_ENV=local"
@@ -122,6 +126,8 @@ services:
       - "8443:8443"
     volumes:
       - ./:/app
+      - /app/vendor
+      - /app/public/build
     environment:
       - "SERVER_NAME=http://localhost:8000"
       - "REVERB_SSL_CERT_PATH=null"
