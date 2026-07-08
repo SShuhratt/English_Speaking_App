@@ -38,13 +38,16 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Clone and install phpredis from GitHub to bypass PECL network issues
+RUN git clone --branch 6.0.2 --depth 1 https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis \
+    && docker-php-ext-install redis
+
 # Install PHP extensions
 RUN install-php-extensions \
     pcntl \
     pdo_pgsql \
     intl \
     opcache \
-    redis-6.0.2 \
     zip
 
 
