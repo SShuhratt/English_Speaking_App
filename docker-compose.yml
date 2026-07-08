@@ -45,17 +45,20 @@ services:
     image: edtech-backend-engine-api:latest
     container_name: edtech-laravel-octane
     restart: unless-stopped
-    command: php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --watch
+    command: ${OCTANE_COMMAND:-php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --watch}
     ports:
-      - "8080:8000"
+      - "${HTTP_PORT:-8080}:${HTTP_PORT_INTERNAL:-8000}"
+      - "${HTTPS_PORT:-443}:${HTTPS_PORT_INTERNAL:-443}"
     volumes:
       - ./:/app
       - /app/vendor
       - /app/public/build
+      - ./certs:/data/caddy/certs:ro
     environment:
-      - "SERVER_NAME=http://localhost:8000"
-      - "APP_ENV=local"
-      - "APP_DEBUG=true"
+      - "SERVER_NAME=${SERVER_NAME:-http://localhost:8080}"
+      - "CADDY_TLS_DIRECTIVE=${CADDY_TLS_DIRECTIVE:-#}"
+      - "APP_ENV=${APP_ENV:-local}"
+      - "APP_DEBUG=${APP_DEBUG:-true}"
       - "OCTANE_SERVER=frankenphp"
       - "DB_CONNECTION=pgsql"
       - "DB_HOST=postgres"
@@ -128,12 +131,13 @@ services:
       - ./:/app
       - /app/vendor
       - /app/public/build
+      - ./certs:/app/certs:ro
     environment:
-      - "SERVER_NAME=http://localhost:8000"
-      - "REVERB_SSL_CERT_PATH=null"
-      - "REVERB_SSL_KEY_PATH=null"
-      - "APP_ENV=local"
-      - "APP_DEBUG=true"
+      - "SERVER_NAME=${SERVER_NAME:-http://localhost:8080}"
+      - "REVERB_SSL_CERT_PATH=${REVERB_SSL_CERT_PATH:-null}"
+      - "REVERB_SSL_KEY_PATH=${REVERB_SSL_KEY_PATH:-null}"
+      - "APP_ENV=${APP_ENV:-local}"
+      - "APP_DEBUG=${APP_DEBUG:-true}"
       - "DB_CONNECTION=pgsql"
       - "DB_HOST=postgres"
       - "DB_PORT=5432"
