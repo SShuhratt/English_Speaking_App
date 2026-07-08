@@ -8,6 +8,7 @@ import {
     Users,
     Video,
     Bell,
+    Mic,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -35,6 +36,11 @@ export function AppSidebar() {
             title: t('nav.dashboard'),
             href: '/dashboard',
             icon: LayoutGrid,
+        },
+        {
+            title: t('nav.start_speaking'),
+            href: '/speaking',
+            icon: Mic,
         },
     ];
 

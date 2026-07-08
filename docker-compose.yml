@@ -63,7 +63,7 @@ services:
       - "DB_PASSWORD=postgress"
       - "REDIS_HOST=redis"
       - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=phpredis"
+      - "REDIS_CLIENT=predis"
     depends_on:
       postgres:
         condition: service_healthy
@@ -99,7 +99,7 @@ services:
       - "DB_PASSWORD=postgress"
       - "REDIS_HOST=redis"
       - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=phpredis"
+      - "REDIS_CLIENT=predis"
     depends_on:
       api:
         condition: service_started
@@ -136,7 +136,7 @@ services:
       - "DB_PASSWORD=postgress"
       - "REDIS_HOST=redis"
       - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=phpredis"
+      - "REDIS_CLIENT=predis"
     depends_on:
       api:
         condition: service_started

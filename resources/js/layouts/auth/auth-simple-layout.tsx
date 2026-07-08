@@ -15,14 +15,18 @@ export default function AuthSimpleLayout({
                     <div className="flex flex-col items-center gap-4">
                         <Link
                             href={home()}
-                            className="flex flex-col items-center gap-2 font-medium"
+                            className="flex flex-col items-center gap-2.5 font-medium"
                         >
-                            <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-orange to-brand-button text-white shadow-lg shadow-brand-button/30">
-                                <AppLogoIcon className="size-6 text-white" />
+                            {/* Circle logo frame using the premium brand logo */}
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brand-navy/10 bg-white shadow-md shadow-brand-navy/10 transition-transform hover:scale-105">
+                                <img
+                                    src="/images/logo.png"
+                                    alt="ConvoMate"
+                                    className="h-full w-full object-cover"
+                                />
                             </div>
-                            <span className="text-xl font-bold">
-                                Speak
-                                <span className="text-brand-orange">Flow</span>
+                            <span className="text-xl font-black tracking-tight text-brand-navy">
+                                Convo<span className="text-brand-yellow">Mate</span>
                             </span>
                         </Link>
 

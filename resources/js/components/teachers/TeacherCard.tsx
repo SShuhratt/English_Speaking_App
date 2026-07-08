@@ -95,7 +95,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                 {/* View Profile Button */}
                 <Link
                     href={`/pupil/teachers/${teacher.id}`}
-                    className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover py-3 text-xs font-bold text-white shadow-md shadow-brand-button/10 transition-all duration-300 hover:shadow-lg"
+                    className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover py-3 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:shadow-lg"
                 >
                     {t('teachers.view_profile')}{' '}
                     <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

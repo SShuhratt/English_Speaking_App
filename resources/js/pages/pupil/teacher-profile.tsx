@@ -138,7 +138,7 @@ export default function TeacherProfile({ teacher }: Props) {
                         <div className="w-full shrink-0 self-stretch md:w-auto md:self-center">
                              <Link
                                 href={`/pupil/booking?teacher_id=${teacher.id}`}
-                                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-button/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover px-8 py-4 text-base font-bold text-brand-brown shadow-lg shadow-brand-button/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                             >
                                 {t('teachers.book_now')}{' '}
                                 <ChevronRight className="h-5 w-5" />

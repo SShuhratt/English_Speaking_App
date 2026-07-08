@@ -43,7 +43,7 @@ function PupilMeetingButton({
         return (
             <button
                 disabled
-                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-[#c6c5d0]/50 bg-[#f5f3f7] px-4 py-2.5 text-xs font-semibold text-[#45464f]"
+                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-brand-lightblue/50 bg-brand-lightblue/35 px-4 py-2.5 text-xs font-semibold text-brand-brown/80"
             >
                 <Clock className="h-3.5 w-3.5" /> {t('meeting.scheduled')}
             </button>
@@ -84,7 +84,7 @@ function TeacherMeetingButton({
         return (
             <button
                 disabled
-                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-[#c6c5d0]/50 bg-[#f5f3f7] px-4 py-2.5 text-xs font-semibold text-[#45464f]"
+                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-brand-lightblue/50 bg-brand-lightblue/35 px-4 py-2.5 text-xs font-semibold text-brand-brown/80"
             >
                 <Clock className="h-3.5 w-3.5" /> {t('meeting.scheduled')}
             </button>
@@ -136,9 +136,19 @@ function PupilDashboard({
     }, [user.id]);
 
     const handleCancel = async (id: string) => {
-        if (!confirm(t('dashboard.cancel_booking_confirm'))) return;
+        const reason = prompt(t('dashboard.cancel_reason_prompt') || "Please enter the reason for cancellation (minimum 3 characters):");
+        if (reason === null) {
+            return;
+        }
+        const trimmedReason = reason.trim();
+        if (trimmedReason.length < 3) {
+            toast.error(t('dashboard.cancel_reason_min_length') || "Cancellation reason must be at least 3 characters.");
+            return;
+        }
         try {
-            await axios.delete(`/bookings/${id}`);
+            await axios.delete(`/bookings/${id}`, {
+                data: { reason: trimmedReason }
+            });
             toast.success(t('dashboard.cancel_success'));
             router.reload();
         } catch (error: any) {
@@ -353,7 +363,7 @@ function PupilDashboard({
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-end gap-3 bg-[#f5f3f7] px-6 py-4">
+                                <div className="flex items-center justify-end gap-3 bg-brand-lightblue/20 px-6 py-4">
                                     <button
                                         onClick={() => handleCancel(apt.id)}
                                         className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
@@ -428,9 +438,19 @@ function TeacherDashboard({
     }, [user.id]);
 
     const handleCancel = async (id: string) => {
-        if (!confirm(t('dashboard.cancel_conversation_confirm'))) return;
+        const reason = prompt(t('dashboard.cancel_reason_prompt') || "Please enter the reason for cancellation (minimum 3 characters):");
+        if (reason === null) {
+            return;
+        }
+        const trimmedReason = reason.trim();
+        if (trimmedReason.length < 3) {
+            toast.error(t('dashboard.cancel_reason_min_length') || "Cancellation reason must be at least 3 characters.");
+            return;
+        }
         try {
-            await axios.delete(`/bookings/${id}`);
+            await axios.delete(`/bookings/${id}`, {
+                data: { reason: trimmedReason }
+            });
             toast.success(t('dashboard.cancel_conversation_success'));
             router.reload();
         } catch (error: any) {
@@ -706,7 +726,7 @@ function TeacherDashboard({
                             </div>
                         ) : (
                             <div className="flex flex-col items-center space-y-4 px-4 py-10 text-center">
-                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-[#c6c5d0]/50 bg-[#f5f3f7] text-3xl text-[#45464f]">
+                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-brand-lightblue/30 bg-brand-lightblue/25 text-3xl text-brand-brown">
                                     🗓️
                                 </div>
                                 <div className="space-y-1">
@@ -723,7 +743,7 @@ function TeacherDashboard({
 
                     <Link
                         href="/teacher/schedule"
-                        className="mt-4 block w-full rounded-full border border-[#c6c5d0]/80 bg-[#f5f3f7] py-3 text-center font-semibold text-[#45464f] transition duration-150 hover:bg-[#d0e4ff]/30"
+                        className="mt-4 block w-full rounded-full border border-brand-lightblue bg-brand-lightblue/30 py-3 text-center font-semibold text-brand-brown transition duration-150 hover:bg-[#d0e4ff]/60"
                     >
                         {t('dashboard.view_calendar')}
                     </Link>

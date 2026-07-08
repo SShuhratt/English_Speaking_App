@@ -43,6 +43,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/appointments/{id}/join', [PupilSessionController::class, 'join'])->name('appointments.join');
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');
     });
+
+    Route::get('/speaking', function () {
+        return Inertia\Inertia::render('speaking');
+    })->name('speaking');
+
+    Route::post('/matchmaking/join', [App\Http\Controllers\MatchmakingController::class, 'join'])->name('matchmaking.join');
+    Route::post('/matchmaking/leave', [App\Http\Controllers\MatchmakingController::class, 'leave'])->name('matchmaking.leave');
 });
 
 Route::middleware('auth')->group(function () {

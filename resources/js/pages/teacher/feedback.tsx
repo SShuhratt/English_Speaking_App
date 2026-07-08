@@ -26,12 +26,18 @@ export default function Feedback({ feedbacks }: Props) {
             <Head title={t('teacher.feedback_title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-brand-brown/10 bg-gradient-to-r from-brand-yellow/30 to-transparent p-6 md:flex-row md:items-center">
-                    <div className="space-y-1">
-                        <h1 className="text-brand-brown text-3xl font-black tracking-tight">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                    <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
+                    <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
+                    
+                    <div className="relative z-10 space-y-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                            FEEDBACK MANAGEMENT
+                        </span>
+                        <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('teacher.feedback_title')}
                         </h1>
-                        <p className="text-sm font-medium text-muted-foreground">
+                        <p className="text-sm font-medium text-brand-lightblue/80">
                             {t('teacher.feedback_desc')}
                         </p>
                     </div>

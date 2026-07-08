@@ -18,6 +18,22 @@ const dictionary = {
         'nav.logout': 'Log out',
         'nav.profile': 'Profile',
         'nav.settings': 'Settings',
+        'nav.start_speaking': 'Start Speaking',
+
+        // speaking matchmaking
+        'speaking.title': 'Start Speaking',
+        'speaking.desc': 'Practice speaking English with random students in real-time.',
+        'speaking.ready_title': 'Match with a Speaking Partner',
+        'speaking.ready_desc': 'Join the queue to be matched instantly with an active user for English practice.',
+        'speaking.btn_start': 'Start Matchmaking',
+        'speaking.searching_title': 'Finding speaking partner...',
+        'speaking.connecting_title': 'Connecting to partner...',
+        'speaking.opponent': 'Opponent',
+        'speaking.btn_disconnect': 'Disconnect',
+        'speaking.connected': 'Connected',
+        'speaking.btn_end': 'End Conversation',
+        'speaking.partner_disconnected': 'Partner left the conversation.',
+        'speaking.media_error': 'Microphone access denied or audio device not found.',
 
         // settings
         'settings.title': 'Settings',
@@ -119,6 +135,13 @@ const dictionary = {
         'welcome.cta_btn': 'Create Free Account',
         'welcome.footer_rights': 'All rights reserved.',
         'welcome.home_bento_title': 'Everything you need to master English',
+        'welcome.home_bento_title_1': 'Everything you need to',
+        'welcome.home_bento_title_highlight': 'master English',
+        'welcome.home_bento_title_2': '',
+        'welcome.journey_cta_ready': 'Ready to find your voice?',
+        'welcome.journey_cta_desc': "Join thousands of students who have improved their fluency with ConvoMate's personalized teaching approach.",
+        'welcome.journey_cta_btn_start': 'Start Free Trial',
+        'welcome.journey_cta_btn_teachers': 'View Teachers',
         'welcome.home_bento_subtitle':
             'Designed for professionals and lifelong learners who value quality and efficiency.',
         'welcome.home_bento_1_title': 'AI-Powered Conversation Analysis',
@@ -252,7 +275,7 @@ const dictionary = {
         'booking.all_time_end': 'End Time',
         'booking.invalid_range':
             'Invalid time range: end time must be after start time and within the available block.',
-        'booking.confirm_btn': 'Confirm Request',
+        'booking.confirm_btn': 'Confirm',
         'booking.cancel_btn': 'Cancel',
         'booking.requesting': 'Requesting...',
         'booking.success': 'Session booked! Waiting for teacher approval.',
@@ -262,7 +285,7 @@ const dictionary = {
         'booking.no_slots': 'No slots available for this date.',
         'booking.custom_start': 'Start Time',
         'booking.custom_end': 'End Time',
-        'booking.custom_submit': 'Request Custom Session',
+        'booking.custom_submit': 'Request Session',
         'booking.ielts_level': 'IELTS Level',
         'booking.speaking_band': 'Speaking Band',
         'booking.experience': 'Experience',
@@ -393,6 +416,13 @@ const dictionary = {
         'teacher.confirm_cancel':
             'Are you sure you want to cancel this booking?',
         'teacher.cancel_success': 'Booking cancelled successfully',
+        'teacher.cancel_title': 'Cancel Appointment',
+        'teacher.reject_title': 'Reject Request',
+        'teacher.cancel_desc': 'Please state the reason for cancelling this appointment. This will be visible to the student.',
+        'teacher.reject_desc': 'Please state the reason for rejecting this booking request. This will be visible to the student.',
+        'teacher.reason_placeholder': 'Enter your reason here...',
+        'teacher.reason_length_validation': 'Reason must be between 3 and 1000 characters',
+        'teacher.action_failed': 'Action failed',
         'schedule.title': 'My Schedule',
         'schedule.desc': 'Your upcoming confirmed sessions.',
         'schedule.scheduled': 'Scheduled',
@@ -459,11 +489,25 @@ const dictionary = {
         'bookings.status_confirmed': 'Confirmed',
         'bookings.status_pending': 'Pending',
         'bookings.status_cancelled': 'Cancelled',
-        'bookings.delete': 'Delete Record',
+        'bookings.delete': 'Delete',
         'bookings.delete_confirm':
             'Are you sure you want to delete this session record?',
         'bookings.delete_success': 'Session record deleted successfully',
         'bookings.delete_error': 'Failed to delete session record',
+        'bookings.status_rejected': 'Rejected',
+        'bookings.cancel_title': 'Cancel Booking',
+        'bookings.cancel_desc': 'Please state the reason for cancellation. This will be visible to the teacher.',
+        'bookings.cancel_reason_placeholder': 'Enter your reason here...',
+        'bookings.cancelling': 'Cancelling...',
+        'bookings.confirm_cancel': 'Confirm Cancel',
+        'bookings.cancelled_by': 'Cancelled by :name',
+        'bookings.you': 'You',
+        'bookings.teacher': 'Teacher',
+        'bookings.pupil': 'Pupil',
+        'bookings.rejected_by_teacher': 'Rejected by Teacher',
+        'bookings.close_btn': 'Close',
+        'bookings.submitting': 'Submitting...',
+        'bookings.confirm_submit': 'Submit',
         'sessions.past_title': 'Past Sessions',
         'sessions.past_desc':
             'A history of your completed English practice sessions.',
@@ -556,6 +600,22 @@ const dictionary = {
         'nav.logout': 'Chiqish',
         'nav.profile': 'Profil',
         'nav.settings': 'Sozlamalar',
+        'nav.start_speaking': 'Gapirishni boshlash',
+
+        // speaking matchmaking
+        'speaking.title': 'Gapirishni boshlash',
+        'speaking.desc': 'Haqiqiy vaqtda tasodifiy foydalanuvchilar bilan ingliz tilida gaplashishni mashq qiling.',
+        'speaking.ready_title': "Suhbatdosh bilan bog'lanish",
+        'speaking.ready_desc': "Ingliz tilida gaplashish uchun navbatga qo'shiling va faol foydalanuvchi bilan bir zumda bog'laning.",
+        'speaking.btn_start': 'Suhbatdosh izlash',
+        'speaking.searching_title': 'Suhbatdosh qidirilmoqda...',
+        'speaking.connecting_title': "Suhbatdosh bilan bog'lanmoqda...",
+        'speaking.opponent': 'Suhbatdosh',
+        'speaking.btn_disconnect': 'Aloqani uzish',
+        'speaking.connected': "Bog'landi",
+        'speaking.btn_end': 'Suhbatni yakunlash',
+        'speaking.partner_disconnected': 'Suhbatdosh aloqani uzdi.',
+        'speaking.media_error': 'Mikrofon ruxsati rad etildi yoki audio qurilma topilmadi.',
 
         // settings
         'settings.title': 'Sozlamalar',
@@ -662,6 +722,13 @@ const dictionary = {
         'welcome.footer_rights': 'Barcha huquqlar himoyalangan.',
         'welcome.home_bento_title':
             "Ingliz tilini mukammal o'rganish uchun barcha imkoniyatlar",
+        'welcome.home_bento_title_1': 'Ingliz tilini',
+        'welcome.home_bento_title_highlight': "mukammal o'rganish",
+        'welcome.home_bento_title_2': ' uchun barcha imkoniyatlar',
+        'welcome.journey_cta_ready': "O'zingizni sinab ko'rishga tayyormisiz?",
+        'welcome.journey_cta_desc': "ConvoMate-ning individual yondashuvi yordamida o'z so'zlashuv ko'nikmalarini oshirgan minglab o'quvchilarga qo'shiling.",
+        'welcome.journey_cta_btn_start': 'Bepul boshlash',
+        'welcome.journey_cta_btn_teachers': "O'qituvchilarni ko'rish",
         'welcome.home_bento_subtitle':
             "Sifat va samaradorlikni qadrlaydigan mutaxassislar va umrbod o'rganuvchilar uchun mo'ljallangan.",
         'welcome.home_bento_1_title':
@@ -802,7 +869,7 @@ const dictionary = {
         'booking.all_time_end': 'Tugash vaqti',
         'booking.invalid_range':
             "Noto'g'ri vaqt oralig'i: tugash vaqti boshlanish vaqtidan keyin bo'lishi va bo'sh vaqt oralig'ida joylashishi kerak.",
-        'booking.confirm_btn': "So'rovni tasdiqlash",
+        'booking.confirm_btn': 'Tasdiqlash',
         'booking.cancel_btn': 'Bekor qilish',
         'booking.requesting': 'Yuborilmoqda...',
         'booking.success':
@@ -813,7 +880,7 @@ const dictionary = {
         'booking.no_slots': "Ushbu sana uchun bo'sh vaqtlar yo'q.",
         'booking.custom_start': 'Boshlanish vaqti',
         'booking.custom_end': 'Tugash vaqti',
-        'booking.custom_submit': "Maxsus darsni so'rash",
+        'booking.custom_submit': "Dars so'rash",
         'booking.ielts_level': 'IELTS darajasi',
         'booking.speaking_band': 'Speaking balli',
         'booking.experience': 'Tajriba',
@@ -949,6 +1016,13 @@ const dictionary = {
         'teacher.confirm_cancel':
             'Haqiqatan ham ushbu darsni bekor qilmoqchimisiz?',
         'teacher.cancel_success': 'Dars muvaffaqiyatli bekor qilindi',
+        'teacher.cancel_title': 'Darsni bekor qilish',
+        'teacher.reject_title': 'So\'rovni rad etish',
+        'teacher.cancel_desc': 'Iltimos, ushbu darsni bekor qilish sababini ko\'rsating. Bu o\'quvchiga ko\'rinadi.',
+        'teacher.reject_desc': 'Iltimos, ushbu bandlik so\'rovini rad etish sababini ko\'rsating. Bu o\'quvchiga ko\'rinadi.',
+        'teacher.reason_placeholder': 'Sababini shu yerga yozing...',
+        'teacher.reason_length_validation': 'Sabab 3 tadan 1000 tagacha belgidan iborat bo\'lishi kerak',
+        'teacher.action_failed': 'Amal bajarilmadi',
         'schedule.title': 'Mening jadvalim',
         'schedule.desc': 'Kelgusi tasdiqlangan darslaringiz.',
         'schedule.scheduled': 'Rejalashtirilgan',
@@ -1024,6 +1098,20 @@ const dictionary = {
             "Dars haqidagi ma'lumot muvaffaqiyatli o'chirildi",
         'bookings.delete_error':
             "Dars ma'lumotini o'chirishda xatolik yuz berdi",
+        'bookings.status_rejected': 'Rad etilgan',
+        'bookings.cancel_title': 'Darsni bekor qilish',
+        'bookings.cancel_desc': 'Iltimos, bekor qilish sababini ko\'rsating. Bu o\'qituvchiga ko\'rinadi.',
+        'bookings.cancel_reason_placeholder': 'Sababini shu yerga yozing...',
+        'bookings.cancelling': 'Bekor qilinmoqda...',
+        'bookings.confirm_cancel': 'Bekor qilishni tasdiqlash',
+        'bookings.cancelled_by': ':name tomonidan bekor qilindi',
+        'bookings.you': 'Siz',
+        'bookings.teacher': 'O\'qituvchi',
+        'bookings.pupil': 'O\'quvchi',
+        'bookings.rejected_by_teacher': 'O\'qituvchi tomonidan rad etildi',
+        'bookings.close_btn': 'Yopish',
+        'bookings.submitting': 'Yuborilmoqda...',
+        'bookings.confirm_submit': 'Tasdiqlash',
         'sessions.past_title': "O'tgan darslar",
         'sessions.past_desc':
             'Tugallangan ingliz tili amaliy darslaringiz tarixi.',
@@ -1118,6 +1206,22 @@ const dictionary = {
         'nav.logout': 'Выйти',
         'nav.profile': 'Профиль',
         'nav.settings': 'Настройки',
+        'nav.start_speaking': 'Начать говорить',
+
+        // speaking matchmaking
+        'speaking.title': 'Начать говорить',
+        'speaking.desc': 'Практикуйте разговорный английский с другими студентами в реальном времени.',
+        'speaking.ready_title': 'Найти собеседника',
+        'speaking.ready_desc': 'Вступите в очередь, чтобы мгновенно связаться с активным пользователем для практики.',
+        'speaking.btn_start': 'Начать поиск',
+        'speaking.searching_title': 'Поиск собеседника...',
+        'speaking.connecting_title': 'Подключение к собеседнику...',
+        'speaking.opponent': 'Собеседник',
+        'speaking.btn_disconnect': 'Отключиться',
+        'speaking.connected': 'Подключено',
+        'speaking.btn_end': 'Завершить разговор',
+        'speaking.partner_disconnected': 'Собеседник покинул разговор.',
+        'speaking.media_error': 'Доступ к микрофону запрещен или аудиоустройство не найдено.',
 
         // settings
         'settings.title': 'Настройки',
@@ -1221,6 +1325,13 @@ const dictionary = {
         'welcome.cta_btn': 'Создать бесплатный аккаунт',
         'welcome.footer_rights': 'Все права защищены.',
         'welcome.home_bento_title': 'Всё, что нужно для освоения английского',
+        'welcome.home_bento_title_1': 'Всё, что нужно для',
+        'welcome.home_bento_title_highlight': 'освоения английского',
+        'welcome.home_bento_title_2': '',
+        'welcome.journey_cta_ready': 'Готовы раскрыть свой потенциал?',
+        'welcome.journey_cta_desc': 'Присоединяйтесь к тысячам студентов, которые улучшили свою разговорную речь с помощью персонализированного обучения в ConvoMate.',
+        'welcome.journey_cta_btn_start': 'Начать бесплатно',
+        'welcome.journey_cta_btn_teachers': 'Посмотреть преподавателей',
         'welcome.home_bento_subtitle':
             'Разработано для профессионалов и тех, кто ценит качество и эффективность.',
         'welcome.home_bento_1_title': 'Анализ разговора с помощью ИИ',
@@ -1358,7 +1469,7 @@ const dictionary = {
         'booking.all_time_end': 'Время окончания',
         'booking.invalid_range':
             'Недопустимый диапазон времени: время окончания должно быть позже времени начала и находиться в пределах доступного блока.',
-        'booking.confirm_btn': 'Подтвердить запрос',
+        'booking.confirm_btn': 'Подтвердить',
         'booking.cancel_btn': 'Отмена',
         'booking.requesting': 'Отправка...',
         'booking.success':
@@ -1369,7 +1480,7 @@ const dictionary = {
         'booking.no_slots': 'Нет свободных слотов на эту дату.',
         'booking.custom_start': 'Время начала',
         'booking.custom_end': 'Время окончания',
-        'booking.custom_submit': 'Запросить индивидуальную сессию',
+        'booking.custom_submit': 'Запросить урок',
         'booking.ielts_level': 'Уровень IELTS',
         'booking.speaking_band': 'Балл за говорение',
         'booking.experience': 'Опыт работы',
@@ -1500,6 +1611,13 @@ const dictionary = {
         'teacher.confirm_cancel':
             'Вы уверены, что хотите отменить это бронирование?',
         'teacher.cancel_success': 'Бронирование успешно отменено',
+        'teacher.cancel_title': 'Отмена занятия',
+        'teacher.reject_title': 'Отклонить запрос',
+        'teacher.cancel_desc': 'Укажите причину отмены этого занятия. Она будет видна ученику.',
+        'teacher.reject_desc': 'Укажите причину отклонения этого запроса. Она будет видна ученику.',
+        'teacher.reason_placeholder': 'Введите причину здесь...',
+        'teacher.reason_length_validation': 'Причина должна быть длиной от 3 до 1000 символов',
+        'teacher.action_failed': 'Действие не удалось',
         'schedule.title': 'Моё расписание',
         'schedule.desc': 'Ваши предстоящие подтвержденные занятия.',
         'schedule.scheduled': 'Запланировано',
@@ -1569,11 +1687,25 @@ const dictionary = {
         'bookings.status_confirmed': 'Подтверждено',
         'bookings.status_pending': 'В ожидании',
         'bookings.status_cancelled': 'Отменено',
-        'bookings.delete': 'Удалить запись',
+        'bookings.delete': 'Удалить',
         'bookings.delete_confirm':
             'Вы уверены, что хотите удалить эту запись о занятии?',
         'bookings.delete_success': 'Запись о занятии успешно удалена',
         'bookings.delete_error': 'Не удалось удалить запись о занятии',
+        'bookings.status_rejected': 'Отклонено',
+        'bookings.cancel_title': 'Отмена бронирования',
+        'bookings.cancel_desc': 'Укажите причину отмены. Она будет видна преподавателю.',
+        'bookings.cancel_reason_placeholder': 'Введите причину здесь...',
+        'bookings.cancelling': 'Отмена...',
+        'bookings.confirm_cancel': 'Подтвердить отмену',
+        'bookings.cancelled_by': 'Отменено :name',
+        'bookings.you': 'Вы',
+        'bookings.teacher': 'Преподаватель',
+        'bookings.pupil': 'Ученик',
+        'bookings.rejected_by_teacher': 'Отклонено преподавателем',
+        'bookings.close_btn': 'Закрыть',
+        'bookings.submitting': 'Отправка...',
+        'bookings.confirm_submit': 'Отправить',
         'sessions.past_title': 'Прошедшие уроки',
         'sessions.past_desc':
             'История ваших пройденных практических занятий по английскому языку.',
@@ -1655,11 +1787,11 @@ const dictionary = {
 export function useTranslation() {
     const page = usePage<any>();
     const locale = page.props.locale || 'en';
-
     const t = (key: string, replacements?: Record<string, string | number>) => {
         const langDict =
             dictionary[locale as 'en' | 'uz' | 'ru'] || dictionary.en;
-        let text = langDict[key as keyof typeof langDict] || key;
+        const val = langDict[key as keyof typeof langDict];
+        let text = val !== undefined ? val : key;
 
         if (replacements) {
             Object.entries(replacements).forEach(([k, v]) => {

@@ -53,7 +53,7 @@ function PupilMeetingButton({
     return (
         <button
             onClick={() => handleJoin(apt)}
-            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
         >
             <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
         </button>
@@ -155,12 +155,18 @@ export default function Bookings({ bookings }: Props) {
             <Head title={t('bookings.title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-brand-brown/10 bg-gradient-to-r from-brand-yellow/30 to-transparent p-6 md:flex-row md:items-center">
-                    <div className="space-y-1">
-                        <h1 className="text-brand-brown text-3xl font-black tracking-tight">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                    <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
+                    <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
+                    
+                    <div className="relative z-10 space-y-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                            MY BOOKINGS
+                        </span>
+                        <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('bookings.title')}
                         </h1>
-                        <p className="text-sm font-medium text-muted-foreground">
+                        <p className="text-sm font-medium text-brand-lightblue/80">
                             {t('bookings.desc')}
                         </p>
                     </div>
@@ -322,7 +328,7 @@ export default function Bookings({ bookings }: Props) {
                             </p>
                             <Link
                                 href="/pupil/teachers"
-                                className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-button hover:bg-brand-button-hover px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-102"
+                                className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-button hover:bg-brand-button-hover px-5 py-2.5 text-xs font-bold text-brand-brown shadow-md transition-all hover:scale-102"
                             >
                                 {t('teachers.browse')}{' '}
                                 <Sparkles className="h-3.5 w-3.5" />

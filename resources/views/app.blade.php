@@ -30,9 +30,9 @@
             window.laravelConfig = {
                 pusherKey: '{{ config('broadcasting.connections.pusher.key') }}',
                 pusherCluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}',
-                pusherHost: '{{ env('PUSHER_HOST') }}',
-                pusherPort: '{{ env('PUSHER_PORT') }}',
-                pusherScheme: '{{ env('PUSHER_SCHEME') }}',
+                pusherHost: '{{ env('VITE_PUSHER_HOST', 'localhost') }}',
+                pusherPort: '{{ env('VITE_PUSHER_PORT', '8443') }}',
+                pusherScheme: '{{ env('VITE_PUSHER_SCHEME', 'http') }}',
             };
         </script>
 

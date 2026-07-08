@@ -868,7 +868,7 @@ export default function Booking({ teacher }: Props) {
                                 <Button
                                     type="submit"
                                     disabled={booking}
-                                    className="w-full rounded-xl bg-brand-button hover:bg-brand-button-hover py-4 text-xs font-semibold text-white shadow-md transition-all disabled:opacity-50"
+                                    className="w-full rounded-xl bg-brand-button hover:bg-brand-button-hover py-4 text-xs font-semibold text-brand-brown shadow-md transition-all disabled:opacity-50"
                                 >
                                     {booking
                                         ? t('booking.requesting')
@@ -1291,7 +1291,7 @@ export default function Booking({ teacher }: Props) {
                                         disabled={
                                             booking || !validateSelectedRange()
                                         }
-                                        className="cursor-pointer rounded-xl bg-brand-button hover:bg-brand-button-hover px-5 py-2 text-sm font-semibold text-white shadow-md shadow-brand-button/10 transition-colors disabled:opacity-50"
+                                        className="cursor-pointer rounded-xl bg-brand-button hover:bg-brand-button-hover px-5 py-2 text-sm font-semibold text-brand-brown shadow-md shadow-brand-button/10 transition-colors disabled:opacity-50"
                                     >
                                         {booking
                                             ? t('booking.requesting')

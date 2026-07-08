@@ -97,26 +97,26 @@
     --brand-lightblue:    #d0e4ff;
 
     /* Semantic tokens */
-    --background:          #fbf8fd;
-    --foreground:          #1b1b1f;
+    --background:          #f4f8ff;
+    --foreground:          #061445;
     --card:                #ffffff;
-    --card-foreground:     #1b1b1f;
+    --card-foreground:     #061445;
     --popover:             #ffffff;
-    --popover-foreground:  #1b1b1f;
+    --popover-foreground:  #061445;
     --primary:             #061445;
     --primary-foreground:  #ffffff;
     --secondary:           #d0e4ff;
     --secondary-foreground:#061445;
-    --muted:               #f5f3f7;
-    --muted-foreground:    #45464f;
+    --muted:               #e8f0fe;
+    --muted-foreground:    #44617e;
     --accent:              #fae18e;
     --accent-foreground:   #061445;
-    --destructive:         #ba1a1a;
+    --destructive:         #dc2626;
     --destructive-foreground: #ffffff;
-    --border:              #c6c5d0;
-    --input:               #c6c5d0;
+    --border:              #d0e4ff;
+    --input:               #d0e4ff;
     --ring:                #061445;
-    --radius:              1rem;
+    --radius:              1.5rem;
 
     --chart-1: #061445;
     --chart-2: #44617e;

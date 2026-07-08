@@ -1594,7 +1594,7 @@ export default function Availability({ availabilities }: Props) {
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                className="rounded-lg bg-brand-button hover:bg-brand-button-hover font-semibold text-white"
+                                className="rounded-lg bg-brand-button hover:bg-brand-button-hover font-semibold text-brand-brown"
                             >
                                 {processing ? t.saving : t.save}
                             </Button>
