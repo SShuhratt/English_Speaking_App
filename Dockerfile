@@ -4,7 +4,7 @@ ENV COMPOSER_HTTP2=0
 ENV COMPOSER_PROCESS_TIMEOUT=2000
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --ignore-platform-reqs --no-dev --optimize-autoloader --no-scripts --prefer-dist
+RUN composer install --ignore-platform-reqs --no-dev --optimize-autoloader --no-scripts
 COPY . .
 RUN mkdir -p storage/framework/views \
     storage/framework/cache/data \
