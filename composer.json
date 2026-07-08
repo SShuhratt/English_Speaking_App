@@ -114,12 +114,18 @@
             "installer": {
                 "post-create-project": []
             }
-        }
+        },
+        "google/apiclient-services": [
+            "Calendar"
+        ]
     },
     "config": {
         "http2": false,
         "optimize-autoloader": true,
-        "preferred-install": "dist",
+        "preferred-install": {
+            "google/apiclient-services": "source",
+            "*": "dist"
+        },
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
