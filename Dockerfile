@@ -44,7 +44,7 @@ RUN install-php-extensions \
     pdo_pgsql \
     intl \
     opcache \
-    redis \
+    redis-6.0.2 \
     zip
 
 
