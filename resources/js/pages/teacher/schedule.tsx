@@ -57,9 +57,7 @@ function TeacherMeetingButton({
             <Video className="h-3.5 w-3.5" />
             {startingAptId === apt.id
                 ? t('schedule.starting')
-                : apt.google_meet_link
-                  ? t('schedule.join')
-                  : t('schedule.start')}
+                : t('schedule.start')}
         </button>
     );
 }
@@ -99,11 +97,6 @@ export default function Schedule({ appointments }: Props) {
     };
 
     const handleStart = async (apt: any) => {
-        if (apt.google_meet_link) {
-            window.open(apt.google_meet_link, '_blank');
-            return;
-        }
-
         setStartingAptId(apt.id);
         try {
             const response = await axios.post(

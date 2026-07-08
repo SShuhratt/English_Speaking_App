@@ -22,6 +22,7 @@ class Appointment extends Model
         'google_event_id',
         'google_meet_link',
         'provider',
+        'meeting_started',
     ];
 
     protected $casts = [

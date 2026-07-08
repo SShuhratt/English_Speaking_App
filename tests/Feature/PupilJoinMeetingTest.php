@@ -33,7 +33,7 @@ class PupilJoinMeetingTest extends TestCase
         $pupil = User::factory()->create(['role' => 'pupil']);
         $otherPupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
-        
+
         $appointment = Appointment::create([
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -52,7 +52,7 @@ class PupilJoinMeetingTest extends TestCase
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
-        
+
         $appointment = Appointment::create([
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -60,6 +60,7 @@ class PupilJoinMeetingTest extends TestCase
             'end_at' => now()->addMinutes(30),
             'status' => 'confirmed',
             'google_meet_link' => null,
+            'meeting_started' => false,
         ]);
 
         $response = $this->actingAs($pupil)
@@ -67,7 +68,7 @@ class PupilJoinMeetingTest extends TestCase
 
         $response->assertStatus(400);
         $response->assertJson([
-            'message' => 'Teacher is not ready yet',
+            'message' => "Teacher hasn't started the meeting yet!",
         ]);
     }
 
@@ -75,7 +76,7 @@ class PupilJoinMeetingTest extends TestCase
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
-        
+
         $appointment = Appointment::create([
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -83,6 +84,7 @@ class PupilJoinMeetingTest extends TestCase
             'end_at' => now()->addMinutes(30),
             'status' => 'confirmed',
             'google_meet_link' => 'https://meet.google.com/abc-defg-hij',
+            'meeting_started' => true,
         ]);
 
         $response = $this->actingAs($pupil)

@@ -32,9 +32,9 @@ class PupilSessionController extends Controller
             abort(403, 'Meeting has expired');
         }
 
-        if (empty($appointment->google_meet_link)) {
+        if (! $appointment->meeting_started) {
             return response()->json([
-                'message' => 'Teacher is not ready yet',
+                'message' => "Teacher hasn't started the meeting yet!",
             ], 400);
         }
 

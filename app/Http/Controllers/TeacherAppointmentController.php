@@ -150,12 +150,17 @@ class TeacherAppointmentController extends Controller
                     'google_meet_link' => $mockLink,
                 ]);
             }
+        }
 
-            try {
-                BookingUpdated::dispatch($appointment);
-            } catch (\Exception $e) {
-                Log::error('Failed to broadcast booking update on starting conversation: '.$e->getMessage());
-            }
+        // Always mark the meeting as started when the teacher initiates it
+        $appointment->update([
+            'meeting_started' => true,
+        ]);
+
+        try {
+            BookingUpdated::dispatch($appointment->fresh());
+        } catch (\Exception $e) {
+            Log::error('Failed to broadcast booking update on starting conversation: '.$e->getMessage());
         }
 
         return response()->json([
