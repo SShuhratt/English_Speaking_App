@@ -70,7 +70,7 @@ class GoogleCalendarService
      */
     protected function buildEventPayload(array $data): array
     {
-        return [
+        $payload = [
             'summary' => $data['title'] ?? 'Meeting',
             'description' => $data['description'] ?? null,
             'start' => [
@@ -82,7 +82,12 @@ class GoogleCalendarService
                 'timeZone' => 'Asia/Tashkent',
             ],
             'attendees' => collect($data['attendees'] ?? [])->map(function ($a) {
-                return ['email' => $a['email']];
+                $item = ['email' => $a['email']];
+                if (isset($a['responseStatus'])) {
+                    $item['responseStatus'] = $a['responseStatus'];
+                }
+
+                return $item;
             })->toArray(),
 
             'conferenceData' => [
@@ -94,6 +99,14 @@ class GoogleCalendarService
                 ],
             ],
         ];
+
+        if (isset($data['organizer_email'])) {
+            $payload['organizer'] = [
+                'email' => $data['organizer_email'],
+            ];
+        }
+
+        return $payload;
     }
 
     /**

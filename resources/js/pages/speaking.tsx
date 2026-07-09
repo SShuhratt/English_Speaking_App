@@ -148,6 +148,7 @@ export default function Speaking() {
                 
                 // If both are present, lower ID initiates offer to prevent WebRTC collisions
                 if (users.length >= 2) {
+                    cleanupWebRTC();
                     const initiateCall = currentUserId < partnerId;
                     startWebRTC(initiateCall);
                 }
@@ -155,6 +156,7 @@ export default function Speaking() {
             .joining((user: any) => {
                 if (user.id === partnerId) {
                     setPartnerName(user.full_name || user.name || "Speaking Partner");
+                    cleanupWebRTC();
                     const initiateCall = currentUserId < partnerId;
                     startWebRTC(initiateCall);
                 }
@@ -276,12 +278,8 @@ export default function Speaking() {
         cleanup();
     };
 
-    // Disconnect and clean WebRTC state
-    const cleanup = () => {
-        setStatus('idle');
-        setPartnerName('');
-        setIsMuted(false);
-        
+    // Disconnect and clean WebRTC state only (keeping status and presence channel)
+    const cleanupWebRTC = () => {
         // Stop local tracks
         if (localStreamRef.current) {
             localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -294,15 +292,24 @@ export default function Speaking() {
             peerConnectionRef.current = null;
         }
 
+        if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = null;
+        }
+    };
+
+    // Disconnect and clean WebRTC state
+    const cleanup = () => {
+        setStatus('idle');
+        setPartnerName('');
+        setIsMuted(false);
+        
+        cleanupWebRTC();
+
         // Leave presence channel
         if (matchedRoomChannelRef.current) {
             const name = matchedRoomChannelRef.current.name;
             window.Echo.leave(name);
             matchedRoomChannelRef.current = null;
-        }
-
-        if (remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = null;
         }
     };
 

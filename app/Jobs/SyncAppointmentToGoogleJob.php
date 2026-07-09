@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\BookingUpdated;
 use App\Models\Appointment;
 use App\Services\GoogleCalendarService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,7 +31,7 @@ class SyncAppointmentToGoogleJob implements ShouldQueue
             $appointment = Appointment::with('teacher', 'pupil')->find($appointment);
         }
 
-        if (!$appointment) {
+        if (! $appointment) {
             return;
         }
 
@@ -40,10 +41,12 @@ class SyncAppointmentToGoogleJob implements ShouldQueue
             try {
                 $event = $googleCalendar->createEvent($teacher, [
                     'title' => "English Practice: {$teacher->full_name} & {$appointment->pupil->full_name}",
-                    'description' => "1-on-1 English speaking session on English Speaking Platform.",
+                    'description' => '1-on-1 English speaking session on English Speaking Platform.',
                     'start' => $appointment->start_at->toIso8601String(),
                     'end' => $appointment->end_at->toIso8601String(),
+                    'organizer_email' => $teacher->email,
                     'attendees' => [
+                        ['email' => $teacher->email, 'responseStatus' => 'accepted'],
                         ['email' => $appointment->pupil->email],
                     ],
                 ]);
@@ -53,9 +56,9 @@ class SyncAppointmentToGoogleJob implements ShouldQueue
                     'google_meet_link' => $event['meet_link'],
                 ]);
 
-                \App\Events\BookingUpdated::dispatch($appointment);
+                BookingUpdated::dispatch($appointment);
             } catch (\Exception $e) {
-                Log::error("Failed to sync appointment {$appointment->id} to Google: " . $e->getMessage());
+                Log::error("Failed to sync appointment {$appointment->id} to Google: ".$e->getMessage());
             }
         }
     }
