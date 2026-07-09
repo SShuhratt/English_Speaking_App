@@ -295,14 +295,8 @@ export default function Speaking() {
         cleanup();
     };
 
-    // Disconnect and clean WebRTC state only (keeping status and presence channel)
+    // Disconnect and clean WebRTC state only (keeping status, presence channel, and local stream)
     const cleanupWebRTC = () => {
-        // Stop local tracks
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach(track => track.stop());
-            localStreamRef.current = null;
-        }
-
         // Close peer connection
         if (peerConnectionRef.current) {
             peerConnectionRef.current.close();
@@ -321,6 +315,12 @@ export default function Speaking() {
         setIsMuted(false);
         
         cleanupWebRTC();
+
+        // Stop local tracks explicitly here when ending/canceling the call
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+            localStreamRef.current = null;
+        }
 
         // Leave presence channel
         if (matchedRoomChannelRef.current) {
