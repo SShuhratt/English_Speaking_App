@@ -146,9 +146,7 @@ export default function Speaking() {
                     setPartnerName(partner.full_name || partner.name || "Speaking Partner");
                 }
 
-                // If both are present, lower ID initiates offer to prevent WebRTC collisions
                 if (users.length >= 2) {
-                    // cleanupWebRTC();
                     if (!peerConnectionRef.current) {
                         const initiateCall = currentUserId < partnerId;
                         startWebRTC(initiateCall);
@@ -158,8 +156,10 @@ export default function Speaking() {
             .joining((user: any) => {
                 if (user.id === partnerId) {
                     setPartnerName(user.full_name || user.name || "Speaking Partner");
-                    //cleanupWebRTC();
-                    if (!peerConnectionRef.current) {
+                    if (peerConnectionRef.current) {
+                        cleanupWebRTC();
+                        startWebRTC(true);
+                    } else {
                         const initiateCall = currentUserId < partnerId;
                         startWebRTC(initiateCall);
                     }
@@ -472,8 +472,8 @@ export default function Speaking() {
                                 <button
                                     onClick={toggleMute}
                                     className={`flex items-center justify-center p-4 rounded-full shadow-md transition-all cursor-pointer ${isMuted
-                                            ? 'bg-red-500 text-white hover:bg-red-600'
-                                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                        ? 'bg-red-500 text-white hover:bg-red-600'
+                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
                                         }`}
                                     title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
                                 >
