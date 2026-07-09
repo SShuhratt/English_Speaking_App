@@ -16,6 +16,11 @@ export default function Speaking() {
     const [callTime, setCallTime] = useState<number>(0);
     const [partnerName, setPartnerName] = useState<string>('');
     const [isMuted, setIsMuted] = useState<boolean>(false);
+    const [activeSessionData, setActiveSessionData] = useState<{
+        room_id: string;
+        partner_id: number;
+        partner_name: string;
+    } | null>(null);
 
     // WebRTC & WebSocket Refs
     const localStreamRef = useRef<MediaStream | null>(null);
@@ -34,8 +39,7 @@ export default function Speaking() {
             try {
                 const response = await axios.get('/matchmaking/active-session');
                 if (response.data) {
-                    setPartnerName(response.data.partner_name);
-                    handleMatchFound(response.data.room_id, response.data.partner_id);
+                    setActiveSessionData(response.data);
                 }
             } catch (err) {
                 console.error("Failed to check active session:", err);
@@ -207,6 +211,9 @@ export default function Speaking() {
 
     // Start WebRTC Connection
     const startWebRTC = async (initiateCall: boolean) => {
+        if (peerConnectionRef.current) {
+            return;
+        }
         try {
             let stream = localStreamRef.current;
             if (!stream) {
@@ -263,6 +270,33 @@ export default function Speaking() {
     };
 
     // API actions
+    const resumeSession = async () => {
+        if (!activeSessionData) return;
+        try {
+            // Request microphone access first within user gesture context
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            localStreamRef.current = stream;
+        } catch (error) {
+            console.error("Microphone access check failed:", error);
+            toast.error(t('speaking.media_error') || "Microphone access denied or audio device not found.");
+            return;
+        }
+
+        setPartnerName(activeSessionData.partner_name);
+        handleMatchFound(activeSessionData.room_id, activeSessionData.partner_id);
+        setActiveSessionData(null);
+    };
+
+    const cancelSession = async () => {
+        try {
+            await axios.post('/matchmaking/leave');
+        } catch (e) {
+            console.error(e);
+        }
+        cleanup();
+        setActiveSessionData(null);
+    };
+
     const joinQueue = async () => {
         try {
             // Request microphone access first within the user interaction context
@@ -368,27 +402,59 @@ export default function Speaking() {
                 {/* Main Card View */}
                 <div className="flex flex-col items-center justify-center bg-white border border-[#d0e4ff]/30 shadow-ambient rounded-3xl p-12 md:p-20 text-center dark:bg-[#0c0c16] dark:border-white/5">
                     {status === 'idle' && (
-                        <div className="space-y-8 animate-in fade-in duration-300">
-                            <div className="flex justify-center">
-                                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-yellow/10 border-2 border-brand-yellow text-brand-navy shadow-inner dark:text-brand-yellow">
-                                    <Mic className="h-10 w-10 animate-pulse" />
+                        activeSessionData ? (
+                            <div className="space-y-8 animate-in fade-in duration-300">
+                                <div className="flex justify-center">
+                                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10 border-2 border-emerald-500 text-emerald-600 shadow-inner">
+                                        <Mic className="h-10 w-10 animate-bounce" />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
+                                        Active Session Detected
+                                    </h2>
+                                    <p className="text-sm text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
+                                        We found an active conversation with <strong>{activeSessionData.partner_name}</strong>. Would you like to resume it?
+                                    </p>
+                                </div>
+                                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                                    <button
+                                        onClick={resumeSession}
+                                        className="px-10 py-4 rounded-full font-bold text-sm bg-emerald-600 text-white shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer"
+                                    >
+                                        Resume Conversation
+                                    </button>
+                                    <button
+                                        onClick={cancelSession}
+                                        className="px-10 py-4 rounded-full font-bold text-sm border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20"
+                                    >
+                                        Cancel Session
+                                    </button>
                                 </div>
                             </div>
-                            <div className="space-y-3">
-                                <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
-                                    {t('speaking.ready_title') || "Match with a Speaking Partner"}
-                                </h2>
-                                <p className="text-sm text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
-                                    {t('speaking.ready_desc') || "Join the queue to be matched instantly with an active user for English practice."}
-                                </p>
+                        ) : (
+                            <div className="space-y-8 animate-in fade-in duration-300">
+                                <div className="flex justify-center">
+                                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-yellow/10 border-2 border-brand-yellow text-brand-navy shadow-inner dark:text-brand-yellow">
+                                        <Mic className="h-10 w-10 animate-pulse" />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
+                                        {t('speaking.ready_title') || "Match with a Speaking Partner"}
+                                    </h2>
+                                    <p className="text-sm text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
+                                        {t('speaking.ready_desc') || "Join the queue to be matched instantly with an active user for English practice."}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={joinQueue}
+                                    className="px-12 py-4 rounded-full font-bold text-sm bg-brand-yellow text-brand-navy shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer"
+                                >
+                                    {t('speaking.btn_start') || "Start Matchmaking"}
+                                </button>
                             </div>
-                            <button
-                                onClick={joinQueue}
-                                className="px-12 py-4 rounded-full font-bold text-sm bg-brand-yellow text-brand-navy shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer"
-                            >
-                                {t('speaking.btn_start') || "Start Matchmaking"}
-                            </button>
-                        </div>
+                        )
                     )}
 
                     {status === 'searching' && (
