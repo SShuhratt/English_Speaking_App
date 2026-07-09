@@ -105,6 +105,9 @@ export default function Sessions({ sessions }: Props) {
                             const pupilFeedback = apt.feedbacks?.find(
                                 (fb: any) => fb.author_id === auth.user.id,
                             );
+                            const teacherFeedback = apt.feedbacks?.find(
+                                (fb: any) => fb.author_id === apt.teacher_id,
+                            );
                             return (
                                 <div
                                     key={apt.id}
@@ -209,6 +212,20 @@ export default function Sessions({ sessions }: Props) {
                                             </div>
                                             <p className="font-medium text-muted-foreground italic">
                                                 "{pupilFeedback.comment}"
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {teacherFeedback && (
+                                        <div className="mt-1 rounded-2xl border border-dashed border-border/80 bg-brand-lightblue/20 p-4 text-sm">
+                                            <div className="mb-2 flex items-center gap-1.5 font-bold text-brand-navy">
+                                                <MessageSquare className="h-4 w-4 text-brand-brown" />
+                                                <span>
+                                                    {t('sessions.teacher_feedback')}
+                                                </span>
+                                            </div>
+                                            <p className="font-medium text-muted-foreground italic">
+                                                "{teacherFeedback.comment}"
                                             </p>
                                         </div>
                                     )}

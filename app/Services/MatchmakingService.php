@@ -11,9 +11,6 @@ class MatchmakingService
 
     /**
      * Enter the matchmaking queue.
-     *
-     * @param string $userId
-     * @return array
      */
     public function enterQueue(string $userId): array
     {
@@ -29,6 +26,7 @@ class MatchmakingService
             // Prevent self-matching
             if ($opponentId === $userId) {
                 Redis::rpush(self::QUEUE_KEY, $userId);
+
                 return ['status' => 'waiting'];
             }
 
@@ -38,8 +36,12 @@ class MatchmakingService
             $roomId = "room_{$ids[0]}_{$ids[1]}";
 
             // Broadcast matching status immediately
-            broadcast(new UserMatched($userId, $opponentId, $roomId));
-            broadcast(new UserMatched($opponentId, $userId, $roomId));
+            try {
+                broadcast(new UserMatched($userId, $opponentId, $roomId));
+                broadcast(new UserMatched($opponentId, $userId, $roomId));
+            } catch (\Exception $e) {
+                logger()->error("Matchmaking broadcast failed for users {$userId} & {$opponentId}: ".$e->getMessage());
+            }
 
             return [
                 'status' => 'matched',
@@ -56,9 +58,6 @@ class MatchmakingService
 
     /**
      * Leave the matchmaking queue.
-     *
-     * @param string $userId
-     * @return void
      */
     public function leaveQueue(string $userId): void
     {
