@@ -257,6 +257,16 @@ export default function Speaking() {
 
     // API actions
     const joinQueue = async () => {
+        try {
+            // Request microphone access first to prevent empty queue connections
+            const testStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            testStream.getTracks().forEach(track => track.stop());
+        } catch (error) {
+            console.error("Microphone access check failed:", error);
+            toast.error(t('speaking.media_error') || "Microphone access denied or audio device not found.");
+            return;
+        }
+
         setStatus('searching');
         try {
             const response = await axios.post('/matchmaking/join');

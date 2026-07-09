@@ -124,7 +124,9 @@ class TeacherAppointmentController extends Controller
                         'description' => '1-on-1 English speaking session on English Speaking Platform.',
                         'start' => $appointment->start_at->toIso8601String(),
                         'end' => $appointment->end_at->toIso8601String(),
+                        'organizer_email' => $teacher->email,
                         'attendees' => [
+                            ['email' => $teacher->email, 'responseStatus' => 'accepted'],
                             ['email' => $appointment->pupil->email],
                         ],
                     ]);
