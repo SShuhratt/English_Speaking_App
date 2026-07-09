@@ -517,12 +517,18 @@ export default function Speaking() {
                                         {t('speaking.ready_desc') || "Join the queue to be matched instantly with an active user for English practice."}
                                     </p>
                                 </div>
-                                <button
-                                    onClick={joinQueue}
-                                    className="px-12 py-4 rounded-full font-bold text-sm bg-brand-yellow text-brand-navy shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer"
-                                >
-                                    {t('speaking.btn_start') || "Start Matchmaking"}
-                                </button>
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="text-[11px] text-amber-600 bg-amber-500/5 px-4 py-2 rounded-xl inline-flex items-center gap-1.5 border border-amber-500/10 font-medium dark:text-amber-400 dark:bg-amber-500/5 dark:border-amber-500/10">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                                        Please ensure microphone permission is allowed in your browser settings to connect.
+                                    </div>
+                                    <button
+                                        onClick={joinQueue}
+                                        className="px-12 py-4 rounded-full font-bold text-sm bg-brand-yellow text-brand-navy shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer"
+                                    >
+                                        {t('speaking.btn_start') || "Start Matchmaking"}
+                                    </button>
+                                </div>
                             </div>
                         )
                     )}
