@@ -89,6 +89,7 @@ export default function Speaking() {
         return () => {
             // Clean up connections on unmount
             cleanup();
+            stopLocalStream();
             if (matchChannelRef.current) {
                 window.Echo.leave(`user.match.${currentUserId}`);
             }
@@ -294,6 +295,7 @@ export default function Speaking() {
             console.error(e);
         }
         cleanup();
+        stopLocalStream();
         setActiveSessionData(null);
     };
 
@@ -316,10 +318,7 @@ export default function Speaking() {
             }
         } catch (error) {
             toast.error("Failed to join speaking matchmaking queue.");
-            if (localStreamRef.current) {
-                localStreamRef.current.getTracks().forEach(track => track.stop());
-                localStreamRef.current = null;
-            }
+            stopLocalStream();
             setStatus('idle');
         }
     };
@@ -331,6 +330,7 @@ export default function Speaking() {
             console.error(e);
         }
         cleanup();
+        stopLocalStream();
     };
 
     // Disconnect and clean WebRTC state only (keeping status, presence channel, and local stream)
@@ -346,6 +346,14 @@ export default function Speaking() {
         }
     };
 
+    // Stop local microphone stream tracks and release resource
+    const stopLocalStream = () => {
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+            localStreamRef.current = null;
+        }
+    };
+
     // Disconnect and clean WebRTC state
     const cleanup = () => {
         setStatus('idle');
@@ -353,12 +361,6 @@ export default function Speaking() {
         setIsMuted(false);
 
         cleanupWebRTC();
-
-        // Stop local tracks explicitly here when ending/canceling the call
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach(track => track.stop());
-            localStreamRef.current = null;
-        }
 
         // Leave presence channel
         if (matchedRoomChannelRef.current) {
