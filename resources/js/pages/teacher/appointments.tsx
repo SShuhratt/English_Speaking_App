@@ -47,9 +47,13 @@ export default function Appointments() {
 
     useEffect(() => {
         if (!auth.user) return;
-        const channel = window.Echo.channel(`teacher.${auth.user.id}`);
+        const channel = window.Echo.private(`teacher.${auth.user.id}`);
         channel.listen('.booking.updated', () => { fetchAppointments(); });
-        return () => { channel.stopListening('.booking.updated'); };
+        channel.listen('.ConversationBooked', () => { fetchAppointments(); });
+        return () => {
+            channel.stopListening('.booking.updated');
+            channel.stopListening('.ConversationBooked');
+        };
     }, [auth.user?.id]);
 
     const handleAction = async (id: string, action: 'approve') => {

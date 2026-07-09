@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Events\BookingUpdated;
+use App\Events\ConversationApproved;
+use App\Events\ConversationBooked;
 use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
@@ -28,10 +30,10 @@ class BookingService
         return DB::transaction(function () use ($pupil, $teacher, $startAt, $endAt, $meta) {
 
             if (is_null($pupil->role)) {
-                $pupil->update(['role' => 'pupil',]);
+                $pupil->update(['role' => 'pupil']);
             }
-            
-            if(!$pupil->pupilProfile()->exists()) {
+
+            if (! $pupil->pupilProfile()->exists()) {
                 $pupil->pupilProfile()->create([]);
                 $pupil->load('pupilProfile');
             }
@@ -82,6 +84,7 @@ class BookingService
                 SyncAppointmentToGoogleJob::dispatch($appointment->id);
                 try {
                     BookingUpdated::dispatch($appointment);
+                    ConversationBooked::dispatch($appointment);
                 } catch (\Exception $e) {
                     Log::error('Failed to broadcast booking update on booking creation: '.$e->getMessage());
                 }
@@ -151,6 +154,7 @@ class BookingService
 
             try {
                 BookingUpdated::dispatch($appointment);
+                ConversationApproved::dispatch($appointment);
             } catch (\Exception $e) {
                 Log::error('Failed to broadcast booking update on approval: '.$e->getMessage());
             }

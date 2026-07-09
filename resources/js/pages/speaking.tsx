@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
-import { Mic, PhoneOff, Loader2, ArrowLeft } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Loader2, ArrowLeft } from 'lucide-react';
 
 export default function Speaking() {
     const { auth } = usePage<any>().props;
@@ -14,7 +14,8 @@ export default function Speaking() {
     const [status, setStatus] = useState<'idle' | 'searching' | 'connecting' | 'connected'>('idle');
     const [searchTime, setSearchTime] = useState<number>(0);
     const [callTime, setCallTime] = useState<number>(0);
-    const [opponentName, setOpponentName] = useState<string>('');
+    const [partnerName, setPartnerName] = useState<string>('');
+    const [isMuted, setIsMuted] = useState<boolean>(false);
 
     // WebRTC & WebSocket Refs
     const localStreamRef = useRef<MediaStream | null>(null);
@@ -27,13 +28,58 @@ export default function Speaking() {
     const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
     const callTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Check for active session on mount
+    useEffect(() => {
+        const checkActiveSession = async () => {
+            try {
+                const response = await axios.get('/matchmaking/active-session');
+                if (response.data) {
+                    setPartnerName(response.data.partner_name);
+                    handleMatchFound(response.data.room_id, response.data.partner_id);
+                }
+            } catch (err) {
+                console.error("Failed to check active session:", err);
+            }
+        };
+
+        checkActiveSession();
+    }, []);
+
+    // Heartbeat timer
+    useEffect(() => {
+        let heartbeatInterval: NodeJS.Timeout | null = null;
+
+        if (status === 'connected') {
+            // Send initial heartbeat
+            axios.post('/matchmaking/heartbeat');
+
+            heartbeatInterval = setInterval(async () => {
+                try {
+                    const response = await axios.post('/matchmaking/heartbeat');
+                    if (response.data.status === 'terminated') {
+                        toast.error(t('speaking.partner_disconnected') || "Partner left the conversation.");
+                        cleanup();
+                    }
+                } catch (err) {
+                    console.error("Heartbeat error:", err);
+                }
+            }, 5000);
+        }
+
+        return () => {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+            }
+        };
+    }, [status]);
+
     // Initialize Echo match listener on mount
     useEffect(() => {
         // Listen on user's private match channel
         const channelName = `user.match.${currentUserId}`;
         matchChannelRef.current = window.Echo.private(channelName)
             .listen('.UserMatched', (data: any) => {
-                handleMatchFound(data.roomId, data.opponentId);
+                handleMatchFound(data.roomId, data.partnerId);
             });
 
         return () => {
@@ -86,7 +132,7 @@ export default function Speaking() {
     }, [status]);
 
     // Match found handler
-    const handleMatchFound = async (roomId: string, opponentId: number) => {
+    const handleMatchFound = async (roomId: string, partnerId: number) => {
         setStatus('connecting');
         
         // Subscribe to Reverb presence channel for WebRTC signaling
@@ -95,26 +141,26 @@ export default function Speaking() {
 
         matchedRoomChannelRef.current
             .here((users: any[]) => {
-                const opponent = users.find(u => u.id === opponentId);
-                if (opponent) {
-                    setOpponentName(opponent.full_name || opponent.name || "Speaking Partner");
+                const partner = users.find(u => u.id === partnerId);
+                if (partner) {
+                    setPartnerName(partner.full_name || partner.name || "Speaking Partner");
                 }
                 
                 // If both are present, lower ID initiates offer to prevent WebRTC collisions
                 if (users.length >= 2) {
-                    const initiateCall = currentUserId < opponentId;
+                    const initiateCall = currentUserId < partnerId;
                     startWebRTC(initiateCall);
                 }
             })
             .joining((user: any) => {
-                if (user.id === opponentId) {
-                    setOpponentName(user.full_name || user.name || "Speaking Partner");
-                    const initiateCall = currentUserId < opponentId;
+                if (user.id === partnerId) {
+                    setPartnerName(user.full_name || user.name || "Speaking Partner");
+                    const initiateCall = currentUserId < partnerId;
                     startWebRTC(initiateCall);
                 }
             })
             .leaving((user: any) => {
-                if (user.id === opponentId) {
+                if (user.id === partnerId) {
                     toast.info(t('speaking.partner_disconnected') || "Partner left the conversation.");
                     cleanup();
                 }
@@ -142,11 +188,27 @@ export default function Speaking() {
             });
     };
 
+    // Toggle mute state
+    const toggleMute = () => {
+        const nextMuted = !isMuted;
+        setIsMuted(nextMuted);
+        if (localStreamRef.current) {
+            localStreamRef.current.getAudioTracks().forEach((track) => {
+                track.enabled = !nextMuted;
+            });
+        }
+    };
+
     // Start WebRTC Connection
     const startWebRTC = async (initiateCall: boolean) => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             localStreamRef.current = stream;
+
+            // Apply current mute state to tracks
+            stream.getAudioTracks().forEach((track) => {
+                track.enabled = !isMuted;
+            });
 
             const pc = new RTCPeerConnection({
                 iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -197,7 +259,7 @@ export default function Speaking() {
         try {
             const response = await axios.post('/matchmaking/join');
             if (response.data.status === 'matched') {
-                handleMatchFound(response.data.room_id, response.data.opponent_id);
+                handleMatchFound(response.data.room_id, response.data.partner_id);
             }
         } catch (error) {
             toast.error("Failed to join speaking matchmaking queue.");
@@ -217,7 +279,8 @@ export default function Speaking() {
     // Disconnect and clean WebRTC state
     const cleanup = () => {
         setStatus('idle');
-        setOpponentName('');
+        setPartnerName('');
+        setIsMuted(false);
         
         // Stop local tracks
         if (localStreamRef.current) {
@@ -337,9 +400,9 @@ export default function Speaking() {
                                 <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
                                     {t('speaking.connecting_title') || "Connecting to partner..."}
                                 </h2>
-                                {opponentName && (
+                                {partnerName && (
                                     <p className="text-sm font-semibold text-[#45464f] dark:text-[#A0A0B0]">
-                                        {t('speaking.opponent') || "Opponent"}: {opponentName}
+                                        {t('speaking.partner') || "Partner"}: {partnerName}
                                     </p>
                                 )}
                             </div>
@@ -370,20 +433,34 @@ export default function Speaking() {
                                     {t('speaking.connected') || "Connected"}
                                 </h2>
                                 <p className="text-lg font-bold text-brand-navy/60 dark:text-white">
-                                    {opponentName || "Speaking Partner"}
+                                    {partnerName || "Speaking Partner"}
                                 </p>
                                 <p className="text-xl font-mono font-bold text-brand-navy dark:text-white">
                                     {formatTime(callTime)}
                                 </p>
                             </div>
                             
-                            <button
-                                onClick={leaveQueue}
-                                className="flex items-center gap-2 px-10 py-4 rounded-full font-bold text-sm bg-red-600 text-white shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all cursor-pointer"
-                            >
-                                <PhoneOff className="h-4 w-4" />
-                                {t('speaking.btn_end') || "End Conversation"}
-                            </button>
+                            <div className="flex items-center justify-center gap-4">
+                                <button
+                                    onClick={toggleMute}
+                                    className={`flex items-center justify-center p-4 rounded-full shadow-md transition-all cursor-pointer ${
+                                        isMuted
+                                            ? 'bg-red-500 text-white hover:bg-red-600'
+                                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                    }`}
+                                    title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
+                                >
+                                    {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                                </button>
+
+                                <button
+                                    onClick={leaveQueue}
+                                    className="flex items-center gap-2 px-10 py-4 rounded-full font-bold text-sm bg-red-600 text-white shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all cursor-pointer"
+                                >
+                                    <PhoneOff className="h-4 w-4" />
+                                    {t('speaking.btn_end') || "End Conversation"}
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

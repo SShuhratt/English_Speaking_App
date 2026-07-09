@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Appointment;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -9,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class UserMatched implements ShouldBroadcastNow
+class ConversationApproved implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -17,9 +18,7 @@ class UserMatched implements ShouldBroadcastNow
      * Create a new event instance.
      */
     public function __construct(
-        public string $userId,
-        public string $partnerId,
-        public string $roomId
+        public Appointment $appointment
     ) {}
 
     /**
@@ -30,7 +29,7 @@ class UserMatched implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel("user.match.{$this->userId}"),
+            new PrivateChannel('pupil.'.$this->appointment->pupil_id),
         ];
     }
 
@@ -39,6 +38,6 @@ class UserMatched implements ShouldBroadcastNow
      */
     public function broadcastAs(): string
     {
-        return 'UserMatched';
+        return 'ConversationApproved';
     }
 }

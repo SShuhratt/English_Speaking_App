@@ -4,6 +4,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GoogleOAuthController;
+use App\Http\Controllers\MatchmakingController;
 use App\Http\Controllers\PupilBookingController;
 use App\Http\Controllers\PupilProgressController;
 use App\Http\Controllers\PupilSessionController;
@@ -48,8 +49,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia\Inertia::render('speaking');
     })->name('speaking');
 
-    Route::post('/matchmaking/join', [App\Http\Controllers\MatchmakingController::class, 'join'])->name('matchmaking.join');
-    Route::post('/matchmaking/leave', [App\Http\Controllers\MatchmakingController::class, 'leave'])->name('matchmaking.leave');
+    Route::post('/matchmaking/join', [MatchmakingController::class, 'join'])->name('matchmaking.join');
+    Route::post('/matchmaking/leave', [MatchmakingController::class, 'leave'])->name('matchmaking.leave');
+    Route::get('/matchmaking/active-session', [MatchmakingController::class, 'activeSession'])->name('matchmaking.active-session');
+    Route::post('/matchmaking/heartbeat', [MatchmakingController::class, 'heartbeat'])->name('matchmaking.heartbeat');
 });
 
 Route::middleware('auth')->group(function () {

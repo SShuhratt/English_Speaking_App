@@ -71,15 +71,20 @@ export default function Bookings({ bookings }: Props) {
     useEffect(() => {
         if (!auth.user) return;
 
-        const channel = window.Echo.channel(`pupil.${auth.user.id}`);
+        const channel = window.Echo.private(`pupil.${auth.user.id}`);
 
         channel.listen('.booking.updated', (e: any) => {
             toast.info(`Booking status updated: ${e.appointment.status}`);
             router.reload();
         });
+        channel.listen('.ConversationApproved', (e: any) => {
+            toast.info(t('dashboard.booking_approved_toast') || `Your session has been approved!`);
+            router.reload();
+        });
 
         return () => {
             channel.stopListening('.booking.updated');
+            channel.stopListening('.ConversationApproved');
         };
     }, [auth.user?.id]);
 

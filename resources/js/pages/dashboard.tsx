@@ -121,15 +121,20 @@ function PupilDashboard({
     useEffect(() => {
         if (!user) return;
 
-        const channel = window.Echo.channel(`pupil.${user.id}`);
+        const channel = window.Echo.private(`pupil.${user.id}`);
 
         channel.listen('.booking.updated', (e: any) => {
             toast.info(`Booking status updated: ${e.appointment.status}`);
             router.reload();
         });
+        channel.listen('.ConversationApproved', (e: any) => {
+            toast.info(t('dashboard.booking_approved_toast') || `Your session has been approved!`);
+            router.reload();
+        });
 
         return () => {
             channel.stopListening('.booking.updated');
+            channel.stopListening('.ConversationApproved');
         };
     }, [user.id]);
 
@@ -424,14 +429,19 @@ function TeacherDashboard({
     useEffect(() => {
         if (!user) return;
 
-        const channel = window.Echo.channel(`teacher.${user.id}`);
+        const channel = window.Echo.private(`teacher.${user.id}`);
 
         channel.listen('.booking.updated', (e: any) => {
+            router.reload();
+        });
+        channel.listen('.ConversationBooked', (e: any) => {
+            toast.info(t('dashboard.new_booking_toast') || `A new session has been booked!`);
             router.reload();
         });
 
         return () => {
             channel.stopListening('.booking.updated');
+            channel.stopListening('.ConversationBooked');
         };
     }, [user.id]);
 
