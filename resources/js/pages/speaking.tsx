@@ -147,14 +147,17 @@ export default function Speaking() {
 
     // Match found handler
     const handleMatchFound = async (roomId: string, partnerId: number) => {
+        console.log("[WebRTC] handleMatchFound triggered. Room ID:", roomId, "Partner ID:", partnerId);
         setStatus('connecting');
 
         // Subscribe to Reverb presence channel for WebRTC signaling
         const roomChannelName = `matchroom.${roomId}`;
+        console.log("[WebRTC] Joining presence channel:", roomChannelName);
         matchedRoomChannelRef.current = window.Echo.join(roomChannelName);
 
         matchedRoomChannelRef.current
             .here((users: any[]) => {
+                console.log("[WebRTC] Presence .here() triggered. Users present in channel:", users);
                 const partner = users.find(u => u.id === partnerId);
                 if (partner) {
                     setPartnerName(partner.full_name || partner.name || "Speaking Partner");
@@ -163,36 +166,50 @@ export default function Speaking() {
                 if (users.length >= 2) {
                     if (!peerConnectionRef.current) {
                         const initiateCall = currentUserId < partnerId;
+                        console.log("[WebRTC] 2 users present in .here(). Initiating call:", initiateCall);
                         startWebRTC(initiateCall);
+                    } else {
+                        console.log("[WebRTC] 2 users present in .here(), but peerConnection already exists.");
                     }
                 }
             })
             .joining((user: any) => {
+                console.log("[WebRTC] Presence .joining() triggered. User joined:", user);
                 if (user.id === partnerId) {
                     setPartnerName(user.full_name || user.name || "Speaking Partner");
                     if (peerConnectionRef.current) {
+                        console.log("[WebRTC] Partner rejoined. Cleaning up stale peer and forcing renegotiation.");
                         cleanupWebRTC();
                         startWebRTC(true);
                     } else {
                         const initiateCall = currentUserId < partnerId;
+                        console.log("[WebRTC] Partner joined. Starting WebRTC call. Initiating:", initiateCall);
                         startWebRTC(initiateCall);
                     }
                 }
             })
             .leaving((user: any) => {
+                console.log("[WebRTC] Presence .leaving() triggered. User left:", user);
                 if (user.id === partnerId) {
                     toast.info(t('speaking.partner_disconnected') || "Partner left the conversation.");
                     cleanup();
                 }
             })
             .listenForWhisper('signal', async (data: any) => {
+                console.log("[WebRTC] Whisper signal received:", data.type, data);
                 const pc = peerConnectionRef.current;
-                if (!pc) return;
+                if (!pc) {
+                    console.warn("[WebRTC] Whisper signal ignored because peerConnectionRef.current is null.");
+                    return;
+                }
 
                 if (data.type === 'offer') {
+                    console.log("[WebRTC] Offer description received. Setting remote description...");
                     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                    console.log("[WebRTC] Remote offer set. Creating answer...");
                     const answer = await pc.createAnswer();
                     await pc.setLocalDescription(answer);
+                    console.log("[WebRTC] Local answer created and set. Whispering answer back...");
 
                     matchedRoomChannelRef.current.whisper('signal', {
                         type: 'answer',
@@ -200,9 +217,11 @@ export default function Speaking() {
                     });
                     setStatus('connected');
                 } else if (data.type === 'answer') {
+                    console.log("[WebRTC] Answer description received. Setting remote description...");
                     await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
                     setStatus('connected');
                 } else if (data.type === 'candidate') {
+                    console.log("[WebRTC] ICE Candidate received. Adding candidate...");
                     await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
                 }
             });
@@ -221,14 +240,19 @@ export default function Speaking() {
 
     // Start WebRTC Connection
     const startWebRTC = async (initiateCall: boolean) => {
+        console.log("[WebRTC] startWebRTC called. Initiate Call parameter:", initiateCall);
         if (peerConnectionRef.current) {
+            console.log("[WebRTC] startWebRTC aborted because peerConnectionRef.current already exists.");
             return;
         }
         try {
             let stream = localStreamRef.current;
             if (!stream) {
+                console.log("[WebRTC] localStreamRef.current is null. Requesting navigator.mediaDevices.getUserMedia...");
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 localStreamRef.current = stream;
+            } else {
+                console.log("[WebRTC] Reusing existing localStreamRef.current stream:", stream);
             }
 
             // Apply current mute state to tracks
@@ -236,18 +260,29 @@ export default function Speaking() {
                 track.enabled = !isMuted;
             });
 
+            console.log("[WebRTC] Creating RTCPeerConnection with Google STUN server...");
             const pc = new RTCPeerConnection({
                 iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
             });
             peerConnectionRef.current = pc;
 
+            // Monitor connection states
+            pc.onconnectionstatechange = () => {
+                console.log("[WebRTC] Peer Connection State changed:", pc.connectionState);
+            };
+            pc.oniceconnectionstatechange = () => {
+                console.log("[WebRTC] ICE Connection State changed:", pc.iceConnectionState);
+            };
+
             // Add local tracks
+            console.log("[WebRTC] Adding local tracks to peer connection...");
             stream.getTracks().forEach((track) => {
                 pc.addTrack(track, stream);
             });
 
             // Handle remote track
             pc.ontrack = (event) => {
+                console.log("[WebRTC] Remote track received! Stream details:", event.streams[0]);
                 if (remoteAudioRef.current && event.streams[0]) {
                     remoteAudioRef.current.srcObject = event.streams[0];
                 }
@@ -255,33 +290,45 @@ export default function Speaking() {
 
             // Handle ICE candidates
             pc.onicecandidate = (event) => {
-                if (event.candidate && matchedRoomChannelRef.current) {
-                    matchedRoomChannelRef.current.whisper('signal', {
-                        type: 'candidate',
-                        candidate: event.candidate,
-                    });
+                if (event.candidate) {
+                    console.log("[WebRTC] Local ICE Candidate generated. Whispering candidate to partner...");
+                    if (matchedRoomChannelRef.current) {
+                        matchedRoomChannelRef.current.whisper('signal', {
+                            type: 'candidate',
+                            candidate: event.candidate,
+                        });
+                    }
                 }
             };
 
             // Caller creates offer with a tiny delay to ensure peer presence subscription is fully ready on the server
             if (initiateCall) {
+                console.log("[WebRTC] Initiator role. Setting timeout of 500ms before creating offer...");
                 setTimeout(async () => {
                     const activePc = peerConnectionRef.current;
-                    if (!activePc) return;
+                    if (!activePc) {
+                        console.warn("[WebRTC] Offer generation aborted because peerConnection became null during timeout.");
+                        return;
+                    }
                     try {
+                        console.log("[WebRTC] Timeout finished. Creating WebRTC offer...");
                         const offer = await activePc.createOffer();
+                        console.log("[WebRTC] Local offer created. Setting local description...");
                         await activePc.setLocalDescription(offer);
+                        console.log("[WebRTC] Local description set. Whispering offer to partner...");
                         matchedRoomChannelRef.current?.whisper('signal', {
                             type: 'offer',
                             offer: offer,
                         });
                     } catch (err) {
-                        console.error("Failed to create offer:", err);
+                        console.error("[WebRTC] Failed to create or send offer:", err);
                     }
                 }, 500);
+            } else {
+                console.log("[WebRTC] Receiver role. Awaiting offer whisper from partner...");
             }
         } catch (error) {
-            console.error("WebRTC initiation failed:", error);
+            console.error("[WebRTC] WebRTC initiation failed:", error);
             toast.error(t('speaking.media_error') || "Microphone access denied or audio device not found.");
             leaveQueue();
         }
