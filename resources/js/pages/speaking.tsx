@@ -204,8 +204,11 @@ export default function Speaking() {
     // Start WebRTC Connection
     const startWebRTC = async (initiateCall: boolean) => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            localStreamRef.current = stream;
+            let stream = localStreamRef.current;
+            if (!stream) {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                localStreamRef.current = stream;
+            }
 
             // Apply current mute state to tracks
             stream.getAudioTracks().forEach((track) => {
@@ -258,9 +261,9 @@ export default function Speaking() {
     // API actions
     const joinQueue = async () => {
         try {
-            // Request microphone access first to prevent empty queue connections
-            const testStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            testStream.getTracks().forEach(track => track.stop());
+            // Request microphone access first within the user interaction context
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            localStreamRef.current = stream;
         } catch (error) {
             console.error("Microphone access check failed:", error);
             toast.error(t('speaking.media_error') || "Microphone access denied or audio device not found.");
@@ -275,6 +278,10 @@ export default function Speaking() {
             }
         } catch (error) {
             toast.error("Failed to join speaking matchmaking queue.");
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(track => track.stop());
+                localStreamRef.current = null;
+            }
             setStatus('idle');
         }
     };
