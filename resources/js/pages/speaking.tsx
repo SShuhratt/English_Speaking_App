@@ -23,7 +23,7 @@ export default function Speaking() {
     const matchChannelRef = useRef<any>(null);
     const matchedRoomChannelRef = useRef<any>(null);
     const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-    
+
     // Timers
     const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
     const callTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -134,7 +134,7 @@ export default function Speaking() {
     // Match found handler
     const handleMatchFound = async (roomId: string, partnerId: number) => {
         setStatus('connecting');
-        
+
         // Subscribe to Reverb presence channel for WebRTC signaling
         const roomChannelName = `matchroom.${roomId}`;
         matchedRoomChannelRef.current = window.Echo.join(roomChannelName);
@@ -145,20 +145,24 @@ export default function Speaking() {
                 if (partner) {
                     setPartnerName(partner.full_name || partner.name || "Speaking Partner");
                 }
-                
+
                 // If both are present, lower ID initiates offer to prevent WebRTC collisions
                 if (users.length >= 2) {
-                    cleanupWebRTC();
-                    const initiateCall = currentUserId < partnerId;
-                    startWebRTC(initiateCall);
+                    // cleanupWebRTC();
+                    if (!peerConnectionRef.current) {
+                        const initiateCall = currentUserId < partnerId;
+                        startWebRTC(initiateCall);
+                    }
                 }
             })
             .joining((user: any) => {
                 if (user.id === partnerId) {
                     setPartnerName(user.full_name || user.name || "Speaking Partner");
-                    cleanupWebRTC();
-                    const initiateCall = currentUserId < partnerId;
-                    startWebRTC(initiateCall);
+                    //cleanupWebRTC();
+                    if (!peerConnectionRef.current) {
+                        const initiateCall = currentUserId < partnerId;
+                        startWebRTC(initiateCall);
+                    }
                 }
             })
             .leaving((user: any) => {
@@ -175,7 +179,7 @@ export default function Speaking() {
                     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
                     const answer = await pc.createAnswer();
                     await pc.setLocalDescription(answer);
-                    
+
                     matchedRoomChannelRef.current.whisper('signal', {
                         type: 'answer',
                         answer: answer,
@@ -313,7 +317,7 @@ export default function Speaking() {
         setStatus('idle');
         setPartnerName('');
         setIsMuted(false);
-        
+
         cleanupWebRTC();
 
         // Stop local tracks explicitly here when ending/canceling the call
@@ -342,12 +346,12 @@ export default function Speaking() {
             <Head title={t('speaking.title') || "Start Speaking"} />
 
             <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8 max-w-4xl mx-auto">
-                
+
                 {/* Header Banner */}
                 <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
-                    
+
                     <div className="relative z-10 space-y-1.5">
                         <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
                             SPEAKING CLUB
@@ -451,7 +455,7 @@ export default function Speaking() {
                                     <div className="w-1.5 bg-brand-yellow rounded-full animate-bounce h-8" style={{ animationDelay: '0.4s' }} />
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-3">
                                 <h2 className="text-2xl font-extrabold text-emerald-600">
                                     {t('speaking.connected') || "Connected"}
@@ -463,15 +467,14 @@ export default function Speaking() {
                                     {formatTime(callTime)}
                                 </p>
                             </div>
-                            
+
                             <div className="flex items-center justify-center gap-4">
                                 <button
                                     onClick={toggleMute}
-                                    className={`flex items-center justify-center p-4 rounded-full shadow-md transition-all cursor-pointer ${
-                                        isMuted
+                                    className={`flex items-center justify-center p-4 rounded-full shadow-md transition-all cursor-pointer ${isMuted
                                             ? 'bg-red-500 text-white hover:bg-red-600'
                                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                                    }`}
+                                        }`}
                                     title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
                                 >
                                     {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
