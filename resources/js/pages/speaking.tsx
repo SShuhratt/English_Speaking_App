@@ -22,6 +22,13 @@ export default function Speaking() {
         partner_name: string;
     } | null>(null);
 
+    const statusRef = useRef<'idle' | 'searching' | 'connecting' | 'connected'>('idle');
+
+    // Keep statusRef synced with state
+    useEffect(() => {
+        statusRef.current = status;
+    }, [status]);
+
     // WebRTC & WebSocket Refs
     const localStreamRef = useRef<MediaStream | null>(null);
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
@@ -83,7 +90,9 @@ export default function Speaking() {
         const channelName = `user.match.${currentUserId}`;
         matchChannelRef.current = window.Echo.private(channelName)
             .listen('.UserMatched', (data: any) => {
-                handleMatchFound(data.roomId, data.partnerId);
+                if (statusRef.current === 'searching') {
+                    handleMatchFound(data.roomId, data.partnerId);
+                }
             });
 
         return () => {
@@ -254,14 +263,22 @@ export default function Speaking() {
                 }
             };
 
-            // Caller creates offer
+            // Caller creates offer with a tiny delay to ensure peer presence subscription is fully ready on the server
             if (initiateCall) {
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                matchedRoomChannelRef.current?.whisper('signal', {
-                    type: 'offer',
-                    offer: offer,
-                });
+                setTimeout(async () => {
+                    const activePc = peerConnectionRef.current;
+                    if (!activePc) return;
+                    try {
+                        const offer = await activePc.createOffer();
+                        await activePc.setLocalDescription(offer);
+                        matchedRoomChannelRef.current?.whisper('signal', {
+                            type: 'offer',
+                            offer: offer,
+                        });
+                    } catch (err) {
+                        console.error("Failed to create offer:", err);
+                    }
+                }, 500);
             }
         } catch (error) {
             console.error("WebRTC initiation failed:", error);
@@ -313,13 +330,17 @@ export default function Speaking() {
         setStatus('searching');
         try {
             const response = await axios.post('/matchmaking/join');
-            if (response.data.status === 'matched') {
-                handleMatchFound(response.data.room_id, response.data.partner_id);
+            if (statusRef.current === 'searching') {
+                if (response.data.status === 'matched') {
+                    handleMatchFound(response.data.room_id, response.data.partner_id);
+                }
             }
         } catch (error) {
-            toast.error("Failed to join speaking matchmaking queue.");
-            stopLocalStream();
-            setStatus('idle');
+            if (statusRef.current === 'searching') {
+                toast.error("Failed to join speaking matchmaking queue.");
+                stopLocalStream();
+                setStatus('idle');
+            }
         }
     };
 
