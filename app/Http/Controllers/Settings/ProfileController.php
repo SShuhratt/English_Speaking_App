@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\TeacherAvailability;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,7 +25,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         if ($user->role === 'teacher') {
-            $user->load('teacherProfile');
+            $user->load(['teacherProfile', 'availabilities' => function ($query) {
+                $query->where('type', 'recurring');
+            }]);
         } elseif ($user->role === 'pupil') {
             $user->load('pupilProfile');
         }
@@ -47,103 +52,210 @@ class ProfileController extends Controller
             $user->email_verified_at = null;
         }
 
+        // Handle avatar upload if present
+        if ($request->hasFile('avatar')) {
+            $request->validate([
+                'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'], // 5MB max
+            ]);
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = $request->file('avatar')->store('avatars', $disk);
+            $user->avatar = Storage::disk($disk)->url($path);
+        }
+
         $user->save();
 
-        // Extract text certificates (from the comma-separated input)
-        $textCerts = [];
-        if ($request->has('certificates')) {
-            if (is_string($request->input('certificates'))) {
-                $textCerts = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
-            } elseif (is_array($request->input('certificates'))) {
-                $textCerts = $request->input('certificates');
-            }
-        }
-
-        // Extract remaining/existing uploaded certificates (sent as hidden inputs)
-        $existingUploadedCerts = [];
-        if ($request->has('existing_certificates')) {
-            $existingUploadedCerts = $request->input('existing_certificates') ?? [];
-        } else {
-            // Fallback to currently stored certificate URLs if 'existing_certificates' is not sent
-            $currentCerts = $user->role === 'teacher' 
-                ? ($user->teacherProfile?->certificates ?? [])
-                : ($user->pupilProfile?->certificates ?? []);
-            
-            $existingUploadedCerts = array_filter($currentCerts, function ($cert) {
-                return str_starts_with($cert, 'http') || str_starts_with($cert, '/storage');
-            });
-        }
-
-        // Handle newly uploaded files
-        $newUploadedUrls = [];
-        if ($request->hasFile('ielts_certificates')) {
-            $request->validate([
-                'ielts_certificates' => ['nullable', 'array'],
-                'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'], // 10MB max per file
-            ]);
-
-            $disk = env('FILESYSTEM_DISK', 'public');
-            foreach ($request->file('ielts_certificates') as $file) {
-                $path = $file->store('certificates', $disk);
-                $newUploadedUrls[] = Storage::disk($disk)->url($path);
-            }
-        }
-
-        // Merge all into one array
-        $finalCertificates = array_values(array_unique(array_merge($textCerts, $existingUploadedCerts, $newUploadedUrls)));
-
-        // Filter out empty values or invalid bucket roots
-        $finalCertificates = array_values(array_filter($finalCertificates, function ($cert) {
-            $cert = trim($cert);
-            if (empty($cert)) {
-                return false;
-            }
-            if (str_starts_with($cert, 'http') || str_starts_with($cert, '/storage')) {
-                // If it is a URL, it must contain a file name and not end with a slash or be the bucket root
-                $path = parse_url($cert, PHP_URL_PATH);
-                if (empty($path) || $path === '/' || str_ends_with($path, '/')) {
-                    return false;
-                }
-                
-                // Also ensure it doesn't just consist of the bucket name with no file name
-                $segments = explode('/', trim($path, '/'));
-                if (count($segments) <= 1 && (empty($segments[0]) || $segments[0] === 'edtech-media-storage-dev')) {
-                    return false;
-                }
-            }
-            return true;
-        }));
-
-        // Merge back into the request data
-        $request->merge(['certificates' => $finalCertificates]);
-
-        // Update role-specific profile details
         if ($user->role === 'teacher') {
+            // Validate teacher profile details
             $profileData = $request->validate([
                 'age' => ['nullable', 'integer', 'min:1', 'max:120'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
-                'experience_years' => ['nullable', 'numeric', 'min:0', 'max:80'],
+                'experience_years' => ['nullable', 'string', 'max:100'],
                 'workplace' => ['nullable', 'string', 'max:255'],
                 'overall_level' => ['nullable', 'string', 'max:255'],
                 'speaking_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
-                'certificates' => ['nullable', 'array'],
-                'certificates.*' => ['string'],
                 'labels' => ['nullable', 'array'],
-                'labels.*' => ['string', 'in:mock,freestyle,lessons,business english,practice q&a'],
+                'labels.*' => ['string', 'in:mock,freestyle,lessons,business english,practice q&a,job interview prep'],
+                'headline' => ['nullable', 'string', 'max:90'],
+                'bio' => ['nullable', 'string', 'max:600'],
+                'price' => ['nullable', 'integer', 'min:0'],
+                'intro_video_url' => ['nullable', 'string'],
             ]);
+
+            // Handle intro video file upload
+            if ($request->hasFile('intro_video')) {
+                $request->validate([
+                    'intro_video' => ['nullable', 'file', 'mimes:mp4,webm,quicktime', 'max:102400'], // 100MB max
+                ]);
+                $disk = env('FILESYSTEM_DISK', 'public');
+                $path = $request->file('intro_video')->store('videos', $disk);
+                $profileData['intro_video_url'] = Storage::disk($disk)->url($path);
+            }
+
+            // Validate rich certificates upload files if present
+            if ($request->hasFile('ielts_certificates')) {
+                $request->validate([
+                    'ielts_certificates' => ['nullable', 'array'],
+                    'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'], // 10MB max per file
+                ]);
+            }
+
+            $uploadedFiles = $request->file('ielts_certificates') ?? [];
+            $certsInput = $request->input('certificates', []);
+            $finalCertificates = [];
+
+            // Support both old comma-separated input format and new rich object list
+            if (is_string($certsInput)) {
+                $rawCerts = array_filter(array_map('trim', explode(',', $certsInput)));
+                foreach ($rawCerts as $legacyCert) {
+                    $finalCertificates[] = [
+                        'title' => $legacyCert,
+                        'file_url' => null,
+                        'file_name' => '',
+                        'status' => 'verified',
+                    ];
+                }
+
+                // Process uploaded files if any
+                foreach ($uploadedFiles as $file) {
+                    $disk = env('FILESYSTEM_DISK', 'public');
+                    $path = $file->store('certificates', $disk);
+                    $finalCertificates[] = [
+                        'title' => $file->getClientOriginalName(),
+                        'file_url' => Storage::disk($disk)->url($path),
+                        'file_name' => $file->getClientOriginalName(),
+                        'status' => 'pending',
+                    ];
+                }
+            } elseif (is_array($certsInput)) {
+                foreach ($certsInput as $index => $certData) {
+                    if (is_string($certData)) {
+                        $isUrl = str_starts_with($certData, 'http') || str_starts_with($certData, '/storage');
+                        $finalCertificates[] = [
+                            'title' => $isUrl ? '' : $certData,
+                            'file_url' => $isUrl ? $certData : null,
+                            'file_name' => $isUrl ? basename(parse_url($certData, PHP_URL_PATH)) : '',
+                            'status' => 'verified',
+                        ];
+                    } else {
+                        $title = $certData['title'] ?? '';
+                        $fileUrl = $certData['file_url'] ?? null;
+                        $fileName = $certData['file_name'] ?? null;
+                        $status = $certData['status'] ?? 'pending';
+
+                        if (isset($uploadedFiles[$index])) {
+                            $file = $uploadedFiles[$index];
+                            $disk = env('FILESYSTEM_DISK', 'public');
+                            $path = $file->store('certificates', $disk);
+                            $fileUrl = Storage::disk($disk)->url($path);
+                            $fileName = $file->getClientOriginalName();
+                            $status = 'pending';
+                        }
+
+                        if ($title || $fileUrl) {
+                            $finalCertificates[] = [
+                                'title' => $title,
+                                'file_url' => $fileUrl,
+                                'file_name' => $fileName,
+                                'status' => $status,
+                            ];
+                        }
+                    }
+                }
+            }
+
+            // Fallback if certificates is empty but we have file uploads (e.g. from legacy clients or registration)
+            if (empty($certsInput) && !empty($uploadedFiles)) {
+                foreach ($uploadedFiles as $file) {
+                    $disk = env('FILESYSTEM_DISK', 'public');
+                    $path = $file->store('certificates', $disk);
+                    $finalCertificates[] = [
+                        'title' => $file->getClientOriginalName(),
+                        'file_url' => Storage::disk($disk)->url($path),
+                        'file_name' => $file->getClientOriginalName(),
+                        'status' => 'pending',
+                    ];
+                }
+            }
+
+            $profileData['certificates'] = $finalCertificates;
 
             $user->teacherProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData
             );
+
+            // Update Availabilities if present in request
+            if ($request->has('availabilities')) {
+                // Delete existing recurring availabilities for this teacher
+                $user->availabilities()->where('type', 'recurring')->delete();
+
+                foreach ($request->input('availabilities') as $day => $data) {
+                    if (!empty($data['is_active'])) {
+                        $user->availabilities()->create([
+                            'type' => 'recurring',
+                            'day_of_week' => strtolower($day),
+                            'start_time' => $data['start_time'] ?? '10:00',
+                            'end_time' => $data['end_time'] ?? '20:00',
+                            'slot_duration' => 30,
+                            'is_active' => true,
+                        ]);
+
+                        // Clear slot cache for next 8 weeks for that day of the week
+                        $dayOfWeek = strtolower($day);
+                        $current = Carbon::now();
+                        if (strtolower($current->format('l')) !== $dayOfWeek) {
+                            $current->next($dayOfWeek);
+                        }
+                        for ($i = 0; $i < 8; $i++) {
+                            $dateStr = $current->format('Y-m-d');
+                            Cache::forget("teacher:{$user->id}:slots:{$dateStr}");
+                            $current->addWeek();
+                        }
+                    }
+                }
+            }
         } elseif ($user->role === 'pupil') {
+            // Original logic for pupil profile
+            $textCerts = [];
+            if ($request->has('certificates')) {
+                if (is_string($request->input('certificates'))) {
+                    $textCerts = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
+                } elseif (is_array($request->input('certificates'))) {
+                    $textCerts = $request->input('certificates');
+                }
+            }
+
+            $existingUploadedCerts = [];
+            if ($request->has('existing_certificates')) {
+                $existingUploadedCerts = $request->input('existing_certificates') ?? [];
+            } else {
+                $currentCerts = $user->pupilProfile?->certificates ?? [];
+                $existingUploadedCerts = array_filter($currentCerts, function ($cert) {
+                    return str_starts_with($cert, 'http') || str_starts_with($cert, '/storage');
+                });
+            }
+
+            $newUploadedUrls = [];
+            if ($request->hasFile('ielts_certificates')) {
+                $request->validate([
+                    'ielts_certificates' => ['nullable', 'array'],
+                    'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'],
+                ]);
+                $disk = env('FILESYSTEM_DISK', 'public');
+                foreach ($request->file('ielts_certificates') as $file) {
+                    $path = $file->store('certificates', $disk);
+                    $newUploadedUrls[] = Storage::disk($disk)->url($path);
+                }
+            }
+
+            $finalCertificates = array_values(array_unique(array_merge($textCerts, $existingUploadedCerts, $newUploadedUrls)));
+
             $profileData = $request->validate([
                 'age' => ['nullable', 'integer', 'min:1', 'max:120'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
                 'level' => ['nullable', 'string', 'max:255'],
-                'certificates' => ['nullable', 'array'],
-                'certificates.*' => ['string'],
             ]);
+            $profileData['certificates'] = $finalCertificates;
 
             $user->pupilProfile()->updateOrCreate(
                 ['user_id' => $user->id],

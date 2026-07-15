@@ -48,21 +48,22 @@ class CreateNewUser implements CreatesNewUsers
             $rules['overall_level'] = ['required', 'string', 'max:255'];
             $rules['speaking_band'] = ['required', 'numeric', 'min:0', 'max:9'];
             $rules['labels'] = ['nullable', 'array'];
-            $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english,practice q&a'];
+            $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english,practice q&a,job interview prep'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
-            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
+            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
         } elseif ($role === 'pupil') {
             $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
             $rules['phone_number'] = ['required', 'string', 'max:20'];
             $rules['level'] = ['required', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
-            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg', 'max:10240'];
+            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
         }
 
         Validator::make($input, $rules)->validate();
 
         return DB::transaction(function () use ($input, $role) {
             $user = User::create([
+                'name' => $input['name'],
                 'full_name' => $input['name'],
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
@@ -70,12 +71,13 @@ class CreateNewUser implements CreatesNewUsers
             ]);
 
             if (session()->has('google_register')) {
-                $user->email_verified_at = now();
+                $googleData = session()->get('google_register');
                 $user->google_connected = true;
-                $user->google_access_token = session('google_register.google_token');
-                $user->google_refresh_token = session('google_register.google_refresh_token');
-                $user->google_token_expires_at = now()->addSeconds(session('google_register.google_expires_in', 3600));
-                $user->google_scopes = ['https://www.googleapis.com/auth/calendar.events'];
+                $user->google_access_token = $googleData['access_token'] ?? null;
+                $user->google_refresh_token = $googleData['refresh_token'] ?? null;
+                $user->google_token_expires_at = isset($googleData['expires_in']) ? now()->addSeconds($googleData['expires_in']) : null;
+                $user->google_scopes = $googleData['scopes'] ?? null;
+                $user->email_verified_at = now();
                 $user->save();
 
                 session()->forget('google_register');
@@ -87,26 +89,43 @@ class CreateNewUser implements CreatesNewUsers
                 $certsArray = [];
                 foreach (request()->file('ielts_certificates') as $file) {
                     $path = $file->store('certificates', $disk);
-                    $certsArray[] = Storage::disk($disk)->url($path);
-                }
-                $certificates = array_values(array_filter($certsArray, function ($cert) {
-                    $cert = trim($cert);
-                    if (empty($cert)) {
-                        return false;
-                    }
-                    if (str_starts_with($cert, 'http') || str_starts_with($cert, '/storage')) {
-                        $path = parse_url($cert, PHP_URL_PATH);
-                        if (empty($path) || $path === '/' || str_ends_with($path, '/')) {
-                            return false;
-                        }
-                        $segments = explode('/', trim($path, '/'));
-                        if (count($segments) <= 1 && (empty($segments[0]) || $segments[0] === 'edtech-media-storage-dev')) {
-                            return false;
-                        }
-                    }
+                    $url = Storage::disk($disk)->url($path);
+                    $name = $file->getClientOriginalName();
 
-                    return true;
-                }));
+                    if ($role === 'teacher') {
+                        $certsArray[] = [
+                            'title' => $name,
+                            'file_url' => $url,
+                            'file_name' => $name,
+                            'status' => 'pending',
+                        ];
+                    } else {
+                        $certsArray[] = $url;
+                    }
+                }
+
+                if ($role === 'teacher') {
+                    $certificates = $certsArray;
+                } else {
+                    $certificates = array_values(array_filter($certsArray, function ($cert) {
+                        $cert = trim($cert);
+                        if (empty($cert)) {
+                            return false;
+                        }
+                        if (str_starts_with($cert, 'http') || str_starts_with($cert, '/storage')) {
+                            $path = parse_url($cert, PHP_URL_PATH);
+                            if (empty($path) || $path === '/' || str_ends_with($path, '/')) {
+                                return false;
+                            }
+                            $segments = explode('/', trim($path, '/'));
+                            if (count($segments) <= 1 && (empty($segments[0]) || $segments[0] === 'edtech-media-storage-dev')) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }));
+                }
             }
 
             if ($role === 'teacher') {

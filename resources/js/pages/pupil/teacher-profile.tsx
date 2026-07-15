@@ -1,19 +1,25 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { Head, Link, setLayoutProps, usePage } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
 import {
     Star,
-    Clock,
+    Video,
     User,
-    Calendar,
     Award,
-    Briefcase,
-    ChevronRight,
-    MessageCircle,
-    ExternalLink,
     FileText,
+    MessageCircle,
+    Calendar,
+    Clock,
+    X,
+    Info,
+    Check,
+    Sparkles,
+    Loader2,
+    ExternalLink
 } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 interface Feedback {
     id: string;
@@ -28,15 +34,21 @@ interface Feedback {
 interface Teacher {
     id: string;
     full_name: string;
+    avatar?: string;
+    email_verified_at?: string;
     teacher_profile?: {
         overall_level: string;
         speaking_band?: string | number;
-        experience_years: number;
+        experience_years: string | number;
         workplace?: string;
         age?: number;
-        certificates?: string[];
+        certificates?: any;
         rating_cache: number;
         labels?: string[];
+        headline?: string;
+        bio?: string;
+        intro_video_url?: string;
+        price?: number;
     };
     feedbacks?: Feedback[];
 }
@@ -46,8 +58,34 @@ interface Props {
 }
 
 export default function TeacherProfile({ teacher }: Props) {
+    const { auth } = usePage<any>().props;
     const { t } = useTranslation();
 
+    // Raw certificates normalization
+    const rawCerts = teacher.teacher_profile?.certificates ?? [];
+    const normalizedCerts = React.useMemo(() => {
+        if (!rawCerts) return [];
+        const certsArray = typeof rawCerts === 'string' ? JSON.parse(rawCerts) : rawCerts;
+        return (Array.isArray(certsArray) ? certsArray : []).map((c: any) => {
+            if (typeof c === 'string') {
+                const isUrl = c.startsWith('http') || c.startsWith('/storage');
+                return {
+                    title: isUrl ? '' : c,
+                    file_url: isUrl ? c : null,
+                    file_name: isUrl ? c.substring(c.lastIndexOf('/') + 1) : '',
+                    status: 'verified',
+                };
+            }
+            return {
+                title: c.title ?? '',
+                file_url: c.file_url ?? null,
+                file_name: c.file_name ?? '',
+                status: c.status ?? 'pending',
+            };
+        });
+    }, [rawCerts]);
+
+    // Layout breadcrumbs
     React.useEffect(() => {
         setLayoutProps({
             breadcrumbs: [
@@ -60,419 +98,902 @@ export default function TeacherProfile({ teacher }: Props) {
         });
     }, [teacher.full_name, teacher.id]);
 
+    // Initials for avatar
     const initials = teacher.full_name
         .split(' ')
         .map((n) => n[0])
         .join('')
         .toUpperCase();
 
-    const experience = teacher.teacher_profile?.experience_years || 0;
-    const rating = teacher.teacher_profile?.rating_cache || 5.0;
+    // Next 7 days generator
+    const next7Days = React.useMemo(() => {
+        const days = [];
+        const today = new Date();
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(today.getDate() + i);
+            days.push(d);
+        }
+        return days;
+    }, []);
+
+    // Booking & Slots State
+    const [selectedDate, setSelectedDate] = React.useState<Date>(next7Days[0]);
+    const [slots, setSlots] = React.useState<any[]>([]);
+    const [loadingSlots, setLoadingSlots] = React.useState(false);
+    const [pickedSlot, setPickedSlot] = React.useState<any | null>(null);
+    const [confirmingSlot, setConfirmingSlot] = React.useState<any | null>(null);
+    const [booking, setBooking] = React.useState(false);
+
+    // Custom time slot inputs
+    const [selectedStartStr, setSelectedStartStr] = React.useState('');
+    const [selectedEndStr, setSelectedEndStr] = React.useState('');
+    const [selectedTopics, setSelectedTopics] = React.useState<string[]>([]);
+    const [otherChecked, setOtherChecked] = React.useState(false);
+    const [customTopic, setCustomTopic] = React.useState('');
+
+    // Video play state
+    const [isPlayingVideo, setIsPlayingVideo] = React.useState(false);
+
+    // Helpers
+    const formatDateString = (date: Date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const formatTimeToHHMM = (date: Date) => {
+        const h = String(date.getHours()).padStart(2, '0');
+        const m = String(date.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    };
+
+    // Load slots for selectedDate
+    const fetchSlots = async () => {
+        setLoadingSlots(true);
+        try {
+            const dateStr = formatDateString(selectedDate);
+            const response = await axios.get(
+                `/bookings/slots/${teacher.id}?date=${dateStr}`,
+            );
+            setSlots(response.data.slots || []);
+            setPickedSlot(null);
+        } catch (error) {
+            toast.error('Failed to load slots');
+        } finally {
+            setLoadingSlots(false);
+        }
+    };
+
+    React.useEffect(() => {
+        fetchSlots();
+
+        // Realtime echo setup
+        const channel = window.Echo.channel(`teacher.${teacher.id}`);
+        channel.listen('.booking.updated', () => {
+            fetchSlots();
+        });
+
+        return () => {
+            window.Echo.leaveChannel(`teacher.${teacher.id}`);
+        };
+    }, [selectedDate, teacher.id]);
+
+    // Handle Custom range time calculations
+    React.useEffect(() => {
+        if (confirmingSlot) {
+            const start = new Date(confirmingSlot.start_at);
+            const end = new Date(confirmingSlot.end_at);
+            setSelectedStartStr(formatTimeToHHMM(start));
+
+            // Default to start + 30 minutes
+            const defaultEnd = new Date(start.getTime() + 30 * 60 * 1000);
+            if (defaultEnd.getTime() > end.getTime()) {
+                setSelectedEndStr(formatTimeToHHMM(end));
+            } else {
+                setSelectedEndStr(formatTimeToHHMM(defaultEnd));
+            }
+
+            setSelectedTopics([]);
+            setOtherChecked(false);
+            setCustomTopic('');
+        }
+    }, [confirmingSlot]);
+
+    const getSelectedStartAndEnd = () => {
+        if (!confirmingSlot) return null;
+
+        const baseDate = new Date(confirmingSlot.start_at);
+        const [sh, sm] = selectedStartStr.split(':').map(Number);
+        const startLocalDate = new Date(
+            baseDate.getFullYear(),
+            baseDate.getMonth(),
+            baseDate.getDate(),
+            sh,
+            sm,
+        );
+
+        const [eh, em] = selectedEndStr.split(':').map(Number);
+        const endLocalDate = new Date(
+            baseDate.getFullYear(),
+            baseDate.getMonth(),
+            baseDate.getDate(),
+            eh,
+            em,
+        );
+
+        return { start: startLocalDate, end: endLocalDate };
+    };
+
+    const validateSelectedRange = () => {
+        if (!confirmingSlot) return true;
+        if (!confirmingSlot.is_all_time) return true;
+
+        const dates = getSelectedStartAndEnd();
+        if (!dates) return false;
+
+        const limitStart = new Date(confirmingSlot.start_at);
+        const limitEnd = new Date(confirmingSlot.end_at);
+
+        return (
+            dates.start.getTime() >= limitStart.getTime() &&
+            dates.start.getTime() < limitEnd.getTime() &&
+            dates.end.getTime() > dates.start.getTime() &&
+            dates.end.getTime() <= limitEnd.getTime()
+        );
+    };
+
+    const getFinalTopics = () => {
+        const topics = [...selectedTopics];
+        if (otherChecked && customTopic.trim()) {
+            topics.push(customTopic.trim());
+        }
+        return topics;
+    };
+
+    const handleConfirmSubmit = async () => {
+        if (!confirmingSlot) return;
+
+        const finalTopics = getFinalTopics();
+        if (finalTopics.length === 0) {
+            toast.error(t('booking.topics_required') || 'Please select at least one topic');
+            return;
+        }
+
+        let startAt = confirmingSlot.start_at;
+        let endAt = confirmingSlot.end_at;
+
+        if (confirmingSlot.is_all_time) {
+            const dates = getSelectedStartAndEnd();
+            if (!dates || !validateSelectedRange()) {
+                toast.error(t('booking.invalid_range') || 'Selected range is invalid');
+                return;
+            }
+            startAt = dates.start.toISOString();
+            endAt = dates.end.toISOString();
+        }
+
+        setBooking(true);
+        try {
+            await axios.post('/bookings', {
+                teacher_id: teacher.id,
+                pupil_id: auth.user.id,
+                start_at: startAt,
+                end_at: endAt,
+                topics: finalTopics,
+            });
+            toast.success(t('booking.success') || 'Appointment booked successfully!');
+            setConfirmingSlot(null);
+            fetchSlots();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || t('booking.failed') || 'Booking failed');
+        } finally {
+            setBooking(false);
+        }
+    };
+
+    const price = teacher.teacher_profile?.price || 0;
+    const formattedPrice = price.toLocaleString('ru-RU');
+    const halfPrice = (price / 2).toLocaleString('ru-RU');
 
     return (
-        <>
-            <Head
-                title={`${teacher.full_name} - ${t('teachers.profile_title')}`}
+        <AppLayout>
+            <Head title={`${teacher.full_name} — Teacher · ConvoMate`} />
+
+            {/* Load Mockup fonts dynamically */}
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link
+                href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap"
+                rel="stylesheet"
             />
 
-            <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
-                {/* ── Top Header Card ── */}
-                <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm transition-all duration-350 md:p-8">
-                    {/* Background decorative gradient */}
-                    <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-brand-brown/10 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-brand-yellow/10 blur-3xl" />
+            <div className="teacher-profile-pupil-container min-h-screen px-4 py-8 md:px-8">
+                <style dangerouslySetInnerHTML={{ __html: `
+                    .teacher-profile-pupil-container {
+                        --butter: #F7DE8B;
+                        --butter-deep: #F0CE5F;
+                        --blue: #A9C6E8;
+                        --blue-tint: #EEF4FB;
+                        --navy: #1E2A5A;
+                        --ink: #22284A;
+                        --muted: #6B7394;
+                        --line: #E6E9F2;
+                        --radius: 22px;
+                    }
+                    .teacher-profile-pupil-container h1,
+                    .teacher-profile-pupil-container h2,
+                    .teacher-profile-pupil-container h3,
+                    .teacher-profile-pupil-container .bricolage-font {
+                        font-family: 'Bricolage Grotesque', sans-serif !important;
+                    }
+                    .teacher-profile-pupil-container p,
+                    .teacher-profile-pupil-container label,
+                    .teacher-profile-pupil-container input,
+                    .teacher-profile-pupil-container textarea,
+                    .teacher-profile-pupil-container select,
+                    .teacher-profile-pupil-container span,
+                    .teacher-profile-pupil-container button,
+                    .teacher-profile-pupil-container div,
+                    .teacher-profile-pupil-container aside {
+                        font-family: 'Schibsted Grotesk', sans-serif !important;
+                    }
 
-                    <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-start">
-                        {/* Avatar */}
-                        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-brand-brown text-3xl font-black text-white shadow-xl shadow-brand-brown/10 md:h-28 md:w-28">
+                    .teacher-profile-pupil-container {
+                        color: var(--ink);
+                        background: #FAFBFD;
+                        line-height: 1.55;
+                        width: 100%;
+                    }
+                    .teacher-profile-pupil-container .crumb{font-size:13px;color:var(--muted);margin-bottom:16px}
+                    .teacher-profile-pupil-container .crumb a{color:var(--muted);text-decoration:none}
+                    .teacher-profile-pupil-container .crumb a:hover{color:var(--navy)}
+
+                    .teacher-profile-pupil-container .head-card{
+                        background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+                        padding:28px;display:flex;gap:24px;align-items:center;position:relative;overflow:hidden;margin-bottom:24px;
+                    }
+                    .teacher-profile-pupil-container .naqsh{position:absolute;top:14px;right:14px;width:66px;height:66px;opacity:.4;pointer-events:none}
+                    .teacher-profile-pupil-container .avatar{
+                        width:110px;height:110px;border-radius:26px;flex-shrink:0;
+                        background:linear-gradient(135deg,var(--navy),#2E3D7A);
+                        display:flex;align-items:center;justify-content:center;
+                        font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;color:#fff;
+                    }
+                    .teacher-profile-pupil-container .avatar-img {
+                        width: 110px;
+                        height: 110px;
+                        border-radius: 26px;
+                        flex-shrink: 0;
+                        object-fit: cover;
+                    }
+                    .teacher-profile-pupil-container .head-main{flex:1;min-width:0}
+                    .teacher-profile-pupil-container .name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+                    .teacher-profile-pupil-container .name{font-size:30px;font-weight:800;letter-spacing:-0.7px;color:var(--navy);line-height:1.1}
+                    .teacher-profile-pupil-container .verified{
+                        display:inline-flex;align-items:center;gap:6px;background:var(--navy);color:#fff;
+                        font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:999px;
+                    }
+                    .teacher-profile-pupil-container .verified svg{width:11px;height:11px}
+                    .teacher-profile-pupil-container .headline{font-size:15.5px;color:var(--ink);margin-top:6px;max-width:56ch}
+                    .teacher-profile-pupil-container .head-meta{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+                    .teacher-profile-pupil-container .score-chip{
+                        display:flex;align-items:baseline;gap:7px;border-radius:14px;padding:8px 14px;
+                        border:1px solid var(--line);background:#fff;
+                    }
+                    .teacher-profile-pupil-container .score-chip.hero{background:var(--butter);border-color:var(--butter)}
+                    .teacher-profile-pupil-container .score-chip .sv{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;color:var(--navy)}
+                    .teacher-profile-pupil-container .score-chip .sl{font-size:12px;font-weight:600;color:var(--muted)}
+                    .teacher-profile-pupil-container .score-chip.hero .sl{color:#7A6520}
+                    .teacher-profile-pupil-container .new-badge{
+                        display:inline-flex;align-items:center;gap:7px;
+                        background:var(--blue-tint);border:1px solid #D8E5F5;border-radius:999px;
+                        padding:8px 14px;font-size:12.5px;font-weight:600;color:var(--navy);
+                    }
+                    .teacher-profile-pupil-container .new-badge .spark{color:var(--butter-deep)}
+                    @media(max-width:700px){
+                        .teacher-profile-pupil-container .head-card{flex-direction:column;align-items:flex-start}
+                        .teacher-profile-pupil-container .avatar{width:84px;height:84px;font-size:28px;border-radius:20px}
+                        .teacher-profile-pupil-container .avatar-img{width:84px;height:84px;border-radius:20px}
+                    }
+
+                    .teacher-profile-pupil-container .body-grid{display:grid;grid-template-columns:1fr 330px;gap:24px;align-items:start}
+                    @media(max-width:880px){.teacher-profile-pupil-container .body-grid{grid-template-columns:1fr}}
+
+                    .teacher-profile-pupil-container .main-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+                    .teacher-profile-pupil-container .section{padding:26px 28px;border-bottom:1px solid var(--line)}
+                    .teacher-profile-pupil-container .section:last-child{border-bottom:none}
+                    .teacher-profile-pupil-container .sec-title{
+                        display:flex;align-items:center;gap:10px;
+                        font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:700;
+                        color:var(--navy);letter-spacing:-0.2px;margin-bottom:16px;
+                    }
+                    .teacher-profile-pupil-container .sec-title .n{
+                        width:26px;height:26px;border-radius:9px;background:var(--blue-tint);
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    }
+                    .teacher-profile-pupil-container .sec-title .n svg{width:14px;height:14px;stroke:var(--navy)}
+
+                    .teacher-profile-pupil-container .intro{
+                        border-radius:16px;overflow:hidden;position:relative;background:var(--navy);
+                        aspect-ratio:16/7.5;display:flex;align-items:center;justify-content:center;cursor:pointer;
+                        width:100%;
+                    }
+                    .teacher-profile-pupil-container .intro .glow{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(169,198,232,.28), transparent 55%),radial-gradient(ellipse at 80% 90%, rgba(247,222,139,.18), transparent 50%)}
+                    .teacher-profile-pupil-container .play{width:56px;height:56px;border-radius:50%;background:var(--butter);display:flex;align-items:center;justify-content:center;z-index:2;transition:transform .2s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+                    .teacher-profile-pupil-container .intro:hover .play{transform:scale(1.07)}
+                    .teacher-profile-pupil-container .play svg{width:18px;height:18px;fill:var(--navy);margin-left:2px}
+                    .teacher-profile-pupil-container .intro .tag{position:absolute;left:16px;bottom:13px;z-index:2;color:#fff;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+                    .teacher-profile-pupil-container .intro .tag .rec{width:7px;height:7px;border-radius:50%;background:var(--butter)}
+                    .teacher-profile-pupil-container .intro .dur{position:absolute;right:16px;bottom:13px;z-index:2;color:rgba(255,255,255,.75);font-size:12px}
+
+                    .teacher-profile-pupil-container .bio{font-size:14.5px;color:var(--ink);max-width:62ch;white-space:pre-wrap}
+                    .teacher-profile-pupil-container .bio+.bio{margin-top:9px}
+                    .teacher-profile-pupil-container .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+                    .teacher-profile-pupil-container .chip{background:var(--blue-tint);color:var(--navy);border:1px solid #D8E5F5;font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px}
+
+                    .teacher-profile-pupil-container .cert{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line)}
+                    .teacher-profile-pupil-container .cert:first-of-type{padding-top:0}
+                    .teacher-profile-pupil-container .cert:last-of-type{border-bottom:none;padding-bottom:0}
+                    .teacher-profile-pupil-container .cert-ic{width:38px;height:38px;border-radius:12px;background:var(--blue-tint);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+                    .teacher-profile-pupil-container .cert-ic svg{width:16px;height:16px;stroke:var(--navy)}
+                    .teacher-profile-pupil-container .cert-body{flex:1;min-width:0}
+                    .teacher-profile-pupil-container .cert-name{font-weight:700;font-size:14px}
+                    .teacher-profile-pupil-container .cert-sub{font-size:12px;color:var(--muted)}
+                    .teacher-profile-pupil-container .cert-badge{font-size:11px;font-weight:700;color:var(--navy);background:var(--butter);padding:4px 11px;border-radius:999px;white-space:nowrap}
+                    .teacher-profile-pupil-container .cert-badge.review{background:var(--line);color:var(--muted)}
+
+                    .teacher-profile-pupil-container .fb-empty{
+                        border:1.5px dashed var(--blue);border-radius:16px;background:var(--blue-tint);
+                        padding:24px;text-align:center;
+                    }
+                    .teacher-profile-pupil-container .fb-empty .big{font-family:'Bricolage Grotesque',sans-serif;font-size:16.5px;font-weight:700;color:var(--navy)}
+                    .teacher-profile-pupil-container .fb-empty p{font-size:13.5px;color:var(--muted);margin-top:5px;max-width:42ch;margin-left:auto;margin-right:auto}
+
+                    .teacher-profile-pupil-container .book{
+                        position:sticky;top:24px;
+                        background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+                        padding:24px;box-shadow:0 12px 40px rgba(30,42,90,.07);overflow:hidden;
+                    }
+                    .teacher-profile-pupil-container .book .corner{position:absolute;top:-1px;right:-1px;width:58px;height:58px;opacity:.5;pointer-events:none}
+                    .teacher-profile-pupil-container .price-row{display:flex;align-items:baseline;gap:8px}
+                    .teacher-profile-pupil-container .price{font-family:'Bricolage Grotesque',sans-serif;font-size:29px;font-weight:800;color:var(--navy);letter-spacing:-0.5px}
+                    .teacher-profile-pupil-container .per{font-size:13px;color:var(--muted);font-weight:500}
+                    .teacher-profile-pupil-container .first-off{
+                        display:inline-flex;align-items:center;gap:7px;margin-top:10px;width:100%;
+                        font-size:12.5px;font-weight:700;color:var(--navy);background:var(--butter);
+                        border-radius:12px;padding:9px 12px;
+                    }
+                    .teacher-profile-pupil-container .rail-label{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 9px}
+                    .teacher-profile-pupil-container .day-tabs{display:flex;gap:6px}
+                    .teacher-profile-pupil-container .day-tab{
+                        flex:1;text-align:center;border:1px solid var(--line);border-radius:12px;padding:8px 4px;
+                        cursor:pointer;background:#fff;transition:all .15s;
+                    }
+                    .teacher-profile-pupil-container .day-tab .dn{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+                    .teacher-profile-pupil-container .day-tab .dd{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--ink)}
+                    .teacher-profile-pupil-container .day-tab.active{background:var(--navy);border-color:var(--navy)}
+                    .teacher-profile-pupil-container .day-tab.active .dn{color:var(--blue)}
+                    .teacher-profile-pupil-container .day-tab.active .dd{color:#fff}
+                    .teacher-profile-pupil-container .slots{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+                    .teacher-profile-pupil-container .slot{
+                        border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;
+                        font-weight:600;color:var(--ink);cursor:pointer;background:#fff;transition:all .15s;font-family:inherit;
+                    }
+                    .teacher-profile-pupil-container .slot:hover{border-color:var(--navy)}
+                    .teacher-profile-pupil-container .slot.picked{background:var(--butter);border-color:var(--butter);color:var(--navy)}
+                    .teacher-profile-pupil-container .cta{
+                        display:block;width:100%;margin-top:20px;border:none;cursor:pointer;
+                        background:var(--butter);color:var(--navy);
+                        font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15.5px;
+                        padding:15px;border-radius:999px;transition:all .15s;letter-spacing:-0.2px;
+                    }
+                    .teacher-profile-pupil-container .cta:hover{background:var(--butter-deep);transform:translateY(-1px)}
+                    .teacher-profile-pupil-container .cta:disabled{opacity:0.6;cursor:not-allowed}
+                    .teacher-profile-pupil-container .book-meta{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+                    .teacher-profile-pupil-container .bm-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+                    .teacher-profile-pupil-container .bm-row .k{color:var(--muted)}
+                    .teacher-profile-pupil-container .bm-row .v{font-weight:600;color:var(--ink)}
+                    .teacher-profile-pupil-container .assure{margin-top:14px;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+                    .teacher-profile-pupil-container .assure b{color:var(--navy)}
+                    .teacher-profile-pupil-container .tz{font-size:11.5px;color:var(--muted);margin-top:10px}
+                ` }} />
+
+                {/* Breadcrumbs */}
+                <div className="crumb">
+                    <Link href="/pupil/teachers">Find Teachers</Link> / {teacher.full_name}
+                </div>
+
+                {/* 1. Header Card */}
+                <div className="head-card shadow-sm">
+                    <svg className="naqsh" viewBox="0 0 80 80" fill="none" stroke="#A9C6E8" stroke-width="1.1">
+                        <path d="M40 6 L52 28 L74 40 L52 52 L40 74 L28 52 L6 40 L28 28 Z"/>
+                        <path d="M40 20 L47 33 L60 40 L47 47 L40 60 L33 47 L20 40 L33 33 Z"/>
+                        <circle cx="40" cy="40" r="5"/>
+                    </svg>
+
+                    {teacher.avatar ? (
+                        <img src={teacher.avatar} alt={teacher.full_name} className="avatar-img shadow" />
+                    ) : (
+                        <div className="avatar shadow-lg">
                             {initials}
                         </div>
+                    )}
 
-                        {/* Details */}
-                        <div className="flex-1 space-y-4 text-center md:text-left">
-                            <div>
-                                <h1 className="text-3xl font-black tracking-tight text-foreground">
-                                    {teacher.full_name}
-                                </h1>
-
-                                <div className="mt-2.5 flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
-                                    <span className="inline-flex items-center rounded-lg border border-brand-brown/20 bg-brand-lightblue px-2.5 py-1 text-[11px] font-bold text-brand-brown">
-                                        {teacher.teacher_profile
-                                            ?.overall_level ||
-                                            t('teachers.certified')}
-                                    </span>
-                                    {teacher.teacher_profile?.speaking_band && (
-                                        <span className="inline-flex items-center rounded-lg border border-brand-orange/20 bg-brand-yellow/50 px-2.5 py-1 text-[11px] font-bold text-brand-orange">
-                                            {t('teachers.speaking', {
-                                                band: teacher.teacher_profile
-                                                    .speaking_band,
-                                            })}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-center gap-6 border-t border-dashed border-border/80 pt-4 md:justify-start">
-                                <div className="flex items-center gap-2">
-                                    <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                    <span className="text-lg font-bold text-foreground">
-                                        {rating.toFixed(1)}
-                                    </span>
-                                    <span className="text-xs font-semibold text-muted-foreground">
-                                        / 5.0 rating
-                                    </span>
-                                </div>
-                                <div className="h-4 w-px bg-border" />
-                                <div className="flex items-center gap-2">
-                                    <Clock className="h-5 w-5 text-brand-brown" />
-                                    <span className="text-sm font-bold text-foreground">
-                                        {t('teachers.years_experience', {
-                                            count: experience,
-                                        })}
-                                    </span>
-                                </div>
-                            </div>
+                    <div className="head-main">
+                        <div className="name-row">
+                            <h1 className="name">{teacher.full_name}</h1>
+                            <span className="verified">
+                                <Check className="h-3 w-3 stroke-[3]" /> Verified by ConvoMate
+                            </span>
                         </div>
-
-                        {/* CTA Book Now */}
-                        <div className="w-full shrink-0 self-stretch md:w-auto md:self-center">
-                             <Link
-                                href={`/pupil/booking?teacher_id=${teacher.id}`}
-                                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover px-8 py-4 text-base font-bold text-brand-brown shadow-lg shadow-brand-button/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                                {t('teachers.book_now')}{' '}
-                                <ChevronRight className="h-5 w-5" />
-                            </Link>
+                        <p className="headline">
+                            {teacher.teacher_profile?.headline || 'Professional English Speaking Tutor'}
+                        </p>
+                        <div className="head-meta">
+                            {teacher.teacher_profile?.speaking_band && (
+                                <div className="score-chip hero">
+                                    <span className="sv">{teacher.teacher_profile.speaking_band}</span>
+                                    <span className="sl">Speaking band</span>
+                                </div>
+                            )}
+                            {teacher.teacher_profile?.overall_level && (
+                                <div className="score-chip">
+                                    <span className="sv">
+                                        {teacher.teacher_profile.overall_level.replace(/IELTS\s*,?\s*/i, '').trim()}
+                                    </span>
+                                    <span className="sl">Overall IELTS</span>
+                                </div>
+                            )}
+                            <span className="new-badge">
+                                <Sparkles className="spark h-3.5 w-3.5 fill-amber-400 text-amber-500" />
+                                New on ConvoMate — taking her first students
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* ── Details Grid ── */}
-                <div className="grid gap-8 md:grid-cols-3">
-                    {/* Left Column: About & Focus */}
-                    <div className="space-y-6">
-                        {/* Teaching Focus Labels */}
-                        {teacher.teacher_profile?.labels &&
-                            teacher.teacher_profile.labels.length > 0 && (
-                                <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                                    <h2 className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3 text-base font-bold">
-                                        <Award className="h-4.5 w-4.5 text-brand-brown" />
-                                        {t('labels.title') || 'Teaching Focus'}
-                                    </h2>
-                                    <div className="flex flex-wrap gap-2">
-                                        {teacher.teacher_profile.labels.map(
-                                            (lbl) => (
-                                                <span
-                                                    key={lbl}
-                                                    className="inline-flex items-center rounded-xl border border-brand-brown/10 bg-brand-lightblue px-3 py-1.5 text-xs font-semibold text-brand-brown"
-                                                >
-                                                    {t(`labels.${lbl}`)}
-                                                </span>
-                                            ),
-                                        )}
-                                    </div>
+                {/* 2. Grid Body */}
+                <div className="body-grid">
+                    
+                    {/* Main Content card */}
+                    <div className="main-card shadow-sm">
+                        
+                        {/* Section 1: Intro Video */}
+                        {teacher.teacher_profile?.intro_video_url && (
+                            <div className="section">
+                                <div className="sec-title">
+                                    <span className="n"><Video className="h-3.5 w-3.5" /></span>
+                                    Hear her speak first
                                 </div>
-                            )}
-
-                        {/* Profile Details */}
-                        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                            <h2 className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3 text-base font-bold">
-                                <User className="h-4.5 w-4.5 text-brand-brown" />
-                                {t('settings.profile')}
-                            </h2>
-
-                            <div className="space-y-4 text-sm font-semibold">
-                                {teacher.teacher_profile?.workplace && (
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                                            {t('teachers.workplace')}
-                                        </span>
-                                        <span className="mt-0.5 flex items-center gap-2 text-foreground">
-                                            <Briefcase className="h-4 w-4 shrink-0 text-brand-brown/80" />
-                                            {teacher.teacher_profile.workplace}
-                                        </span>
+                                {isPlayingVideo ? (
+                                    <div className="rounded-2xl overflow-hidden border bg-black aspect-video w-full">
+                                        <video
+                                            src={teacher.teacher_profile.intro_video_url}
+                                            controls
+                                            autoPlay
+                                            className="w-full h-full object-cover"
+                                        />
                                     </div>
-                                )}
-                                {teacher.teacher_profile?.age && (
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                                            {t('teachers.age')}
-                                        </span>
-                                        <span className="mt-0.5 flex items-center gap-2 text-foreground">
-                                            <Calendar className="h-4 w-4 shrink-0 text-brand-brown/80" />
-                                            {teacher.teacher_profile.age} years
-                                            old
-                                        </span>
+                                ) : (
+                                    <div
+                                        className="intro"
+                                        tabIndex={0}
+                                        role="button"
+                                        aria-label="Play intro video"
+                                        onClick={() => setIsPlayingVideo(true)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                setIsPlayingVideo(true);
+                                            }
+                                        }}
+                                    >
+                                        <div className="glow"></div>
+                                        <div className="play">
+                                            <svg viewBox="0 0 20 20" className="h-4.5 w-4.5 fill-navy">
+                                                <path d="M4 2 L18 10 L4 18 Z" />
+                                            </svg>
+                                        </div>
+                                        <div className="tag">
+                                            <span className="rec"></span> Unscripted — a real hello
+                                        </div>
+                                        <div className="dur">100MB max</div>
                                     </div>
                                 )}
                             </div>
+                        )}
+
+                        {/* Section 2: About Bio & Focus */}
+                        <div className="section">
+                            <div className="sec-title">
+                                <span className="n"><User className="h-3.5 w-3.5" /></span>
+                                About {teacher.full_name.split(' ')[0]}
+                            </div>
+                            <div className="bio">
+                                {teacher.teacher_profile?.bio || 'No bio description provided yet.'}
+                            </div>
+                            {teacher.teacher_profile?.labels && teacher.teacher_profile.labels.length > 0 && (
+                                <div className="chips">
+                                    {teacher.teacher_profile.labels.map((lbl) => (
+                                        <span key={lbl} className="chip">
+                                            {t(`labels.${lbl}`) || lbl}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Certificates */}
-                        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                            <h2 className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3 text-base font-bold">
-                                <Award className="h-4.5 w-4.5 text-brand-brown" />
-                                {t('teachers.certificates')}
-                            </h2>
-
-                            {teacher.teacher_profile?.certificates &&
-                            teacher.teacher_profile.certificates.length > 0 ? (
-                                <div className="space-y-4">
-                                    {/* Text certificates */}
-                                    {teacher.teacher_profile.certificates.filter(
-                                        (c) =>
-                                            !c.startsWith('http') &&
-                                            !c.startsWith('/storage'),
-                                    ).length > 0 && (
-                                        <ul className="space-y-2 text-xs font-semibold">
-                                            {teacher.teacher_profile.certificates
-                                                .filter(
-                                                    (c) =>
-                                                        !c.startsWith('http') &&
-                                                        !c.startsWith(
-                                                            '/storage',
-                                                        ),
-                                                )
-                                                .map((cert, index) => (
-                                                    <li
-                                                        key={index}
-                                                        className="flex items-center gap-2.5 rounded-2xl border border-border/50 bg-muted/30 p-3 text-foreground"
-                                                    >
-                                                        <Award className="h-4 w-4 shrink-0 text-amber-500" />
-                                                        <span className="truncate">
-                                                            {cert}
-                                                        </span>
-                                                    </li>
-                                                ))}
-                                        </ul>
-                                    )}
-
-                                    {/* File certificates */}
-                                    {teacher.teacher_profile.certificates.filter(
-                                        (c) => {
-                                            if (
-                                                !c ||
-                                                (!c.startsWith('http') &&
-                                                    !c.startsWith('/storage'))
-                                            )
-                                                return false;
-                                            const cleanUrl = c.split('?')[0];
-                                            return !(
-                                                cleanUrl.endsWith('/') ||
-                                                cleanUrl.endsWith(
-                                                    'edtech-media-storage-dev',
-                                                )
-                                            );
-                                        },
-                                    ).length > 0 && (
-                                        <div className="space-y-2.5">
-                                            <h3 className="mb-2 text-xs font-semibold text-muted-foreground">
-                                                Documents & Images
-                                            </h3>
-                                            <div className="grid grid-cols-1 gap-3">
-                                                {teacher.teacher_profile.certificates
-                                                    .filter((c) => {
-                                                        if (
-                                                            !c ||
-                                                            (!c.startsWith(
-                                                                'http',
-                                                            ) &&
-                                                                !c.startsWith(
-                                                                    '/storage',
-                                                                ))
-                                                        )
-                                                            return false;
-                                                        const cleanUrl =
-                                                            c.split('?')[0];
-                                                        return !(
-                                                            cleanUrl.endsWith(
-                                                                '/',
-                                                            ) ||
-                                                            cleanUrl.endsWith(
-                                                                'edtech-media-storage-dev',
-                                                            )
-                                                        );
-                                                    })
-                                                    .map((cert, index) => {
-                                                        const cleanUrl =
-                                                            cert.split('?')[0];
-                                                        const isImg =
-                                                            /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(
-                                                                cleanUrl,
-                                                            );
-                                                        const isPdf =
-                                                            /\.pdf$/i.test(
-                                                                cleanUrl,
-                                                            );
-                                                        return (
-                                                            <div
-                                                                key={index}
-                                                                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-muted/20 p-2 transition-all hover:shadow-sm"
-                                                            >
-                                                                {isImg ? (
-                                                                    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-muted">
-                                                                        <img
-                                                                            src={
-                                                                                cert
-                                                                            }
-                                                                            alt="Certificate"
-                                                                            className="h-full w-full object-cover"
-                                                                        />
-                                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                                                                            <a
-                                                                                href={
-                                                                                    cert
-                                                                                }
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="flex scale-95 items-center gap-1.5 rounded-xl bg-white/95 p-2 text-xs font-bold text-slate-800 shadow-md transition-all hover:scale-100 hover:bg-white"
-                                                                            >
-                                                                                <ExternalLink className="h-4 w-4" />{' '}
-                                                                                View
-                                                                                Full
-                                                                                Image
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : isPdf ? (
-                                                                    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-white">
-                                                                        <iframe
-                                                                            src={`${cert}#toolbar=0&navpanes=0`}
-                                                                            className="pointer-events-none h-full w-full border-0"
-                                                                        />
-                                                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 p-4 text-center opacity-0 transition-opacity group-hover:opacity-100">
-                                                                            <span className="mb-2 max-w-full truncate text-xs font-semibold text-white">
-                                                                                {cert.substring(
-                                                                                    cert.lastIndexOf(
-                                                                                        '/',
-                                                                                    ) +
-                                                                                        1,
-                                                                                )}
-                                                                            </span>
-                                                                            <a
-                                                                                href={
-                                                                                    cert
-                                                                                }
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="flex scale-95 items-center gap-1.5 rounded-xl bg-white/95 p-2 text-xs font-bold text-slate-800 shadow-md transition-all hover:scale-100 hover:bg-white"
-                                                                            >
-                                                                                <ExternalLink className="h-4 w-4" />{' '}
-                                                                                View
-                                                                                Full
-                                                                                PDF
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="flex aspect-[3/1] w-full items-center gap-3 rounded-xl border border-dashed border-border/80 bg-muted/40 p-3">
-                                                                         <FileText className="h-7 w-7 shrink-0 text-brand-brown/80" />
-                                                                        <div className="flex min-w-0 flex-1 flex-col">
-                                                                            <span className="truncate text-[10px] font-bold text-foreground">
-                                                                                {cert.substring(
-                                                                                    cert.lastIndexOf(
-                                                                                        '/',
-                                                                                    ) +
-                                                                                        1,
-                                                                                )}
-                                                                            </span>
-                                                                            <a
-                                                                                href={
-                                                                                    cert
-                                                                                }
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                 className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-brand-brown hover:underline"
-                                                                            >
-                                                                                Open
-                                                                                Document{' '}
-                                                                                <ExternalLink className="h-3 w-3" />
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
+                        {/* Section 3: Certificates */}
+                        <div className="section">
+                            <div className="sec-title">
+                                <span className="n"><Award className="h-3.5 w-3.5" /></span>
+                                Certificates, checked by us
+                            </div>
+                            {normalizedCerts.length > 0 ? (
+                                <div className="space-y-3">
+                                    {normalizedCerts.map((cert, idx) => (
+                                        <div key={idx} className="cert">
+                                            <div className="cert-ic">
+                                                <FileText className="h-4.5 w-4.5" />
                                             </div>
+                                            <div className="cert-body">
+                                                <div className="cert-name">
+                                                    {cert.title || cert.file_name || 'Certificate'}
+                                                </div>
+                                                <div className="cert-sub">
+                                                    {cert.file_url ? (
+                                                        <a
+                                                            href={cert.file_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-brand-brown inline-flex items-center gap-1 hover:underline"
+                                                            style={{ color: 'var(--navy)' }}
+                                                        >
+                                                            Open document <ExternalLink className="h-3 w-3" />
+                                                        </a>
+                                                    ) : (
+                                                        'Verified Document'
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {cert.status === 'verified' ? (
+                                                <span className="cert-badge">✓ Verified</span>
+                                            ) : (
+                                                <span className="cert-badge review">Under review</span>
+                                            )}
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             ) : (
-                                <p className="text-xs font-medium text-muted-foreground">
-                                    {t('teachers.no_certificates')}
+                                <p className="text-sm font-medium text-muted-foreground italic">
+                                    No certificates uploaded yet.
                                 </p>
                             )}
                         </div>
-                    </div>
 
-                    {/* Right Column: Feedback List */}
-                    <div className="space-y-6 md:col-span-2">
-                        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                            <h2 className="mb-6 flex items-center gap-2 border-b border-border/60 pb-4 text-base font-bold">
-                                <MessageCircle className="h-5 w-5 text-brand-brown" />
-                                {t('teachers.feedback_title')}
-                            </h2>
-
-                            {teacher.feedbacks &&
-                            teacher.feedbacks.length > 0 ? (
+                        {/* Section 4: Pupil feedback */}
+                        <div className="section">
+                            <div className="sec-title">
+                                <span className="n"><MessageCircle className="h-3.5 w-3.5" /></span>
+                                Pupil feedback
+                            </div>
+                            {teacher.feedbacks && teacher.feedbacks.length > 0 ? (
                                 <div className="space-y-4">
                                     {teacher.feedbacks.map((fb) => (
-                                        <div
-                                            key={fb.id}
-                                            className="rounded-2xl border border-border/65 bg-card p-5 transition-shadow duration-300 hover:shadow-md"
-                                        >
+                                        <div key={fb.id} className="rounded-2xl border border-muted/50 bg-[#FAFBFD] p-5 shadow-sm">
                                             <div className="mb-3 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-lightblue text-xs font-bold text-brand-brown">
-                                                        {fb.author?.full_name
-                                                            ?.substring(0, 2)
-                                                            .toUpperCase() ||
-                                                            'P'}
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF4FB] text-xs font-bold text-[#1E2A5A]">
+                                                        {fb.author?.full_name?.substring(0, 2).toUpperCase() || 'P'}
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-sm font-bold text-foreground">
-                                                            {fb.author
-                                                                ?.full_name ||
-                                                                'Pupil'}
+                                                        <h4 className="text-sm font-bold text-[#1E2A5A]">
+                                                            {fb.author?.full_name || 'Pupil'}
                                                         </h4>
                                                         <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-                                                            {new Date(
-                                                                fb.created_at,
-                                                            ).toLocaleDateString(
-                                                                [],
-                                                                {
-                                                                    month: 'short',
-                                                                    day: 'numeric',
-                                                                    year: 'numeric',
-                                                                },
-                                                            )}
+                                                            {new Date(fb.created_at).toLocaleDateString([], {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric',
+                                                            })}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1 rounded-lg border border-amber-500/10 bg-amber-500/5 px-2.5 py-1 text-xs font-bold text-amber-600">
-                                                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" />{' '}
-                                                    {fb.rating}/10
+                                                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {fb.rating}/10
                                                 </div>
                                             </div>
-                                            <p className="text-sm leading-relaxed font-medium text-muted-foreground italic">
+                                            <p className="text-sm leading-relaxed text-[#6B7394] italic">
                                                 "{fb.comment}"
                                             </p>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="rounded-3xl border border-dashed bg-muted/10 py-12 text-center">
-                                    <p className="text-sm font-medium text-muted-foreground">
-                                        {t('teachers.no_feedback')}
-                                    </p>
+                                <div className="fb-empty">
+                                    <div className="big">No reviews yet — be her first</div>
+                                    <p>{teacher.full_name} is new here. Book a first session at half price and help other students decide.</p>
                                 </div>
                             )}
                         </div>
+
                     </div>
+
+                    {/* Booking sidebar rail */}
+                    <aside>
+                        <div className="book shadow-sm">
+                            <svg className="corner" viewBox="0 0 64 64" fill="none" stroke="#F0CE5F" stroke-width="1.2">
+                                <path d="M64 0 v40 M64 0 h-40"/>
+                                <path d="M52 0 v12 h12 M40 0 v24 h24"/>
+                                <circle cx="52" cy="12" r="3"/>
+                            </svg>
+                            <div className="price-row">
+                                <span className="price">{formattedPrice}</span>
+                                <span className="per">so'm / 30 min</span>
+                            </div>
+                            <div className="first-off">
+                                ✦ First session 50% off — {halfPrice} so'm
+                            </div>
+
+                            {/* Pick a day */}
+                            <div className="rail-label">Pick a day</div>
+                            <div className="day-tabs">
+                                {next7Days.map((day, idx) => {
+                                    const isActive = formatDateString(day) === formatDateString(selectedDate);
+                                    const dayName = day.toLocaleDateString('en-US', { weekday: 'short' });
+                                    const dateNum = day.getDate();
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`day-tab ${isActive ? 'active' : ''}`}
+                                            tabIndex={0}
+                                            onClick={() => {
+                                                setSelectedDate(day);
+                                                setPickedSlot(null);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    setSelectedDate(day);
+                                                    setPickedSlot(null);
+                                                }
+                                            }}
+                                        >
+                                            <div className="dn">{dayName}</div>
+                                            <div className="dd">{dateNum}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Pick a time */}
+                            <div className="rail-label">Pick a time</div>
+                            {loadingSlots ? (
+                                <div className="flex py-6 justify-center items-center">
+                                    <Loader2 className="h-6 w-6 animate-spin text-[#1E2A5A]" />
+                                </div>
+                            ) : slots.length > 0 ? (
+                                <div className="slots">
+                                    {slots.map((slot, idx) => {
+                                        const isPicked = pickedSlot === slot;
+                                        const formattedTime = new Date(slot.start_at).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false
+                                        });
+                                        return (
+                                            <button
+                                                key={idx}
+                                                className={`slot ${isPicked ? 'picked' : ''}`}
+                                                onClick={() => setPickedSlot(slot)}
+                                            >
+                                                {slot.is_all_time ? 'Custom Slot' : formattedTime}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-muted-foreground italic py-2">
+                                    No available slots for this day.
+                                </p>
+                            )}
+
+                            <p className="tz">Times in your timezone — Tashkent (UTC+5)</p>
+
+                            <button
+                                className="cta"
+                                disabled={!pickedSlot || booking}
+                                onClick={() => setConfirmingSlot(pickedSlot)}
+                            >
+                                {pickedSlot ? (
+                                    pickedSlot.is_all_time ? 'Configure Custom Slot' : `Book ${selectedDate.toLocaleDateString('en-US', { weekday: 'short' })}, ${new Date(pickedSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`
+                                ) : (
+                                    'Select a slot first'
+                                )}
+                            </button>
+
+                            <div className="book-meta">
+                                <div className="bm-row">
+                                    <span className="k">Session length</span>
+                                    <span className="v">30 or 60 min</span>
+                                </div>
+                                <div className="bm-row">
+                                    <span className="k">Where</span>
+                                    <span className="v">Video call on ConvoMate</span>
+                                </div>
+                                <div className="bm-row">
+                                    <span className="k">Cancellation</span>
+                                    <span className="v">Free up to 12 hrs before</span>
+                                </div>
+                            </div>
+                            <p className="assure">
+                                A <b>real conversation</b> with a real teacher.<br />
+                                No bots. No scripts. That's the point.
+                            </p>
+                        </div>
+                    </aside>
+
                 </div>
             </div>
-        </>
+
+            {/* Confirmation Modal */}
+            {confirmingSlot && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#22284A]/40 backdrop-blur-sm">
+                    <div className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95" style={{ fontFamily: "'Schibsted Grotesk', sans-serif" }}>
+                        <button
+                            onClick={() => setConfirmingSlot(null)}
+                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] hover:bg-[#A9C6E8] hover:text-[#1E2A5A] transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+
+                        <div className="mt-2 flex items-start gap-4">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A]">
+                                <Info className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold text-[#1E2A5A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                    {confirmingSlot.is_all_time
+                                        ? t('booking.all_time_title') || 'Select Custom Slot Time'
+                                        : t('booking.confirm_title') || 'Confirm Booking'}
+                                </h3>
+
+                                {confirmingSlot.is_all_time ? (
+                                    <div className="mt-3 space-y-4">
+                                        <p className="text-sm leading-relaxed text-[#6B7394]">
+                                            {t('booking.all_time_desc') || 'Choose a specific start and end time for your custom session.'}
+                                        </p>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-1">
+                                                <label className="text-xs font-semibold text-[#22284A]">
+                                                    {t('booking.all_time_start') || 'Start Time'}
+                                                </label>
+                                                <input
+                                                    type="time"
+                                                    value={selectedStartStr}
+                                                    onChange={(e) => setSelectedStartStr(e.target.value)}
+                                                    min={formatTimeToHHMM(new Date(confirmingSlot.start_at))}
+                                                    max={formatTimeToHHMM(new Date(confirmingSlot.end_at))}
+                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:outline-none focus:border-[#1E2A5A]"
+                                                />
+                                            </div>
+                                            <div className="grid gap-1">
+                                                <label className="text-xs font-semibold text-[#22284A]">
+                                                    {t('booking.all_time_end') || 'End Time'}
+                                                </label>
+                                                <input
+                                                    type="time"
+                                                    value={selectedEndStr}
+                                                    onChange={(e) => setSelectedEndStr(e.target.value)}
+                                                    min={selectedStartStr || formatTimeToHHMM(new Date(confirmingSlot.start_at))}
+                                                    max={formatTimeToHHMM(new Date(confirmingSlot.end_at))}
+                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:outline-none focus:border-[#1E2A5A]"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {!validateSelectedRange() && (
+                                            <p className="text-xs text-red-500 font-bold">
+                                                {t('booking.invalid_range') || 'Selected range is invalid.'}
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="mt-3 text-sm leading-relaxed text-[#6B7394]">
+                                        {t('booking.confirm_message', {
+                                            teacher: teacher.full_name,
+                                            start: new Date(confirmingSlot.start_at).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            }),
+                                            end: new Date(confirmingSlot.end_at).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            }),
+                                        }) || `Book a session with ${teacher.full_name} from ${new Date(confirmingSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${new Date(confirmingSlot.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}?`}
+                                    </p>
+                                )}
+
+                                {/* Topic selection */}
+                                <div className="space-y-2 mt-4 border-t border-[#E6E9F2] pt-3">
+                                    <label className="text-xs font-semibold text-[#22284A]">
+                                        {t('booking.select_topics') || 'Select Speaking Topics'} <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {teacher.teacher_profile?.labels?.map((lbl: string) => {
+                                            const isChecked = selectedTopics.includes(lbl);
+                                            return (
+                                                <button
+                                                    key={lbl}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (isChecked) {
+                                                            setSelectedTopics(selectedTopics.filter((t) => t !== lbl));
+                                                        } else {
+                                                            setSelectedTopics([...selectedTopics, lbl]);
+                                                        }
+                                                    }}
+                                                    className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
+                                                        isChecked
+                                                            ? 'bg-[#1E2A5A] border-[#1E2A5A] text-white'
+                                                            : 'bg-[#EEF4FB] border-[#D8E5F5] text-[#1E2A5A] hover:bg-[#A9C6E8]'
+                                                    }`}
+                                                >
+                                                    {t(`labels.${lbl}`) || lbl}
+                                                </button>
+                                            );
+                                        })}
+                                        <button
+                                            type="button"
+                                            onClick={() => setOtherChecked(!otherChecked)}
+                                            className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
+                                                otherChecked
+                                                    ? 'bg-[#1E2A5A] border-[#1E2A5A] text-white'
+                                                    : 'bg-[#EEF4FB] border-[#D8E5F5] text-[#1E2A5A] hover:bg-[#A9C6E8]'
+                                            }`}
+                                        >
+                                            {t('booking.topic_other') || 'Other...'}
+                                        </button>
+                                    </div>
+
+                                    {otherChecked && (
+                                        <div className="mt-2.5">
+                                            <input
+                                                type="text"
+                                                placeholder={t('booking.topic_other_placeholder') || 'Enter custom topic...'}
+                                                value={customTopic}
+                                                onChange={(e) => setCustomTopic(e.target.value)}
+                                                className="w-full rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:outline-none focus:border-[#1E2A5A]"
+                                                maxLength={100}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-6 flex items-center justify-end gap-3">
+                                    <button
+                                        onClick={() => setConfirmingSlot(null)}
+                                        className="cursor-pointer rounded-xl border border-[#E6E9F2] px-4 py-2 text-sm font-semibold text-[#6B7394] transition-colors hover:bg-[#FAFBFD]"
+                                    >
+                                        {t('booking.cancel_btn') || 'Cancel'}
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmSubmit}
+                                        disabled={booking || !validateSelectedRange()}
+                                        className="cursor-pointer rounded-xl bg-[#F7DE8B] hover:bg-[#F0CE5F] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors disabled:opacity-50"
+                                    >
+                                        {booking
+                                            ? t('booking.requesting') || 'Requesting...'
+                                            : t('booking.confirm_btn') || 'Confirm Booking'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+        </AppLayout>
     );
 }
 

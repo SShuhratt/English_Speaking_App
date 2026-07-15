@@ -11,33 +11,49 @@ import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 import { useTranslation } from '@/hooks/use-translation';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        href: edit(),
-        icon: null,
-    },
-    {
-        title: 'Security',
-        href: editSecurity(),
-        icon: null,
-    },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-        icon: null,
-    },
-];
+import { usePage } from '@inertiajs/react';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const { t } = useTranslation();
+    const { auth } = usePage<any>().props;
+
+    const isTeacher = auth.user?.role === 'teacher';
+
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: 'Profile',
+            href: edit(),
+            icon: null,
+        },
+        {
+            title: 'Security',
+            href: editSecurity(),
+            icon: null,
+        },
+        ...(isTeacher
+            ? [
+                  {
+                      title: 'Payouts',
+                      href: '#',
+                      icon: null,
+                  },
+              ]
+            : [
+                  {
+                      title: 'Appearance',
+                      href: editAppearance(),
+                      icon: null,
+                  },
+              ]),
+    ];
 
     const getTranslatedTitle = (title: string) => {
         const keyMap: Record<string, string> = {
             profile: 'settings.profile',
             security: 'settings.security',
             appearance: 'settings.appearance',
+            payouts: 'settings.payouts',
         };
         const key =
             keyMap[title.toLowerCase()] || `settings.${title.toLowerCase()}`;

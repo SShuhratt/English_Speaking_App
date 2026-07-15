@@ -110,7 +110,7 @@ class ProfileUpdateTest extends TestCase
                 'email' => 'teacher@example.com',
                 'age' => 30,
                 'phone_number' => '+1234567890',
-                'experience_years' => 5.5,
+                'experience_years' => '5.5',
                 'workplace' => 'English Academy',
                 'overall_level' => 'IELTS 8.5',
                 'speaking_band' => 8.5,
@@ -124,14 +124,16 @@ class ProfileUpdateTest extends TestCase
             'user_id' => $user->id,
             'age' => 30,
             'phone_number' => '+1234567890',
-            'experience_years' => 5.5,
+            'experience_years' => '5.5',
             'workplace' => 'English Academy',
             'overall_level' => 'IELTS 8.5',
             'speaking_band' => 8.5,
         ]);
 
         $user->refresh();
-        $this->assertEquals(['CELTA', 'TESOL'], $user->teacherProfile->certificates);
+        $certs = $user->teacherProfile->certificates;
+        $this->assertEquals('CELTA', $certs[0]['title']);
+        $this->assertEquals('TESOL', $certs[1]['title']);
     }
 
     public function test_pupil_profile_can_be_updated()
@@ -227,7 +229,7 @@ class ProfileUpdateTest extends TestCase
                 'email' => 'teacher@example.com',
                 'age' => 30,
                 'phone_number' => '+1234567890',
-                'experience_years' => 5.5,
+                'experience_years' => '5.5',
                 'workplace' => 'English Academy',
                 'overall_level' => 'IELTS 8.5',
                 'speaking_band' => 8.5,
@@ -317,8 +319,9 @@ class ProfileUpdateTest extends TestCase
         $user->refresh();
 
         $certs = $user->teacherProfile->certificates;
-        $this->assertContains('CELTA', $certs);
-        $this->assertContains('TESOL', $certs);
+        $titles = array_column($certs, 'title');
+        $this->assertContains('CELTA', $titles);
+        $this->assertContains('TESOL', $titles);
         $this->assertCount(4, $certs);
     }
 
@@ -345,6 +348,36 @@ class ProfileUpdateTest extends TestCase
         $user->refresh();
 
         $certs = $user->teacherProfile->certificates;
-        $this->assertEquals(['CELTA'], $certs);
+        $this->assertEquals('CELTA', $certs[0]['title']);
+        $this->assertCount(1, $certs);
+    }
+
+    public function test_teacher_profile_can_be_updated_with_avatar_and_video()
+    {
+        Storage::fake(env('FILESYSTEM_DISK', 'public'));
+        Storage::fake('gcs');
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Teacher Name',
+                'email' => 'teacher@example.com',
+                'age' => 30,
+                'phone_number' => '+1234567890',
+                'experience_years' => '5.5',
+                'workplace' => 'English Academy',
+                'overall_level' => 'IELTS 8.5',
+                'speaking_band' => 8.5,
+                'avatar' => \Illuminate\Http\UploadedFile::fake()->create('avatar.jpg', 100, 'image/jpeg'),
+                'intro_video' => \Illuminate\Http\UploadedFile::fake()->create('video.mp4', 500, 'video/mp4'),
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $user->refresh();
+        $this->assertNotNull($user->avatar);
+        $this->assertNotNull($user->teacherProfile->intro_video_url);
     }
 }

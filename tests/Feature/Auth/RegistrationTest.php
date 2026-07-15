@@ -192,7 +192,9 @@ class RegistrationTest extends TestCase
         $certs = $teacher->teacherProfile->certificates;
 
         $this->assertCount(2, $certs);
-        $this->assertTrue(str_starts_with($certs[0], '/storage/') || str_contains($certs[0], 'storage.googleapis.com') || str_contains($certs[0], 'cert1.jpg'));
-        $this->assertTrue(str_starts_with($certs[1], '/storage/') || str_contains($certs[1], 'storage.googleapis.com') || str_contains($certs[1], 'doc2.pdf'));
+        $this->assertEquals('cert1.jpg', $certs[0]['title']);
+        $this->assertTrue(str_starts_with($certs[0]['file_url'], '/storage/') || str_contains($certs[0]['file_url'], 'storage.googleapis.com') || str_contains($certs[0]['file_url'], 'cert1.jpg'));
+        $this->assertEquals('doc2.pdf', $certs[1]['title']);
+        $this->assertTrue(str_starts_with($certs[1]['file_url'], '/storage/') || str_contains($certs[1]['file_url'], 'storage.googleapis.com') || str_contains($certs[1]['file_url'], 'doc2.pdf'));
     }
 }

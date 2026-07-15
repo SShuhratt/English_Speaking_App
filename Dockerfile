@@ -50,6 +50,8 @@ RUN install-php-extensions \
     opcache \
     zip
 
+# Configure PHP upload and memory limits
+RUN echo 'upload_max_filesize = 120M\npost_max_size = 130M\nmemory_limit = 256M\nmax_execution_time = 300\nmax_input_time = 300' > /usr/local/etc/php/conf.d/docker-php-ext-uploads.ini
 
 WORKDIR /app
 
