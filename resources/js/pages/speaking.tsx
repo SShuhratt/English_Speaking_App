@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
-import { Mic, MicOff, PhoneOff, Loader2, ArrowLeft } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Loader2, ArrowLeft, User, Check, X, PhoneCall } from 'lucide-react';
 
 export default function Speaking() {
     const { auth } = usePage<any>().props;
@@ -21,6 +21,10 @@ export default function Speaking() {
         partner_id: number;
         partner_name: string;
     } | null>(null);
+
+    const [onlinePupils, setOnlinePupils] = useState<any[]>([]);
+    const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
+    const [requestedUserIds, setRequestedUserIds] = useState<number[]>([]);
 
     const statusRef = useRef<'idle' | 'searching' | 'connecting' | 'connected'>('idle');
 
@@ -56,33 +60,39 @@ export default function Speaking() {
         checkActiveSession();
     }, []);
 
-    // Heartbeat timer
+    // Continuous Heartbeat & Status Polling
     useEffect(() => {
-        let heartbeatInterval: NodeJS.Timeout | null = null;
-
-        if (status === 'connected') {
-            // Send initial heartbeat
-            axios.post('/matchmaking/heartbeat');
-
-            heartbeatInterval = setInterval(async () => {
-                try {
-                    const response = await axios.post('/matchmaking/heartbeat');
-                    if (response.data.status === 'terminated') {
-                        toast.error(t('speaking.partner_disconnected') || "Partner left the conversation.");
-                        cleanup();
-                    }
-                } catch (err) {
-                    console.error("Heartbeat error:", err);
+        const sendHeartbeat = async () => {
+            try {
+                const response = await axios.post('/matchmaking/heartbeat');
+                
+                // Update online list and incoming requests
+                if (response.data.online_pupils) {
+                    setOnlinePupils(response.data.online_pupils);
                 }
-            }, 5000);
-        }
+                if (response.data.incoming_requests) {
+                    setIncomingRequests(response.data.incoming_requests);
+                }
 
-        return () => {
-            if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
+                // Handle session termination if we were connected
+                if (statusRef.current === 'connected' && response.data.status === 'terminated') {
+                    toast.error(t('speaking.partner_disconnected') || "Partner left the conversation.");
+                    cleanup();
+                }
+            } catch (err) {
+                console.error("Heartbeat error:", err);
             }
         };
-    }, [status]);
+
+        // Send initial heartbeat immediately
+        sendHeartbeat();
+
+        const interval = setInterval(sendHeartbeat, 5000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
     // Initialize Echo match listener on mount
     useEffect(() => {
@@ -90,7 +100,7 @@ export default function Speaking() {
         const channelName = `user.match.${currentUserId}`;
         matchChannelRef.current = window.Echo.private(channelName)
             .listen('.UserMatched', (data: any) => {
-                if (statusRef.current === 'searching') {
+                if (statusRef.current === 'searching' || statusRef.current === 'idle') {
                     handleMatchFound(data.roomId, data.partnerId);
                 }
             });
@@ -401,6 +411,58 @@ export default function Speaking() {
         stopLocalStream();
     };
 
+    const sendDirectRequest = async (receiverId: number) => {
+        try {
+            await axios.post('/matchmaking/request', { receiver_id: receiverId });
+            setRequestedUserIds((prev) => [...prev, receiverId]);
+            toast.success("Speaking request sent!");
+        } catch (err) {
+            console.error("Failed to send speaking request:", err);
+            toast.error("Failed to send speaking request.");
+        }
+    };
+
+    const acceptDirectRequest = async (senderId: number) => {
+        try {
+            // Check microphone permission first within user gesture context
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            localStreamRef.current = stream;
+        } catch (error) {
+            console.error("Microphone access check failed:", error);
+            toast.error(t('speaking.media_error') || "Microphone access denied or audio device not found.");
+            return;
+        }
+
+        try {
+            const response = await axios.post('/matchmaking/accept', { sender_id: senderId });
+            if (response.data.status === 'matched') {
+                handleMatchFound(response.data.room_id, response.data.partner_id);
+            }
+        } catch (err) {
+            console.error("Failed to accept speaking request:", err);
+            toast.error("Could not accept request. Partner may have gone offline.");
+        }
+    };
+
+    const declineDirectRequest = async (senderId: number) => {
+        try {
+            await axios.post('/matchmaking/decline', { sender_id: senderId });
+            setIncomingRequests((prev) => prev.filter((r: any) => r.id !== senderId));
+            toast.info("Request declined.");
+        } catch (err) {
+            console.error("Failed to decline speaking request:", err);
+        }
+    };
+
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
+    };
+
     // Disconnect and clean WebRTC state only (keeping status, presence channel, and local stream)
     const cleanupWebRTC = () => {
         // Close peer connection
@@ -449,7 +511,7 @@ export default function Speaking() {
         <>
             <Head title={t('speaking.title') || "Start Speaking"} />
 
-            <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8 max-w-4xl mx-auto">
+            <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8 max-w-6xl mx-auto text-[#22284A]">
 
                 {/* Header Banner */}
                 <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
@@ -457,7 +519,7 @@ export default function Speaking() {
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
                     <div className="relative z-10 space-y-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#F7DE8B]">
                             SPEAKING CLUB
                         </span>
                         <h1 className="text-3xl font-black tracking-tight text-white">
@@ -469,132 +531,17 @@ export default function Speaking() {
                     </div>
                 </div>
 
-                {/* Main Card View */}
-                <div className="flex flex-col items-center justify-center bg-white border border-[#d0e4ff]/30 shadow-ambient rounded-3xl p-12 md:p-20 text-center dark:bg-[#0c0c16] dark:border-white/5">
-                    {status === 'idle' && (
-                        activeSessionData ? (
-                            <div className="space-y-8 animate-in fade-in duration-300">
-                                <div className="flex justify-center">
-                                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10 border-2 border-emerald-500 text-emerald-600 shadow-inner">
-                                        <Mic className="h-10 w-10 animate-bounce" />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
-                                        Active Session Detected
-                                    </h2>
-                                    <p className="text-sm text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
-                                        We found an active conversation with <strong>{activeSessionData.partner_name}</strong>. Would you like to resume it?
-                                    </p>
-                                </div>
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                                    <button
-                                        onClick={resumeSession}
-                                        className="px-10 py-4 rounded-full font-bold text-sm bg-emerald-600 text-white shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer"
-                                    >
-                                        Resume Conversation
-                                    </button>
-                                    <button
-                                        onClick={cancelSession}
-                                        className="px-10 py-4 rounded-full font-bold text-sm border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20"
-                                    >
-                                        Cancel Session
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-8 animate-in fade-in duration-300">
-                                <div className="flex justify-center">
-                                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-yellow/10 border-2 border-brand-yellow text-brand-navy shadow-inner dark:text-brand-yellow">
-                                        <Mic className="h-10 w-10 animate-pulse" />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
-                                        {t('speaking.ready_title') || "Match with a Speaking Partner"}
-                                    </h2>
-                                    <p className="text-sm text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
-                                        {t('speaking.ready_desc') || "Join the queue to be matched instantly with an active user for English practice."}
-                                    </p>
-                                </div>
-                                <div className="flex flex-col items-center gap-4">
-                                    <div className="text-[11px] text-amber-600 bg-amber-500/5 px-4 py-2 rounded-xl inline-flex items-center gap-1.5 border border-amber-500/10 font-medium dark:text-amber-400 dark:bg-amber-500/5 dark:border-amber-500/10">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                                        Please ensure microphone permission is allowed in your browser settings to connect.
-                                    </div>
-                                    <button
-                                        onClick={joinQueue}
-                                        className="px-12 py-4 rounded-full font-bold text-sm bg-brand-yellow text-brand-navy shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer"
-                                    >
-                                        {t('speaking.btn_start') || "Start Matchmaking"}
-                                    </button>
-                                </div>
-                            </div>
-                        )
-                    )}
-
-                    {status === 'searching' && (
-                        <div className="space-y-8 animate-in fade-in duration-300">
-                            <div className="flex justify-center relative">
-                                {/* Pulsing circular animation rings */}
-                                <div className="absolute inset-0 rounded-full bg-brand-yellow/5 border border-brand-yellow/20 animate-ping" />
-                                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-yellow/10 border-2 border-brand-yellow text-brand-navy z-10 dark:text-brand-yellow">
-                                    <Loader2 className="h-10 w-10 animate-spin" />
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
-                                    {t('speaking.searching_title') || "Finding speaking partner..."}
-                                </h2>
-                                <p className="text-xl font-mono font-bold text-brand-navy/60 dark:text-[#A0A0B0]">
-                                    {formatTime(searchTime)}
-                                </p>
-                            </div>
-                            <button
-                                onClick={leaveQueue}
-                                className="px-10 py-3 rounded-full font-bold text-sm border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20"
-                            >
-                                {t('dashboard.cancel_button') || "Cancel"}
-                            </button>
-                        </div>
-                    )}
-
-                    {status === 'connecting' && (
-                        <div className="space-y-8 animate-in fade-in duration-300">
-                            <div className="flex justify-center">
-                                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10 border-2 border-emerald-500 text-emerald-600">
-                                    <Loader2 className="h-10 w-10 animate-spin" />
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <h2 className="text-2xl font-extrabold text-brand-navy dark:text-white">
-                                    {t('speaking.connecting_title') || "Connecting to partner..."}
-                                </h2>
-                                {partnerName && (
-                                    <p className="text-sm font-semibold text-[#45464f] dark:text-[#A0A0B0]">
-                                        {t('speaking.partner') || "Partner"}: {partnerName}
-                                    </p>
-                                )}
-                            </div>
-                            <button
-                                onClick={leaveQueue}
-                                className="px-10 py-3 rounded-full font-bold text-sm border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20"
-                            >
-                                {t('speaking.btn_disconnect') || "Disconnect"}
-                            </button>
-                        </div>
-                    )}
-
-                    {status === 'connected' && (
+                {status === 'connected' ? (
+                    /* Main Connected Call Screen */
+                    <div className="flex flex-col items-center justify-center bg-white border border-[#d0e4ff]/30 shadow-ambient rounded-3xl p-12 md:p-20 text-center dark:bg-[#0c0c16] dark:border-white/5">
                         <div className="space-y-8 animate-in fade-in duration-300">
                             <div className="flex justify-center items-center gap-2">
-                                {/* Stylized Audio Waves */}
                                 <div className="flex items-center gap-1.5 h-12">
-                                    <div className="w-1.5 bg-brand-yellow rounded-full animate-bounce h-8" style={{ animationDelay: '0.1s' }} />
-                                    <div className="w-1.5 bg-brand-yellow rounded-full animate-bounce h-12" style={{ animationDelay: '0.3s' }} />
-                                    <div className="w-1.5 bg-brand-yellow rounded-full animate-bounce h-6" style={{ animationDelay: '0.5s' }} />
-                                    <div className="w-1.5 bg-brand-yellow rounded-full animate-bounce h-10" style={{ animationDelay: '0.2s' }} />
-                                    <div className="w-1.5 bg-brand-yellow rounded-full animate-bounce h-8" style={{ animationDelay: '0.4s' }} />
+                                    <div className="w-1.5 bg-[#F7DE8B] rounded-full animate-bounce h-8" style={{ animationDelay: '0.1s' }} />
+                                    <div className="w-1.5 bg-[#F7DE8B] rounded-full animate-bounce h-12" style={{ animationDelay: '0.3s' }} />
+                                    <div className="w-1.5 bg-[#F7DE8B] rounded-full animate-bounce h-6" style={{ animationDelay: '0.5s' }} />
+                                    <div className="w-1.5 bg-[#F7DE8B] rounded-full animate-bounce h-10" style={{ animationDelay: '0.2s' }} />
+                                    <div className="w-1.5 bg-[#F7DE8B] rounded-full animate-bounce h-8" style={{ animationDelay: '0.4s' }} />
                                 </div>
                             </div>
 
@@ -614,8 +561,8 @@ export default function Speaking() {
                                 <button
                                     onClick={toggleMute}
                                     className={`flex items-center justify-center p-4 rounded-full shadow-md transition-all cursor-pointer ${isMuted
-                                        ? 'bg-red-500 text-white hover:bg-red-600'
-                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                        ? 'bg-red-500 text-white hover:bg-red-600 border-0'
+                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 border-0'
                                         }`}
                                     title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
                                 >
@@ -624,15 +571,261 @@ export default function Speaking() {
 
                                 <button
                                     onClick={leaveQueue}
-                                    className="flex items-center gap-2 px-10 py-4 rounded-full font-bold text-sm bg-red-600 text-white shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all cursor-pointer"
+                                    className="flex items-center gap-2 px-10 py-4 rounded-full font-bold text-sm bg-red-600 text-white shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all cursor-pointer border-0"
                                 >
                                     <PhoneOff className="h-4 w-4" />
                                     {t('speaking.btn_end') || "End Conversation"}
                                 </button>
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    /* 3-Column Grid for matchmaking lobby */
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        {/* Left Column: Online Pupils */}
+                        <div className="lg:col-span-3 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xs font-black uppercase tracking-widest text-[#1E2A5A] dark:text-[#F7DE8B]">
+                                    Available for Speaking
+                                </h2>
+                                <span className="text-[10px] font-black bg-white border border-[#E6E9F2] text-[#1E2A5A] px-2 py-0.5 rounded-md">
+                                    {onlinePupils.length} Online
+                                </span>
+                            </div>
+                            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                                {onlinePupils.length === 0 ? (
+                                    <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 text-center text-xs text-[#6B7394] select-none">
+                                        No other pupils are online right now. Keep this page open to show up!
+                                    </div>
+                                ) : (
+                                    onlinePupils.map((pupil) => {
+                                        const hasRequested = requestedUserIds.includes(pupil.id);
+                                        return (
+                                            <div key={pupil.id} className="bg-white border border-[#E6E9F2] rounded-[22px] p-4 flex flex-col gap-3 shadow-sm hover:border-[#A9C6E8] transition">
+                                                <div className="flex items-center gap-3">
+                                                    {pupil.avatar_url ? (
+                                                        <img src={pupil.avatar_url} className="w-10 h-10 rounded-xl object-cover" alt="avatar" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-[#1E2A5A] font-extrabold text-sm flex items-center justify-center">
+                                                            {getInitials(pupil.name)}
+                                                        </div>
+                                                    )}
+                                                    <div className="min-w-0 flex-1">
+                                                        <h3 className="font-bold text-xs text-[#22284A] truncate">{pupil.name}</h3>
+                                                        {pupil.headline && (
+                                                            <p className="text-[10px] text-[#6B7394] truncate">{pupil.headline}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-2 border-t border-[#FAFBFD] pt-2">
+                                                    <div className="flex gap-1.5">
+                                                        {pupil.target_speaking_band ? (
+                                                            <span className="text-[9px] font-bold text-[#1E2A5A] bg-[#EEF4FB] px-1.5 py-0.5 rounded">
+                                                                IELTS {pupil.target_speaking_band}
+                                                            </span>
+                                                        ) : (
+                                                            <span />
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => sendDirectRequest(pupil.id)}
+                                                        disabled={hasRequested}
+                                                        className={`px-3 py-1.5 rounded-full font-bold text-[10px] transition cursor-pointer border-0 ${
+                                                            hasRequested
+                                                                ? 'bg-[#EEF4FB] text-[#6B7394] cursor-default'
+                                                                : 'bg-[#1E2A5A] text-white hover:bg-[#1E2A5A]/90'
+                                                        }`}
+                                                    >
+                                                        {hasRequested ? 'Requested' : 'Request'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Middle Column: Matchmaking Controls */}
+                        <div className="lg:col-span-6">
+                            <div className="flex flex-col items-center justify-center bg-white border border-[#d0e4ff]/30 shadow-ambient rounded-3xl p-8 md:p-12 text-center dark:bg-[#0c0c16] dark:border-white/5 min-h-[400px]">
+                                {status === 'idle' && (
+                                    activeSessionData ? (
+                                        <div className="space-y-8 animate-in fade-in duration-300">
+                                            <div className="flex justify-center">
+                                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 border-2 border-emerald-500 text-emerald-600 shadow-inner">
+                                                    <Mic className="h-8 w-8 animate-bounce" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h2 className="text-xl font-extrabold text-brand-navy dark:text-white">
+                                                    Active Session Detected
+                                                </h2>
+                                                <p className="text-xs text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
+                                                    We found an active conversation with <strong>{activeSessionData.partner_name}</strong>. Would you like to resume it?
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                                                <button
+                                                    onClick={resumeSession}
+                                                    className="px-8 py-3.5 rounded-full font-bold text-xs bg-emerald-600 text-white shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer border-0"
+                                                >
+                                                    Resume Conversation
+                                                </button>
+                                                <button
+                                                    onClick={cancelSession}
+                                                    className="px-8 py-3.5 rounded-full font-bold text-xs border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20 bg-transparent"
+                                                >
+                                                    Cancel Session
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6 animate-in fade-in duration-300">
+                                            <div className="flex justify-center">
+                                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#F7DE8B]/10 border-2 border-[#F7DE8B] text-brand-navy shadow-inner dark:text-[#F7DE8B]">
+                                                    <Mic className="h-8 w-8 animate-pulse" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h2 className="text-xl font-extrabold text-[#1E2A5A] dark:text-white">
+                                                    {t('speaking.ready_title') || "Match with a Speaking Partner"}
+                                                </h2>
+                                                <p className="text-xs text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
+                                                    {t('speaking.ready_desc') || "Join the queue to be matched instantly with an active user for English practice."}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-3">
+                                                <div className="text-[10px] text-amber-600 bg-amber-500/5 px-4 py-2 rounded-xl inline-flex items-center gap-1.5 border border-amber-500/10 font-medium dark:text-amber-400 dark:bg-amber-500/5 dark:border-amber-500/10">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                                                    Please ensure microphone permission is allowed in your browser settings to connect.
+                                                </div>
+                                                <button
+                                                    onClick={joinQueue}
+                                                    className="px-10 py-3.5 rounded-full font-bold text-xs bg-[#F7DE8B] text-[#1E2A5A] shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer border-0"
+                                                >
+                                                    {t('speaking.btn_start') || "Start Speaking"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )
+                                )}
+
+                                {status === 'searching' && (
+                                    <div className="space-y-6 animate-in fade-in duration-300">
+                                        <div className="flex justify-center relative">
+                                            <div className="absolute inset-0 rounded-full bg-[#F7DE8B]/5 border border-[#F7DE8B]/20 animate-ping" />
+                                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#F7DE8B]/10 border-2 border-[#F7DE8B] text-brand-navy z-10 dark:text-[#F7DE8B]">
+                                                <Loader2 className="h-8 w-8 animate-spin" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h2 className="text-xl font-extrabold text-[#1E2A5A] dark:text-white">
+                                                {t('speaking.searching_title') || "Finding speaking partner..."}
+                                            </h2>
+                                            <p className="text-lg font-mono font-bold text-[#1E2A5A]/60 dark:text-[#A0A0B0]">
+                                                {formatTime(searchTime)}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={leaveQueue}
+                                            className="px-8 py-3 rounded-full font-bold text-xs border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20 bg-transparent"
+                                        >
+                                            {t('dashboard.cancel_button') || "Cancel"}
+                                        </button>
+                                    </div>
+                                )}
+
+                                {status === 'connecting' && (
+                                    <div className="space-y-6 animate-in fade-in duration-300">
+                                        <div className="flex justify-center">
+                                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 border-2 border-emerald-500 text-emerald-600">
+                                                <Loader2 className="h-8 w-8 animate-spin" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h2 className="text-xl font-extrabold text-[#1E2A5A] dark:text-white">
+                                                {t('speaking.connecting_title') || "Connecting to partner..."}
+                                            </h2>
+                                            {partnerName && (
+                                                <p className="text-xs font-semibold text-[#45464f] dark:text-[#A0A0B0]">
+                                                    {t('speaking.partner') || "Partner"}: {partnerName}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={leaveQueue}
+                                            className="px-8 py-3 rounded-full font-bold text-xs border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20 bg-transparent"
+                                        >
+                                            {t('speaking.btn_disconnect') || "Disconnect"}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Column: Incoming Requests */}
+                        <div className="lg:col-span-3 space-y-4">
+                            <h2 className="text-sm font-black uppercase tracking-widest text-[#1E2A5A] dark:text-[#F7DE8B]">
+                                Incoming Requests
+                            </h2>
+                            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                                {incomingRequests.length === 0 ? (
+                                    <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 text-center text-xs text-[#6B7394] select-none">
+                                        No incoming requests yet. Keep this page open to receive them!
+                                    </div>
+                                ) : (
+                                    incomingRequests.map((req) => (
+                                        <div key={req.id} className="bg-white border border-[#E6E9F2] rounded-[22px] p-4 flex flex-col gap-3 shadow-sm hover:border-[#A9C6E8] transition">
+                                            <div className="flex items-center gap-3">
+                                                {req.avatar_url ? (
+                                                    <img src={req.avatar_url} className="w-10 h-10 rounded-xl object-cover" alt="avatar" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-[#1E2A5A] font-extrabold text-sm flex items-center justify-center">
+                                                        {getInitials(req.name)}
+                                                    </div>
+                                                )}
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="font-bold text-xs text-[#22284A] truncate">{req.name}</h3>
+                                                    {req.headline && (
+                                                        <p className="text-[10px] text-[#6B7394] truncate">{req.headline}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2 border-t border-[#FAFBFD] pt-2">
+                                                <div className="flex gap-1.5">
+                                                    {req.target_speaking_band ? (
+                                                        <span className="text-[9px] font-bold text-[#1E2A5A] bg-[#EEF4FB] px-1.5 py-0.5 rounded">
+                                                            IELTS {req.target_speaking_band}
+                                                        </span>
+                                                    ) : (
+                                                        <span />
+                                                    )}
+                                                </div>
+                                                <div className="flex gap-1.5">
+                                                    <button
+                                                        onClick={() => declineDirectRequest(req.id)}
+                                                        className="p-1.5 rounded-full text-red-500 hover:bg-red-50 transition cursor-pointer border-0 bg-transparent"
+                                                        title="Decline"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => acceptDirectRequest(req.id)}
+                                                        className="p-1.5 rounded-full text-emerald-600 hover:bg-emerald-50 transition cursor-pointer border-0 bg-transparent"
+                                                        title="Accept"
+                                                    >
+                                                        <PhoneCall className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Hidden Audio element for remote WebRTC stream */}
                 <audio ref={remoteAudioRef} autoPlay />

@@ -20,7 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Teacher Routes
-    Route::prefix('teacher')->name('teacher.')->group(function () {
+    Route::prefix('teacher')->name('teacher.')->middleware('teacher')->group(function () {
         Route::get('/appointments', [TeacherAppointmentController::class, 'index'])->name('appointments.index');
         Route::post('/appointments/{id}/approve', [TeacherAppointmentController::class, 'approve'])->name('appointments.approve');
         Route::post('/appointments/{id}/reject', [TeacherAppointmentController::class, 'reject'])->name('appointments.reject');
@@ -35,7 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Pupil Routes
-    Route::prefix('pupil')->name('pupil.')->group(function () {
+    Route::prefix('pupil')->name('pupil.')->middleware('pupil')->group(function () {
         Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
         Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
         Route::get('/booking', [TeacherController::class, 'showBooking'])->name('booking.show');
@@ -45,14 +45,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');
     });
 
-    Route::get('/speaking', function () {
-        return Inertia\Inertia::render('speaking');
-    })->name('speaking');
+    // Speaking & Matchmaking Routes (only for Pupils)
+    Route::middleware('pupil')->group(function () {
+        Route::get('/speaking', function () {
+            return Inertia\Inertia::render('speaking');
+        })->name('speaking');
 
-    Route::post('/matchmaking/join', [MatchmakingController::class, 'join'])->name('matchmaking.join');
-    Route::post('/matchmaking/leave', [MatchmakingController::class, 'leave'])->name('matchmaking.leave');
-    Route::get('/matchmaking/active-session', [MatchmakingController::class, 'activeSession'])->name('matchmaking.active-session');
-    Route::post('/matchmaking/heartbeat', [MatchmakingController::class, 'heartbeat'])->name('matchmaking.heartbeat');
+        Route::post('/matchmaking/join', [MatchmakingController::class, 'join'])->name('matchmaking.join');
+        Route::post('/matchmaking/leave', [MatchmakingController::class, 'leave'])->name('matchmaking.leave');
+        Route::get('/matchmaking/active-session', [MatchmakingController::class, 'activeSession'])->name('matchmaking.active-session');
+        Route::post('/matchmaking/heartbeat', [MatchmakingController::class, 'heartbeat'])->name('matchmaking.heartbeat');
+        Route::post('/matchmaking/request', [MatchmakingController::class, 'sendRequest'])->name('matchmaking.request');
+        Route::post('/matchmaking/accept', [MatchmakingController::class, 'acceptRequest'])->name('matchmaking.accept');
+        Route::post('/matchmaking/decline', [MatchmakingController::class, 'declineRequest'])->name('matchmaking.decline');
+    });
 });
 
 Route::middleware('auth')->group(function () {

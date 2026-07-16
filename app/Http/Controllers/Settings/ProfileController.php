@@ -215,46 +215,99 @@ class ProfileController extends Controller
                 }
             }
         } elseif ($user->role === 'pupil') {
-            // Original logic for pupil profile
-            $textCerts = [];
-            if ($request->has('certificates')) {
-                if (is_string($request->input('certificates'))) {
-                    $textCerts = array_filter(array_map('trim', explode(',', $request->input('certificates'))));
-                } elseif (is_array($request->input('certificates'))) {
-                    $textCerts = $request->input('certificates');
-                }
-            }
+            $profileData = $request->validate([
+                'age' => ['nullable', 'integer', 'min:1', 'max:120'],
+                'phone_number' => ['nullable', 'string', 'max:20'],
+                'headline' => ['nullable', 'string', 'max:90'],
+                'bio' => ['nullable', 'string', 'max:600'],
+                'target_overall_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
+                'target_speaking_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
+                'labels' => ['nullable', 'array'],
+                'labels.*' => ['string', 'in:freestyle conversation,practice q&a,ielts speaking mock,job interview prep,vocabulary expansion,business english'],
+            ]);
 
-            $existingUploadedCerts = [];
-            if ($request->has('existing_certificates')) {
-                $existingUploadedCerts = $request->input('existing_certificates') ?? [];
-            } else {
-                $currentCerts = $user->pupilProfile?->certificates ?? [];
-                $existingUploadedCerts = array_filter($currentCerts, function ($cert) {
-                    return str_starts_with($cert, 'http') || str_starts_with($cert, '/storage');
-                });
-            }
-
-            $newUploadedUrls = [];
+            // Validate and process rich certificates (PDF & Images)
             if ($request->hasFile('ielts_certificates')) {
                 $request->validate([
                     'ielts_certificates' => ['nullable', 'array'],
                     'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'],
                 ]);
-                $disk = env('FILESYSTEM_DISK', 'public');
-                foreach ($request->file('ielts_certificates') as $file) {
+            }
+
+            $uploadedFiles = $request->file('ielts_certificates') ?? [];
+            $certsInput = $request->input('certificates', []);
+            $finalCertificates = [];
+
+            if (is_string($certsInput)) {
+                $rawCerts = array_filter(array_map('trim', explode(',', $certsInput)));
+                foreach ($rawCerts as $legacyCert) {
+                    $finalCertificates[] = [
+                        'title' => $legacyCert,
+                        'file_url' => null,
+                        'file_name' => '',
+                        'status' => 'verified',
+                    ];
+                }
+                foreach ($uploadedFiles as $file) {
+                    $disk = env('FILESYSTEM_DISK', 'public');
                     $path = $file->store('certificates', $disk);
-                    $newUploadedUrls[] = Storage::disk($disk)->url($path);
+                    $finalCertificates[] = [
+                        'title' => $file->getClientOriginalName(),
+                        'file_url' => Storage::disk($disk)->url($path),
+                        'file_name' => $file->getClientOriginalName(),
+                        'status' => 'pending',
+                    ];
+                }
+            } elseif (is_array($certsInput)) {
+                foreach ($certsInput as $index => $certData) {
+                    if (is_string($certData)) {
+                        $isUrl = str_starts_with($certData, 'http') || str_starts_with($certData, '/storage');
+                        $finalCertificates[] = [
+                            'title' => $isUrl ? '' : $certData,
+                            'file_url' => $isUrl ? $certData : null,
+                            'file_name' => $isUrl ? basename(parse_url($certData, PHP_URL_PATH)) : '',
+                            'status' => 'verified',
+                        ];
+                    } else {
+                        $title = $certData['title'] ?? '';
+                        $fileUrl = $certData['file_url'] ?? null;
+                        $fileName = $certData['file_name'] ?? null;
+                        $status = $certData['status'] ?? 'pending';
+
+                        if (isset($uploadedFiles[$index])) {
+                            $file = $uploadedFiles[$index];
+                            $disk = env('FILESYSTEM_DISK', 'public');
+                            $path = $file->store('certificates', $disk);
+                            $fileUrl = Storage::disk($disk)->url($path);
+                            $fileName = $file->getClientOriginalName();
+                            $status = 'pending';
+                        }
+
+                        if ($title || $fileUrl) {
+                            $finalCertificates[] = [
+                                'title' => $title,
+                                'file_url' => $fileUrl,
+                                'file_name' => $fileName,
+                                'status' => $status,
+                            ];
+                        }
+                    }
                 }
             }
 
-            $finalCertificates = array_values(array_unique(array_merge($textCerts, $existingUploadedCerts, $newUploadedUrls)));
+            if (empty($certsInput) && !empty($uploadedFiles)) {
+                foreach ($uploadedFiles as $file) {
+                    $disk = env('FILESYSTEM_DISK', 'public');
+                    $path = $file->store('certificates', $disk);
+                    $finalCertificates[] = [
+                        'title' => $file->getClientOriginalName(),
+                        'file_url' => Storage::disk($disk)->url($path),
+                        'file_name' => $file->getClientOriginalName(),
+                        'status' => 'pending',
+                    ];
+                }
+            }
 
-            $profileData = $request->validate([
-                'age' => ['nullable', 'integer', 'min:1', 'max:120'],
-                'phone_number' => ['nullable', 'string', 'max:20'],
-                'level' => ['nullable', 'string', 'max:255'],
-            ]);
             $profileData['certificates'] = $finalCertificates;
 
             $user->pupilProfile()->updateOrCreate(

@@ -22,7 +22,7 @@ class MatchmakingTest extends TestCase
 
     public function test_user_can_join_matchmaking_queue_and_gets_waiting(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'pupil']);
 
         $response = $this->actingAs($user)->postJson(route('matchmaking.join'));
 
@@ -38,8 +38,8 @@ class MatchmakingTest extends TestCase
     {
         Event::fake([UserMatched::class]);
 
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::factory()->create(['role' => 'pupil']);
+        $user2 = User::factory()->create(['role' => 'pupil']);
 
         // User 1 joins queue
         $this->actingAs($user1)->postJson(route('matchmaking.join'));
@@ -70,7 +70,7 @@ class MatchmakingTest extends TestCase
 
     public function test_user_can_leave_matchmaking_queue(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'pupil']);
 
         // Join queue
         $this->actingAs($user)->postJson(route('matchmaking.join'));
@@ -88,8 +88,8 @@ class MatchmakingTest extends TestCase
 
     public function test_user_can_retrieve_active_speaking_session(): void
     {
-        $user1 = User::factory()->create(['full_name' => 'Alice']);
-        $user2 = User::factory()->create(['full_name' => 'Bob']);
+        $user1 = User::factory()->create(['role' => 'pupil', 'full_name' => 'Alice']);
+        $user2 = User::factory()->create(['role' => 'pupil', 'full_name' => 'Bob']);
 
         // Directly seed active session in Redis
         $session = json_encode(['room_id' => 'room_1_2', 'partner_id' => $user2->id]);
@@ -107,8 +107,8 @@ class MatchmakingTest extends TestCase
 
     public function test_heartbeat_keeps_session_alive_or_terminates_if_partner_offline(): void
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::factory()->create(['role' => 'pupil']);
+        $user2 = User::factory()->create(['role' => 'pupil']);
 
         // Seed active session
         $session1 = json_encode(['room_id' => 'room_1_2', 'partner_id' => $user2->id]);

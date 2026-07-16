@@ -15,6 +15,10 @@ class EnsureTeacher
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->user() && $request->user()->role !== 'teacher') {
+            abort(403, 'Unauthorized.');
+        }
+
         return $next($request);
     }
 }

@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'locale']);
 
+        $middleware->alias([
+            'teacher' => \App\Http\Middleware\EnsureTeacher::class,
+            'pupil' => \App\Http\Middleware\EnsurePupil::class,
+        ]);
+
         $middleware->web(append: [
             SetLocale::class,
             HandleAppearance::class,

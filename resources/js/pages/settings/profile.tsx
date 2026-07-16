@@ -33,7 +33,12 @@ type PageProps = {
                 age?: number;
                 phone_number?: string;
                 level?: string;
-                certificates?: string[];
+                certificates?: Array<{ title: string; file_url: string; file_name?: string; status?: string }> | string[];
+                headline?: string;
+                bio?: string;
+                target_overall_band?: string | number;
+                target_speaking_band?: string | number;
+                labels?: string[];
             };
             availabilities?: Array<{ day_of_week: string; start_time: string; end_time: string }>;
         };
@@ -63,18 +68,82 @@ export default function Profile({
     // --- Pupil specific logic ---
     const initialPupilCerts = React.useMemo(() => {
         const rawCerts = auth.user.pupil_profile?.certificates ?? [];
-        return rawCerts.filter((c) => {
-            if (!c || (!c.startsWith('http') && !c.startsWith('/storage')))
-                return false;
-            const cleanUrl = c.split('?')[0];
-            return !(
-                cleanUrl.endsWith('/') ||
-                cleanUrl.endsWith('edtech-media-storage-dev')
-            );
+        const certsArray = typeof rawCerts === 'string' ? JSON.parse(rawCerts) : rawCerts;
+        return (Array.isArray(certsArray) ? certsArray : []).map((c: any, index: number) => {
+            if (typeof c === 'string') {
+                const isUrl = c.startsWith('http') || c.startsWith('/storage');
+                return {
+                    id: index,
+                    title: isUrl ? '' : c,
+                    file_url: isUrl ? c : null,
+                    file_name: isUrl ? c.substring(c.lastIndexOf('/') + 1) : '',
+                    status: 'verified',
+                };
+            }
+            return {
+                id: index,
+                title: c.title ?? '',
+                file_url: c.file_url ?? null,
+                file_name: c.file_name ?? '',
+                status: c.status ?? 'pending',
+            };
         });
     }, [auth.user]);
 
-    const [pupilCerts, setPupilCerts] = React.useState<string[]>(initialPupilCerts);
+    const [pupilCerts, setPupilCerts] = React.useState(initialPupilCerts);
+
+    const addPupilCertificate = () => {
+        setPupilCerts((prev) => [
+            ...prev,
+            {
+                id: Date.now(),
+                title: '',
+                file_url: null,
+                file_name: '',
+                status: 'pending',
+            },
+        ]);
+    };
+
+    const updatePupilCertTitle = (index: number, title: string) => {
+        setPupilCerts((prev) => {
+            const next = [...prev];
+            next[index] = { ...next[index], title };
+            return next;
+        });
+    };
+
+    const handlePupilCertFileSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setPupilCerts((prev) => {
+                const next = [...prev];
+                next[index] = {
+                    ...next[index],
+                    file_name: file.name,
+                    file_url: URL.createObjectURL(file), // Temp preview
+                    status: 'pending',
+                };
+                return next;
+            });
+        }
+    };
+
+    const removePupilCertificate = (index: number) => {
+        setPupilCerts((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const [pupilHeadline, setPupilHeadline] = React.useState(auth.user.pupil_profile?.headline ?? '');
+    const [pupilBio, setPupilBio] = React.useState(auth.user.pupil_profile?.bio ?? '');
+    const [targetOverallBand, setTargetOverallBand] = React.useState(auth.user.pupil_profile?.target_overall_band ?? '');
+    const [targetSpeakingBand, setTargetSpeakingBand] = React.useState(auth.user.pupil_profile?.target_speaking_band ?? '');
+    const [pupilLabels, setPupilLabels] = React.useState<string[]>(auth.user.pupil_profile?.labels ?? []);
+
+    const togglePupilLabel = (val: string) => {
+        setPupilLabels((prev) =>
+            prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val]
+        );
+    };
 
     // --- Teacher specific logic ---
     const initialTeacherCerts = React.useMemo(() => {
@@ -277,6 +346,130 @@ export default function Profile({
                     .teacher-settings-container button {
                         font-family: 'Schibsted Grotesk', sans-serif !important;
                     }
+                    .teacher-settings-container .hero {
+                      background: var(--navy); border-radius: var(--radius); padding: 34px 34px 30px;
+                      position: relative; overflow: hidden; margin-bottom: 26px;
+                    }
+                    .teacher-settings-container .hero .eyebrow { color: var(--butter); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+                    .teacher-settings-container .hero h1 { color: #fff; font-size: 34px; font-weight: 800; letter-spacing: -0.8px; margin-top: 6px; }
+                    .teacher-settings-container .hero p { color: var(--blue); font-size: 15px; margin-top: 4px; }
+                    .teacher-settings-container .hero .naqsh { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px; opacity: .35; }
+                    .teacher-settings-container .preview-link {
+                      display: inline-flex; align-items: center; gap: 7px; margin-top: 16px;
+                      background: rgba(255,255,255,.08); border: 1px solid rgba(169,198,232,.35);
+                      color: #fff; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 999px;
+                      text-decoration: none; transition: background .15s;
+                    }
+                    .teacher-settings-container .preview-link:hover { background: rgba(255,255,255,.16); }
+                    .teacher-settings-container .preview-link svg { width: 13px; height: 13px; stroke: var(--butter); }
+                    .teacher-settings-container .tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+                    .teacher-settings-container .tab {
+                      padding: 10px 2px 12px; font-size: 15px; font-weight: 600; color: var(--muted);
+                      cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1px;
+                    }
+                    .teacher-settings-container .tab.active { color: var(--navy); border-color: var(--butter-deep); }
+                    .teacher-settings-container .tab:hover:not(.active) { color: var(--ink); }
+                    .teacher-settings-container .sec { margin-bottom: 34px; }
+                    .teacher-settings-container .sec-head { margin-bottom: 14px; }
+                    .teacher-settings-container .sec-head h2 { font-size: 19px; font-weight: 700; color: var(--navy); letter-spacing: -0.3px; }
+                    .teacher-settings-container .sec-head p { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
+                    .teacher-settings-container .sec-head .req {
+                      display: inline-block; font-size: 11px; font-weight: 700; color: var(--navy);
+                      background: var(--butter); border-radius: 999px; padding: 3px 10px; margin-left: 8px; vertical-align: 2px;
+                    }
+                    .teacher-settings-container .card {
+                      background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 26px;
+                    }
+                    .teacher-settings-container .field { margin-bottom: 20px; }
+                    .teacher-settings-container .field:last-child { margin-bottom: 0; }
+                    .teacher-settings-container label { display: block; font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 7px; }
+                    .teacher-settings-container label .hint { font-weight: 500; color: var(--muted); font-size: 12.5px; margin-left: 6px; }
+                    .teacher-settings-container .private-tag {
+                      display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700;
+                      color: var(--muted); background: #F1F3F8; border-radius: 999px; padding: 3px 9px; margin-left: 8px; vertical-align: 1px;
+                    }
+                    .teacher-settings-container .private-tag svg { width: 10px; height: 10px; stroke: var(--muted); }
+                    .teacher-settings-container input[type=text],
+                    .teacher-settings-container input[type=email],
+                    .teacher-settings-container input[type=tel],
+                    .teacher-settings-container input[type=number],
+                    .teacher-settings-container textarea,
+                    .teacher-settings-container select {
+                      width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 13px 16px;
+                      font-family: 'Schibsted Grotesk', sans-serif; font-size: 15px; color: var(--ink); background: #fff;
+                      transition: border-color .15s, box-shadow .15s;
+                    }
+                    .teacher-settings-container input:focus,
+                    .teacher-settings-container textarea:focus,
+                    .teacher-settings-container select:focus {
+                      outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(169,198,232,.35);
+                    }
+                    .teacher-settings-container input::placeholder,
+                    .teacher-settings-container textarea::placeholder { color: #A6ACC4; }
+                    .teacher-settings-container textarea { resize: vertical; min-height: 110px; }
+                    .teacher-settings-container .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 5px; }
+                    .teacher-settings-container .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+                    @media(max-width:560px){.teacher-settings-container .row2 { grid-template-columns: 1fr; }}
+                    .teacher-settings-container .photo-row { display: flex; gap: 20px; align-items: center; }
+                    .teacher-settings-container .photo-preview {
+                      width: 92px; height: 92px; border-radius: 24px; flex-shrink: 0;
+                      background: linear-gradient(135deg, var(--blue), var(--blue-tint));
+                      display: flex; align-items: center; justify-content: center;
+                      font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 30px; color: var(--navy);
+                    }
+                    .teacher-settings-container .upload-btn {
+                      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+                      border: 1.5px solid var(--line); border-radius: 999px; padding: 10px 18px;
+                      font-size: 13.5px; font-weight: 700; color: var(--navy); background: #fff; transition: border-color .15s;
+                    }
+                    .teacher-settings-container .upload-btn:hover { border-color: var(--navy); }
+                    .teacher-settings-container .upload-btn svg { width: 14px; height: 14px; stroke: var(--navy); }
+                    .teacher-settings-container .photo-note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+                    .teacher-settings-container .cert-row {
+                      display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center;
+                      border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; background: #fff;
+                    }
+                    .teacher-settings-container .cert-row input { border: none; padding: 6px 4px; font-weight: 600; }
+                    .teacher-settings-container .cert-row input:focus { box-shadow: none; }
+                    .teacher-settings-container .cert-status {
+                      font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; white-space: nowrap;
+                    }
+                    .teacher-settings-container .cert-status.verified { background: var(--butter); color: var(--navy); }
+                    .teacher-settings-container .cert-status.pending { background: #F1F3F8; color: var(--muted); }
+                    .teacher-settings-container .cert-file {
+                      font-size: 12.5px; font-weight: 600; color: var(--navy); cursor: pointer; white-space: nowrap;
+                      border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px;
+                    }
+                    .teacher-settings-container .cert-file:hover { border-color: var(--navy); }
+                    .teacher-settings-container .add-cert {
+                      display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; color: var(--navy);
+                      background: none; border: none; cursor: pointer; margin-top: 4px; font-family: inherit;
+                    }
+                    .teacher-settings-container .add-cert:hover { text-decoration: underline; }
+                    .teacher-settings-container .verify-note {
+                      margin-top: 14px; font-size: 12.5px; color: var(--muted); background: var(--blue-tint);
+                      border-radius: 12px; padding: 11px 14px;
+                    }
+                    .teacher-settings-container .verify-note b { color: var(--navy); }
+                    @media(max-width:560px){.teacher-settings-container .cert-row { grid-template-columns: 1fr; gap: 8px; }}
+                    .teacher-settings-container .focus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                    @media(max-width:560px){.teacher-settings-container .focus-grid { grid-template-columns: 1fr; }}
+                    .teacher-settings-container .check {
+                      display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 16px;
+                      padding: 14px 16px; cursor: pointer; transition: all .15s; background: #fff; user-select: none;
+                    }
+                    .teacher-settings-container .check:hover { border-color: var(--blue); }
+                    .teacher-settings-container .check input { display: none; }
+                    .teacher-settings-container .box {
+                      width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid #C9CFDE; flex-shrink: 0;
+                      display: flex; items-center: center; justify-content: center; transition: all .15s;
+                    }
+                    .teacher-settings-container .box svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 3; opacity: 0; }
+                    .teacher-settings-container .check input:checked ~ .box { background: var(--navy); border-color: var(--navy); }
+                    .teacher-settings-container .check input:checked ~ .box svg { opacity: 1; }
+                    .teacher-settings-container .check input:checked ~ .check-label { color: var(--navy); }
+                    .teacher-settings-container .check.checked { border-color: var(--navy); background: var(--blue-tint); }
+                    .teacher-settings-container .check-label { font-size: 14.5px; font-weight: 600; }
                 ` }} />
 
                 <Form
@@ -787,214 +980,298 @@ export default function Profile({
                                     </div>
                                 </>
                             ) : (
-                                // Original Pupil View Layout
+                                // Redesigned Pupil View Layout
                                 <>
-                                    {/* Section 1: Personal Profile Info */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                        <div className="lg:col-span-4 space-y-2">
-                                            <h3 className="text-xl font-extrabold text-brand-navy">
-                                                {t('profile.personal_profile') || 'Personal Profile'}
-                                            </h3>
-                                            <p className="text-sm font-medium text-brand-navy/65">
-                                                {t('profile.personal_profile_desc') || 'Your name and email address used for communication.'}
-                                            </p>
-                                        </div>
-                                        <div className="lg:col-span-8 p-8 bg-white rounded-[32px] border border-brand-pale-blue/30 shadow-ambient">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="flex flex-col gap-2">
-                                                    <label htmlFor="name" className="font-bold text-brand-navy ml-1">
-                                                        {t('profile.name')}
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        id="name"
-                                                        className="w-full h-14 px-5 rounded-[16px] border border-brand-pale-blue bg-white focus:border-brand-navy focus:ring-0 focus:outline-none text-base"
-                                                        defaultValue={auth.user.name || auth.user.full_name || ''}
-                                                        name="name"
-                                                        required
-                                                        autoComplete="name"
-                                                        placeholder={t('profile.fullname_placeholder')}
-                                                    />
-                                                    <InputError className="mt-1" message={errors.name} />
-                                                </div>
+                                    {/* Eyebrow & Hero Header */}
+                                    <div className="hero shadow-md">
+                                        <svg className="naqsh" viewBox="0 0 80 80" fill="none" stroke="#A9C6E8" strokeWidth="1.1">
+                                            <path d="M40 6 L52 28 L74 40 L52 52 L40 74 L28 52 L6 40 L28 28 Z"/>
+                                            <path d="M40 20 L47 33 L60 40 L47 47 L40 60 L33 47 L20 40 L33 33 Z"/>
+                                            <circle cx="40" cy="40" r="5"/>
+                                        </svg>
+                                        <div className="eyebrow">Pupil settings</div>
+                                        <h1>Your profile</h1>
+                                        <p>Customize how teachers and conversation partners see you during matching.</p>
+                                    </div>
 
-                                                <div className="flex flex-col gap-2">
-                                                    <label htmlFor="email" className="font-bold text-brand-navy ml-1">
-                                                        {t('profile.email')}
+                                    {/* Tabs */}
+                                    <div className="tabs">
+                                        <Link href="/settings/profile" className="tab active">Profile</Link>
+                                        <Link href="/settings/security" className="tab">Security</Link>
+                                        <Link href="/settings/appearance" className="tab">Appearance</Link>
+                                    </div>
+
+                                    {/* 1. Basics */}
+                                    <div className="sec">
+                                        <div className="sec-head">
+                                            <h2>The basics</h2>
+                                            <p>Your name, photo, and one line about your conversation style or goal.</p>
+                                        </div>
+                                        <div className="card shadow-sm">
+                                            <div className="field">
+                                                <label>Profile picture</label>
+                                                <div className="photo-row">
+                                                    {avatarPreview ? (
+                                                        <img
+                                                            src={avatarPreview}
+                                                            alt="Avatar"
+                                                            className="w-[92px] h-[92px] rounded-[24px] object-cover flex-shrink-0 border border-[#E6E9F2]"
+                                                        />
+                                                    ) : (
+                                                        <div className="photo-preview">
+                                                            {getInitials(auth.user.name || auth.user.full_name || '')}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <label className="upload-btn" htmlFor="photo-file">
+                                                            <Upload className="w-3.5 h-3.5" />
+                                                            Upload photo
+                                                        </label>
+                                                        <input
+                                                            type="file"
+                                                            name="avatar"
+                                                            id="photo-file"
+                                                            accept="image/*"
+                                                            hidden
+                                                            onChange={handleAvatarSelect}
+                                                        />
+                                                        <div className="photo-note">
+                                                            Use a clear picture of yourself, or choose from our default presets.
+                                                        </div>
+                                                        <InputError message={errors.avatar} className="mt-1" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="field">
+                                                <label>Display name <span className="hint">How teachers and partners address you</span></label>
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    defaultValue={auth.user.name || auth.user.full_name || ''}
+                                                    required
+                                                />
+                                                <InputError message={errors.name} className="mt-1" />
+                                            </div>
+                                            <div className="field">
+                                                <label>Headline <span className="hint">A brief description about your learning objective</span></label>
+                                                <input
+                                                    type="text"
+                                                    name="headline"
+                                                    placeholder="e.g. Intermediate speaker trying to conquer English-speaking anxiety."
+                                                    maxLength={90}
+                                                    value={pupilHeadline}
+                                                    onChange={(e) => setPupilHeadline(e.target.value)}
+                                                />
+                                                <div className="char-count">{pupilHeadline.length} / 90</div>
+                                                <InputError message={errors.headline} className="mt-1" />
+                                            </div>
+                                            <div className="field">
+                                                <label>About you</label>
+                                                <textarea
+                                                    name="bio"
+                                                    placeholder="Introduce yourself. What are your main struggles in English? What hobbies do you like to talk about?"
+                                                    maxLength={600}
+                                                    value={pupilBio}
+                                                    onChange={(e) => setPupilBio(e.target.value)}
+                                                ></textarea>
+                                                <div className="char-count">{pupilBio.length} / 600</div>
+                                                <InputError message={errors.bio} className="mt-1" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 2. Contact details (private) */}
+                                    <div className="sec">
+                                        <div className="sec-head">
+                                            <h2>Contact details</h2>
+                                            <p>Never shown to other students or teachers. Used strictly for notifications and authentication.</p>
+                                        </div>
+                                        <div className="card shadow-sm">
+                                            <div className="row2">
+                                                <div className="field">
+                                                    <label className="flex items-center gap-2">
+                                                        Email address
+                                                        <span className="private-tag">
+                                                            <Lock className="w-2.5 h-2.5" /> Private
+                                                        </span>
                                                     </label>
                                                     <input
                                                         type="email"
-                                                        id="email"
-                                                        className="w-full h-14 px-5 rounded-[16px] border border-brand-pale-blue bg-white focus:border-brand-navy focus:ring-0 focus:outline-none text-base"
-                                                        defaultValue={auth.user.email}
                                                         name="email"
+                                                        defaultValue={auth.user.email}
                                                         required
-                                                        autoComplete="username"
-                                                        placeholder={t('profile.email')}
                                                     />
-                                                    <InputError className="mt-1" message={errors.email} />
+                                                    <InputError message={errors.email} className="mt-1" />
+                                                </div>
+                                                <div className="field">
+                                                    <label className="flex items-center gap-2">
+                                                        Phone number
+                                                        <span className="private-tag">
+                                                            <Lock className="w-2.5 h-2.5" /> Private
+                                                        </span>
+                                                    </label>
+                                                    <input
+                                                        type="tel"
+                                                        name="phone_number"
+                                                        defaultValue={auth.user.pupil_profile?.phone_number || ''}
+                                                        placeholder="+998 90 123 4567"
+                                                    />
+                                                    <InputError message={errors.phone_number} className="mt-1" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Section 2: Pupil specific form */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-brand-pale-blue/20 pt-12">
-                                        <div className="lg:col-span-4 space-y-2">
-                                            <h3 className="text-xl font-extrabold text-brand-navy">
-                                                {t('profile.pupil_info')}
-                                            </h3>
-                                            <p className="text-sm font-medium text-brand-navy/65">
-                                                {t('profile.pupil_desc')}
-                                            </p>
+                                    {/* 3. IELTS Target Metrics */}
+                                    <div className="sec">
+                                        <div className="sec-head">
+                                            <h2>
+                                                IELTS Target Metrics <span className="req">ConvoMate Path</span>
+                                            </h2>
+                                            <p>Your previous target metrics and certificates checked to optimize matches.</p>
                                         </div>
-                                        <div className="lg:col-span-8 p-8 bg-white rounded-[32px] border border-brand-pale-blue/30 shadow-ambient">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="flex flex-col gap-2">
-                                                    <label htmlFor="age" className="font-bold text-brand-navy ml-1">
-                                                        {t('profile.age')}
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id="age"
-                                                        className="w-full h-14 px-5 rounded-[16px] border border-brand-pale-blue bg-white focus:border-brand-navy focus:ring-0 focus:outline-none text-base"
-                                                        defaultValue={auth.user.pupil_profile?.age || ''}
-                                                        name="age"
-                                                        placeholder="e.g. 18"
-                                                    />
-                                                    <InputError className="mt-1" message={errors.age} />
-                                                </div>
-
-                                                <div className="flex flex-col gap-2">
-                                                    <label htmlFor="phone_number" className="font-bold text-brand-navy ml-1">
-                                                        {t('profile.phone')}
-                                                    </label>
+                                        <div className="card shadow-sm">
+                                            <div className="row2 mb-6">
+                                                <div className="field">
+                                                    <label>Target IELTS overall band</label>
                                                     <input
                                                         type="text"
-                                                        id="phone_number"
-                                                        className="w-full h-14 px-5 rounded-[16px] border border-brand-pale-blue bg-white focus:border-brand-navy focus:ring-0 focus:outline-none text-base"
-                                                        defaultValue={auth.user.pupil_profile?.phone_number || ''}
-                                                        name="phone_number"
-                                                        placeholder="+998 90 123 4567"
+                                                        name="target_overall_band"
+                                                        value={targetOverallBand}
+                                                        onChange={(e) => setTargetOverallBand(e.target.value)}
+                                                        inputMode="decimal"
+                                                        placeholder="e.g. 7.5"
                                                     />
-                                                    <InputError className="mt-1" message={errors.phone_number} />
+                                                    <InputError message={errors.target_overall_band} className="mt-1" />
                                                 </div>
-
-                                                <div className="flex flex-col gap-2 md:col-span-2">
-                                                    <label htmlFor="level" className="font-bold text-brand-navy ml-1">
-                                                        {t('profile.target_level')}
-                                                    </label>
-                                                    <select
-                                                        id="level"
-                                                        name="level"
-                                                        className="w-full h-14 px-5 rounded-[16px] border border-brand-pale-blue bg-white focus:border-brand-navy focus:ring-0 focus:outline-none text-base appearance-none"
-                                                        defaultValue={auth.user.pupil_profile?.level || ''}
-                                                    >
-                                                        <option value="">{t('profile.select_level')}</option>
-                                                        <option value="beginner">{t('profile.level_beginner')}</option>
-                                                        <option value="pre-intermediate">{t('profile.level_pre_int')}</option>
-                                                        <option value="upper-intermediate">{t('profile.level_upper_int')}</option>
-                                                        <option value="advanced">{t('profile.level_advanced')}</option>
-                                                        <option value="ielts_band">{t('profile.level_ielts')}</option>
-                                                        <option value="cefr_band">{t('profile.level_cefr')}</option>
-                                                    </select>
-                                                    <InputError className="mt-1" message={errors.level} />
-                                                </div>
-
-                                                <div className="flex flex-col gap-2 md:col-span-2">
-                                                    <label htmlFor="ielts_certificates" className="font-bold text-brand-navy ml-1">
-                                                        Upload IELTS Certificate(s) (PDF or Image)
-                                                    </label>
+                                                <div className="field">
+                                                    <label>Target Speaking band <span className="hint">Matches you with optimal peers</span></label>
                                                     <input
-                                                        type="file"
-                                                        id="ielts_certificates"
-                                                        name="ielts_certificates[]"
-                                                        multiple
-                                                        className="w-full h-14 px-5 rounded-[16px] border border-brand-pale-blue bg-white focus:border-brand-navy focus:ring-0 focus:outline-none text-base py-3"
-                                                        accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
+                                                        type="text"
+                                                        name="target_speaking_band"
+                                                        value={targetSpeakingBand}
+                                                        onChange={(e) => setTargetSpeakingBand(e.target.value)}
+                                                        inputMode="decimal"
+                                                        placeholder="e.g. 7.0"
                                                     />
-                                                    <InputError className="mt-1" message={errors.ielts_certificates} />
-
-                                                    {pupilCerts.length > 0 && (
-                                                        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                            {pupilCerts.map((cert, index) => {
-                                                                const isImg = isImageFile(cert);
-                                                                const isPdf = isPdfFile(cert);
-                                                                return (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="group relative flex flex-col overflow-hidden rounded-[20px] border border-brand-pale-blue/30 bg-neutral-50 p-3 transition-all hover:shadow-sm"
-                                                                    >
-                                                                        {isImg ? (
-                                                                            <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-neutral-200">
-                                                                                <img
-                                                                                    src={cert}
-                                                                                    alt="Certificate"
-                                                                                    className="h-full w-full object-cover"
-                                                                                />
-                                                                                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                                                                                    <a
-                                                                                        href={cert}
-                                                                                        target="_blank"
-                                                                                        rel="noopener noreferrer"
-                                                                                        className="scale-90 rounded-lg bg-white/95 p-1.5 text-slate-800 transition-all group-hover:scale-100 hover:bg-white"
-                                                                                    >
-                                                                                        <ExternalLink className="h-4 w-4" />
-                                                                                    </a>
-                                                                                </div>
-                                                                            </div>
-                                                                        ) : isPdf ? (
-                                                                            <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-brand-pale-blue/30 bg-white">
-                                                                                <iframe
-                                                                                    src={`${cert}#toolbar=0&navpanes=0`}
-                                                                                    className="pointer-events-none h-full w-full border-0"
-                                                                                />
-                                                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 p-2 text-center opacity-0 transition-opacity group-hover:opacity-100">
-                                                                                    <span className="mb-1 max-w-full truncate px-2 text-[10px] font-semibold text-white">
-                                                                                        {cert.substring(cert.lastIndexOf('/') + 1)}
-                                                                                    </span>
-                                                                                    <a
-                                                                                        href={cert}
-                                                                                        target="_blank"
-                                                                                        rel="noopener noreferrer"
-                                                                                        className="scale-90 rounded-lg bg-white/95 p-1.5 text-slate-800 transition-all group-hover:scale-100 hover:bg-white"
-                                                                                    >
-                                                                                        <ExternalLink className="h-4 w-4" />
-                                                                                    </a>
-                                                                                </div>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div className="flex aspect-video w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-brand-pale-blue bg-white p-2">
-                                                                                <FileText className="h-8 w-8 text-brand-navy/60" />
-                                                                                <span className="max-w-full truncate px-2 text-[10px] font-bold text-brand-navy/80">
-                                                                                    {cert.substring(cert.lastIndexOf('/') + 1)}
-                                                                                </span>
-                                                                                <a
-                                                                                    href={cert}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="flex items-center gap-1 text-[10px] font-bold text-brand-navy hover:underline"
-                                                                                >
-                                                                                    View Document <ExternalLink className="h-3 w-3" />
-                                                                                </a>
-                                                                            </div>
-                                                                        )}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() =>
-                                                                                setPupilCerts((prev) => prev.filter((_, i) => i !== index))
-                                                                            }
-                                                                            className="absolute top-2.5 right-2.5 rounded-full bg-red-500 p-1.5 text-white opacity-0 shadow transition-all group-hover:opacity-100 hover:bg-red-600 focus:opacity-100 focus:outline-none"
-                                                                        >
-                                                                            <Trash2 className="h-3 w-3" />
-                                                                        </button>
-                                                                        <input type="hidden" name="existing_certificates[]" value={cert} />
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
+                                                    <InputError message={errors.target_speaking_band} className="mt-1" />
                                                 </div>
+                                            </div>
+
+                                            <div className="field">
+                                                <label>Diagnostic Test Results / Certificates</label>
+                                                {pupilCerts.map((c: any, index: number) => (
+                                                    <div key={c.id || index} className="cert-row shadow-sm">
+                                                        <input
+                                                            type="text"
+                                                            name={`certificates[${index}][title]`}
+                                                            value={c.title}
+                                                            onChange={(e) => updatePupilCertTitle(index, e.target.value)}
+                                                            placeholder="Certificate title..."
+                                                            className="w-full border-none p-1 font-bold text-sm bg-transparent focus:outline-none focus:ring-0 focus:border-none"
+                                                            required
+                                                        />
+                                                        {c.file_url ? (
+                                                            <a
+                                                                href={c.file_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="cert-file flex items-center gap-1.5"
+                                                            >
+                                                                📎 {c.file_name || 'View file'}
+                                                            </a>
+                                                        ) : (
+                                                            <label
+                                                                className="cert-file flex items-center gap-1.5 cursor-pointer"
+                                                                htmlFor={`pupil-file-${index}`}
+                                                            >
+                                                                <Upload className="w-3.5 h-3.5" /> Upload
+                                                            </label>
+                                                        )}
+                                                        <input
+                                                            type="file"
+                                                            id={`pupil-file-${index}`}
+                                                            name={`ielts_certificates[${index}]`}
+                                                            accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
+                                                            hidden
+                                                            onChange={(e) => handlePupilCertFileSelect(index, e)}
+                                                        />
+                                                        <input type="hidden" name={`certificates[${index}][file_url]`} value={c.file_url || ''} />
+                                                        <input type="hidden" name={`certificates[${index}][file_name]`} value={c.file_name || ''} />
+                                                        <input type="hidden" name={`certificates[${index}][status]`} value={c.status || 'pending'} />
+
+                                                        {c.status === 'verified' ? (
+                                                            <span className="cert-status verified">✓ Verified</span>
+                                                        ) : (
+                                                            <span className="cert-status pending">Under review</span>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removePupilCertificate(index)}
+                                                            className="p-2 text-red-500 hover:text-red-700 transition"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+
+                                                <button
+                                                    type="button"
+                                                    onClick={addPupilCertificate}
+                                                    className="add-cert text-[#1E2A5A] hover:underline flex items-center gap-1 mt-2"
+                                                >
+                                                    + Add diagnostic file / certificate
+                                                </button>
+                                                <div className="verify-note">
+                                                    Uploading official results helps us optimize matchmaking parameters to pair you with partners of complementary fluency bands. Verified results display on your target charts.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 4. Conversational Focus Areas */}
+                                    <div className="sec">
+                                        <div className="sec-head">
+                                            <h2>My conversational goals</h2>
+                                            <p>Shown as profile focus areas. Select the types of sessions you want to run.</p>
+                                        </div>
+                                        <div className="card shadow-sm">
+                                            <div className="focus-grid">
+                                                {[
+                                                    { val: 'freestyle conversation', label: 'Freestyle conversation' },
+                                                    { val: 'practice q&a', label: 'Practice Q&A' },
+                                                    { val: 'ielts speaking mock', label: 'IELTS Speaking mock' },
+                                                    { val: 'job interview prep', label: 'Job interview prep' },
+                                                    { val: 'vocabulary expansion', label: 'Vocabulary expansion' },
+                                                    { val: 'business english', label: 'Business English' },
+                                                ].map((tag) => {
+                                                    const isChecked = pupilLabels.includes(tag.val);
+                                                    return (
+                                                        <label
+                                                            key={tag.val}
+                                                            className={`check ${isChecked ? 'checked' : ''}`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                name="labels[]"
+                                                                value={tag.val}
+                                                                checked={isChecked}
+                                                                onChange={() => togglePupilLabel(tag.val)}
+                                                                className="hidden"
+                                                            />
+                                                            <div className={`box border transition-all ${
+                                                                isChecked ? 'bg-[#1E2A5A] border-[#1E2A5A]' : 'border-[#C9CFDE]'
+                                                            }`}>
+                                                                <svg viewBox="0 0 16 16" fill="none" strokeLinecap="round" className={`w-3 h-3 stroke-white stroke-[3px] transition-opacity ${
+                                                                    isChecked ? 'opacity-100' : 'opacity-0'
+                                                                }`}>
+                                                                    <path d="M3 8.5 L6.5 12 L13 4.5" />
+                                                                </svg>
+                                                            </div>
+                                                            <span className="check-label">{tag.label}</span>
+                                                        </label>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>

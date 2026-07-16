@@ -147,7 +147,11 @@ class ProfileUpdateTest extends TestCase
                 'email' => 'pupil@example.com',
                 'age' => 17,
                 'phone_number' => '+0987654321',
-                'level' => 'pre-intermediate',
+                'headline' => 'My Headline',
+                'bio' => 'My Bio',
+                'target_overall_band' => 7.5,
+                'target_speaking_band' => 7.0,
+                'labels' => ['freestyle conversation', 'practice q&a'],
             ]);
 
         $response->assertSessionHasNoErrors();
@@ -157,8 +161,14 @@ class ProfileUpdateTest extends TestCase
             'user_id' => $user->id,
             'age' => 17,
             'phone_number' => '+0987654321',
-            'level' => 'pre-intermediate',
+            'headline' => 'My Headline',
+            'bio' => 'My Bio',
+            'target_overall_band' => 7.5,
+            'target_speaking_band' => 7.0,
         ]);
+
+        $user->refresh();
+        $this->assertEquals(['freestyle conversation', 'practice q&a'], $user->pupilProfile->labels);
     }
 
     public function test_teacher_profile_can_be_updated_with_null_values()
@@ -289,12 +299,18 @@ class ProfileUpdateTest extends TestCase
             ->patch(route('profile.update'), [
                 'name' => 'Pupil Name',
                 'email' => 'pupil@example.com',
-                'certificates' => ['IELTS 7.5 Certificate', 'CEFR B2'],
+                'certificates' => [
+                    ['title' => 'IELTS 7.5 Certificate', 'file_url' => 'http://example.com/cert1.pdf', 'file_name' => 'cert1.pdf', 'status' => 'verified'],
+                    ['title' => 'CEFR B2', 'file_url' => 'http://example.com/cert2.pdf', 'file_name' => 'cert2.pdf', 'status' => 'pending']
+                ],
             ]);
 
         $response->assertSessionHasNoErrors();
         $user->refresh();
-        $this->assertEquals(['IELTS 7.5 Certificate', 'CEFR B2'], $user->pupilProfile->certificates);
+        
+        $certs = $user->pupilProfile->certificates;
+        $this->assertEquals('IELTS 7.5 Certificate', $certs[0]['title']);
+        $this->assertEquals('CEFR B2', $certs[1]['title']);
     }
 
     public function test_teacher_profile_can_be_updated_with_multiple_certificates_uploaded()
