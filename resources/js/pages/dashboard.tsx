@@ -183,8 +183,12 @@ function PupilDashboard({
 
                 <div className="z-10 flex items-center space-x-4 md:space-x-6">
                     <div className="relative">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl font-bold shadow-inner backdrop-blur-md md:h-20 md:w-20">
-                            👤
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl font-bold shadow-inner backdrop-blur-md md:h-20 md:w-20 overflow-hidden">
+                            {user.avatar ? (
+                                <img src={user.avatar} className="h-full w-full object-cover" alt="avatar" />
+                            ) : (
+                                <span>👤</span>
+                            )}
                         </div>
                         <span className="absolute -right-1 -bottom-1 rounded-full border-2 border-brand-navy bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                             {t('dashboard.level', { level: 3 })}
@@ -321,9 +325,21 @@ function PupilDashboard({
                             >
                                 <div className="flex flex-col justify-between gap-4 border-b border-[#c6c5d0]/35 p-6 sm:flex-row sm:items-center">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105">
-                                            <Mic className="h-6 w-6" />
-                                        </div>
+                                        {apt.teacher ? (
+                                            <Link href={`/profile/${apt.teacher.id}`} className="shrink-0">
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105 overflow-hidden">
+                                                    {apt.teacher?.avatar ? (
+                                                        <img src={apt.teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                    ) : (
+                                                        <Mic className="h-6 w-6" />
+                                                    )}
+                                                </div>
+                                            </Link>
+                                        ) : (
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445]">
+                                                <Mic className="h-6 w-6" />
+                                            </div>
+                                        )}
                                         <div>
                                             <h4 className="text-base font-bold text-[#1b1b1f]">
                                                 {t(
@@ -331,11 +347,17 @@ function PupilDashboard({
                                                 )}
                                             </h4>
                                             <p className="text-sm font-medium text-[#45464f]">
-                                                {t('dashboard.with_teacher', {
-                                                    name:
-                                                        apt.teacher
-                                                            ?.full_name || '',
-                                                })}
+                                                {t('dashboard.with_teacher', { name: '' })}
+                                                {apt.teacher ? (
+                                                    <Link
+                                                        href={`/profile/${apt.teacher.id}`}
+                                                        className="font-bold text-[#061445] hover:underline"
+                                                    >
+                                                        {apt.teacher.full_name}
+                                                    </Link>
+                                                ) : (
+                                                    ''
+                                                )}
                                             </p>
                                         </div>
                                     </div>
@@ -499,8 +521,12 @@ function TeacherDashboard({
 
                 <div className="z-10 flex items-center space-x-4 md:space-x-6">
                     <div className="relative">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl shadow-inner backdrop-blur-md md:h-20 md:w-20">
-                            👨‍🏫
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl shadow-inner backdrop-blur-md md:h-20 md:w-20 overflow-hidden">
+                            {user.avatar ? (
+                                <img src={user.avatar} className="h-full w-full object-cover" alt="avatar" />
+                            ) : (
+                                <span>👨‍🏫</span>
+                            )}
                         </div>
                         <span className="absolute -right-1 -bottom-1 rounded-full bg-[#fae18e] px-2 py-0.5 text-[10px] font-bold text-[#061445] shadow-sm">
                             PRO
@@ -696,12 +722,17 @@ function TeacherDashboard({
                                                     )}
                                                 </h4>
                                                 <p className="text-xs font-semibold text-[#45464f]">
-                                                    {t('dashboard.with_pupil', {
-                                                        name:
-                                                            apt.pupil
-                                                                ?.full_name ||
-                                                            'Pupil',
-                                                    })}
+                                                    {t('dashboard.with_pupil', { name: '' })}
+                                                    {apt.pupil ? (
+                                                        <Link
+                                                            href={`/profile/${apt.pupil.id}`}
+                                                            className="font-bold text-[#061445] hover:underline"
+                                                        >
+                                                            {apt.pupil.full_name}
+                                                        </Link>
+                                                    ) : (
+                                                        'Pupil'
+                                                    )}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2">

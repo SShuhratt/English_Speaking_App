@@ -7,6 +7,7 @@ interface TeacherProps {
     teacher: {
         id: string;
         full_name: string;
+        avatar?: string;
         teacher_profile?: {
             overall_level: string;
             speaking_band?: string | number;
@@ -32,8 +33,12 @@ export default function TeacherCard({ teacher }: TeacherProps) {
             <div>
                 {/* Header Profile Section */}
                 <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-brown text-lg font-bold text-white shadow-lg shadow-brand-brown/10 transition-transform duration-300 group-hover:scale-105">
-                        {initials}
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-brown text-lg font-bold text-white shadow-lg shadow-brand-brown/10 transition-transform duration-300 group-hover:scale-105 overflow-hidden">
+                        {teacher.avatar ? (
+                            <img src={teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                        ) : (
+                            initials
+                        )}
                     </div>
                     <div>
                         <h3 className="text-base font-bold text-foreground transition-colors group-hover:text-brand-brown">
@@ -94,7 +99,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
 
                 {/* View Profile Button */}
                 <Link
-                    href={`/pupil/teachers/${teacher.id}`}
+                    href={`/profile/${teacher.id}`}
                     className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover py-3 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:shadow-lg"
                 >
                     {t('teachers.view_profile')}{' '}

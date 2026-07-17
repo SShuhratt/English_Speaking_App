@@ -37,11 +37,6 @@ export function AppSidebar() {
             href: '/dashboard',
             icon: LayoutGrid,
         },
-        {
-            title: t('nav.start_speaking'),
-            href: '/speaking',
-            icon: Mic,
-        },
     ];
 
     let mainNavItems: NavItem[] = [];
@@ -91,6 +86,11 @@ export function AppSidebar() {
         mainNavItems = [
             ...baseItems,
             {
+                title: t('nav.start_speaking'),
+                href: '/speaking',
+                icon: Mic,
+            },
+            {
                 title: t('nav.find_teachers'),
                 href: '/pupil/teachers',
                 icon: Users,
@@ -115,16 +115,10 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+            <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-1 group-data-[collapsible=icon]:py-3">
+                <Link href="/dashboard" prefetch className="flex items-center">
+                    <AppLogo />
+                </Link>
             </SidebarHeader>
 
             <SidebarContent>

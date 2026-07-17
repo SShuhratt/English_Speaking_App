@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import {
     Check,
     X,
@@ -186,12 +186,22 @@ export default function Appointments() {
                                         >
                                             {/* Left: avatar + info */}
                                             <div className="flex items-start gap-4">
-                                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#d0e4ff]/40 text-[#061445]">
-                                                    <User className="h-5 w-5" />
+                                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#d0e4ff]/40 text-[#061445] overflow-hidden">
+                                                    {apt.pupil?.avatar ? (
+                                                        <img src={apt.pupil.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                    ) : (
+                                                        <User className="h-5 w-5" />
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <h4 className="text-sm font-bold text-[#061445]">
-                                                        {apt.pupil?.full_name || 'Student'}
+                                                        {apt.pupil ? (
+                                                            <Link href={`/profile/${apt.pupil.id}`} className="hover:underline">
+                                                                {apt.pupil.full_name}
+                                                            </Link>
+                                                        ) : (
+                                                            'Student'
+                                                        )}
                                                     </h4>
                                                     <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                                                         <span className="flex items-center gap-1">

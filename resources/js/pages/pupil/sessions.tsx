@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { Head, useForm, usePage, router, Link } from '@inertiajs/react';
 import {
     Video,
     User,
@@ -115,13 +115,22 @@ export default function Sessions({ sessions }: Props) {
                                 >
                                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
-                                                <User className="h-6 w-6" />
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 overflow-hidden">
+                                                {apt.teacher?.avatar ? (
+                                                    <img src={apt.teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                ) : (
+                                                    <User className="h-6 w-6" />
+                                                )}
                                             </div>
                                             <div>
                                                 <h4 className="text-base font-bold text-foreground">
-                                                    {apt.teacher?.full_name ||
-                                                        'Teacher'}
+                                                    {apt.teacher ? (
+                                                        <Link href={`/profile/${apt.teacher.id}`} className="hover:underline">
+                                                            {apt.teacher.full_name}
+                                                        </Link>
+                                                    ) : (
+                                                        'Teacher'
+                                                    )}
                                                 </h4>
                                                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                     <span className="flex items-center gap-1">

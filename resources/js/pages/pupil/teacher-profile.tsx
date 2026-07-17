@@ -683,8 +683,12 @@ export default function TeacherProfile({ teacher }: Props) {
                                         <div key={fb.id} className="rounded-2xl border border-muted/50 bg-[#FAFBFD] p-5 shadow-sm">
                                             <div className="mb-3 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF4FB] text-xs font-bold text-[#1E2A5A]">
-                                                        {fb.author?.full_name?.substring(0, 2).toUpperCase() || 'P'}
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF4FB] text-xs font-bold text-[#1E2A5A] overflow-hidden">
+                                                        {fb.author?.avatar ? (
+                                                            <img src={fb.author.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                        ) : (
+                                                            fb.author?.full_name?.substring(0, 2).toUpperCase() || 'P'
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <h4 className="text-sm font-bold text-[#1E2A5A]">
@@ -812,10 +816,6 @@ export default function TeacherProfile({ teacher }: Props) {
                             </button>
 
                             <div className="book-meta">
-                                <div className="bm-row">
-                                    <span className="k">Session length</span>
-                                    <span className="v">30 or 60 min</span>
-                                </div>
                                 <div className="bm-row">
                                     <span className="k">Where</span>
                                     <span className="v">Video call on ConvoMate</span>

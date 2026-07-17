@@ -668,12 +668,16 @@ export default function Booking({ teacher }: Props) {
                     >
                         {/* Teacher Profile Card */}
                         <div className="flex flex-col items-center rounded-2xl border bg-muted/20 p-4 text-center shadow-sm">
-                            <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-brown text-2xl font-bold text-white shadow-lg shadow-brand-brown/10">
-                                {teacher.full_name
-                                    .split(' ')
-                                    .map((n: string) => n[0])
-                                    .join('')
-                                    .toUpperCase()}
+                            <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-brown text-2xl font-bold text-white shadow-lg shadow-brand-brown/10 overflow-hidden">
+                                {teacher.avatar ? (
+                                    <img src={teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                ) : (
+                                    teacher.full_name
+                                        .split(' ')
+                                        .map((n: string) => n[0])
+                                        .join('')
+                                        .toUpperCase()
+                                )}
                             </div>
                             <h2 className="text-lg leading-tight font-bold text-foreground">
                                 {teacher.full_name}

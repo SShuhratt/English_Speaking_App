@@ -19,10 +19,10 @@ export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
             {/* Embed the high-fidelity transparent logo image, clipped to the circle */}
             <image 
                 href="/images/logo.png" 
-                x="14" 
-                y="14" 
-                width="92" 
-                height="92" 
+                x="18" 
+                y="18" 
+                width="84" 
+                height="84" 
                 clipPath="url(#logo-circle-clip)"
             />
         </svg>

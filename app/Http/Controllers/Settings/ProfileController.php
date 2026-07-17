@@ -65,6 +65,10 @@ class ProfileController extends Controller
         $user->save();
 
         if ($user->role === 'teacher') {
+            if ($request->has('price') && $request->input('price') === '') {
+                $request->merge(['price' => null]);
+            }
+
             // Validate teacher profile details
             $profileData = $request->validate([
                 'age' => ['nullable', 'integer', 'min:1', 'max:120'],

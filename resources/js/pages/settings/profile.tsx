@@ -249,8 +249,11 @@ export default function Profile({
 
     // Hourly Rate
     const [price, setPrice] = React.useState(() => {
-        const p = auth.user.teacher_profile?.price ?? 0;
-        return p ? String(p).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : '';
+        const p = auth.user.teacher_profile?.price;
+        if (p === null || p === undefined) {
+            return '';
+        }
+        return String(p).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     });
 
     const formatPrice = (val: string) => {
@@ -885,7 +888,7 @@ export default function Profile({
                                         </div>
                                         <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6">
                                             <div className="space-y-1.5">
-                                                <label className="text-sm font-bold text-[#22284A]">Price per session</label>
+                                                <label className="text-sm font-bold text-[#22284A]">Price per session <span className="text-xs font-normal text-[#6B7394] ml-1">(optional)</span></label>
                                                 <div className="relative">
                                                     <input
                                                         type="text"

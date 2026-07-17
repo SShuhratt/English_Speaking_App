@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { Head, useForm, usePage, router, Link } from '@inertiajs/react';
 import { User, Calendar, Clock, MessageSquare, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -102,13 +102,22 @@ export default function Sessions({ appointments }: Props) {
                                 >
                                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
-                                                <User className="h-6 w-6" />
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 overflow-hidden">
+                                                {apt.pupil?.avatar ? (
+                                                    <img src={apt.pupil.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                ) : (
+                                                    <User className="h-6 w-6" />
+                                                )}
                                             </div>
                                             <div>
                                                 <h4 className="text-base font-bold text-foreground">
-                                                    {apt.pupil?.full_name ||
-                                                        'Student'}
+                                                    {apt.pupil ? (
+                                                        <Link href={`/profile/${apt.pupil.id}`} className="hover:underline">
+                                                            {apt.pupil.full_name}
+                                                        </Link>
+                                                    ) : (
+                                                        'Student'
+                                                    )}
                                                 </h4>
                                                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                     <span className="flex items-center gap-1">

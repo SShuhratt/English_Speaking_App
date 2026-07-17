@@ -1,19 +1,25 @@
-import AppLogoIcon from '@/components/app-logo-icon';
+import React from 'react';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export default function AppLogo() {
+    const { state } = useSidebar();
+    const isCollapsed = state === 'collapsed';
+
     return (
-        <>
+        <div className={`flex items-center transition-all duration-300 ${isCollapsed ? 'justify-center w-full' : ''}`}>
             {/* Circle logo frame using the premium brand logo */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brand-navy/10 bg-white shadow-md shadow-brand-navy/10 transition-transform group-hover:scale-105">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-brand-navy/10 bg-white shadow-md shadow-brand-navy/10 transition-transform hover:scale-105 p-1">
                 <img
                     src="/images/logo.png"
                     alt="ConvoMate"
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain"
                 />
             </div>
-            <span className="ml-2 text-base font-black tracking-tight text-brand-navy">
-                Convo<span className="text-brand-yellow">Mate</span>
-            </span>
-        </>
+            {!isCollapsed && (
+                <span className="ml-2 text-base font-black tracking-tight text-brand-navy whitespace-nowrap">
+                    Convo<span className="text-brand-yellow">Mate</span>
+                </span>
+            )}
+        </div>
     );
 }

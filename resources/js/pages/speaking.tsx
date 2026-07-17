@@ -586,16 +586,16 @@ export default function Speaking() {
                         <div className="lg:col-span-3 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xs font-black uppercase tracking-widest text-[#1E2A5A] dark:text-[#F7DE8B]">
-                                    Available for Speaking
+                                    {t('speaking.available_for_speaking') || "Available for Speaking"}
                                 </h2>
                                 <span className="text-[10px] font-black bg-white border border-[#E6E9F2] text-[#1E2A5A] px-2 py-0.5 rounded-md">
-                                    {onlinePupils.length} Online
+                                    {t('speaking.online_count', { count: onlinePupils.length }) || `${onlinePupils.length} Online`}
                                 </span>
                             </div>
                             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                                 {onlinePupils.length === 0 ? (
                                     <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 text-center text-xs text-[#6B7394] select-none">
-                                        No other pupils are online right now. Keep this page open to show up!
+                                        {t('speaking.no_online_pupils') || "No other pupils are online right now. Keep this page open to show up!"}
                                     </div>
                                 ) : (
                                     onlinePupils.map((pupil) => {
@@ -603,15 +603,21 @@ export default function Speaking() {
                                         return (
                                             <div key={pupil.id} className="bg-white border border-[#E6E9F2] rounded-[22px] p-4 flex flex-col gap-3 shadow-sm hover:border-[#A9C6E8] transition">
                                                 <div className="flex items-center gap-3">
-                                                    {pupil.avatar_url ? (
-                                                        <img src={pupil.avatar_url} className="w-10 h-10 rounded-xl object-cover" alt="avatar" />
-                                                    ) : (
-                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-[#1E2A5A] font-extrabold text-sm flex items-center justify-center">
-                                                            {getInitials(pupil.name)}
-                                                        </div>
-                                                    )}
+                                                    <Link href={`/profile/${pupil.id}`} className="shrink-0">
+                                                        {pupil.avatar_url ? (
+                                                            <img src={pupil.avatar_url} className="w-10 h-10 rounded-xl object-cover hover:opacity-85 transition" alt="avatar" />
+                                                        ) : (
+                                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-[#1E2A5A] font-extrabold text-sm flex items-center justify-center hover:opacity-85 transition">
+                                                                {getInitials(pupil.name)}
+                                                            </div>
+                                                        )}
+                                                    </Link>
                                                     <div className="min-w-0 flex-1">
-                                                        <h3 className="font-bold text-xs text-[#22284A] truncate">{pupil.name}</h3>
+                                                        <h3 className="font-bold text-xs text-[#22284A] truncate">
+                                                            <Link href={`/profile/${pupil.id}`} className="hover:underline">
+                                                                {pupil.name}
+                                                            </Link>
+                                                        </h3>
                                                         {pupil.headline && (
                                                             <p className="text-[10px] text-[#6B7394] truncate">{pupil.headline}</p>
                                                         )}
@@ -636,7 +642,9 @@ export default function Speaking() {
                                                                 : 'bg-[#1E2A5A] text-white hover:bg-[#1E2A5A]/90'
                                                         }`}
                                                     >
-                                                        {hasRequested ? 'Requested' : 'Request'}
+                                                        {hasRequested
+                                                            ? (t('speaking.requested') || 'Requested')
+                                                            : (t('speaking.request_btn') || 'Request')}
                                                     </button>
                                                 </div>
                                             </div>
@@ -659,10 +667,10 @@ export default function Speaking() {
                                             </div>
                                             <div className="space-y-2">
                                                 <h2 className="text-xl font-extrabold text-brand-navy dark:text-white">
-                                                    Active Session Detected
+                                                    {t('speaking.active_session_detected') || "Active Session Detected"}
                                                 </h2>
                                                 <p className="text-xs text-[#45464f] max-w-sm mx-auto dark:text-[#A0A0B0]">
-                                                    We found an active conversation with <strong>{activeSessionData.partner_name}</strong>. Would you like to resume it?
+                                                    {t('speaking.active_session_desc', { name: activeSessionData.partner_name }) || `We found an active conversation with ${activeSessionData.partner_name}. Would you like to resume it?`}
                                                 </p>
                                             </div>
                                             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
@@ -670,13 +678,13 @@ export default function Speaking() {
                                                     onClick={resumeSession}
                                                     className="px-8 py-3.5 rounded-full font-bold text-xs bg-emerald-600 text-white shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer border-0"
                                                 >
-                                                    Resume Conversation
+                                                    {t('speaking.resume_conversation') || "Resume Conversation"}
                                                 </button>
                                                 <button
                                                     onClick={cancelSession}
                                                     className="px-8 py-3.5 rounded-full font-bold text-xs border border-red-500/30 text-red-500 hover:bg-red-50/50 transition-all cursor-pointer dark:hover:bg-red-950/20 bg-transparent"
                                                 >
-                                                    Cancel Session
+                                                    {t('speaking.cancel_session') || "Cancel Session"}
                                                 </button>
                                             </div>
                                         </div>
@@ -698,7 +706,7 @@ export default function Speaking() {
                                             <div className="flex flex-col items-center gap-3">
                                                 <div className="text-[10px] text-amber-600 bg-amber-500/5 px-4 py-2 rounded-xl inline-flex items-center gap-1.5 border border-amber-500/10 font-medium dark:text-amber-400 dark:bg-amber-500/5 dark:border-amber-500/10">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                                                    Please ensure microphone permission is allowed in your browser settings to connect.
+                                                    {t('speaking.mic_permission_warning') || "Please ensure microphone permission is allowed in your browser settings to connect."}
                                                 </div>
                                                 <button
                                                     onClick={joinQueue}
@@ -767,26 +775,32 @@ export default function Speaking() {
                         {/* Right Column: Incoming Requests */}
                         <div className="lg:col-span-3 space-y-4">
                             <h2 className="text-sm font-black uppercase tracking-widest text-[#1E2A5A] dark:text-[#F7DE8B]">
-                                Incoming Requests
+                                {t('speaking.incoming_requests') || "Incoming Requests"}
                             </h2>
                             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                                 {incomingRequests.length === 0 ? (
                                     <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 text-center text-xs text-[#6B7394] select-none">
-                                        No incoming requests yet. Keep this page open to receive them!
+                                        {t('speaking.no_incoming_requests') || "No incoming requests yet. Keep this page open to receive them!"}
                                     </div>
                                 ) : (
                                     incomingRequests.map((req) => (
                                         <div key={req.id} className="bg-white border border-[#E6E9F2] rounded-[22px] p-4 flex flex-col gap-3 shadow-sm hover:border-[#A9C6E8] transition">
                                             <div className="flex items-center gap-3">
-                                                {req.avatar_url ? (
-                                                    <img src={req.avatar_url} className="w-10 h-10 rounded-xl object-cover" alt="avatar" />
-                                                ) : (
-                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-[#1E2A5A] font-extrabold text-sm flex items-center justify-center">
-                                                        {getInitials(req.name)}
-                                                    </div>
-                                                )}
+                                                <Link href={`/profile/${req.id}`} className="shrink-0">
+                                                    {req.avatar_url ? (
+                                                        <img src={req.avatar_url} className="w-10 h-10 rounded-xl object-cover hover:opacity-85 transition" alt="avatar" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-[#1E2A5A] font-extrabold text-sm flex items-center justify-center hover:opacity-85 transition">
+                                                            {getInitials(req.name)}
+                                                        </div>
+                                                    )}
+                                                </Link>
                                                 <div className="min-w-0 flex-1">
-                                                    <h3 className="font-bold text-xs text-[#22284A] truncate">{req.name}</h3>
+                                                    <h3 className="font-bold text-xs text-[#22284A] truncate">
+                                                        <Link href={`/profile/${req.id}`} className="hover:underline">
+                                                            {req.name}
+                                                        </Link>
+                                                    </h3>
                                                     {req.headline && (
                                                         <p className="text-[10px] text-[#6B7394] truncate">{req.headline}</p>
                                                     )}
@@ -806,14 +820,14 @@ export default function Speaking() {
                                                     <button
                                                         onClick={() => declineDirectRequest(req.id)}
                                                         className="p-1.5 rounded-full text-red-500 hover:bg-red-50 transition cursor-pointer border-0 bg-transparent"
-                                                        title="Decline"
+                                                        title={t('dashboard.cancel_button') || "Decline"}
                                                     >
                                                         <X className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => acceptDirectRequest(req.id)}
                                                         className="p-1.5 rounded-full text-emerald-600 hover:bg-emerald-50 transition cursor-pointer border-0 bg-transparent"
-                                                        title="Accept"
+                                                        title={t('speaking.connected') || "Accept"}
                                                     >
                                                         <PhoneCall className="w-4 h-4" />
                                                     </button>

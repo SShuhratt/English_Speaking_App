@@ -12,12 +12,14 @@ use App\Http\Controllers\TeacherAppointmentController;
 use App\Http\Controllers\TeacherAvailabilityController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherFeedbackController;
+use App\Http\Controllers\ProfileViewController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile/{id}', [ProfileViewController::class, 'show'])->name('profile.show');
 
     // Teacher Routes
     Route::prefix('teacher')->name('teacher.')->middleware('teacher')->group(function () {
