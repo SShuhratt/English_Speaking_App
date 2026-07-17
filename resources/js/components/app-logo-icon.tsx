@@ -1,30 +1,22 @@
-import type { SVGAttributes } from 'react';
+import React from 'react';
+import { cn } from '@/lib/utils';
 
-export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
+interface AppLogoIconProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+export default function AppLogoIcon({ className, ...props }: AppLogoIconProps) {
     return (
-        <svg
+        <div
+            className={cn(
+                "flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-brand-navy/10 bg-white shadow-md shadow-brand-navy/10 aspect-square p-1",
+                className
+            )}
             {...props}
-            viewBox="0 0 120 120"
-            xmlns="http://www.w3.org/2000/svg"
         >
-            <defs>
-                <clipPath id="logo-circle-clip">
-                    <circle cx="60" cy="60" r="56" />
-                </clipPath>
-            </defs>
-
-            {/* White Circle Background */}
-            <circle cx="60" cy="60" r="56" fill="white" />
-            
-            {/* Embed the high-fidelity transparent logo image, clipped to the circle */}
-            <image 
-                href="/images/logo.png" 
-                x="18" 
-                y="18" 
-                width="84" 
-                height="84" 
-                clipPath="url(#logo-circle-clip)"
+            <img
+                src="/images/logo.png"
+                alt="ConvoMate Logo"
+                className="h-full w-full object-contain"
             />
-        </svg>
+        </div>
     );
 }

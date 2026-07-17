@@ -155,9 +155,7 @@ export default function Welcome() {
                 <header className="fixed top-0 right-0 left-0 z-50 border-b border-white/5 bg-white/80 shadow-sm backdrop-blur-md dark:bg-[#080811]/80">
                     <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
                         <Link href="/" className="group flex items-center gap-2.5">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#061445]/10 bg-white shadow-md shadow-[#061445]/10 transition-transform group-hover:scale-105">
-                                <img src="/logo.png" alt="ConvoMate" className="h-full w-full object-cover" />
-                            </div>
+                            <AppLogoIcon className="h-9 w-9 border-2 border-[#061445]/10 transition-transform group-hover:scale-105" />
                             <span className="text-lg font-black tracking-tight text-[#061445] dark:text-[#E8E8F0]">
                                 Convo<span className="text-[#f5c518] dark:text-[#f5c518]">Mate</span>
                             </span>
@@ -735,9 +733,7 @@ export default function Welcome() {
                     <div className="mx-auto max-w-7xl px-6">
                         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
                             <div className="flex items-center gap-2.5">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#061445]/10 bg-white shadow-md shadow-[#061445]/10">
-                                    <img src="/logo.png" alt="ConvoMate" className="h-full w-full object-cover" />
-                                </div>
+                                <AppLogoIcon className="h-8 w-8 border-2 border-[#061445]/10" />
                                 <span className="text-sm font-black tracking-tight text-[#061445] dark:text-[#E8E8F0]">
                                     Convo<span className="text-[#f5c518] dark:text-[#f5c518]">Mate</span>
                                 </span>
