@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
-import { Globe, Check, ShieldCheck, Video, Calendar, User, ArrowRight, Star, PhoneOff, Camera } from 'lucide-react';
+import { Globe, Check, ShieldCheck, Video, Calendar, User, ArrowRight, Star, PhoneOff, Camera, Mic } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -293,11 +293,14 @@ export default function Welcome() {
                             </div>
 
                             {/* Call Control Buttons (Floating Bottom Center) */}
-                            <div className="absolute bottom-[-16px] left-1/2 z-[30] flex -translate-x-1/2 items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#1E2A5A] shadow-lg">
+                            <div className="absolute bottom-[-36px] left-1/2 z-[30] flex -translate-x-1/2 items-center gap-3">
+                                <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-white text-[#1E2A5A] shadow-lg">
+                                    <Mic className="h-5 w-5 fill-[#1E2A5A]" />
+                                </div>
+                                <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-white text-[#1E2A5A] shadow-lg">
                                     <Video className="h-5 w-5 fill-[#1E2A5A]" />
                                 </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E54D42] text-white shadow-lg">
+                                <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#E5484D] text-white shadow-lg">
                                     <PhoneOff className="h-5 w-5 fill-white" />
                                 </div>
                             </div>
