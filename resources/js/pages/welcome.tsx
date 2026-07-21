@@ -157,8 +157,13 @@ export default function Welcome() {
                 {/* ── Main Header ── */}
                 <header className="sticky top-0 z-50 border-b border-[#EAE4D2] bg-white/95 backdrop-blur-md">
                     <div className="wrap flex h-[76px] items-center justify-between">
-                        <Link href="/" className="font-['Bricolage_Grotesque'] text-[22px] font-extrabold text-[#1E2A5A]">
-                            Convo<span className="text-[#D9B437]">Mate</span>
+                        <Link href="/" className="flex items-center gap-2.5">
+                            <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#1E2A5A]/10 bg-white p-1 shadow-md shadow-[#1E2A5A]/10 transition-transform hover:scale-105">
+                                <img src="/images/logo.png" alt="ConvoMate" className="h-full w-full object-contain" />
+                            </div>
+                            <span className="font-['Bricolage_Grotesque'] text-[22px] font-extrabold text-[#1E2A5A]">
+                                Convo<span className="text-[#D9B437]">Mate</span>
+                            </span>
                         </Link>
 
                         <nav className="hidden items-center gap-[30px] text-[15px] font-semibold text-[#5C6480] md:flex">
