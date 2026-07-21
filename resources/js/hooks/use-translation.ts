@@ -486,9 +486,15 @@ const dictionary = {
         'teachers.feedback_title': 'Pupil Feedback',
         'teachers.no_feedback': 'No feedback available yet.',
         'teachers.book_now': 'Book Now',
+        'teachers.new_teacher': 'New Teacher',
+        'teachers.freestyle_talk': 'Freestyle Talk',
         'labels.title': 'Teaching Focus',
         'labels.mock': 'Mock Exam / Interview',
         'labels.freestyle': 'Freestyle Conversation',
+        'labels.freestyle conversation': 'Freestyle Conversation',
+        'labels.freestyle talk': 'Freestyle Talk',
+        'labels.freestyle_talk': 'Freestyle Talk',
+        'labels.new_teacher': 'New Teacher',
         'labels.lessons': 'Structured Lessons',
         'labels.business english': 'Business English',
         'labels.practice q&a': 'Practice Q&A',
@@ -1120,9 +1126,15 @@ const dictionary = {
         'teachers.feedback_title': "O'quvchilar fikri",
         'teachers.no_feedback': "Hozircha hech qanday fikr-mulohazalar yo'q.",
         'teachers.book_now': 'Dars band qilish',
+        'teachers.new_teacher': "Yangi o'qituvchi",
+        'teachers.freestyle_talk': 'Erkin muloqot',
         'labels.title': "Dars turlari / Yo'nalishlar",
         'labels.mock': 'Mock suhbat / Test',
         'labels.freestyle': 'Erkin suhbat',
+        'labels.freestyle conversation': 'Erkin suhbat',
+        'labels.freestyle talk': 'Erkin muloqot',
+        'labels.freestyle_talk': 'Erkin muloqot',
+        'labels.new_teacher': "Yangi o'qituvchi",
         'labels.lessons': 'Tizimli darslar',
         'labels.business english': 'Biznes ingliz tili',
         'labels.practice q&a': 'Mashq Q&A',
@@ -1749,9 +1761,15 @@ const dictionary = {
         'teachers.feedback_title': 'Отзывы учеников',
         'teachers.no_feedback': 'Отзывов пока нет.',
         'teachers.book_now': 'Забронировать',
+        'teachers.new_teacher': 'Новый преподаватель',
+        'teachers.freestyle_talk': 'Свободное общение',
         'labels.title': 'Форматы занятий / Направления',
         'labels.mock': 'Пробный экзамен',
         'labels.freestyle': 'Разговорный клуб',
+        'labels.freestyle conversation': 'Разговорный клуб',
+        'labels.freestyle talk': 'Свободное общение',
+        'labels.freestyle_talk': 'Свободное общение',
+        'labels.new_teacher': 'Новый преподаватель',
         'labels.lessons': 'Структурированные уроки',
         'labels.business english': 'Деловой английский',
         'labels.practice q&a': 'Практика Q&A',
@@ -1889,8 +1907,24 @@ export function useTranslation() {
     const t = (key: string, replacements?: Record<string, string | number>) => {
         const langDict =
             dictionary[locale as 'en' | 'uz' | 'ru'] || dictionary.en;
-        const val = langDict[key as keyof typeof langDict];
+        let val = langDict[key as keyof typeof langDict];
+
+        // Fallback to English dictionary if key missing in current language
+        if (val === undefined) {
+            val = dictionary.en[key as keyof typeof dictionary.en];
+        }
+
         let text = val !== undefined ? val : key;
+
+        // Sanitize raw dev keys (e.g. 'teachers.new_teacher' -> 'New Teacher') so dev tokens never show in UI
+        if (text === key && (key.includes('.') || key.includes('_'))) {
+            const parts = key.split('.');
+            const raw = parts[parts.length - 1];
+            text = raw
+                .split('_')
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .join(' ');
+        }
 
         if (replacements) {
             Object.entries(replacements).forEach(([k, v]) => {

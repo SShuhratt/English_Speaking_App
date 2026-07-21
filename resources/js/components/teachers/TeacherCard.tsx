@@ -101,19 +101,23 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                 {/* Tags / Labels */}
                 <div className="mt-3 flex flex-wrap gap-1.5">
                     <span className="inline-flex items-center rounded-full bg-[#D0E4FF] px-3 py-1 text-[11px] font-bold text-[#1E2A5A]">
-                        {t('teachers.new_teacher') || 'New teacher'}
+                        {t('teachers.new_teacher')}
                     </span>
                     <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-[11px] font-bold text-[#1E2A5A]">
-                        {t('teachers.freestyle_talk') || 'Freestyle talk'}
+                        {t('teachers.freestyle_talk')}
                     </span>
-                    {labels.slice(0, 2).map((label) => (
-                        <span
-                            key={label}
-                            className="inline-flex items-center rounded-full bg-secondary/80 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
-                        >
-                            {t(`labels.${label}`)}
-                        </span>
-                    ))}
+                    {labels.slice(0, 2).map((label) => {
+                        const cleanKey = label.toLowerCase().trim();
+                        const labelText = t(`labels.${cleanKey}`);
+                        return (
+                            <span
+                                key={label}
+                                className="inline-flex items-center rounded-full bg-secondary/80 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
+                            >
+                                {labelText}
+                            </span>
+                        );
+                    })}
                 </div>
             </div>
 

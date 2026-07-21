@@ -1,6 +1,9 @@
 <laravel-boost-guidelines>
 === foundation rules ===
 
+## User-Facing Text Constraint
+- NO dev-related words, raw translation keys (e.g. `teachers.new_teacher`, `teachers.freestyle_talk`), or code tokens in the UI under any circumstances. All text displayed to users in components, badges, toasts, and pages must be clean, natural, human-readable user text.
+
 # Laravel Boost Guidelines
 
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.
