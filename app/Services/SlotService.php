@@ -11,6 +11,20 @@ use Illuminate\Support\Facades\Cache;
 
 class SlotService
 {
+    public function getNextAvailableSlot(string $teacherId): ?array
+    {
+        $today = Carbon::now('Asia/Tashkent');
+        for ($i = 0; $i < 7; $i++) {
+            $dateStr = $today->copy()->addDays($i)->format('Y-m-d');
+            $slots = $this->getAvailableSlots($teacherId, $dateStr);
+            if (! empty($slots)) {
+                return $slots[0];
+            }
+        }
+
+        return null;
+    }
+
     public function getAvailableSlots(
         string $teacherId,
         string $date
@@ -52,11 +66,13 @@ class SlotService
                     )
                 );
 
-                return $this->removeBookedSlots(
+                $allSlots = $this->removeBookedSlots(
                     $teacherId,
                     $day,
                     $slots
                 );
+
+                return collect($allSlots)->unique('start_at')->values()->toArray();
             }
         );
 
@@ -90,7 +106,7 @@ class SlotService
             }
         }
 
-        return $filtered;
+        return array_values(collect($filtered)->unique('start_at')->toArray());
     }
 
     protected function generateRecurringSlots(
@@ -99,6 +115,7 @@ class SlotService
     ): Collection {
 
         $slots = collect();
+        $dateStr = $date->format('Y-m-d');
 
         // Generate recurring slots for yesterday, today, and tomorrow to handle timezone shifts
         foreach ([$date->copy()->subDay(), $date, $date->copy()->addDay()] as $targetDate) {
@@ -120,7 +137,11 @@ class SlotService
             );
         }
 
-        return $slots;
+        return $slots->filter(function ($slot) use ($dateStr) {
+            $startTz = $slot['start_at']->copy()->setTimezone('Asia/Tashkent');
+
+            return $startTz->format('Y-m-d') === $dateStr;
+        });
     }
 
     protected function generateCustomSlots(
@@ -128,6 +149,7 @@ class SlotService
         Carbon $date
     ): Collection {
 
+        $dateStr = $date->format('Y-m-d');
         $startOfDay = $date->copy()->subDay()->startOfDay();
         $endOfDay = $date->copy()->addDay()->endOfDay();
 
@@ -139,9 +161,15 @@ class SlotService
             ->where('end_at', '>=', $startOfDay)
             ->get();
 
-        return $this->buildCustomSlots(
+        $slots = $this->buildCustomSlots(
             $availabilities
         );
+
+        return $slots->filter(function ($slot) use ($dateStr) {
+            $startTz = $slot['start_at']->copy()->setTimezone('Asia/Tashkent');
+
+            return $startTz->format('Y-m-d') === $dateStr;
+        });
     }
 
     protected function buildRecurringSlots(
@@ -152,17 +180,20 @@ class SlotService
         $slots = collect();
 
         foreach ($availabilities as $availability) {
+            $tz = $availability->timezone ?: 'Asia/Tashkent';
 
             $current = Carbon::parse(
                 $date->format('Y-m-d')
                 .' '
-                .$availability->start_time
+                .$availability->start_time,
+                $tz
             );
 
             $end = Carbon::parse(
                 $date->format('Y-m-d')
                 .' '
-                .$availability->end_time
+                .$availability->end_time,
+                $tz
             );
 
             if ($availability->slot_duration === 0) {
@@ -252,6 +283,8 @@ class SlotService
 
     protected function subtractIntervals(array $freeIntervals, CarbonInterface $bStart, CarbonInterface $bEnd): array
     {
+        $bStart = $bStart->copy()->setTimezone('Asia/Tashkent');
+        $bEnd = $bEnd->copy()->setTimezone('Asia/Tashkent');
         $result = [];
         foreach ($freeIntervals as $interval) {
             $fStart = $interval['start_at'];

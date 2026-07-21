@@ -261,6 +261,8 @@ class BookingWorkflowTest extends TestCase
 
     public function test_get_available_slots_all_time()
     {
+        Carbon::setTestNow(Carbon::parse('2026-07-20 08:00:00', 'Asia/Tashkent'));
+
         $teacher = User::factory()->create(['role' => 'teacher']);
 
         // Teacher availability: Monday 09:00:00 to 12:00:00, slot_duration = 0 (All time)
@@ -280,16 +282,16 @@ class BookingWorkflowTest extends TestCase
         $slots = app(SlotService::class)->getAvailableSlots($teacher->id, $dateStr);
 
         $this->assertCount(1, $slots);
-        $this->assertEquals(Carbon::parse('next monday 09:00:00')->toIso8601String(), $slots[0]['start_at']);
-        $this->assertEquals(Carbon::parse('next monday 12:00:00')->toIso8601String(), $slots[0]['end_at']);
+        $this->assertEquals(Carbon::parse('next monday 09:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['start_at']);
+        $this->assertEquals(Carbon::parse('next monday 12:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['end_at']);
         $this->assertTrue($slots[0]['is_all_time']);
 
         // Now book an appointment from 10:00 to 10:45
         Appointment::create([
             'teacher_id' => $teacher->id,
             'pupil_id' => User::factory()->create(['role' => 'pupil'])->id,
-            'start_at' => Carbon::parse('next monday 10:00:00'),
-            'end_at' => Carbon::parse('next monday 10:45:00'),
+            'start_at' => Carbon::parse('next monday 10:00:00', 'Asia/Tashkent'),
+            'end_at' => Carbon::parse('next monday 10:45:00', 'Asia/Tashkent'),
             'status' => 'confirmed',
             'topics' => ['freestyle'],
         ]);
@@ -300,9 +302,11 @@ class BookingWorkflowTest extends TestCase
 
         // Should split into two slots: 09:00-10:00 and 10:45-12:00
         $this->assertCount(2, $slots);
-        $this->assertEquals(Carbon::parse('next monday 09:00:00')->toIso8601String(), $slots[0]['start_at']);
-        $this->assertEquals(Carbon::parse('next monday 10:00:00')->toIso8601String(), $slots[0]['end_at']);
-        $this->assertEquals(Carbon::parse('next monday 10:45:00')->toIso8601String(), $slots[1]['start_at']);
-        $this->assertEquals(Carbon::parse('next monday 12:00:00')->toIso8601String(), $slots[1]['end_at']);
+        $this->assertEquals(Carbon::parse('next monday 09:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['start_at']);
+        $this->assertEquals(Carbon::parse('next monday 10:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['end_at']);
+        $this->assertEquals(Carbon::parse('next monday 10:45:00', 'Asia/Tashkent')->toIso8601String(), $slots[1]['start_at']);
+        $this->assertEquals(Carbon::parse('next monday 12:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[1]['end_at']);
+
+        Carbon::setTestNow();
     }
 }

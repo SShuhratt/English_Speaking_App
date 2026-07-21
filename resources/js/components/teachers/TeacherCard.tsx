@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, Clock, ChevronRight } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
 
@@ -8,18 +8,25 @@ interface TeacherProps {
         id: string;
         full_name: string;
         avatar?: string;
+        next_slot?: {
+            start_at: string;
+            end_at: string;
+        } | null;
         teacher_profile?: {
-            overall_level: string;
+            headline?: string;
+            overall_level?: string;
             speaking_band?: string | number;
-            experience_years: number;
-            rating_cache: number;
+            experience_years?: number;
+            rating_cache?: number;
             labels?: string[];
+            hourly_rate?: number;
         };
     };
 }
 
 export default function TeacherCard({ teacher }: TeacherProps) {
     const { t } = useTranslation();
+
     const initials = teacher.full_name
         .split(' ')
         .map((n) => n[0])
@@ -28,12 +35,47 @@ export default function TeacherCard({ teacher }: TeacherProps) {
 
     const labels = teacher.teacher_profile?.labels || [];
 
+    const formatNextSlot = (nextSlot?: { start_at: string } | null) => {
+        if (!nextSlot?.start_at) return t('teachers.no_slots') || 'Next slot: available soon';
+        const start = new Date(nextSlot.start_at);
+        const now = new Date();
+        const todayStr = now.toDateString();
+
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toDateString();
+
+        const timeStr = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        if (start.toDateString() === todayStr) {
+            return `Next slot: today ${timeStr}`;
+        } else if (start.toDateString() === tomorrowStr) {
+            return `Next slot: tomorrow ${timeStr}`;
+        } else {
+            const dayName = start.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+            return `Next slot: ${dayName} ${timeStr}`;
+        }
+    };
+
+    const bandText = teacher.teacher_profile?.speaking_band
+        ? `IELTS ${teacher.teacher_profile.speaking_band} verified`
+        : teacher.teacher_profile?.overall_level
+        ? `${teacher.teacher_profile.overall_level} verified`
+        : 'IELTS 8.5 verified';
+
+    const headlineText =
+        teacher.teacher_profile?.headline ||
+        'Speaking confidence · new on ConvoMate';
+
     return (
-        <div className="group flex h-full flex-col justify-between rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-brown/30 hover:shadow-xl hover:shadow-brand-brown/5">
+        <Link
+            href={`/pupil/teachers/${teacher.id}`}
+            className="group flex h-full flex-col justify-between rounded-3xl border border-[#E6E9F2] bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#1E2A5A]/30 hover:shadow-lg"
+        >
             <div>
                 {/* Header Profile Section */}
-                <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-brown text-lg font-bold text-white shadow-lg shadow-brand-brown/10 transition-transform duration-300 group-hover:scale-105 overflow-hidden">
+                <div className="flex items-center gap-3.5">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] text-sm font-bold text-[#1E2A5A] shadow-sm transition-transform duration-300 group-hover:scale-105 overflow-hidden">
                         {teacher.avatar ? (
                             <img src={teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
                         ) : (
@@ -41,71 +83,60 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                         )}
                     </div>
                     <div>
-                        <h3 className="text-base font-bold text-foreground transition-colors group-hover:text-brand-brown">
+                        <h3 className="text-base font-bold text-[#1E2A5A] transition-colors group-hover:text-[#061445]">
                             {teacher.full_name}
                         </h3>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                            <span className="inline-flex items-center rounded-lg border border-brand-brown/20 bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown">
-                                {teacher.teacher_profile?.overall_level ||
-                                    t('teachers.certified')}
-                            </span>
-                            {teacher.teacher_profile?.speaking_band && (
-                                <span className="inline-flex items-center rounded-lg border border-brand-orange/20 bg-brand-yellow/50 px-2 py-0.5 text-[10px] font-bold text-brand-orange">
-                                    {t('teachers.speaking', {
-                                        band: teacher.teacher_profile
-                                            .speaking_band,
-                                    })}
-                                </span>
-                            )}
+                        <div className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-[#1D9E75]">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            <span>{bandText}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Translatable Labels Section */}
-                {labels.length > 0 && (
-                    <div className="mt-5 flex flex-wrap gap-1.5">
-                        {labels.map((label) => (
-                            <span
-                                key={label}
-                                className="inline-flex items-center rounded-lg border border-border/40 bg-secondary/50 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
-                            >
-                                {t(`labels.${label}`)}
-                            </span>
-                        ))}
-                    </div>
-                )}
+                {/* Subtitle / Headline */}
+                <p className="mt-3.5 text-xs font-medium text-muted-foreground">
+                    {headlineText}
+                </p>
+
+                {/* Tags / Labels */}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                    <span className="inline-flex items-center rounded-full bg-[#D0E4FF] px-3 py-1 text-[11px] font-bold text-[#1E2A5A]">
+                        {t('teachers.new_teacher') || 'New teacher'}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-[11px] font-bold text-[#1E2A5A]">
+                        {t('teachers.freestyle_talk') || 'Freestyle talk'}
+                    </span>
+                    {labels.slice(0, 2).map((label) => (
+                        <span
+                            key={label}
+                            className="inline-flex items-center rounded-full bg-secondary/80 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
+                        >
+                            {t(`labels.${label}`)}
+                        </span>
+                    ))}
+                </div>
             </div>
 
-            <div>
-                {/* Stats Section */}
-                <div className="mt-6 flex items-center justify-between border-t border-border/60 pt-4 text-xs font-semibold">
-                    <div className="flex items-center gap-1.5">
-                        <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                        <span className="text-foreground">
-                            {teacher.teacher_profile?.rating_cache || '5.0'}
-                        </span>
+            {/* Divider & Footer */}
+            <div className="mt-5 border-t border-[#E6E9F2] pt-4">
+                <div className="flex items-end justify-between">
+                    <div>
+                        <div className="text-sm font-extrabold text-[#1E2A5A]">
+                            35,000 so'm{' '}
+                            <span className="text-xs font-normal text-muted-foreground">
+                                / 30 min
+                            </span>
+                        </div>
+                        <div className="mt-0.5 text-xs font-semibold text-[#1D9E75]">
+                            {formatNextSlot(teacher.next_slot)}
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span>
-                            {t('teachers.years_experience', {
-                                count:
-                                    teacher.teacher_profile?.experience_years ||
-                                    0,
-                            })}
-                        </span>
+
+                    <div className="inline-flex items-center justify-center rounded-full bg-[#1E2A5A] px-5 py-2 text-xs font-bold text-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-hover:bg-[#061445]">
+                        Book
                     </div>
                 </div>
-
-                {/* View Profile Button */}
-                <Link
-                    href={`/profile/${teacher.id}`}
-                    className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand-button hover:bg-brand-button-hover py-3 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:shadow-lg"
-                >
-                    {t('teachers.view_profile')}{' '}
-                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
             </div>
-        </div>
+        </Link>
     );
 }

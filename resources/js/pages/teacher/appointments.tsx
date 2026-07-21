@@ -104,14 +104,7 @@ export default function Appointments() {
     };
 
     const now = new Date();
-    const filteredAppointments = appointments.filter((apt) => {
-        const isPast = new Date(apt.end_at) < now;
-        const isFuture = new Date(apt.start_at) >= now;
-        if (activeTab === 'pending') return apt.status === 'pending';
-        if (activeTab === 'upcoming') return apt.status === 'confirmed' && isFuture;
-        if (activeTab === 'completed') return isPast;
-        return true;
-    });
+    const filteredAppointments = appointments.filter((apt) => apt.status === 'pending');
 
     const pendingCount = appointments.filter((a) => a.status === 'pending').length;
     const upcomingCount = appointments.filter((a) => a.status === 'confirmed' && new Date(a.start_at) >= now).length;
@@ -145,30 +138,6 @@ export default function Appointments() {
                 <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
                     {/* Main content */}
                     <div className="flex flex-col gap-4">
-                        {/* Tabs */}
-                        <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab.key}
-                                    onClick={() => setActiveTab(tab.key)}
-                                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
-                                        activeTab === tab.key
-                                            ? 'bg-[#061445] text-white shadow-sm'
-                                            : 'text-slate-500 hover:bg-slate-100'
-                                    }`}
-                                >
-                                    {tab.label}
-                                    {tab.count !== undefined && tab.count > 0 && (
-                                        <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black ${
-                                            activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                                        }`}>
-                                            {tab.count}
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-
                         {/* List */}
                         <div className="flex flex-col gap-3">
                             {loading ? (

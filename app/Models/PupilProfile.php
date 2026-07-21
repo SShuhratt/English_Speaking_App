@@ -20,11 +20,14 @@ class PupilProfile extends Model
         'target_overall_band',
         'target_speaking_band',
         'labels',
+        'weekly_goal',
+        'weekly_goals',
     ];
 
     protected $casts = [
         'certificates' => 'array',
         'labels' => 'array',
+        'weekly_goals' => 'array',
     ];
 
     public function user()

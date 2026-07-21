@@ -18,11 +18,12 @@ class TeacherAppointmentController extends Controller
     ) {}
 
     /**
-     * List teacher appointments
+     * List teacher appointments (Booking Requests - ONLY pending)
      */
     public function index(Request $request)
     {
         $appointments = Appointment::where('teacher_id', $request->user()->id)
+            ->where('status', 'pending')
             ->with(['pupil', 'cancelledBy'])
             ->latest()
             ->paginate();
@@ -31,7 +32,9 @@ class TeacherAppointmentController extends Controller
             return response()->json($appointments);
         }
 
-        return Inertia::render('teacher/appointments');
+        return Inertia::render('teacher/appointments', [
+            'appointments' => $appointments,
+        ]);
     }
 
     /**
@@ -52,11 +55,12 @@ class TeacherAppointmentController extends Controller
     }
 
     /**
-     * Show teacher sessions (past and upcoming)
+     * Show teacher sessions (All non-pending: upcoming, completed, cancelled, rejected)
      */
     public function sessions(Request $request)
     {
         $appointments = Appointment::where('teacher_id', $request->user()->id)
+            ->where('status', '!=', 'pending')
             ->with(['pupil', 'feedbacks', 'cancelledBy'])
             ->latest()
             ->paginate();

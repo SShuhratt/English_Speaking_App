@@ -195,16 +195,6 @@ export default function Sessions({ sessions }: Props) {
                                                     )}
                                                 </span>
                                             )}
-
-                                            <button
-                                                onClick={() =>
-                                                    handleDelete(apt.id)
-                                                }
-                                                className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/20 px-3.5 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />{' '}
-                                                {t('bookings.delete')}
-                                            </button>
                                         </div>
                                     </div>
 

@@ -261,41 +261,7 @@ export default function Profile({
         return clean ? clean.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : '';
     };
 
-    // Weekly Availability
-    const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const initialAvails = React.useMemo(() => {
-        const map: Record<string, { is_active: boolean; start_time: string; end_time: string }> = {};
-        daysOfWeek.forEach((d) => {
-            const found = auth.user.availabilities?.find((a: any) => a.day_of_week === d);
-            map[d] = {
-                is_active: !!found,
-                start_time: found ? found.start_time.substring(0, 5) : '10:00',
-                end_time: found ? found.end_time.substring(0, 5) : '20:00',
-            };
-        });
-        return map;
-    }, [auth.user]);
 
-    const [avails, setAvails] = React.useState(initialAvails);
-
-    const toggleDay = (day: string) => {
-        setAvails((prev) => ({
-            ...prev,
-            [day]: { ...prev[day], is_active: !prev[day].is_active },
-        }));
-    };
-
-    const updateDayTime = (day: string, field: 'start_time' | 'end_time', val: string) => {
-        setAvails((prev) => ({
-            ...prev,
-            [day]: { ...prev[day], [field]: val },
-        }));
-    };
-
-    const timeOptions = Array.from({ length: 24 }, (_, i) => {
-        const h = String(i).padStart(2, '0');
-        return `${h}:00`;
-    });
 
     const getInitials = (name: string) => {
         return name
@@ -911,76 +877,7 @@ export default function Profile({
                                         </div>
                                     </div>
 
-                                    {/* 7. Availability */}
-                                    <div className="space-y-4 pt-4">
-                                        <div>
-                                            <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight">Weekly availability</h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">Students only see and book the hours you open here. Times are Tashkent (UTC+5).</p>
-                                        </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 divide-y divide-[#E6E9F2]">
-                                            {daysOfWeek.map((day) => {
-                                                const avail = avails[day];
-                                                return (
-                                                    <div key={day} className="py-3.5 flex items-center gap-4 flex-wrap select-none">
-                                                        <span className="w-14 font-bold text-sm text-[#22284A] capitalize">
-                                                            {day.substring(0, 3)}
-                                                        </span>
-                                                        <div className="relative w-[42px] h-6 flex-shrink-0">
-                                                            <input
-                                                                type="checkbox"
-                                                                name={`availabilities[${day}][is_active]`}
-                                                                id={`toggle-${day}`}
-                                                                checked={avail.is_active}
-                                                                onChange={() => toggleDay(day)}
-                                                                value="1"
-                                                                className="hidden"
-                                                            />
-                                                            <label
-                                                                htmlFor={`toggle-${day}`}
-                                                                className={`absolute inset-0 rounded-full cursor-pointer transition-colors duration-150 after:content-[""] after:absolute after:top-[3px] after:left-[3px] after:w-[18px] after:height-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow after:transition-all ${
-                                                                    avail.is_active
-                                                                        ? 'bg-[#1E2A5A] after:left-[21px]'
-                                                                        : 'bg-[#DDE1EC]'
-                                                                }`}
-                                                            />
-                                                        </div>
 
-                                                        {avail.is_active ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <select
-                                                                    name={`availabilities[${day}][start_time]`}
-                                                                    value={avail.start_time}
-                                                                    onChange={(e) => updateDayTime(day, 'start_time', e.target.value)}
-                                                                    className="w-auto border border-[#E6E9F2] rounded-xl px-3 py-1.5 text-[13.5px] text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A]"
-                                                                >
-                                                                    {timeOptions.map((t) => (
-                                                                        <option key={t} value={t}>
-                                                                            {t}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                                <span className="text-[13.5px] text-[#6B7394] font-bold">—</span>
-                                                                <select
-                                                                    name={`availabilities[${day}][end_time]`}
-                                                                    value={avail.end_time}
-                                                                    onChange={(e) => updateDayTime(day, 'end_time', e.target.value)}
-                                                                    className="w-auto border border-[#E6E9F2] rounded-xl px-3 py-1.5 text-[13.5px] text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A]"
-                                                                >
-                                                                    {timeOptions.map((t) => (
-                                                                        <option key={t} value={t}>
-                                                                            {t}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-[13px] text-[#6B7394] font-medium">Day off</span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
                                 </>
                             ) : (
                                 // Redesigned Pupil View Layout

@@ -5,13 +5,10 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use App\Models\TeacherAvailability;
-use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,9 +22,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         if ($user->role === 'teacher') {
-            $user->load(['teacherProfile', 'availabilities' => function ($query) {
-                $query->where('type', 'recurring');
-            }]);
+            $user->load('teacherProfile');
         } elseif ($user->role === 'pupil') {
             $user->load('pupilProfile');
         }
@@ -168,7 +163,7 @@ class ProfileController extends Controller
             }
 
             // Fallback if certificates is empty but we have file uploads (e.g. from legacy clients or registration)
-            if (empty($certsInput) && !empty($uploadedFiles)) {
+            if (empty($certsInput) && ! empty($uploadedFiles)) {
                 foreach ($uploadedFiles as $file) {
                     $disk = env('FILESYSTEM_DISK', 'public');
                     $path = $file->store('certificates', $disk);
@@ -187,37 +182,6 @@ class ProfileController extends Controller
                 ['user_id' => $user->id],
                 $profileData
             );
-
-            // Update Availabilities if present in request
-            if ($request->has('availabilities')) {
-                // Delete existing recurring availabilities for this teacher
-                $user->availabilities()->where('type', 'recurring')->delete();
-
-                foreach ($request->input('availabilities') as $day => $data) {
-                    if (!empty($data['is_active'])) {
-                        $user->availabilities()->create([
-                            'type' => 'recurring',
-                            'day_of_week' => strtolower($day),
-                            'start_time' => $data['start_time'] ?? '10:00',
-                            'end_time' => $data['end_time'] ?? '20:00',
-                            'slot_duration' => 30,
-                            'is_active' => true,
-                        ]);
-
-                        // Clear slot cache for next 8 weeks for that day of the week
-                        $dayOfWeek = strtolower($day);
-                        $current = Carbon::now();
-                        if (strtolower($current->format('l')) !== $dayOfWeek) {
-                            $current->next($dayOfWeek);
-                        }
-                        for ($i = 0; $i < 8; $i++) {
-                            $dateStr = $current->format('Y-m-d');
-                            Cache::forget("teacher:{$user->id}:slots:{$dateStr}");
-                            $current->addWeek();
-                        }
-                    }
-                }
-            }
         } elseif ($user->role === 'pupil') {
             $profileData = $request->validate([
                 'age' => ['nullable', 'integer', 'min:1', 'max:120'],
@@ -299,7 +263,7 @@ class ProfileController extends Controller
                 }
             }
 
-            if (empty($certsInput) && !empty($uploadedFiles)) {
+            if (empty($certsInput) && ! empty($uploadedFiles)) {
                 foreach ($uploadedFiles as $file) {
                     $disk = env('FILESYSTEM_DISK', 'public');
                     $path = $file->store('certificates', $disk);

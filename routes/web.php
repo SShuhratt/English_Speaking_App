@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MatchmakingController;
+use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\PupilBookingController;
 use App\Http\Controllers\PupilProgressController;
 use App\Http\Controllers\PupilSessionController;
@@ -12,7 +13,6 @@ use App\Http\Controllers\TeacherAppointmentController;
 use App\Http\Controllers\TeacherAvailabilityController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherFeedbackController;
-use App\Http\Controllers\ProfileViewController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/sessions', [PupilSessionController::class, 'index'])->name('sessions.index');
         Route::post('/appointments/{id}/join', [PupilSessionController::class, 'join'])->name('appointments.join');
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');
+        Route::post('/progress/goal', [PupilProgressController::class, 'updateGoal'])->name('progress.goal');
     });
 
     // Speaking & Matchmaking Routes (only for Pupils)

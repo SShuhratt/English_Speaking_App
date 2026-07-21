@@ -53,14 +53,9 @@ class DashboardController extends Controller
                 ->orderBy('start_at')
                 ->get();
 
-            $totalSpeakingMinutes = Appointment::where('pupil_id', $user->id)
-                ->where('status', 'confirmed')
-                ->get()
-                ->sum(function ($apt) {
-                    return $apt->start_at->diffInMinutes($apt->end_at);
-                });
-
-            $speakingHours = round($totalSpeakingMinutes / 60, 1);
+            $totalSpeakingSessions = Appointment::where('pupil_id', $user->id)
+                ->whereIn('status', ['confirmed', 'completed'])
+                ->count();
 
             $upcomingSessionsCount = Appointment::where('pupil_id', $user->id)
                 ->where('status', 'confirmed')
@@ -75,7 +70,7 @@ class DashboardController extends Controller
             return Inertia::render('dashboard', [
                 'appointments' => $appointments,
                 'stats' => [
-                    'speaking_hours' => $speakingHours,
+                    'speaking_sessions' => $totalSpeakingSessions,
                     'upcoming_sessions' => $upcomingSessionsCount,
                 ],
                 'recentFeedback' => $recentFeedback,

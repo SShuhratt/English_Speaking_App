@@ -24,7 +24,20 @@ export default function Sessions({ appointments }: Props) {
     const { auth } = usePage().props as any;
     const [isOpen, setIsOpen] = useState(false);
     const [selectedApt, setSelectedApt] = useState<any>(null);
+    const [activeTab, setActiveTab] = useState<'all' | 'upcoming' | 'completed'>('all');
     const { t } = useTranslation();
+
+    const now = new Date();
+    const filteredAppointments = (appointments.data || []).filter((apt) => {
+        const isPast = new Date(apt.end_at) < now;
+        const isFuture = new Date(apt.start_at) >= now;
+        if (activeTab === 'upcoming') return apt.status === 'confirmed' && isFuture;
+        if (activeTab === 'completed') return isPast || apt.status === 'completed';
+        return true;
+    });
+
+    const upcomingCount = (appointments.data || []).filter((a) => a.status === 'confirmed' && new Date(a.start_at) >= now).length;
+    const completedCount = (appointments.data || []).filter((a) => new Date(a.end_at) < now || a.status === 'completed').length;
 
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm({
@@ -87,10 +100,63 @@ export default function Sessions({ appointments }: Props) {
                     </div>
                 </div>
 
+                {/* Tabs */}
+                <div className="flex flex-wrap gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
+                    <button
+                        onClick={() => setActiveTab('all')}
+                        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                            activeTab === 'all'
+                                ? 'bg-[#061445] text-white shadow-sm'
+                                : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                    >
+                        All
+                        <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black ${
+                            activeTab === 'all' ? 'bg-white/20 text-white' : 'bg-muted text-foreground'
+                        }`}>
+                            {appointments.data?.length || 0}
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('upcoming')}
+                        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                            activeTab === 'upcoming'
+                                ? 'bg-[#061445] text-white shadow-sm'
+                                : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                    >
+                        Upcoming
+                        {upcomingCount > 0 && (
+                            <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black ${
+                                activeTab === 'upcoming' ? 'bg-white/20 text-white' : 'bg-muted text-foreground'
+                            }`}>
+                                {upcomingCount}
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('completed')}
+                        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                            activeTab === 'completed'
+                                ? 'bg-[#061445] text-white shadow-sm'
+                                : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                    >
+                        Completed
+                        {completedCount > 0 && (
+                            <span className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black ${
+                                activeTab === 'completed' ? 'bg-white/20 text-white' : 'bg-muted text-foreground'
+                            }`}>
+                                {completedCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
+
                 {/* Main Session List */}
                 <div className="grid gap-5">
-                    {appointments.data.length > 0 ? (
-                        appointments.data.map((apt) => {
+                    {filteredAppointments.length > 0 ? (
+                        filteredAppointments.map((apt) => {
                             const teacherFeedback = apt.feedbacks?.find(
                                 (fb: any) => fb.author_id === auth.user.id,
                             );
@@ -200,18 +266,6 @@ export default function Sessions({ appointments }: Props) {
                                                         </span>
                                                     )}
                                                 </>
-                                            )}
-
-                                            {isPast && (
-                                                <button
-                                                    onClick={() =>
-                                                        handleDelete(apt.id)
-                                                    }
-                                                    className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/20 px-3.5 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />{' '}
-                                                    {t('bookings.delete')}
-                                                </button>
                                             )}
                                         </div>
                                     </div>

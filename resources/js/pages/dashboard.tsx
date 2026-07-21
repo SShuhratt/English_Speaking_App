@@ -234,14 +234,14 @@ function PupilDashboard({
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
                             <p className="text-sm font-semibold tracking-wider text-[#45464f] uppercase">
-                                {t('dashboard.speaking_hours')}
+                                {t('dashboard.speaking_sessions') || 'TOTAL SPEAKING SESSIONS'}
                             </p>
                             <div className="flex items-baseline space-x-2">
                                 <span className="text-4xl font-extrabold tracking-tight text-[#1b1b1f]">
-                                    {stats.speaking_hours || 0}
+                                    {stats.speaking_sessions || 0}
                                 </span>
                                 <span className="text-sm font-semibold text-[#45464f]">
-                                    {t('dashboard.hours_unit')}
+                                    {t('dashboard.sessions_unit') || 'sessions'}
                                 </span>
                             </div>
                         </div>
