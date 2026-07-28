@@ -300,10 +300,10 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
         }
     };
 
-    const hourlyPrice = teacher.teacher_profile?.price || 70000;
+    const hourlyPrice = (teacher.teacher_profile?.price && Number(teacher.teacher_profile.price) > 0) ? Number(teacher.teacher_profile.price) : 70000;
     const formattedHourlyPrice = hourlyPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
     const formattedHalfPrice = Math.round(hourlyPrice / 2).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
-    const calculatedTrialPrice = trialPrice ?? Math.round((hourlyPrice / 3) / 1000) * 1000;
+    const calculatedTrialPrice = (trialPrice && trialPrice > 0) ? trialPrice : Math.round((hourlyPrice / 3) / 1000) * 1000;
     const formattedTrialPrice = calculatedTrialPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
     const calculatedFullPrice = Math.round((hourlyPrice * selectedDuration) / 60);
     const formattedFullPrice = calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
@@ -318,7 +318,8 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             {/* Mockup custom styles */}
 
             <div className="teacher-profile-pupil-container min-h-screen px-4 py-8 md:px-8">
-                <style dangerouslySetInnerHTML={{ __html: `
+                <style dangerouslySetInnerHTML={{
+                    __html: `
                     .teacher-profile-pupil-container {
                         --butter: #F7DE8B;
                         --butter-deep: #F0CE5F;
@@ -468,19 +469,15 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                     .teacher-profile-pupil-container .price-row{display:flex;align-items:baseline;gap:8px}
                     .teacher-profile-pupil-container .price{font-family:'Bricolage Grotesque',sans-serif;font-size:29px;font-weight:800;color:var(--navy);letter-spacing:-0.5px}
                     .teacher-profile-pupil-container .per{font-size:13px;color:var(--muted);font-weight:500}
-                    .teacher-profile-pupil-container .first-off{
-                        display:inline-flex;align-items:center;gap:7px;margin-top:10px;width:100%;
-                        font-size:12.5px;font-weight:700;color:var(--navy);background:var(--butter);
-                        border-radius:12px;padding:9px 12px;
                     .teacher-profile-pupil-container .ltype{
-                        border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px;position:relative;background:#fff;transition:all .15s;
+                        border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;margin-bottom:12px;position:relative;background:#fff;transition:all .15s;
                     }
-                    .teacher-profile-pupil-container .ltype .t{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--ink)}
-                    .teacher-profile-pupil-container .ltype .d{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.45}
+                    .teacher-profile-pupil-container .ltype .t{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+                    .teacher-profile-pupil-container .ltype .d{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.4;padding-right:10px}
                     .teacher-profile-pupil-container .ltype .pr{position:absolute;right:16px;top:14px;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--navy)}
-                    .teacher-profile-pupil-container .ltype.trial{background:var(--butter-soft);border-color:var(--butter)}
-                    .teacher-profile-pupil-container .ltype.sel{border-color:var(--navy);box-shadow:0 0 0 1.5px var(--navy)}
-                    .teacher-profile-pupil-container .tbadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--navy);color:var(--butter);border-radius:999px;padding:2.5px 9px;vertical-align:2px;margin-left:7px}
+                    .teacher-profile-pupil-container .ltype.trial{background:#FFF9E5;border-color:var(--butter-deep)}
+                    .teacher-profile-pupil-container .ltype.sel{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
+                    .teacher-profile-pupil-container .tbadge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--navy);color:#F7DE8B;border-radius:999px;padding:3px 9px}
                     .teacher-profile-pupil-container .durs{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
                     .teacher-profile-pupil-container .dur{border:1.5px solid var(--line);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;background:#fff;transition:all .15s}
                     .teacher-profile-pupil-container .dur.sel{background:var(--navy);border-color:var(--navy);color:#fff}
@@ -527,9 +524,9 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                 {/* 1. Header Card */}
                 <div className="head-card shadow-sm">
                     <svg className="naqsh" viewBox="0 0 80 80" fill="none" stroke="#A9C6E8" stroke-width="1.1">
-                        <path d="M40 6 L52 28 L74 40 L52 52 L40 74 L28 52 L6 40 L28 28 Z"/>
-                        <path d="M40 20 L47 33 L60 40 L47 47 L40 60 L33 47 L20 40 L33 33 Z"/>
-                        <circle cx="40" cy="40" r="5"/>
+                        <path d="M40 6 L52 28 L74 40 L52 52 L40 74 L28 52 L6 40 L28 28 Z" />
+                        <path d="M40 20 L47 33 L60 40 L47 47 L40 60 L33 47 L20 40 L33 33 Z" />
+                        <circle cx="40" cy="40" r="5" />
                     </svg>
 
                     {teacher.avatar ? (
@@ -571,8 +568,8 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                     teacher.gender === 'male'
                                         ? 'New on ConvoMate — taking his first students'
                                         : teacher.gender === 'female'
-                                          ? 'New on ConvoMate — taking her first students'
-                                          : 'New on ConvoMate — taking their first students'
+                                            ? 'New on ConvoMate — taking her first students'
+                                            : 'New on ConvoMate — taking their first students'
                                 )}
                             </span>
                         </div>
@@ -581,10 +578,10 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
 
                 {/* 2. Grid Body */}
                 <div className="body-grid">
-                    
+
                     {/* Main Content card */}
                     <div className="main-card shadow-sm">
-                        
+
                         {/* Section 1: Intro Video */}
                         {teacher.teacher_profile?.intro_video_url && (
                             <div className="section">
@@ -746,8 +743,8 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                             teacher.gender === 'male'
                                                 ? 'No reviews yet — be his first'
                                                 : teacher.gender === 'female'
-                                                  ? 'No reviews yet — be her first'
-                                                  : 'No reviews yet — be their first'
+                                                    ? 'No reviews yet — be her first'
+                                                    : 'No reviews yet — be their first'
                                         )}
                                     </div>
                                     <p>{teacher.full_name} is new here. Book a first session at half price and help other students decide.</p>
@@ -761,9 +758,9 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                     <aside>
                         <div className="book shadow-sm">
                             <svg className="corner" viewBox="0 0 64 64" fill="none" stroke="#F0CE5F" strokeWidth="1.2">
-                                <path d="M64 0 v40 M64 0 h-40"/>
-                                <path d="M52 0 v12 h12 M40 0 v24 h24"/>
-                                <circle cx="52" cy="12" r="3"/>
+                                <path d="M64 0 v40 M64 0 h-40" />
+                                <path d="M52 0 v12 h12 M40 0 v24 h24" />
+                                <circle cx="52" cy="12" r="3" />
                             </svg>
                             <div className="price-row">
                                 <span className="price">{formattedHourlyPrice}</span>
@@ -1025,11 +1022,10 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                                             setSelectedTopics([...selectedTopics, lbl]);
                                                         }
                                                     }}
-                                                    className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
-                                                        isChecked
+                                                    className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${isChecked
                                                             ? 'bg-[#1E2A5A] border-[#1E2A5A] text-white'
                                                             : 'bg-[#EEF4FB] border-[#D8E5F5] text-[#1E2A5A] hover:bg-[#A9C6E8]'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {t(`labels.${lbl}`) || lbl}
                                                 </button>
@@ -1038,11 +1034,10 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                         <button
                                             type="button"
                                             onClick={() => setOtherChecked(!otherChecked)}
-                                            className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
-                                                otherChecked
+                                            className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${otherChecked
                                                     ? 'bg-[#1E2A5A] border-[#1E2A5A] text-white'
                                                     : 'bg-[#EEF4FB] border-[#D8E5F5] text-[#1E2A5A] hover:bg-[#A9C6E8]'
-                                            }`}
+                                                }`}
                                         >
                                             {t('booking.topic_other') || 'Other...'}
                                         </button>
