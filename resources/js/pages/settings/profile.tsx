@@ -551,7 +551,7 @@ export default function Profile({
                                             <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight">Contact details</h2>
                                             <p className="text-[13.5px] text-[#6B7394]">Never shown to students. Used only for your account and verification.</p>
                                         </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6">
+                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 space-y-4">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1.5">
                                                     <label className="text-sm font-bold text-[#22284A] flex items-center gap-2">
@@ -583,6 +583,23 @@ export default function Profile({
                                                         className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
                                                     />
                                                     <InputError message={errors.phone_number} />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                        {t('auth.gender')}
+                                                    </label>
+                                                    <select
+                                                        name="gender"
+                                                        defaultValue={auth.user.gender || 'prefer_not_to_say'}
+                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                    >
+                                                        <option value="male">{t('auth.gender_male')}</option>
+                                                        <option value="female">{t('auth.gender_female')}</option>
+                                                        <option value="prefer_not_to_say">{t('auth.gender_prefer_not_to_say')}</option>
+                                                    </select>
+                                                    <InputError message={errors.gender} />
                                                 </div>
                                             </div>
                                         </div>
@@ -982,7 +999,7 @@ export default function Profile({
                                             <p>Never shown to other students or teachers. Used strictly for notifications and authentication.</p>
                                         </div>
                                         <div className="card shadow-sm">
-                                            <div className="row2">
+                                            <div className="row2 mb-4">
                                                 <div className="field">
                                                     <label className="flex items-center gap-2">
                                                         Email address
@@ -1013,6 +1030,8 @@ export default function Profile({
                                                     />
                                                     <InputError message={errors.phone_number} className="mt-1" />
                                                 </div>
+                                            </div>
+                                            <div className="row2">
                                                 <div className="field">
                                                     <label>{t('auth.gender')}</label>
                                                     <select
