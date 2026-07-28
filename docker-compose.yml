@@ -52,7 +52,6 @@ services:
     volumes:
       - ./:/app
       - /app/vendor
-      - /app/public/build
       - ./certs:/data/caddy/certs:ro
     env_file:
       - .env
@@ -86,7 +85,6 @@ services:
     volumes:
       - ./:/app
       - /app/vendor
-      - /app/public/build
     env_file:
       - .env
     environment:
@@ -116,7 +114,6 @@ services:
     volumes:
       - ./:/app
       - /app/vendor
-      - /app/public/build
       - ./certs:/app/certs:ro
     env_file:
       - .env
@@ -144,4 +141,3 @@ volumes:
   vendor_cache:
   node_modules_cache:
   bootstrap_cache:
-  public_build_cache:

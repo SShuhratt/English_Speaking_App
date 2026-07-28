@@ -13,16 +13,22 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'shuhratodilbekov513@gmail.com'],
-            [
+        $shuhrat = User::where('email', 'shuhratodilbekov513@gmail.com')->first();
+        if ($shuhrat) {
+            $shuhrat->update(['gender' => 'male']);
+        } else {
+            User::create([
+                'email' => 'shuhratodilbekov513@gmail.com',
                 'full_name' => 'Shuhrat Odilbekov',
+                'name' => 'Shuhrat Odilbekov',
                 'password' => Hash::make('$Huhrat513'),
                 'role' => 'admin',
                 'gender' => 'male',
                 'email_verified_at' => now(),
-            ]
-        );
+            ]);
+        }
+
+        User::where('full_name', 'like', '%Shuhrat%')->update(['gender' => 'male']);
 
         User::updateOrCreate(
             ['email' => 'admin2@convomate.uz'],
