@@ -12,7 +12,7 @@ class PupilBookingController extends Controller
     {
         $bookings = Appointment::where('pupil_id', $request->user()->id)
             ->with(['teacher', 'cancelledBy'])
-            ->orderBy('start_at')
+            ->orderByDesc('start_at')
             ->paginate();
 
         return Inertia::render('pupil/bookings/index', [

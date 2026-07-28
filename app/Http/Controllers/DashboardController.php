@@ -25,7 +25,7 @@ class DashboardController extends Controller
                 ->whereIn('status', ['accepted', 'confirmed'])
                 ->where('end_at', '>', now())
                 ->with('pupil')
-                ->orderBy('start_at')
+                ->orderByDesc('start_at')
                 ->get();
 
             $sessionsTodayCount = Appointment::where('teacher_id', $user->id)
@@ -54,7 +54,7 @@ class DashboardController extends Controller
                 ->whereIn('status', ['accepted', 'confirmed'])
                 ->where('end_at', '>', now())
                 ->with('teacher')
-                ->orderBy('start_at')
+                ->orderByDesc('start_at')
                 ->get();
 
             $totalSpeakingSessions = Appointment::where('pupil_id', $user->id)
