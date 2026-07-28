@@ -47,7 +47,27 @@ class BookingService
             }
 
             $start = Carbon::parse($startAt);
-            $end = Carbon::parse($endAt);
+            $isTrialRequested = (bool) ($meta['is_trial'] ?? false);
+
+            if ($isTrialRequested) {
+                if ($pupil->hasBookedWithTeacher($teacher->id)) {
+                    throw new \Exception('Trial lessons are available for first-time students only with this teacher.');
+                }
+                $isTrial = true;
+                $duration = 20;
+                $end = (clone $start)->addMinutes(20);
+                $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 70000);
+                $price = (int) (round(($hourlyRate / 3) / 1000) * 1000);
+            } else {
+                $isTrial = false;
+                $duration = isset($meta['duration_minutes']) ? (int) $meta['duration_minutes'] : (int) $start->diffInMinutes(Carbon::parse($endAt));
+                if ($duration <= 0) {
+                    $duration = 60;
+                }
+                $end = Carbon::parse($endAt);
+                $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 70000);
+                $price = (int) (round(($hourlyRate * $duration / 60) / 1000) * 1000);
+            }
 
             // 1. Validate teacher availability
             $this->validateAvailability($teacher->id, $start, $end);
@@ -63,6 +83,9 @@ class BookingService
                 'status' => 'pending',
                 'notes' => $meta['notes'] ?? null,
                 'topics' => $meta['topics'] ?? null,
+                'is_trial' => $isTrial,
+                'duration_minutes' => $duration,
+                'price' => $price,
 
                 // Google fields intentionally empty for now
                 'google_event_id' => null,

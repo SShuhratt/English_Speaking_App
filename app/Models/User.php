@@ -117,4 +117,12 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(Feedback::class, 'teacher_id');
     }
+
+    public function hasBookedWithTeacher(string $teacherId): bool
+    {
+        return Appointment::where('pupil_id', $this->id)
+            ->where('teacher_id', $teacherId)
+            ->whereIn('status', ['pending_teacher_approval', 'awaiting_payment', 'payment_submitted', 'confirmed'])
+            ->exists();
+    }
 }

@@ -55,11 +55,16 @@ interface Teacher {
 
 interface Props {
     teacher: Teacher;
+    hasEligibleTrial?: boolean;
+    trialPrice?: number;
 }
 
-export default function TeacherProfile({ teacher }: Props) {
+export default function TeacherProfile({ teacher, hasEligibleTrial = true, trialPrice }: Props) {
     const { auth } = usePage<any>().props;
     const { t } = useTranslation();
+
+    const [lessonType, setLessonType] = React.useState<'trial' | 'full'>(hasEligibleTrial ? 'trial' : 'full');
+    const [selectedDuration, setSelectedDuration] = React.useState<number>(60);
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
@@ -282,6 +287,8 @@ export default function TeacherProfile({ teacher }: Props) {
                 start_at: startAt,
                 end_at: endAt,
                 topics: finalTopics,
+                is_trial: lessonType === 'trial',
+                duration_minutes: lessonType === 'trial' ? 20 : selectedDuration,
             });
             toast.success(t('booking.success') || 'Appointment booked successfully!');
             setConfirmingSlot(null);
@@ -293,9 +300,16 @@ export default function TeacherProfile({ teacher }: Props) {
         }
     };
 
-    const price = teacher.teacher_profile?.price || 0;
-    const formattedPrice = price.toLocaleString('ru-RU');
-    const halfPrice = (price / 2).toLocaleString('ru-RU');
+    const hourlyPrice = teacher.teacher_profile?.price || 70000;
+    const formattedHourlyPrice = hourlyPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+    const formattedHalfPrice = Math.round(hourlyPrice / 2).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+    const calculatedTrialPrice = trialPrice ?? Math.round((hourlyPrice / 3) / 1000) * 1000;
+    const formattedTrialPrice = calculatedTrialPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+    const calculatedFullPrice = Math.round((hourlyPrice * selectedDuration) / 60);
+    const formattedFullPrice = calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+    const activePrice = lessonType === 'trial' ? calculatedTrialPrice : calculatedFullPrice;
+    const formattedActivePrice = activePrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+    const genderPronoun = teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their';
 
     return (
         <AppLayout>
@@ -458,7 +472,18 @@ export default function TeacherProfile({ teacher }: Props) {
                         display:inline-flex;align-items:center;gap:7px;margin-top:10px;width:100%;
                         font-size:12.5px;font-weight:700;color:var(--navy);background:var(--butter);
                         border-radius:12px;padding:9px 12px;
+                    .teacher-profile-pupil-container .ltype{
+                        border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px;position:relative;background:#fff;transition:all .15s;
                     }
+                    .teacher-profile-pupil-container .ltype .t{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--ink)}
+                    .teacher-profile-pupil-container .ltype .d{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.45}
+                    .teacher-profile-pupil-container .ltype .pr{position:absolute;right:16px;top:14px;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--navy)}
+                    .teacher-profile-pupil-container .ltype.trial{background:var(--butter-soft);border-color:var(--butter)}
+                    .teacher-profile-pupil-container .ltype.sel{border-color:var(--navy);box-shadow:0 0 0 1.5px var(--navy)}
+                    .teacher-profile-pupil-container .tbadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--navy);color:var(--butter);border-radius:999px;padding:2.5px 9px;vertical-align:2px;margin-left:7px}
+                    .teacher-profile-pupil-container .durs{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+                    .teacher-profile-pupil-container .dur{border:1.5px solid var(--line);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;background:#fff;transition:all .15s}
+                    .teacher-profile-pupil-container .dur.sel{background:var(--navy);border-color:var(--navy);color:#fff}
                     .teacher-profile-pupil-container .rail-label{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 9px}
                     .teacher-profile-pupil-container .day-tabs{display:flex;gap:6px}
                     .teacher-profile-pupil-container .day-tab{
@@ -735,18 +760,66 @@ export default function TeacherProfile({ teacher }: Props) {
                     {/* Booking sidebar rail */}
                     <aside>
                         <div className="book shadow-sm">
-                            <svg className="corner" viewBox="0 0 64 64" fill="none" stroke="#F0CE5F" stroke-width="1.2">
+                            <svg className="corner" viewBox="0 0 64 64" fill="none" stroke="#F0CE5F" strokeWidth="1.2">
                                 <path d="M64 0 v40 M64 0 h-40"/>
                                 <path d="M52 0 v12 h12 M40 0 v24 h24"/>
                                 <circle cx="52" cy="12" r="3"/>
                             </svg>
                             <div className="price-row">
-                                <span className="price">{formattedPrice}</span>
-                                <span className="per">so'm / 30 min</span>
+                                <span className="price">{formattedHourlyPrice}</span>
+                                <span className="per">/ 1 h · {formattedHalfPrice} / 30 min</span>
                             </div>
-                            <div className="first-off">
-                                ✦ First session 50% off — {halfPrice} so'm
+
+                            <div className="rail-label">Lesson type</div>
+
+                            {hasEligibleTrial && (
+                                <div
+                                    className={`ltype trial ${lessonType === 'trial' ? 'sel' : ''}`}
+                                    onClick={() => setLessonType('trial')}
+                                >
+                                    <div className="t">
+                                        Trial lesson<span className="tbadge">First time only</span>
+                                    </div>
+                                    <div className="d">
+                                        20 minutes to meet {teacher.full_name?.split(' ')[0] || 'teacher'} — ⅓ of {genderPronoun} lesson price. One per teacher.
+                                    </div>
+                                    <div className="pr">{formattedTrialPrice}</div>
+                                </div>
+                            )}
+
+                            <div
+                                className={`ltype ${lessonType === 'full' ? 'sel' : ''}`}
+                                onClick={() => setLessonType('full')}
+                            >
+                                <div className="t">Full lesson</div>
+                                <div className="d">
+                                    Regular session at {genderPronoun} standard rate. Pick your length below.
+                                </div>
+                                <div className="pr">{formattedFullPrice}</div>
                             </div>
+
+                            {lessonType === 'full' && (
+                                <div className="mt-3 mb-2">
+                                    <div className="rail-label" style={{ marginTop: '12px' }}>Duration</div>
+                                    <div className="durs">
+                                        {[
+                                            { mins: 30, label: '30 min' },
+                                            { mins: 45, label: '45 min' },
+                                            { mins: 60, label: '1 h' },
+                                            { mins: 90, label: '1.5 h' },
+                                            { mins: 120, label: '2 h' },
+                                        ].map((dItem) => (
+                                            <span
+                                                key={dItem.mins}
+                                                className={`dur ${selectedDuration === dItem.mins ? 'sel' : ''}`}
+                                                onClick={() => setSelectedDuration(dItem.mins)}
+                                            >
+                                                {dItem.label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Pick a day */}
                             <div className="rail-label">Pick a day</div>
@@ -812,16 +885,26 @@ export default function TeacherProfile({ teacher }: Props) {
 
                             <p className="tz">Times in your timezone — Tashkent (UTC+5)</p>
 
+                            {pickedSlot && (
+                                <div className="mt-3.5 bg-[#F7F6F2] border border-[#E8E6DE] rounded-xl p-3 text-[13px] text-[#6B7394] leading-relaxed">
+                                    <b className="text-[#22284A]">
+                                        {lessonType === 'trial' ? 'Trial · 20 min' : `Full lesson · ${selectedDuration >= 60 ? selectedDuration / 60 + ' h' : selectedDuration + ' min'}`}
+                                    </b> with {teacher.full_name?.split(' ')[0] || 'teacher'}<br />
+                                    {selectedDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}, {new Date(pickedSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} – {(() => {
+                                        const p = new Date(pickedSlot.start_at);
+                                        const durMins = lessonType === 'trial' ? 20 : selectedDuration;
+                                        const endD = new Date(p.getTime() + durMins * 60000);
+                                        return endD.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                                    })()} · <b className="text-[#1E2A5A]">{formattedActivePrice}</b>
+                                </div>
+                            )}
+
                             <button
                                 className="cta"
                                 disabled={!pickedSlot || booking}
                                 onClick={() => setConfirmingSlot(pickedSlot)}
                             >
-                                {pickedSlot ? (
-                                    pickedSlot.is_all_time ? 'Configure Custom Slot' : `Book ${selectedDate.toLocaleDateString('en-US', { weekday: 'short' })}, ${new Date(pickedSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`
-                                ) : (
-                                    'Select a slot first'
-                                )}
+                                {pickedSlot ? `Pay ${formattedActivePrice} & book` : 'Select a slot first'}
                             </button>
 
                             <div className="book-meta">

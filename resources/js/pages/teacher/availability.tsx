@@ -11,6 +11,7 @@ import {
     ChevronRight,
     X,
     Info,
+    Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -800,6 +801,14 @@ export default function Availability({ availabilities }: Props) {
                             </Button>
                         </div>
                     </div>
+                </div>
+
+                {/* Trial Info Banner */}
+                <div className="mx-6 mt-3 mb-1 flex items-center gap-3 rounded-2xl border border-[#F7DE8B] bg-[#FBEDBD]/60 px-4 py-3 text-xs text-[#5C4500]">
+                    <Sparkles className="h-4 w-4 shrink-0 text-[#8A6A12]" />
+                    <span>
+                        <strong>Trial lessons happen automatically.</strong> First-time students can book a 20-minute trial (⅓ of your lesson price) inside any slot you open below. You don't need to create or manage anything extra.
+                    </span>
                 </div>
 
                 {/* Main Workspace Layout */}

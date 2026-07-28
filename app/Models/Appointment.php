@@ -25,12 +25,18 @@ class Appointment extends Model
         'google_meet_link',
         'provider',
         'meeting_started',
+        'is_trial',
+        'duration_minutes',
+        'price',
     ];
 
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'topics' => 'array',
+        'is_trial' => 'boolean',
+        'duration_minutes' => 'integer',
+        'price' => 'integer',
     ];
 
     public function teacher()

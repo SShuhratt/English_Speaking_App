@@ -27,6 +27,8 @@ class BookingController extends Controller
             'notes' => ['nullable', 'string'],
             'topics' => ['required', 'array', 'min:1'],
             'topics.*' => ['required', 'string', 'max:255'],
+            'is_trial' => ['nullable', 'boolean'],
+            'duration_minutes' => ['nullable', 'integer', 'in:20,30,45,60,90,120'],
         ]);
 
         try {
@@ -38,6 +40,8 @@ class BookingController extends Controller
                 meta: [
                     'notes' => $validated['notes'] ?? null,
                     'topics' => $validated['topics'],
+                    'is_trial' => $validated['is_trial'] ?? false,
+                    'duration_minutes' => $validated['duration_minutes'] ?? null,
                 ]
             );
 
