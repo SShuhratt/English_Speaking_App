@@ -133,7 +133,9 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                 <div className="flex items-end justify-between">
                     <div>
                         <div className="text-sm font-extrabold text-[#1E2A5A]">
-                            35,000 so'm{' '}
+                            {teacher.teacher_profile?.price
+                                ? `${Number(teacher.teacher_profile.price).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
+                                : "0 so'm"}{' '}
                             <span className="text-xs font-normal text-muted-foreground">
                                 / 30 min
                             </span>

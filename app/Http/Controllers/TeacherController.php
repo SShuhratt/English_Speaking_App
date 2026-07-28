@@ -70,8 +70,9 @@ class TeacherController extends Controller
 
         $currentUser = auth()->user();
         $hasEligibleTrial = ! $currentUser || ! $currentUser->hasBookedWithTeacher($teacher->id);
-        $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 70000);
-        $trialPrice = (int) (round(($hourlyRate / 3) / 1000) * 1000);
+        $rate30 = (float) ($teacher->teacherProfile?->price ?? 0);
+        $hourlyRate = $rate30 * 2;
+        $trialPrice = $hourlyRate > 0 ? (int) (round(($hourlyRate / 3) / 1000) * 1000) : 0;
 
         return Inertia::render('pupil/teacher-profile', [
             'teacher' => $teacher,

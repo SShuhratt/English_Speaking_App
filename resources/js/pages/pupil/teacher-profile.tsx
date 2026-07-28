@@ -28,6 +28,7 @@ interface Feedback {
     created_at: string;
     author?: {
         full_name: string;
+        avatar?: string;
     };
 }
 
@@ -35,6 +36,7 @@ interface Teacher {
     id: string;
     full_name: string;
     avatar?: string;
+    gender?: string;
     email_verified_at?: string;
     teacher_profile?: {
         overall_level: string;
@@ -300,15 +302,19 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
         }
     };
 
-    const hourlyPrice = (teacher.teacher_profile?.price && Number(teacher.teacher_profile.price) > 0) ? Number(teacher.teacher_profile.price) : 70000;
-    const formattedHourlyPrice = hourlyPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
-    const formattedHalfPrice = Math.round(hourlyPrice / 2).toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
-    const calculatedTrialPrice = (trialPrice && trialPrice > 0) ? trialPrice : Math.round((hourlyPrice / 3) / 1000) * 1000;
-    const formattedTrialPrice = calculatedTrialPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
-    const calculatedFullPrice = Math.round((hourlyPrice * selectedDuration) / 60);
-    const formattedFullPrice = calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+    const rate30Min = Number(teacher.teacher_profile?.price ?? 0);
+    const hourlyPrice = rate30Min * 2;
+    const formatted30MinPrice = rate30Min > 0 ? `${rate30Min.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+    const formattedHourlyPrice = hourlyPrice > 0 ? `${hourlyPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+
+    const calculatedTrialPrice = (trialPrice && trialPrice > 0) ? trialPrice : (hourlyPrice > 0 ? Math.round((hourlyPrice / 3) / 1000) * 1000 : 0);
+    const formattedTrialPrice = calculatedTrialPrice > 0 ? `${calculatedTrialPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+
+    const calculatedFullPrice = hourlyPrice > 0 ? Math.round((hourlyPrice * selectedDuration) / 60) : 0;
+    const formattedFullPrice = calculatedFullPrice > 0 ? `${calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+
     const activePrice = lessonType === 'trial' ? calculatedTrialPrice : calculatedFullPrice;
-    const formattedActivePrice = activePrice.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+    const formattedActivePrice = activePrice > 0 ? `${activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
     const genderPronoun = teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their';
 
     return (
@@ -472,12 +478,8 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                     .teacher-profile-pupil-container .ltype{
                         border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;margin-bottom:12px;position:relative;background:#fff;transition:all .15s;
                     }
-                    .teacher-profile-pupil-container .ltype .t{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
-                    .teacher-profile-pupil-container .ltype .d{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.4;padding-right:10px}
-                    .teacher-profile-pupil-container .ltype .pr{position:absolute;right:16px;top:14px;font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;color:var(--navy)}
                     .teacher-profile-pupil-container .ltype.trial{background:#FFF9E5;border-color:var(--butter-deep)}
                     .teacher-profile-pupil-container .ltype.sel{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
-                    .teacher-profile-pupil-container .tbadge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--navy);color:#F7DE8B;border-radius:999px;padding:3px 9px}
                     .teacher-profile-pupil-container .durs{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
                     .teacher-profile-pupil-container .dur{border:1.5px solid var(--line);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;background:#fff;transition:all .15s}
                     .teacher-profile-pupil-container .dur.sel{background:var(--navy);border-color:var(--navy);color:#fff}
@@ -764,7 +766,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                             </svg>
                             <div className="price-row">
                                 <span className="price">{formattedHourlyPrice}</span>
-                                <span className="per">/ 1 h · {formattedHalfPrice} / 30 min</span>
+                                <span className="per">/ 1 h · {formatted30MinPrice} / 30 min</span>
                             </div>
 
                             <div className="rail-label">Lesson type</div>
@@ -774,13 +776,22 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                     className={`ltype trial ${lessonType === 'trial' ? 'sel' : ''}`}
                                     onClick={() => setLessonType('trial')}
                                 >
-                                    <div className="t">
-                                        Trial lesson<span className="tbadge">First time only</span>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap min-w-0">
+                                            <span className="font-bold text-[15px] text-[#22284A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                                Trial lesson
+                                            </span>
+                                            <span className="text-[9.5px] font-extrabold tracking-wider uppercase bg-[#1E2A5A] text-[#F7DE8B] rounded-full px-2.5 py-0.5 whitespace-nowrap">
+                                                First time only
+                                            </span>
+                                        </div>
+                                        <span className="font-bold text-[15px] text-[#1E2A5A] whitespace-nowrap" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                            {formattedTrialPrice}
+                                        </span>
                                     </div>
-                                    <div className="d">
+                                    <div className="text-[12.5px] text-[#6B7394] mt-1.5 leading-snug">
                                         20 minutes to meet {teacher.full_name?.split(' ')[0] || 'teacher'} — ⅓ of {genderPronoun} lesson price. One per teacher.
                                     </div>
-                                    <div className="pr">{formattedTrialPrice}</div>
                                 </div>
                             )}
 
@@ -788,11 +799,17 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                 className={`ltype ${lessonType === 'full' ? 'sel' : ''}`}
                                 onClick={() => setLessonType('full')}
                             >
-                                <div className="t">Full lesson</div>
-                                <div className="d">
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-[15px] text-[#22284A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                        Full lesson
+                                    </span>
+                                    <span className="font-bold text-[15px] text-[#1E2A5A] whitespace-nowrap" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                        {formattedFullPrice}
+                                    </span>
+                                </div>
+                                <div className="text-[12.5px] text-[#6B7394] mt-1.5 leading-snug">
                                     Regular session at {genderPronoun} standard rate. Pick your length below.
                                 </div>
-                                <div className="pr">{formattedFullPrice}</div>
                             </div>
 
                             {lessonType === 'full' && (
