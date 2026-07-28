@@ -52,11 +52,14 @@ createInertiaApp({
             `./pages/${name}.tsx`,
             import.meta.glob('./pages/**/*.tsx'),
         ).then((page: any) => {
-            const component = page.default;
+            const component = page?.default;
+            if (!component) {
+                return page;
+            }
 
             // attach layouts here (IMPORTANT)
             const layoutProps =
-                typeof component.layout === 'object' ? component.layout : {};
+                typeof component?.layout === 'object' ? component.layout : {};
 
             component.layout = (pageElement: React.ReactNode) => {
                 const props = { ...layoutProps, children: pageElement };
