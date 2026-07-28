@@ -18,6 +18,7 @@ trait ProfileValidationRules
         $rules = [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'gender' => ['nullable', 'string', 'in:male,female,prefer_not_to_say'],
         ];
 
         if ($userId === null) {

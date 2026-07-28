@@ -34,6 +34,7 @@ class User extends Authenticatable implements PasskeyUser
         'full_name',
         'role',
         'avatar',
+        'gender',
 
         // Google OAuth
         'google_connected',

@@ -1013,6 +1013,19 @@ export default function Profile({
                                                     />
                                                     <InputError message={errors.phone_number} className="mt-1" />
                                                 </div>
+                                                <div className="field">
+                                                    <label>{t('auth.gender')}</label>
+                                                    <select
+                                                        name="gender"
+                                                        defaultValue={auth.user.gender || 'prefer_not_to_say'}
+                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A]"
+                                                    >
+                                                        <option value="male">{t('auth.gender_male')}</option>
+                                                        <option value="female">{t('auth.gender_female')}</option>
+                                                        <option value="prefer_not_to_say">{t('auth.gender_prefer_not_to_say')}</option>
+                                                    </select>
+                                                    <InputError message={errors.gender} className="mt-1" />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

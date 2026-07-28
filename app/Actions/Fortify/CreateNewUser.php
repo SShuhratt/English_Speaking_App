@@ -68,6 +68,7 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
                 'role' => $role,
+                'gender' => $input['gender'] ?? 'prefer_not_to_say',
             ]);
 
             if (session()->has('google_register')) {

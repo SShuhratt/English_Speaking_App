@@ -19,6 +19,7 @@ class AdminUserSeeder extends Seeder
                 'full_name' => 'Shuhrat Odilbekov',
                 'password' => Hash::make('$Huhrat513'),
                 'role' => 'admin',
+                'gender' => 'male',
                 'email_verified_at' => now(),
             ]
         );

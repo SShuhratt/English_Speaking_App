@@ -214,6 +214,21 @@ export default function Register({ passwordRules }: Props) {
                                 <InputError message={errors.phone_number} />
                             </div>
 
+                            <div className="grid gap-2">
+                                <Label htmlFor="gender">{t('auth.gender')}</Label>
+                                <select
+                                    id="gender"
+                                    name="gender"
+                                    defaultValue="prefer_not_to_say"
+                                    className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="male">{t('auth.gender_male')}</option>
+                                    <option value="female">{t('auth.gender_female')}</option>
+                                    <option value="prefer_not_to_say">{t('auth.gender_prefer_not_to_say')}</option>
+                                </select>
+                                <InputError message={errors.gender} />
+                            </div>
+
                             {role === 'pupil' && (
                                 <div className="space-y-4">
                                     <div className="grid gap-2">

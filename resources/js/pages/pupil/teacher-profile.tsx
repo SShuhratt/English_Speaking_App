@@ -542,7 +542,13 @@ export default function TeacherProfile({ teacher }: Props) {
                             )}
                             <span className="new-badge">
                                 <Sparkles className="spark h-3.5 w-3.5 fill-amber-400 text-amber-500" />
-                                New on ConvoMate — taking her first students
+                                {t(`teacher.taking_first_students_${teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their'}`) || (
+                                    teacher.gender === 'male'
+                                        ? 'New on ConvoMate — taking his first students'
+                                        : teacher.gender === 'female'
+                                          ? 'New on ConvoMate — taking her first students'
+                                          : 'New on ConvoMate — taking their first students'
+                                )}
                             </span>
                         </div>
                     </div>
@@ -710,7 +716,15 @@ export default function TeacherProfile({ teacher }: Props) {
                                 </div>
                             ) : (
                                 <div className="fb-empty">
-                                    <div className="big">No reviews yet — be her first</div>
+                                    <div className="big">
+                                        {t(`teacher.no_reviews_be_${teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their'}`) || (
+                                            teacher.gender === 'male'
+                                                ? 'No reviews yet — be his first'
+                                                : teacher.gender === 'female'
+                                                  ? 'No reviews yet — be her first'
+                                                  : 'No reviews yet — be their first'
+                                        )}
+                                    </div>
                                     <p>{teacher.full_name} is new here. Book a first session at half price and help other students decide.</p>
                                 </div>
                             )}
