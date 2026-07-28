@@ -134,7 +134,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                             <AvatarFallback>{teacher.full_name?.substring(0, 2) || 'T'}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 flex-wrap">
                                                                 <Link
                                                                     href={`/profile/${teacher.id}`}
                                                                     className="font-medium text-indigo-600 hover:underline flex items-center gap-1"
@@ -142,8 +142,14 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                     {teacher.full_name}
                                                                     <ExternalLink className="h-3 w-3" />
                                                                 </Link>
+                                                                <span className="inline-flex items-center rounded bg-blue-50 dark:bg-blue-950 px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                                                    ID: {teacher.id.substring(0, 8)}
+                                                                </span>
                                                             </div>
                                                             <p className="text-xs text-gray-500">{teacher.email}</p>
+                                                            <p className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold select-all">
+                                                                Full ID: {teacher.id}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </td>

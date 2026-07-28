@@ -80,14 +80,22 @@ export default function AdminPupils({ pupils }: Props) {
                                                         <AvatarFallback>{pupil.full_name?.substring(0, 2) || 'P'}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <Link
-                                                            href={`/profile/${pupil.id}`}
-                                                            className="font-medium text-indigo-600 hover:underline flex items-center gap-1"
-                                                        >
-                                                            {pupil.full_name}
-                                                            <ExternalLink className="h-3 w-3" />
-                                                        </Link>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <Link
+                                                                href={`/profile/${pupil.id}`}
+                                                                className="font-medium text-indigo-600 hover:underline flex items-center gap-1"
+                                                            >
+                                                                {pupil.full_name}
+                                                                <ExternalLink className="h-3 w-3" />
+                                                            </Link>
+                                                            <span className="inline-flex items-center rounded bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 text-[10px] font-mono font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                                                ID: {pupil.id.substring(0, 8)}
+                                                            </span>
+                                                        </div>
                                                         <p className="text-xs text-gray-500">{pupil.email}</p>
+                                                        <p className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold select-all">
+                                                            Full ID: {pupil.id}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </td>

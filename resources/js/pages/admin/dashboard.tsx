@@ -226,13 +226,21 @@ export default function AdminDashboard({ appointments, stats, currentFilter }: P
                                                             <AvatarFallback>{appt.pupil?.full_name?.substring(0, 2) || 'P'}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
-                                                            <Link
-                                                                href={`/profile/${appt.pupil_id}`}
-                                                                className="font-medium text-indigo-600 hover:underline"
-                                                            >
-                                                                {appt.pupil?.full_name}
-                                                            </Link>
+                                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                                <Link
+                                                                    href={`/profile/${appt.pupil_id}`}
+                                                                    className="font-medium text-indigo-600 hover:underline"
+                                                                >
+                                                                    {appt.pupil?.full_name}
+                                                                </Link>
+                                                                <span className="inline-flex items-center rounded bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 text-[10px] font-mono font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                                                    ID: {appt.pupil_id ? appt.pupil_id.substring(0, 8) : 'N/A'}
+                                                                </span>
+                                                            </div>
                                                             <p className="text-xs text-gray-500">{appt.pupil?.email}</p>
+                                                            <p className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold select-all">
+                                                                Full ID: {appt.pupil_id}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -243,12 +251,17 @@ export default function AdminDashboard({ appointments, stats, currentFilter }: P
                                                             <AvatarFallback>{appt.teacher?.full_name?.substring(0, 2) || 'T'}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
-                                                            <Link
-                                                                href={`/profile/${appt.teacher_id}`}
-                                                                className="font-medium text-indigo-600 hover:underline"
-                                                            >
-                                                                {appt.teacher?.full_name}
-                                                            </Link>
+                                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                                <Link
+                                                                    href={`/profile/${appt.teacher_id}`}
+                                                                    className="font-medium text-indigo-600 hover:underline"
+                                                                >
+                                                                    {appt.teacher?.full_name}
+                                                                </Link>
+                                                                <span className="inline-flex items-center rounded bg-blue-50 dark:bg-blue-950 px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                                                    ID: {appt.teacher_id ? appt.teacher_id.substring(0, 8) : 'N/A'}
+                                                                </span>
+                                                            </div>
                                                             <p className="text-xs text-gray-500">{appt.teacher?.email}</p>
                                                         </div>
                                                     </div>

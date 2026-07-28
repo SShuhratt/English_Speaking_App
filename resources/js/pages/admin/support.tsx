@@ -169,6 +169,9 @@ export default function AdminSupport({ userList, activeUser, activeMessages, all
                                                             </Badge>
                                                         </div>
                                                         <p className="text-xs text-gray-500 truncate">{item.user.email}</p>
+                                                        <p className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 select-all">
+                                                            ID: {item.user.id.substring(0, 8)}
+                                                        </p>
                                                     </div>
                                                 </div>
 
@@ -205,6 +208,9 @@ export default function AdminSupport({ userList, activeUser, activeMessages, all
                                                     </Badge>
                                                 </h3>
                                                 <p className="text-xs text-gray-500">{activeUser.email}</p>
+                                                <p className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 select-all">
+                                                    User ID: <span className="underline">{activeUser.id}</span>
+                                                </p>
                                             </div>
                                         </div>
 

@@ -58,11 +58,11 @@ class DashboardController extends Controller
                 ->get();
 
             $totalSpeakingSessions = Appointment::where('pupil_id', $user->id)
-                ->whereIn('status', ['accepted', 'confirmed', 'completed'])
+                ->whereIn('status', ['confirmed', 'completed'])
                 ->count();
 
             $upcomingSessionsCount = Appointment::where('pupil_id', $user->id)
-                ->whereIn('status', ['accepted', 'confirmed'])
+                ->where('status', 'confirmed')
                 ->where('start_at', '>', now())
                 ->count();
 

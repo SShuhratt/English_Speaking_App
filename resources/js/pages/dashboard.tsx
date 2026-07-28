@@ -341,11 +341,18 @@ function PupilDashboard({
                                             </div>
                                         )}
                                         <div>
-                                            <h4 className="text-base font-bold text-[#1b1b1f]">
-                                                {t(
-                                                    'dashboard.speaking_practice',
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <h4 className="text-base font-bold text-[#1b1b1f]">
+                                                    {t(
+                                                        'dashboard.speaking_practice',
+                                                    )}
+                                                </h4>
+                                                {apt.status === 'accepted' && (
+                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-800 tracking-wider">
+                                                        STATUS ACCEPTED
+                                                    </span>
                                                 )}
-                                            </h4>
+                                            </div>
                                             <p className="text-sm font-medium text-[#45464f]">
                                                 {t('dashboard.with_teacher', { name: '' })}
                                                 {apt.teacher ? (
@@ -389,16 +396,38 @@ function PupilDashboard({
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-end gap-3 bg-brand-lightblue/20 px-6 py-4">
-                                    <button
-                                        onClick={() => handleCancel(apt.id)}
-                                        className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
-                                    >
-                                        {t('dashboard.cancel_button')}
-                                    </button>
-                                    <PupilMeetingButton
-                                        apt={apt}
-                                        handleJoin={handleJoin}
-                                    />
+                                    {apt.status === 'accepted' ? (
+                                        <>
+                                            <span className="mr-auto text-xs font-bold text-amber-800">
+                                                Awaiting payment & admin confirmation
+                                            </span>
+                                            <Link
+                                                href="/pupil/bookings"
+                                                className="flex cursor-pointer items-center gap-2 rounded-full bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all hover:-translate-y-0.5"
+                                            >
+                                                💳 {t('booking.pay_now') || 'Pay Now'}
+                                            </Link>
+                                            <button
+                                                onClick={() => handleCancel(apt.id)}
+                                                className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
+                                            >
+                                                {t('dashboard.cancel_button')}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button
+                                                onClick={() => handleCancel(apt.id)}
+                                                className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
+                                            >
+                                                {t('dashboard.cancel_button')}
+                                            </button>
+                                            <PupilMeetingButton
+                                                apt={apt}
+                                                handleJoin={handleJoin}
+                                            />
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -735,7 +764,20 @@ function TeacherDashboard({
                                                     )}
                                                 </p>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {apt.status === 'accepted' ? (
+                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[10px] font-black uppercase text-amber-800 tracking-wider">
+                                                        STATUS ACCEPTED · AWAITING PAYMENT
+                                                    </span>
+                                                ) : (
+                                                    <TeacherMeetingButton
+                                                        apt={apt}
+                                                        handleStart={handleStart}
+                                                        startingAptId={
+                                                            startingAptId
+                                                        }
+                                                    />
+                                                )}
                                                 <button
                                                     onClick={() =>
                                                         handleCancel(apt.id)
@@ -746,13 +788,6 @@ function TeacherDashboard({
                                                         'dashboard.cancel_button',
                                                     )}
                                                 </button>
-                                                <TeacherMeetingButton
-                                                    apt={apt}
-                                                    handleStart={handleStart}
-                                                    startingAptId={
-                                                        startingAptId
-                                                    }
-                                                />
                                             </div>
                                         </div>
                                     );

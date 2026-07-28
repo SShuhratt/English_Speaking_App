@@ -202,9 +202,19 @@ export default function Sessions({ appointments }: Props) {
                                                         Lesson · {apt.duration_minutes || 60} min
                                                     </span>
                                                 )}
-                                                <span className="inline-flex items-center gap-1 bg-[#DDF2E6] text-[#1E7A4D] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full">
-                                                    <Check className="h-3 w-3" /> PAID
-                                                </span>
+                                                {apt.status === 'confirmed' ? (
+                                                    <span className="inline-flex items-center gap-1 bg-[#DDF2E6] text-[#1E7A4D] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full">
+                                                        <Check className="h-3 w-3" /> PAID
+                                                    </span>
+                                                ) : apt.status === 'accepted' ? (
+                                                    <span className="inline-flex items-center gap-1 bg-[#FFF9E5] text-[#8A6A12] border border-[#F7DE8B] text-[10.5px] font-bold px-2.5 py-0.5 rounded-full">
+                                                        STATUS ACCEPTED · AWAITING PAYMENT
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10.5px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                                                        {apt.status}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div className="text-xs text-[#6B7394] font-semibold">
@@ -229,12 +239,14 @@ export default function Sessions({ appointments }: Props) {
                                             </div>
 
                                             <div className="flex flex-col sm:flex-row gap-2">
-                                                <button
-                                                    onClick={() => handleStartSession(apt)}
-                                                    className="px-4 py-2 bg-[#1E2A5A] hover:bg-[#1E2A5A]/90 text-white rounded-full font-bold text-xs transition-all shadow-sm"
-                                                >
-                                                    Join lesson
-                                                </button>
+                                                {apt.status === 'confirmed' && (
+                                                    <button
+                                                        onClick={() => handleStartSession(apt)}
+                                                        className="px-4 py-2 bg-[#1E2A5A] hover:bg-[#1E2A5A]/90 text-white rounded-full font-bold text-xs transition-all shadow-sm"
+                                                    >
+                                                        Join lesson
+                                                    </button>
+                                                )}
 
                                                 {apt.status === 'confirmed' && !teacherFeedback && (
                                                     <button
