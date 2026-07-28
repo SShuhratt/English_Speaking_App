@@ -320,6 +320,7 @@ class SlotService
             ->where('teacher_id', $teacherId)
             ->whereIn('status', [
                 'pending',
+                'accepted',
                 'confirmed',
             ])
             ->where(function ($query) use (

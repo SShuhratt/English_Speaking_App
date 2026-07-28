@@ -16,21 +16,25 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
         if ($user->role === 'teacher') {
             $appointments = Appointment::where('teacher_id', $user->id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['accepted', 'confirmed'])
                 ->where('end_at', '>', now())
                 ->with('pupil')
                 ->orderBy('start_at')
                 ->get();
 
             $sessionsTodayCount = Appointment::where('teacher_id', $user->id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['accepted', 'confirmed'])
                 ->whereDate('start_at', now()->toDateString())
                 ->count();
 
             $totalPupilsCount = Appointment::where('teacher_id', $user->id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['accepted', 'confirmed'])
                 ->distinct('pupil_id')
                 ->count('pupil_id');
 
@@ -47,18 +51,18 @@ class DashboardController extends Controller
             ]);
         } else {
             $appointments = Appointment::where('pupil_id', $user->id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['accepted', 'confirmed'])
                 ->where('end_at', '>', now())
                 ->with('teacher')
                 ->orderBy('start_at')
                 ->get();
 
             $totalSpeakingSessions = Appointment::where('pupil_id', $user->id)
-                ->whereIn('status', ['confirmed', 'completed'])
+                ->whereIn('status', ['accepted', 'confirmed', 'completed'])
                 ->count();
 
             $upcomingSessionsCount = Appointment::where('pupil_id', $user->id)
-                ->where('status', 'confirmed')
+                ->whereIn('status', ['accepted', 'confirmed'])
                 ->where('start_at', '>', now())
                 ->count();
 

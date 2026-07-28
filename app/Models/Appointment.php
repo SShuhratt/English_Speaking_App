@@ -19,6 +19,8 @@ class Appointment extends Model
         'topics',
         'cancellation_reason',
         'cancelled_by',
+        'payment_status',
+        'payment_rejection_reason',
         'google_event_id',
         'google_meet_link',
         'provider',

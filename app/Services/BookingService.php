@@ -142,21 +142,79 @@ class BookingService
     }
 
     /**
-     * Approve appointment
+     * Approve appointment by teacher (Status becomes accepted, payment status verifying)
      */
     public function approve(string $id): Appointment
     {
         return DB::transaction(function () use ($id) {
             $appointment = Appointment::findOrFail($id);
-            $appointment->update(['status' => 'confirmed']);
-
-            SyncAppointmentToGoogleJob::dispatch($appointment);
+            $appointment->update([
+                'status' => 'accepted',
+                'payment_status' => 'verifying',
+            ]);
 
             try {
                 BookingUpdated::dispatch($appointment);
                 ConversationApproved::dispatch($appointment);
             } catch (\Exception $e) {
                 Log::error('Failed to broadcast booking update on approval: '.$e->getMessage());
+            }
+
+            return $appointment;
+        });
+    }
+
+    /**
+     * Admin confirms payment for appointment
+     */
+    public function adminConfirmPayment(string $id): Appointment
+    {
+        return DB::transaction(function () use ($id) {
+            $appointment = Appointment::findOrFail($id);
+            $appointment->update([
+                'status' => 'confirmed',
+                'payment_status' => 'paid',
+            ]);
+
+            SyncAppointmentToGoogleJob::dispatch($appointment);
+
+            try {
+                BookingUpdated::dispatch($appointment);
+            } catch (\Exception $e) {
+                Log::error('Failed to broadcast booking update on admin payment confirmation: '.$e->getMessage());
+            }
+
+            return $appointment;
+        });
+    }
+
+    /**
+     * Admin rejects payment for appointment with reason
+     */
+    public function adminRejectPayment(string $id, string $reason): Appointment
+    {
+        return DB::transaction(function () use ($id, $reason) {
+            $appointment = Appointment::with('teacher')->findOrFail($id);
+            $appointment->update([
+                'status' => 'rejected',
+                'payment_status' => 'rejected',
+                'payment_rejection_reason' => $reason,
+                'cancellation_reason' => $reason,
+            ]);
+
+            // Clear slot cache
+            $current = $appointment->start_at->copy()->subDay();
+            $limit = $appointment->end_at->copy()->addDay();
+            while ($current->lte($limit)) {
+                $dateStr = $current->toDateString();
+                Cache::forget("teacher:{$appointment->teacher_id}:slots:{$dateStr}");
+                $current = $current->addDay();
+            }
+
+            try {
+                BookingUpdated::dispatch($appointment);
+            } catch (\Exception $e) {
+                Log::error('Failed to broadcast booking update on admin payment rejection: '.$e->getMessage());
             }
 
             return $appointment;

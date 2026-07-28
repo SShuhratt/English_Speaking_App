@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsurePupil;
+use App\Http\Middleware\EnsureTeacher;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
@@ -21,8 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'locale']);
 
         $middleware->alias([
-            'teacher' => \App\Http\Middleware\EnsureTeacher::class,
-            'pupil' => \App\Http\Middleware\EnsurePupil::class,
+            'teacher' => EnsureTeacher::class,
+            'pupil' => EnsurePupil::class,
+            'admin' => EnsureAdmin::class,
         ]);
 
         $middleware->web(append: [

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,6 +14,10 @@ class ProfileViewController extends Controller
      */
     public function show(string $id): Response
     {
+        if (! Str::isUuid($id)) {
+            abort(404);
+        }
+
         $user = User::where('id', $id)->firstOrFail();
 
         if ($user->role === 'teacher') {

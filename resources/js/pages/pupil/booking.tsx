@@ -106,6 +106,7 @@ export default function Booking({ teacher }: Props) {
     const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
     const [otherChecked, setOtherChecked] = useState(false);
     const [customTopic, setCustomTopic] = useState('');
+    const [showRequestSentModal, setShowRequestSentModal] = useState(false);
 
     const formatTimeToHHMM = (date: Date) => {
         const h = String(date.getHours()).padStart(2, '0');
@@ -399,7 +400,7 @@ export default function Booking({ teacher }: Props) {
                 end_at: slot.end_at,
                 topics: slot.topics,
             });
-            toast.success(t('booking.success'));
+            setShowRequestSentModal(true);
             fetchSlots();
         } catch (error: any) {
             toast.error(error.response?.data?.message || t('booking.failed'));
@@ -460,7 +461,7 @@ export default function Booking({ teacher }: Props) {
                 end_at: endAt,
                 topics: finalTopics,
             });
-            toast.success(t('booking.custom_success'));
+            setShowRequestSentModal(true);
             fetchSlots();
             setCustomStartTime('');
             setCustomEndTime('');
@@ -1302,6 +1303,52 @@ export default function Booking({ teacher }: Props) {
                                             : t('booking.confirm_btn')}
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Initial Booking Pop-up Modal */}
+            {showRequestSentModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-3xl border bg-card p-6 shadow-2xl duration-200 zoom-in-95">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShowRequestSentModal(false)}
+                            className="absolute top-4 right-4 h-8 w-8 rounded-xl"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+
+                        <div className="flex flex-col items-center text-center">
+                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+                                <Sparkles className="h-8 w-8 animate-bounce" />
+                            </div>
+
+                            <h3 className="text-xl font-extrabold text-foreground">
+                                {t('booking.request_sent_title')}
+                            </h3>
+
+                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                                {t('booking.request_sent_desc')}
+                            </p>
+
+                            <div className="mt-6 flex w-full flex-col gap-2.5">
+                                <Link
+                                    href="/pupil/bookings"
+                                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover py-3 text-sm font-bold text-brand-brown shadow-md transition-all hover:scale-[1.01]"
+                                >
+                                    <BookOpen className="h-4 w-4" />
+                                    {t('booking.view_my_bookings')}
+                                </Link>
+                                <button
+                                    onClick={() => setShowRequestSentModal(false)}
+                                    className="w-full cursor-pointer rounded-xl border py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted"
+                                >
+                                    {t('booking.cancel_btn')}
+                                </button>
                             </div>
                         </div>
                     </div>

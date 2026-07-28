@@ -312,6 +312,21 @@ const dictionary = {
             'Slots disappear instantly as they are booked by other students. You are seeing live availability.',
         'booking.show_sidebar': 'Choose Date',
         'booking.hide_sidebar': 'Hide Picker',
+        'booking.request_sent_title': 'Request Sent to Teacher!',
+        'booking.request_sent_desc':
+            'Your booking request has been submitted to the teacher. Payment is NOT required yet. Please check your booking dashboard regularly for updates. Once the teacher accepts, you can proceed to payment.',
+        'booking.view_my_bookings': 'Go to My Bookings',
+        'booking.pay_now': 'Pay Now',
+        'payment.modal_title': 'Complete Your Payment',
+        'payment.modal_desc':
+            'Send payment to the card below and submit your receipt to Telegram with your Name and Pupil ID.',
+        'payment.copy_card': 'Copy Card Number',
+        'payment.copied_toast': 'Card number copied to clipboard!',
+        'payment.card_holder': 'Card Holder',
+        'payment.pupil_id': 'Pupil ID',
+        'payment.warning_notice':
+            'REQUIRED: Include your Name and Pupil ID when submitting your payment receipt to Telegram so admins can verify your booking.',
+        'payment.open_telegram': 'Send Receipt on Telegram',
 
         // Pupil Progress
         'pupil.progress_title': 'My Progress',
@@ -946,6 +961,21 @@ const dictionary = {
             "Boshqa talabalar darslarni bron qilishi bilan joylar yo'qoladi. Siz jonli jadvalni ko'ryapsiz.",
         'booking.show_sidebar': 'Sana tanlash',
         'booking.hide_sidebar': 'Yashirish',
+        'booking.request_sent_title': "So'rov o'qituvchiga yuborildi!",
+        'booking.request_sent_desc':
+            "Sizning bron so'rovingiz o'qituvchiga yuborildi. Hozircha to'lov qilish shart emas. Yangilanishlarni bilish uchun muntazam ravishda darslar bo'limini tekshiring. O'qituvchi tasdiqlagach, to'lovni amalga oshirishingiz mumkin.",
+        'booking.view_my_bookings': "Mening darslarimga o'tish",
+        'booking.pay_now': "To'lov qilish",
+        'payment.modal_title': "To'lovni amalga oshirish",
+        'payment.modal_desc':
+            "Quyidagi kartaga to'lov yuboring va kvitansiyangizni Telegram guruhiga ismingiz hamda Pupil IDingiz bilan yuboring.",
+        'payment.copy_card': "Karta raqamini nusxalash",
+        'payment.copied_toast': "Karta raqami nusxalandi!",
+        'payment.card_holder': "Karta egasi",
+        'payment.pupil_id': "Pupil ID",
+        'payment.warning_notice':
+            "MAJBURIY: Adminlar broningizni tasdiqlashi uchun Telegram-ga chek yuborayotganda ismingiz va Pupil ID-ingizni ko'rsating.",
+        'payment.open_telegram': "Telegram-da chek yuborish",
 
         // Pupil Progress
         'pupil.progress_title': 'Mening natijalarim',
@@ -1585,6 +1615,21 @@ const dictionary = {
             'Слоты исчезают мгновенно по мере бронирования другими студентами. Вы видите живое расписание.',
         'booking.show_sidebar': 'Выбрать дату',
         'booking.hide_sidebar': 'Скрыть',
+        'booking.request_sent_title': 'Запрос отправлен преподавателю!',
+        'booking.request_sent_desc':
+            'Ваш запрос на бронирование отправлен преподавателю. Оплата пока НЕ требуется. Пожалуйста, регулярно проверяйте панель бронирований. Как только учитель подтвердит занятие, вы сможете перейти к оплате.',
+        'booking.view_my_bookings': 'Перейти к моим бронированиям',
+        'booking.pay_now': 'Оплатить сейчас',
+        'payment.modal_title': 'Завершите оплату',
+        'payment.modal_desc':
+            'Переведите оплату на карту ниже и отправьте чек в группу Telegram с указанием Вашего Имени и Pupil ID.',
+        'payment.copy_card': 'Скопировать номер карты',
+        'payment.copied_toast': 'Номер карты скопирован в буфер обмена!',
+        'payment.card_holder': 'Владелец карты',
+        'payment.pupil_id': 'Pupil ID',
+        'payment.warning_notice':
+            'ОБЯЗАТЕЛЬНО: Укажите Ваше Имя и Pupil ID при отправке чека в Telegram, чтобы администраторы могли подтвердить бронирование.',
+        'payment.open_telegram': 'Отправить чек в Telegram',
 
         // Pupil Progress
         'pupil.progress_title': 'Мой прогресс',

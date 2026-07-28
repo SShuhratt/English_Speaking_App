@@ -10,6 +10,12 @@ import {
     Trash2,
     Sparkles,
     BookOpen,
+    CreditCard,
+    Copy,
+    Check,
+    ExternalLink,
+    ShieldAlert,
+    X,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -67,6 +73,16 @@ export default function Bookings({ bookings }: Props) {
     const [cancellingBooking, setCancellingBooking] = useState<any | null>(null);
     const [cancelReason, setCancelReason] = useState('');
     const [submittingCancel, setSubmittingCancel] = useState(false);
+
+    const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
+    const [copiedCard, setCopiedCard] = useState(false);
+
+    const handleCopyCardNumber = (cardNumber: string) => {
+        navigator.clipboard.writeText(cardNumber);
+        setCopiedCard(true);
+        toast.success(t('payment.copied_toast'));
+        setTimeout(() => setCopiedCard(false), 2500);
+    };
 
     useEffect(() => {
         if (!auth.user) return;
@@ -142,12 +158,14 @@ export default function Bookings({ bookings }: Props) {
 
     const getStatusLabel = (status: string) => {
         switch (status) {
+            case 'accepted':
+                return t('bookings.status_accepted') || 'Awaiting Payment';
             case 'confirmed':
-                return t('bookings.status_confirmed');
+                return t('bookings.status_confirmed') || 'Confirmed';
             case 'pending':
-                return t('bookings.status_pending');
+                return t('bookings.status_pending') || 'Pending Teacher Approval';
             case 'cancelled':
-                return t('bookings.status_cancelled');
+                return t('bookings.status_cancelled') || 'Cancelled';
             case 'rejected':
                 return t('bookings.status_rejected') || 'Rejected';
             default:
@@ -286,7 +304,7 @@ export default function Bookings({ bookings }: Props) {
                                             className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
                                                 apt.status === 'confirmed'
                                                     ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700'
-                                                    : apt.status === 'pending'
+                                                    : (apt.status === 'pending' || apt.status === 'accepted')
                                                       ? 'border-amber-200/50 bg-amber-50 text-amber-700'
                                                       : (apt.status === 'cancelled' || apt.status === 'rejected')
                                                         ? 'border-red-200/50 bg-red-50 text-red-700'
@@ -315,9 +333,19 @@ export default function Bookings({ bookings }: Props) {
                                                     />
                                                 )}
 
+                                                {apt.status === 'accepted' && (
+                                                    <button
+                                                        onClick={() => setPaymentBooking(apt)}
+                                                        className="flex cursor-pointer items-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg animate-pulse"
+                                                    >
+                                                        <CreditCard className="h-3.5 w-3.5" />
+                                                        {t('booking.pay_now')}
+                                                    </button>
+                                                )}
+
                                                 {(apt.status === 'confirmed' ||
-                                                    apt.status ===
-                                                        'pending') && (
+                                                    apt.status === 'accepted' ||
+                                                    apt.status === 'pending') && (
                                                     <button
                                                         onClick={() =>
                                                             setCancellingBooking(apt)
@@ -403,6 +431,128 @@ export default function Bookings({ bookings }: Props) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Payment Modal (Card Shape UI Component) */}
+            {paymentBooking && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="relative flex w-full max-w-lg animate-in flex-col rounded-3xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95">
+                        <button
+                            onClick={() => setPaymentBooking(null)}
+                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+
+                        <div className="flex items-center gap-3 border-b pb-4">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown">
+                                <CreditCard className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    {t('payment.modal_title')}
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                    {t('payment.modal_desc')}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Styled Credit Card Component */}
+                        <div className="mt-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#061445] via-[#1E2A5A] to-[#0D226B] p-6 text-white shadow-xl border border-brand-yellow/20">
+                            <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-brand-yellow/10 blur-2xl" />
+                            <div className="pointer-events-none absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-brand-lightblue/10 blur-2xl" />
+
+                            {/* Card Top: Chip & Brand */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-7 w-10 rounded-md bg-amber-300/80 border border-amber-200 flex items-center justify-center shadow-inner">
+                                        <div className="h-4 w-6 border-y border-amber-500/50 flex items-center justify-center">
+                                            <div className="h-2 w-2 rounded-full border border-amber-600/50" />
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] font-bold tracking-widest text-brand-yellow uppercase">HUMO / UZCARD</span>
+                                </div>
+                                <span className="font-extrabold text-sm tracking-wider text-brand-yellow">
+                                    Convo<span className="text-white">Mate</span>
+                                </span>
+                            </div>
+
+                            {/* Card Number Section with Copy Button */}
+                            <div className="mt-6">
+                                <span className="text-[10px] font-semibold text-brand-lightblue/70 uppercase tracking-wider block mb-1">
+                                    Card Number
+                                </span>
+                                <div className="flex items-center justify-between rounded-xl bg-white/10 px-3.5 py-2.5 backdrop-blur-md border border-white/15">
+                                    <span className="font-mono text-lg font-black tracking-widest text-white">
+                                        9860 2601 1195 6751
+                                    </span>
+                                    <button
+                                        onClick={() => handleCopyCardNumber('9860260111956751')}
+                                        className="flex items-center gap-1.5 rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-bold text-brand-brown shadow transition-all hover:bg-brand-yellow-hover hover:scale-105 cursor-pointer"
+                                    >
+                                        {copiedCard ? <Check className="h-3.5 w-3.5 text-emerald-700" /> : <Copy className="h-3.5 w-3.5" />}
+                                        <span>{copiedCard ? 'Copied' : t('payment.copy_card')}</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Card Bottom Details */}
+                            <div className="mt-5 grid grid-cols-2 gap-4 pt-2 border-t border-white/10">
+                                <div>
+                                    <span className="text-[9px] font-semibold text-brand-lightblue/70 uppercase tracking-wider block">
+                                        {t('payment.card_holder')}
+                                    </span>
+                                    <span className="text-xs font-bold text-white uppercase truncate block mt-0.5">
+                                        {auth.user.full_name}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[9px] font-semibold text-brand-lightblue/70 uppercase tracking-wider block">
+                                        {t('payment.pupil_id')}
+                                    </span>
+                                    <span className="text-xs font-mono font-black text-brand-yellow block mt-0.5">
+                                        {auth.user.short_id || auth.user.id.substring(0, 8).toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Telegram Verification Warning Box */}
+                        <div className="mt-4 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/50 dark:bg-amber-950/40">
+                            <div className="flex gap-3">
+                                <ShieldAlert className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                                <div className="space-y-1">
+                                    <p className="text-xs font-extrabold text-amber-900 dark:text-amber-200 leading-snug">
+                                        {t('payment.warning_notice')}
+                                    </p>
+                                    <p className="text-[11px] font-medium text-amber-800/80 dark:text-amber-300/80">
+                                        Name: <strong className="font-bold">{auth.user.full_name}</strong> | ID: <strong className="font-mono font-bold text-amber-950 dark:text-amber-100">{auth.user.short_id || auth.user.id.substring(0, 8).toUpperCase()}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Telegram Button & Close */}
+                        <div className="mt-5 flex flex-col gap-2.5">
+                            <a
+                                href="https://t.me/+Z9Gr0FnDDAFhOTky"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#24A1DE] hover:bg-[#1D8AC0] py-3 text-xs font-bold text-white shadow-md transition-all hover:scale-[1.01]"
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                                {t('payment.open_telegram')}
+                            </a>
+                            <button
+                                onClick={() => setPaymentBooking(null)}
+                                className="cursor-pointer rounded-xl border py-2 text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                            >
+                                {t('bookings.close_btn') || 'Close'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

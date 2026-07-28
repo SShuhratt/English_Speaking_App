@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminSupportController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
@@ -9,6 +12,7 @@ use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\PupilBookingController;
 use App\Http\Controllers\PupilProgressController;
 use App\Http\Controllers\PupilSessionController;
+use App\Http\Controllers\SupportController;
 use App\Http\Controllers\TeacherAppointmentController;
 use App\Http\Controllers\TeacherAvailabilityController;
 use App\Http\Controllers\TeacherController;
@@ -20,6 +24,25 @@ Route::inertia('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile/{id}', [ProfileViewController::class, 'show'])->name('profile.show');
+
+    // Convomate Support Routes for Pupils & Teachers
+    Route::get('/support', [SupportController::class, 'index'])->name('support.index');
+    Route::post('/support', [SupportController::class, 'store'])->name('support.store');
+
+    // Admin Routes
+    Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/appointments/{id}/confirm-payment', [AdminDashboardController::class, 'confirmPayment'])->name('appointments.confirm-payment');
+        Route::post('/appointments/{id}/reject-payment', [AdminDashboardController::class, 'rejectPayment'])->name('appointments.reject-payment');
+
+        Route::get('/teachers', [AdminUserController::class, 'teachers'])->name('teachers');
+        Route::post('/teachers/{id}/verify', [AdminUserController::class, 'verifyTeacher'])->name('teachers.verify');
+        Route::get('/pupils', [AdminUserController::class, 'pupils'])->name('pupils');
+
+        Route::get('/support', [AdminSupportController::class, 'index'])->name('support');
+        Route::post('/support/reply', [AdminSupportController::class, 'reply'])->name('support.reply');
+        Route::post('/support/broadcast', [AdminSupportController::class, 'broadcast'])->name('support.broadcast');
+    });
 
     // Teacher Routes
     Route::prefix('teacher')->name('teacher.')->middleware('teacher')->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Appointment;
+use App\Models\SupportMessage;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,6 +45,14 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'pending_requests_count' => ($request->user() && $request->user()->role === 'teacher')
                     ? Appointment::where('teacher_id', $request->user()->id)->where('status', 'pending')->count()
+                    : 0,
+                'pending_verifications_count' => ($request->user() && $request->user()->role === 'admin')
+                    ? Appointment::where('status', 'accepted')->count()
+                    : 0,
+                'unread_support_count' => $request->user()
+                    ? ($request->user()->role === 'admin'
+                        ? SupportMessage::where('is_read_by_admin', false)->count()
+                        : SupportMessage::where('user_id', $request->user()->id)->where('is_read_by_user', false)->count())
                     : 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

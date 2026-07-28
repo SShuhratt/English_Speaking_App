@@ -54,21 +54,14 @@ services:
       - /app/vendor
       - /app/public/build
       - ./certs:/data/caddy/certs:ro
+    env_file:
+      - .env
     environment:
       - "SERVER_NAME=${SERVER_NAME:-http://localhost:8080}"
       - "CADDY_TLS_DIRECTIVE=${CADDY_TLS_DIRECTIVE:-#}"
       - "APP_ENV=${APP_ENV:-local}"
       - "APP_DEBUG=${APP_DEBUG:-true}"
       - "OCTANE_SERVER=frankenphp"
-      - "DB_CONNECTION=pgsql"
-      - "DB_HOST=postgres"
-      - "DB_PORT=5432"
-      - "DB_DATABASE=edtech"
-      - "DB_USERNAME=postgres"
-      - "DB_PASSWORD=postgress"
-      - "REDIS_HOST=redis"
-      - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=predis"
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,19 +87,12 @@ services:
       - ./:/app
       - /app/vendor
       - /app/public/build
+    env_file:
+      - .env
     environment:
       - "SERVER_NAME=http://localhost:8000"
       - "APP_ENV=local"
       - "APP_DEBUG=true"
-      - "DB_CONNECTION=pgsql"
-      - "DB_HOST=postgres"
-      - "DB_PORT=5432"
-      - "DB_DATABASE=edtech"
-      - "DB_USERNAME=postgres"
-      - "DB_PASSWORD=postgress"
-      - "REDIS_HOST=redis"
-      - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=predis"
     depends_on:
       api:
         condition: service_started
@@ -132,21 +118,14 @@ services:
       - /app/vendor
       - /app/public/build
       - ./certs:/app/certs:ro
+    env_file:
+      - .env
     environment:
       - "SERVER_NAME=${SERVER_NAME:-http://localhost:8080}"
       - "REVERB_SSL_CERT_PATH=${REVERB_SSL_CERT_PATH:-null}"
       - "REVERB_SSL_KEY_PATH=${REVERB_SSL_KEY_PATH:-null}"
       - "APP_ENV=${APP_ENV:-local}"
       - "APP_DEBUG=${APP_DEBUG:-true}"
-      - "DB_CONNECTION=pgsql"
-      - "DB_HOST=postgres"
-      - "DB_PORT=5432"
-      - "DB_DATABASE=edtech"
-      - "DB_USERNAME=postgres"
-      - "DB_PASSWORD=postgress"
-      - "REDIS_HOST=redis"
-      - "REDIS_PORT=6379"
-      - "REDIS_CLIENT=predis"
     depends_on:
       api:
         condition: service_started

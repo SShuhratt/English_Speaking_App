@@ -9,6 +9,10 @@ import {
     Video,
     Bell,
     Mic,
+    CreditCard,
+    HelpCircle,
+    GraduationCap,
+    UserCheck,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -19,22 +23,21 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import type { NavItem, Auth } from '@/types';
+import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const { auth } = usePage<any>().props;
     const { t } = useTranslation();
     const role = (auth.user?.role as string) || 'pupil';
     const pendingCount = auth.pending_requests_count || 0;
+    const pendingVerificationsCount = auth.pending_verifications_count || 0;
+    const unreadSupportCount = auth.unread_support_count || 0;
 
     const baseItems: NavItem[] = [
         {
             title: t('nav.dashboard'),
-            href: '/dashboard',
+            href: role === 'admin' ? '/admin/dashboard' : '/dashboard',
             icon: LayoutGrid,
         },
     ];
@@ -70,15 +73,36 @@ export function AppSidebar() {
                 href: '/teacher/feedback',
                 icon: MessageSquare,
             },
+            {
+                title: 'Convomate Support',
+                href: '/support',
+                icon: HelpCircle,
+                badge: unreadSupportCount,
+            },
         ];
     } else if (role === 'admin') {
         mainNavItems = [
-            ...baseItems,
-            { title: t('nav.users'), href: '/admin/users', icon: Users },
             {
-                title: t('nav.all_sessions'),
-                href: '/admin/sessions',
-                icon: Video,
+                title: 'Payment Confirmations',
+                href: '/admin/dashboard',
+                icon: CreditCard,
+                badge: pendingVerificationsCount,
+            },
+            {
+                title: 'Teachers',
+                href: '/admin/teachers',
+                icon: GraduationCap,
+            },
+            {
+                title: 'Pupils',
+                href: '/admin/pupils',
+                icon: Users,
+            },
+            {
+                title: 'Convomate Support',
+                href: '/admin/support',
+                icon: HelpCircle,
+                badge: unreadSupportCount,
             },
         ];
     } else {
@@ -110,13 +134,19 @@ export function AppSidebar() {
                 href: '/pupil/progress',
                 icon: BookOpen,
             },
+            {
+                title: 'Convomate Support',
+                href: '/support',
+                icon: HelpCircle,
+                badge: unreadSupportCount,
+            },
         ];
     }
 
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-1 group-data-[collapsible=icon]:py-3">
-                <Link href="/dashboard" prefetch className="flex items-center">
+                <Link href={role === 'admin' ? '/admin/dashboard' : '/dashboard'} prefetch className="flex items-center">
                     <AppLogo />
                 </Link>
             </SidebarHeader>

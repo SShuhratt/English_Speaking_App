@@ -100,9 +100,16 @@ export default function TeacherCard({ teacher }: TeacherProps) {
 
                 {/* Tags / Labels */}
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                    <span className="inline-flex items-center rounded-full bg-[#D0E4FF] px-3 py-1 text-[11px] font-bold text-[#1E2A5A]">
-                        {t('teachers.new_teacher')}
-                    </span>
+                    {teacher.teacher_profile?.is_verified && (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold text-emerald-800">
+                            Verified Teacher
+                        </span>
+                    )}
+                    {teacher.is_new && (
+                        <span className="inline-flex items-center rounded-full bg-[#D0E4FF] px-3 py-1 text-[11px] font-bold text-[#1E2A5A]">
+                            New Teacher
+                        </span>
+                    )}
                     <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-[11px] font-bold text-[#1E2A5A]">
                         {t('teachers.freestyle_talk')}
                     </span>

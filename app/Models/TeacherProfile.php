@@ -24,12 +24,14 @@ class TeacherProfile extends Model
         'bio',
         'intro_video_url',
         'price',
+        'is_verified',
     ];
 
     protected $casts = [
         'certificates' => 'array', // Automatically serializes URLs array to JSON string for Postgres
         'labels' => 'array',
         'rating_cache' => 'float',
+        'is_verified' => 'boolean',
     ];
 
     public function user()

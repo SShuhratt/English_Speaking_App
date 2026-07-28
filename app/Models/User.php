@@ -17,7 +17,15 @@ class User extends Authenticatable implements PasskeyUser
 
     protected $appends = [
         'name',
+        'short_id',
     ];
+
+    protected function shortId(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => 'PUPIL-'.strtoupper(substr($this->id, 0, 8)),
+        );
+    }
 
     protected $fillable = [
         'name',

@@ -75,7 +75,8 @@ class BookingWorkflowTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseHas('appointments', [
             'id' => $appointment->id,
-            'status' => 'confirmed',
+            'status' => 'accepted',
+            'payment_status' => 'verifying',
         ]);
     }
 

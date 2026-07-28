@@ -301,12 +301,7 @@ export default function TeacherProfile({ teacher }: Props) {
         <AppLayout>
             <Head title={`${teacher.full_name} — Teacher · ConvoMate`} />
 
-            {/* Load Mockup fonts dynamically */}
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link
-                href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap"
-                rel="stylesheet"
-            />
+            {/* Mockup custom styles */}
 
             <div className="teacher-profile-pupil-container min-h-screen px-4 py-8 md:px-8">
                 <style dangerouslySetInnerHTML={{ __html: `
