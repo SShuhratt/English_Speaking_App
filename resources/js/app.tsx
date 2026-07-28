@@ -57,31 +57,35 @@ createInertiaApp({
                 return page;
             }
 
-            // attach layouts here (IMPORTANT)
-            const layoutProps =
-                typeof component?.layout === 'object' ? component.layout : {};
+            // Only wrap layout if component.layout is not already a layout function
+            if (typeof component.layout !== 'function') {
+                const layoutProps =
+                    typeof component.layout === 'object' && component.layout !== null
+                        ? component.layout
+                        : {};
 
-            component.layout = (pageElement: React.ReactNode) => {
-                const props = { ...layoutProps, children: pageElement };
+                component.layout = (pageElement: React.ReactNode) => {
+                    const props = { ...layoutProps, children: pageElement };
 
-                switch (true) {
-                    case name === 'welcome':
-                        return pageElement;
+                    switch (true) {
+                        case name === 'welcome':
+                            return pageElement;
 
-                    case name.startsWith('auth/'):
-                        return <AuthLayout {...props} />;
+                        case name.startsWith('auth/'):
+                            return <AuthLayout {...props} />;
 
-                    case name.startsWith('settings/'):
-                        return (
-                            <AppLayout {...props}>
-                                <SettingsLayout children={pageElement} />
-                            </AppLayout>
-                        );
+                        case name.startsWith('settings/'):
+                            return (
+                                <AppLayout {...props}>
+                                    <SettingsLayout children={pageElement} />
+                                </AppLayout>
+                            );
 
-                    default:
-                        return <AppLayout {...props} />;
-                }
-            };
+                        default:
+                            return <AppLayout {...props} />;
+                    }
+                };
+            }
 
             return page;
         }),
