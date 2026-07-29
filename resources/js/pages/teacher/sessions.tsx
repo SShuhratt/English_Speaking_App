@@ -180,7 +180,9 @@ export default function Sessions({ appointments }: Props) {
                                     month: 'short',
                                 });
                                 const formattedTimeStr = `${new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} – ${new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
-                                const durationMinutes = apt.duration_minutes || (apt.start_at && apt.end_at ? Math.round((new Date(apt.end_at).getTime() - new Date(apt.start_at).getTime()) / 60000) : 30);
+                                const durationMinutes = (apt.start_at && apt.end_at)
+                                    ? Math.max(1, Math.round((new Date(apt.end_at).getTime() - new Date(apt.start_at).getTime()) / 60000))
+                                    : (apt.duration_minutes || 30);
                                 const rawPrice = (apt.price !== undefined && apt.price !== null) ? Number(apt.price) : 0;
                                 const formattedPriceStr = rawPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + ' UZS';
 
