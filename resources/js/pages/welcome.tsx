@@ -44,6 +44,13 @@ export default function Welcome() {
     const { auth } = usePage<{ auth: { user: unknown } }>().props;
     const { t, locale, setLanguage } = useTranslation();
 
+    const getBookLessonLink = () => {
+        if (!auth.user) return '/register';
+        if ((auth.user as any).role === 'teacher') return '/dashboard';
+        if ((auth.user as any).role === 'admin') return '/admin/dashboard';
+        return '/pupil/teachers';
+    };
+
     return (
         <>
             <Head>
@@ -229,7 +236,7 @@ export default function Welcome() {
                             </p>
                             <div className="mb-6 flex flex-wrap gap-4">
                                 <Link
-                                    href={auth.user ? '/pupil/teachers' : '/register'}
+                                    href={getBookLessonLink()}
                                     className="btn-primary rounded-full px-7 py-3.5 text-base font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg"
                                 >
                                     Book a lesson
@@ -449,7 +456,7 @@ export default function Welcome() {
                                         <span className="text-[#1D9E75] font-bold">Slots available</span>
                                     </div>
                                     <Link
-                                        href={auth.user ? '/pupil/teachers' : '/register'}
+                                        href={getBookLessonLink()}
                                         className="btn-primary rounded-xl py-2.5 text-center text-xs font-bold transition-transform hover:scale-[1.02]"
                                     >
                                         Book lesson with {teacher.name}
@@ -460,7 +467,7 @@ export default function Welcome() {
 
                         <div className="mt-12 text-center">
                             <Link
-                                href={auth.user ? '/pupil/teachers' : '/register'}
+                                href={getBookLessonLink()}
                                 className="btn-outline inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-base font-bold transition-all hover:bg-[#1E2A5A] hover:text-white"
                             >
                                 Browse all verified teachers <ArrowRight className="h-4 w-4" />
@@ -475,7 +482,7 @@ export default function Welcome() {
                         <h2 className="mb-4 text-3xl font-extrabold text-white md:text-5xl">Ready to speak with confidence?</h2>
                         <p className="mx-auto mb-8 max-w-[500px] text-lg text-[#A9C6E8]">Book your lesson in under 2 minutes. Free during early access beta.</p>
                         <Link
-                            href={auth.user ? '/pupil/teachers' : '/register'}
+                            href={getBookLessonLink()}
                             className="btn-butter inline-block rounded-full px-9 py-4 text-lg font-extrabold transition-transform hover:scale-105"
                         >
                             Book a lesson now

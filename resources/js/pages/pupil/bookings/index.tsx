@@ -487,10 +487,10 @@ export default function Bookings({ bookings }: Props) {
                                 </span>
                                 <div className="flex items-center justify-between rounded-xl bg-white/10 px-3.5 py-2.5 backdrop-blur-md border border-white/15">
                                     <span className="font-mono text-lg font-black tracking-widest text-white">
-                                        9860 2601 1195 6751
+                                        9860 1966 1940 4458
                                     </span>
                                     <button
-                                        onClick={() => handleCopyCardNumber('9860260111956751')}
+                                        onClick={() => handleCopyCardNumber('9860196619404458')}
                                         className="flex items-center gap-1.5 rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-bold text-brand-brown shadow transition-all hover:bg-brand-yellow-hover hover:scale-105 cursor-pointer"
                                     >
                                         {copiedCard ? <Check className="h-3.5 w-3.5 text-emerald-700" /> : <Copy className="h-3.5 w-3.5" />}

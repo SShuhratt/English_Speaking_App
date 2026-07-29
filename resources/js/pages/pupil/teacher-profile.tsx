@@ -542,9 +542,11 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                     <div className="head-main">
                         <div className="name-row">
                             <h1 className="name">{teacher.full_name}</h1>
-                            <span className="verified">
-                                <Check className="h-3 w-3 stroke-[3]" /> Verified by ConvoMate
-                            </span>
+                            {teacher.teacher_profile?.is_verified && (
+                                <span className="verified">
+                                    <Check className="h-3 w-3 stroke-[3]" /> Verified by ConvoMate
+                                </span>
+                            )}
                         </div>
                         <p className="headline">
                             {teacher.teacher_profile?.headline || 'Professional English Speaking Tutor'}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import {
     Calendar as CalendarIcon,
     Clock,
@@ -13,6 +13,7 @@ import {
     Star,
     User,
     BookOpen,
+    Sparkles,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';

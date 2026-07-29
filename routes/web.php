@@ -57,6 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/availability/{id}', [TeacherAvailabilityController::class, 'destroy'])->name('availability.destroy');
         Route::get('/sessions', [TeacherAppointmentController::class, 'sessions'])->name('sessions');
         Route::get('/feedback', [TeacherFeedbackController::class, 'index'])->name('feedback');
+        Route::get('/teachers', [TeacherController::class, 'teacherDirectory'])->name('teachers');
     });
 
     // Pupil Routes

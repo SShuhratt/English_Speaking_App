@@ -27,14 +27,14 @@ class DirectRequestTest extends TestCase
             ->actingAs($teacher)
             ->get(route('speaking'));
 
-        $response->assertStatus(403);
+        $response->assertRedirect(route('dashboard'));
 
         // Join matchmaking
         $response = $this
             ->actingAs($teacher)
             ->post(route('matchmaking.join'));
 
-        $response->assertStatus(403);
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_pupil_can_access_speaking_page()
@@ -70,7 +70,7 @@ class DirectRequestTest extends TestCase
 
         $response->assertOk();
         $data = $response->json();
-        
+
         $this->assertCount(1, $data['incoming_requests']);
         $this->assertEquals($pupilA->id, $data['incoming_requests'][0]['id']);
     }

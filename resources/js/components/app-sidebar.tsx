@@ -74,6 +74,11 @@ export function AppSidebar() {
                 icon: MessageSquare,
             },
             {
+                title: t('nav.teachers_directory') || 'Teachers Directory',
+                href: '/teacher/teachers',
+                icon: GraduationCap,
+            },
+            {
                 title: 'Convomate Support',
                 href: '/support',
                 icon: HelpCircle,

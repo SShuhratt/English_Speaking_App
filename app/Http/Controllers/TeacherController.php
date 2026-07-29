@@ -105,4 +105,50 @@ class TeacherController extends Controller
             'teacher' => $teacher,
         ]);
     }
+
+    /**
+     * Show teacher directory for teacher role with full filtering options
+     */
+    public function teacherDirectory(Request $request, SlotService $slotService)
+    {
+        $filter = $request->query('filter', 'all');
+
+        $query = User::where('role', 'teacher')->with('teacherProfile');
+
+        if ($filter === 'verified') {
+            $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
+        } elseif ($filter === 'new') {
+            $query->where('created_at', '>=', now()->subDays(7));
+        } elseif ($filter === 'ielts_speaking_asc') {
+            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
+                ->orderBy('teacher_profiles.speaking_band', 'asc')
+                ->select('users.*');
+        } elseif ($filter === 'ielts_speaking_desc') {
+            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
+                ->orderBy('teacher_profiles.speaking_band', 'desc')
+                ->select('users.*');
+        } elseif ($filter === 'price_asc') {
+            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
+                ->orderBy('teacher_profiles.price', 'asc')
+                ->select('users.*');
+        } elseif ($filter === 'price_desc') {
+            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
+                ->orderBy('teacher_profiles.price', 'desc')
+                ->select('users.*');
+        }
+
+        $teachers = $query->paginate(12)->withQueryString();
+
+        $teachers->getCollection()->transform(function ($teacher) use ($slotService) {
+            $teacher->next_slot = $slotService->getNextAvailableSlot($teacher->id);
+            $teacher->is_new = $teacher->created_at >= now()->subDays(7);
+
+            return $teacher;
+        });
+
+        return Inertia::render('teacher/teachers', [
+            'teachers' => $teachers,
+            'currentFilter' => $filter,
+        ]);
+    }
 }

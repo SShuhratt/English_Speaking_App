@@ -16,6 +16,13 @@ class EnsurePupil
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->user() && $request->user()->role !== 'pupil') {
+            if ($request->user()->role === 'teacher') {
+                return redirect()->route('dashboard');
+            }
+            if ($request->user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
             abort(403, 'Unauthorized.');
         }
 

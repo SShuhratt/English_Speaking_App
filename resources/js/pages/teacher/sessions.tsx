@@ -179,8 +179,9 @@ export default function Sessions({ appointments }: Props) {
                                     day: 'numeric',
                                     month: 'short',
                                 });
-                                const formattedTimeStr = `${new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} – ${new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
-                                const formattedPriceStr = (apt.price || (isTrial ? 23000 : 70000)).toLocaleString('ru-RU').replace(/,/g, ' ') + ' UZS';
+                                const durationMinutes = apt.duration_minutes || (apt.start_at && apt.end_at ? Math.round((new Date(apt.end_at).getTime() - new Date(apt.start_at).getTime()) / 60000) : 30);
+                                const rawPrice = (apt.price !== undefined && apt.price !== null) ? Number(apt.price) : 0;
+                                const formattedPriceStr = rawPrice.toLocaleString('ru-RU').replace(/,/g, ' ') + ' UZS';
 
                                 return (
                                     <div
@@ -195,11 +196,11 @@ export default function Sessions({ appointments }: Props) {
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 {isTrial ? (
                                                     <span className="text-[10px] font-extrabold tracking-wider uppercase bg-[#1E2A5A] text-[#F7DE8B] px-3 py-1 rounded-full">
-                                                        Trial · 20 min
+                                                        Trial · {durationMinutes} min
                                                     </span>
                                                 ) : (
                                                     <span className="text-[10px] font-extrabold tracking-wider uppercase bg-[#E4EEF9] border border-[#A9C6E8] text-[#1E2A5A] px-3 py-1 rounded-full">
-                                                        Lesson · {apt.duration_minutes || 60} min
+                                                        Lesson · {durationMinutes} min
                                                     </span>
                                                 )}
                                                 {apt.status === 'confirmed' ? (
