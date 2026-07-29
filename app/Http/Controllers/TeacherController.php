@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\SlotService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -13,22 +14,12 @@ class TeacherController extends Controller
     /**
      * List all teachers for pupils with filtering (all, verified, new, unverified)
      */
+    /**
+     * List all teachers for pupils with filtering and sorting options
+     */
     public function index(Request $request, SlotService $slotService)
     {
-        $statusFilter = $request->query('status', 'all');
-
-        $query = User::where('role', 'teacher')->with('teacherProfile');
-
-        if ($statusFilter === 'verified') {
-            $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
-        } elseif ($statusFilter === 'unverified') {
-            $query->where(function ($q) {
-                $q->whereDoesntHave('teacherProfile')
-                    ->orWhereHas('teacherProfile', fn ($q2) => $q2->where('is_verified', false));
-            });
-        } elseif ($statusFilter === 'new') {
-            $query->where('created_at', '>=', now()->subDays(7));
-        }
+        [$query, $filters] = $this->buildTeachersQuery($request);
 
         $teachers = $query->paginate(12)->withQueryString();
 
@@ -41,7 +32,8 @@ class TeacherController extends Controller
 
         return Inertia::render('pupil/teachers', [
             'teachers' => $teachers,
-            'currentFilter' => $statusFilter,
+            'currentFilters' => $filters,
+            'currentFilter' => $filters['status'],
         ]);
     }
 
@@ -107,35 +99,11 @@ class TeacherController extends Controller
     }
 
     /**
-     * Show teacher directory for teacher role with full filtering options
+     * Show teacher directory for teacher role with full filtering and sorting options
      */
     public function teacherDirectory(Request $request, SlotService $slotService)
     {
-        $filter = $request->query('filter', 'all');
-
-        $query = User::where('role', 'teacher')->with('teacherProfile');
-
-        if ($filter === 'verified') {
-            $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
-        } elseif ($filter === 'new') {
-            $query->where('created_at', '>=', now()->subDays(7));
-        } elseif ($filter === 'ielts_speaking_asc') {
-            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
-                ->orderBy('teacher_profiles.speaking_band', 'asc')
-                ->select('users.*');
-        } elseif ($filter === 'ielts_speaking_desc') {
-            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
-                ->orderBy('teacher_profiles.speaking_band', 'desc')
-                ->select('users.*');
-        } elseif ($filter === 'price_asc') {
-            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
-                ->orderBy('teacher_profiles.price', 'asc')
-                ->select('users.*');
-        } elseif ($filter === 'price_desc') {
-            $query->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
-                ->orderBy('teacher_profiles.price', 'desc')
-                ->select('users.*');
-        }
+        [$query, $filters] = $this->buildTeachersQuery($request);
 
         $teachers = $query->paginate(12)->withQueryString();
 
@@ -148,7 +116,73 @@ class TeacherController extends Controller
 
         return Inertia::render('teacher/teachers', [
             'teachers' => $teachers,
-            'currentFilter' => $filter,
+            'currentFilters' => $filters,
+            'currentFilter' => $filters['status'],
         ]);
+    }
+
+    /**
+     * Build combinable teacher query supporting status filters, IELTS band sorting, and price sorting
+     *
+     * @return array{0: Builder, 1: array{status: string, ielts_sort: ?string, price_sort: ?string}}
+     */
+    private function buildTeachersQuery(Request $request): array
+    {
+        $status = $request->query('status', $request->query('filter', 'all'));
+        $ieltsSort = $request->query('ielts_sort');
+        $priceSort = $request->query('price_sort');
+
+        // Normalize legacy filter parameters if passed in 'filter' query string
+        if ($status === 'ielts_speaking_asc') {
+            $ieltsSort = 'asc';
+            $status = 'all';
+        } elseif ($status === 'ielts_speaking_desc') {
+            $ieltsSort = 'desc';
+            $status = 'all';
+        } elseif ($status === 'price_asc') {
+            $priceSort = 'asc';
+            $status = 'all';
+        } elseif ($status === 'price_desc') {
+            $priceSort = 'desc';
+            $status = 'all';
+        }
+
+        $query = User::where('role', 'teacher')->with('teacherProfile');
+
+        // Status Filter
+        if ($status === 'verified') {
+            $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
+        } elseif ($status === 'unverified') {
+            $query->where(function ($q) {
+                $q->whereDoesntHave('teacherProfile')
+                    ->orWhereHas('teacherProfile', fn ($q2) => $q2->where('is_verified', false));
+            });
+        } elseif ($status === 'new') {
+            $query->where('users.created_at', '>=', now()->subDays(7));
+        }
+
+        // Combinable Sorting
+        if ($ieltsSort || $priceSort) {
+            $query->leftJoin('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
+                ->select('users.*');
+
+            if ($ieltsSort) {
+                $query->orderBy('teacher_profiles.speaking_band', $ieltsSort);
+            }
+            if ($priceSort) {
+                $query->orderBy('teacher_profiles.price', $priceSort);
+            }
+        } else {
+            $query->orderBy('users.created_at', 'desc');
+        }
+
+        return [
+            $query,
+            [
+                'status' => $status,
+                'ielts_sort' => $ieltsSort,
+                'price_sort' => $priceSort,
+            ],
+        ];
     }
 }
