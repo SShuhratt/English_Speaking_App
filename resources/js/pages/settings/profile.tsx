@@ -15,6 +15,7 @@ type PageProps = {
         user: {
             role: 'teacher' | 'pupil';
             avatar?: string;
+            gender?: string;
             teacher_profile?: {
                 age?: number;
                 phone_number?: string;
@@ -65,27 +66,41 @@ export default function Profile({
         return /\.pdf$/i.test(cleanUrl);
     };
 
+    // Helper to safely parse JSON or array values
+    const safeParseArray = (raw: any): any[] => {
+        if (!raw) return [];
+        if (Array.isArray(raw)) return raw;
+        if (typeof raw === 'string') {
+            try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [raw];
+            } catch {
+                return [raw];
+            }
+        }
+        return [];
+    };
+
     // --- Pupil specific logic ---
     const initialPupilCerts = React.useMemo(() => {
         const rawCerts = auth.user.pupil_profile?.certificates ?? [];
-        const certsArray = typeof rawCerts === 'string' ? JSON.parse(rawCerts) : rawCerts;
-        return (Array.isArray(certsArray) ? certsArray : []).map((c: any, index: number) => {
+        return safeParseArray(rawCerts).map((c: any, index: number) => {
             if (typeof c === 'string') {
                 const isUrl = c.startsWith('http') || c.startsWith('/storage');
                 return {
                     id: index,
                     title: isUrl ? '' : c,
                     file_url: isUrl ? c : null,
-                    file_name: isUrl ? c.substring(c.lastIndexOf('/') + 1) : '',
+                    file_name: isUrl ? (c.includes('/') ? c.substring(c.lastIndexOf('/') + 1) : c) : '',
                     status: 'verified',
                 };
             }
             return {
                 id: index,
-                title: c.title ?? '',
-                file_url: c.file_url ?? null,
-                file_name: c.file_name ?? '',
-                status: c.status ?? 'pending',
+                title: String(c?.title ?? ''),
+                file_url: c?.file_url ? String(c.file_url) : null,
+                file_name: String(c?.file_name ?? ''),
+                status: String(c?.status ?? 'pending'),
             };
         });
     }, [auth.user]);
@@ -130,41 +145,46 @@ export default function Profile({
     };
 
     const removePupilCertificate = (index: number) => {
-        setPupilCerts((prev) => prev.filter((_, i) => i !== index));
+        setPupilCerts((prev) => (Array.isArray(prev) ? prev.filter((_, i) => i !== index) : []));
     };
 
     const [pupilHeadline, setPupilHeadline] = React.useState(auth.user.pupil_profile?.headline ?? '');
     const [pupilBio, setPupilBio] = React.useState(auth.user.pupil_profile?.bio ?? '');
     const [targetOverallBand, setTargetOverallBand] = React.useState(auth.user.pupil_profile?.target_overall_band ?? '');
     const [targetSpeakingBand, setTargetSpeakingBand] = React.useState(auth.user.pupil_profile?.target_speaking_band ?? '');
-    const [pupilLabels, setPupilLabels] = React.useState<string[]>(auth.user.pupil_profile?.labels ?? []);
+    
+    const initialPupilLabels = React.useMemo(() => {
+        return safeParseArray(auth.user.pupil_profile?.labels).filter((x): x is string => typeof x === 'string');
+    }, [auth.user]);
+    const [pupilLabels, setPupilLabels] = React.useState<string[]>(initialPupilLabels);
 
     const togglePupilLabel = (val: string) => {
-        setPupilLabels((prev) =>
-            prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val]
-        );
+        setPupilLabels((prev) => {
+            const safePrev = Array.isArray(prev) ? prev : [];
+            return safePrev.includes(val) ? safePrev.filter((x) => x !== val) : [...safePrev, val];
+        });
     };
 
     // --- Teacher specific logic ---
     const initialTeacherCerts = React.useMemo(() => {
         const rawCerts = auth.user.teacher_profile?.certificates ?? [];
-        return rawCerts.map((c: any, index: number) => {
+        return safeParseArray(rawCerts).map((c: any, index: number) => {
             if (typeof c === 'string') {
                 const isUrl = c.startsWith('http') || c.startsWith('/storage');
                 return {
                     id: index,
                     title: isUrl ? '' : c,
                     file_url: isUrl ? c : null,
-                    file_name: isUrl ? c.substring(c.lastIndexOf('/') + 1) : '',
+                    file_name: isUrl ? (c.includes('/') ? c.substring(c.lastIndexOf('/') + 1) : c) : '',
                     status: 'verified',
                 };
             }
             return {
                 id: index,
-                title: c.title ?? '',
-                file_url: c.file_url ?? null,
-                file_name: c.file_name ?? '',
-                status: c.status ?? 'pending',
+                title: String(c?.title ?? ''),
+                file_url: c?.file_url ? String(c.file_url) : null,
+                file_name: String(c?.file_name ?? ''),
+                status: String(c?.status ?? 'pending'),
             };
         });
     }, [auth.user]);
@@ -239,12 +259,16 @@ export default function Profile({
     };
 
     // Focus / Labels
-    const [labels, setLabels] = React.useState<string[]>(auth.user.teacher_profile?.labels ?? []);
+    const initialTeacherLabels = React.useMemo(() => {
+        return safeParseArray(auth.user.teacher_profile?.labels).filter((x): x is string => typeof x === 'string');
+    }, [auth.user]);
+    const [labels, setLabels] = React.useState<string[]>(initialTeacherLabels);
 
     const toggleLabel = (val: string) => {
-        setLabels((prev) =>
-            prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val]
-        );
+        setLabels((prev) => {
+            const safePrev = Array.isArray(prev) ? prev : [];
+            return safePrev.includes(val) ? safePrev.filter((x) => x !== val) : [...safePrev, val];
+        });
     };
 
     // Hourly Rate
@@ -592,7 +616,7 @@ export default function Profile({
                                                     </label>
                                                     <select
                                                         name="gender"
-                                                        defaultValue={auth.user.gender || 'prefer_not_to_say'}
+                                                        defaultValue={String(auth.user.gender || 'prefer_not_to_say')}
                                                         className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
                                                     >
                                                         <option value="male">{t('auth.gender_male')}</option>
@@ -1036,7 +1060,7 @@ export default function Profile({
                                                     <label>{t('auth.gender')}</label>
                                                     <select
                                                         name="gender"
-                                                        defaultValue={auth.user.gender || 'prefer_not_to_say'}
+                                                        defaultValue={String(auth.user.gender || 'prefer_not_to_say')}
                                                         className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A]"
                                                     >
                                                         <option value="male">{t('auth.gender_male')}</option>
