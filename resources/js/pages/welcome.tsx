@@ -79,14 +79,14 @@ export default function Welcome() {
                 }
 
                 body {
-                  font-family: 'Schibsted Grotesk', sans-serif;
+                  font-family: 'Schibsted Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                   color: var(--ink);
                   background: var(--white);
                   line-height: 1.6;
                 }
 
                 h1, h2, h3 {
-                  font-family: 'Bricolage Grotesque', sans-serif;
+                  font-family: 'Bricolage Grotesque', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                   color: var(--navy);
                   line-height: 1.08;
                 }

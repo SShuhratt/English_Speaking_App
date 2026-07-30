@@ -124,14 +124,14 @@
     --chart-4: #d0e4ff;
     --chart-5: #6f5d17;
 
-    --sidebar:                    #ffffff;
-    --sidebar-foreground:         #1b1b1f;
+    --sidebar:                    #081235;
+    --sidebar-foreground:         #cbd5e1;
     --sidebar-primary:            #fae18e;
     --sidebar-primary-foreground: #061445;
-    --sidebar-accent:             #f5f3f7;
-    --sidebar-accent-foreground:  #061445;
-    --sidebar-border:             #e4e1e6;
-    --sidebar-ring:               #061445;
+    --sidebar-accent:             rgba(255, 255, 255, 0.05);
+    --sidebar-accent-foreground:  #ffffff;
+    --sidebar-border:             rgba(255, 255, 255, 0.08);
+    --sidebar-ring:               #3b82f6;
 }
 
 @layer base {

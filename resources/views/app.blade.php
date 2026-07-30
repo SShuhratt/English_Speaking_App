@@ -11,18 +11,12 @@
             }
         </style>
 
-        {{-- Preconnect to Google Fonts domains for faster TLS handshake --}}
-        <link rel="preconnect" href="https://fonts.googleapis.com">
+        {{-- Preconnect to Google Fonts domains for instant TLS handshake --}}
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-        {{-- Preload critical font stylesheet --}}
-        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
-
-        {{-- Asynchronous non-render-blocking font loading with instant font-display: swap --}}
-        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-        <noscript>
-            <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-        </noscript>
+        {{-- Direct high-priority font stylesheet loading with display=swap --}}
+        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
         <link rel="icon" type="image/png" href="/images/logo.png">
         <link rel="apple-touch-icon" href="/images/logo.png">

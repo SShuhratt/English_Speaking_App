@@ -211,9 +211,6 @@ function PupilDashboard({
                     </div>
                     <div>
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold tracking-wider text-white uppercase backdrop-blur-sm">
-                                {t('welcome.badge')}
-                            </span>
                             <div className="flex animate-pulse items-center space-x-1.5 rounded-full border border-orange-500/30 bg-orange-500/20 px-3 py-1 text-xs font-bold text-orange-200 shadow-sm">
                                 <span>
                                     {t('dashboard.streak', { count: 5 })}

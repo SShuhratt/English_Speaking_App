@@ -16,8 +16,8 @@ export default function AppLogo() {
                 />
             </div>
             {!isCollapsed && (
-                <span className="ml-2 text-base font-black tracking-tight text-brand-navy whitespace-nowrap">
-                    Convo<span className="text-brand-yellow">Mate</span>
+                <span className="ml-2 text-base font-black tracking-tight text-white whitespace-nowrap">
+                    Convo<span className="text-amber-400">Mate</span>
                 </span>
             )}
         </div>
