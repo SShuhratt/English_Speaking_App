@@ -3,7 +3,9 @@ export type User = {
     name: string;
     full_name?: string;
     email: string;
+    role?: string;
     avatar?: string;
+    streak_count?: number;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\UserMatched;
+use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Support\Facades\Redis;
 
@@ -46,6 +47,17 @@ class MatchmakingService
             // Set heartbeat active for both users on match initiation
             Redis::setex("speaking_heartbeat:{$userId}", 30, 'active');
             Redis::setex("speaking_heartbeat:{$partnerId}", 30, 'active');
+
+            // Record conversation in database for streak & activity history
+            try {
+                Conversation::create([
+                    'pupil_id' => $userId,
+                    'teacher_id' => $partnerId,
+                    'started_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                logger()->error("Failed to create peer conversation record: {$e->getMessage()}");
+            }
 
             // Broadcast matching status immediately
             try {
@@ -218,6 +230,17 @@ class MatchmakingService
 
         Redis::setex("speaking_heartbeat:{$senderId}", 30, 'active');
         Redis::setex("speaking_heartbeat:{$receiverId}", 30, 'active');
+
+        // Record conversation in database for streak & activity history
+        try {
+            Conversation::create([
+                'pupil_id' => $senderId,
+                'teacher_id' => $receiverId,
+                'started_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+            logger()->error("Failed to create direct request conversation record: {$e->getMessage()}");
+        }
 
         try {
             broadcast(new UserMatched($senderId, $receiverId, $roomId));
