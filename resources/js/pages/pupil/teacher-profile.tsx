@@ -51,6 +51,8 @@ interface Teacher {
         bio?: string;
         intro_video_url?: string;
         price?: number;
+        is_verified?: boolean;
+        is_approved?: boolean;
     };
     feedbacks?: Feedback[];
 }
@@ -917,10 +919,14 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
 
                             <button
                                 className="cta"
-                                disabled={!pickedSlot || booking}
+                                disabled={auth?.user?.role === 'teacher' || !pickedSlot || booking}
                                 onClick={() => setConfirmingSlot(pickedSlot)}
                             >
-                                {pickedSlot ? `Pay ${formattedActivePrice} & book` : 'Select a slot first'}
+                                {auth?.user?.role === 'teacher'
+                                    ? 'Viewing Teacher Profile'
+                                    : pickedSlot
+                                    ? `Pay ${formattedActivePrice} & book`
+                                    : 'Select a slot first'}
                             </button>
 
                             <div className="book-meta">

@@ -59,6 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/sessions', [TeacherAppointmentController::class, 'sessions'])->name('sessions');
         Route::get('/feedback', [TeacherFeedbackController::class, 'index'])->name('feedback');
         Route::get('/teachers', [TeacherController::class, 'teacherDirectory'])->name('teachers');
+        Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
     });
 
     // Pupil Routes

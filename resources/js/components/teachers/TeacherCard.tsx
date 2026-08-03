@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
 
 interface TeacherProps {
@@ -8,6 +8,7 @@ interface TeacherProps {
         id: string;
         full_name: string;
         avatar?: string;
+        is_new?: boolean;
         next_slot?: {
             start_at: string;
             end_at: string;
@@ -20,12 +21,18 @@ interface TeacherProps {
             rating_cache?: number;
             labels?: string[];
             hourly_rate?: number;
+            price?: number;
+            is_verified?: boolean;
         };
     };
 }
 
 export default function TeacherCard({ teacher }: TeacherProps) {
     const { t } = useTranslation();
+    const { auth } = usePage<any>().props;
+    const isTeacher = auth?.user?.role === 'teacher';
+
+    const cardHref = isTeacher ? `/teacher/teachers/${teacher.id}` : `/pupil/teachers/${teacher.id}`;
 
     const initials = teacher.full_name
         .split(' ')
@@ -69,7 +76,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
 
     return (
         <Link
-            href={`/pupil/teachers/${teacher.id}`}
+            href={cardHref}
             className="group flex h-full flex-col justify-between rounded-3xl border border-[#E6E9F2] bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#1E2A5A]/30 hover:shadow-lg"
         >
             <div>
@@ -146,7 +153,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                     </div>
 
                     <div className="inline-flex items-center justify-center rounded-full bg-[#1E2A5A] px-5 py-2 text-xs font-bold text-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-hover:bg-[#061445]">
-                        Book
+                        {isTeacher ? (t('teachers.view') || 'View') : (t('teachers.book') || 'Book')}
                     </div>
                 </div>
             </div>
