@@ -100,6 +100,10 @@ const translations = {
         deleteRangeDesc: 'Select a sub-range within this block to remove it.',
         confirmDeleteRange:
             'Are you sure you want to delete this specific time range?',
+        editAvailability: 'Edit Availability',
+        updateAvailability: 'Update Availability',
+        updateSuccess: 'Availability updated successfully.',
+        updateError: 'Failed to update availability.',
     },
     uz: {
         title: 'Bandlik jadvali',
@@ -165,6 +169,10 @@ const translations = {
             "Ushbu blok ichidan o'chirmoqchi bo'lgan oralig'ingizni tanlang.",
         confirmDeleteRange:
             "Ushbu tanlangan vaqt oralig'ini o'chirib tashlamoqchimisiz?",
+        editAvailability: 'Tahrirlash',
+        updateAvailability: 'Yangilash',
+        updateSuccess: 'Bandlik muvaffaqiyatli yangilandi.',
+        updateError: "Bandlikni yangilab bo'lmadi.",
     },
     ru: {
         title: 'График доступности',
@@ -230,6 +238,10 @@ const translations = {
             'Выберите подинтервал внутри этого блока, чтобы удалить его.',
         confirmDeleteRange:
             'Вы уверены, что хотите удалить этот конкретный временной интервал?',
+        editAvailability: 'Редактировать',
+        updateAvailability: 'Обновить',
+        updateSuccess: 'Доступность успешно обновлена.',
+        updateError: 'Не удалось обновить доступность.',
     },
 };
 
@@ -341,6 +353,105 @@ export default function Availability({ availabilities }: Props) {
         setCurrentDate(new Date(year, month + 1, 1));
     };
 
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState<{
+        type: string;
+        day_of_week: string;
+        start_time: string;
+        end_time: string;
+        date: string;
+        slot_duration: number;
+    }>({
+        type: 'custom',
+        day_of_week: 'monday',
+        start_time: '09:00',
+        end_time: '17:00',
+        date: '',
+        slot_duration: 30,
+    });
+
+    useEffect(() => {
+        if (selectedEvent) {
+            setIsEditing(false);
+            if (selectedEvent.type === 'custom') {
+                const start = parseUtcDate(selectedEvent.start_at);
+                const end = parseUtcDate(selectedEvent.end_at);
+                setRangeStartVal(formatTimeForInput(start));
+                setRangeEndVal(formatTimeForInput(end));
+                setEditData({
+                    type: 'custom',
+                    day_of_week: getWeekdayName(start),
+                    start_time: formatTimeForInput(start),
+                    end_time: formatTimeForInput(end),
+                    date: formatDateString(start),
+                    slot_duration: selectedEvent.slot_duration ?? 30,
+                });
+            } else {
+                const startStr = selectedEvent.start_time
+                    ? selectedEvent.start_time.substring(0, 5)
+                    : '';
+                const endStr = selectedEvent.end_time
+                    ? selectedEvent.end_time.substring(0, 5)
+                    : '';
+                setRangeStartVal(startStr);
+                setRangeEndVal(endStr);
+                setEditData({
+                    type: 'recurring',
+                    day_of_week: selectedEvent.day_of_week ?? 'monday',
+                    start_time: startStr || '09:00',
+                    end_time: endStr || '17:00',
+                    date: formatDateString(selectedDate),
+                    slot_duration: selectedEvent.slot_duration ?? 30,
+                });
+            }
+        } else {
+            setRangeStartVal('');
+            setRangeEndVal('');
+            setIsEditing(false);
+        }
+    }, [selectedEvent]);
+
+    const handleUpdate = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedEvent || !selectedEvent.id) return;
+
+        let payload: any = {
+            type: editData.type,
+            slot_duration: Number(editData.slot_duration),
+        };
+
+        if (editData.type === 'recurring') {
+            payload.day_of_week = editData.day_of_week;
+            payload.start_time = editData.start_time;
+            payload.end_time = editData.end_time;
+        } else {
+            const [startHour, startMin] = editData.start_time.split(':').map(Number);
+            const [endHour, endMin] = editData.end_time.split(':').map(Number);
+            const [year, month, day] = editData.date.split('-').map(Number);
+
+            const startLocal = new Date(year, month - 1, day, startHour, startMin, 0, 0);
+            const endLocal = new Date(year, month - 1, day, endHour, endMin, 0, 0);
+            if (endLocal <= startLocal) {
+                endLocal.setDate(endLocal.getDate() + 1);
+            }
+
+            payload.start_at = startLocal.toISOString();
+            payload.end_at = endLocal.toISOString();
+        }
+
+        router.put(`/teacher/availability/${selectedEvent.id}`, payload, {
+            onSuccess: () => {
+                toast.success(t.updateSuccess);
+                setSelectedEvent(null);
+                setIsEditing(false);
+            },
+            onError: (errors: any) => {
+                const msg = errors.range || errors.message || t.updateError;
+                toast.error(msg);
+            },
+        });
+    };
+
     const getWeekdayName = (date: Date) => {
         return date
             .toLocaleDateString('en-US', { weekday: 'long' })
@@ -375,31 +486,8 @@ export default function Availability({ availabilities }: Props) {
         return `${h}:${m}`;
     };
 
-    useEffect(() => {
-        if (selectedEvent) {
-            if (selectedEvent.type === 'custom') {
-                const start = parseUtcDate(selectedEvent.start_at);
-                const end = parseUtcDate(selectedEvent.end_at);
-                setRangeStartVal(formatTimeForInput(start));
-                setRangeEndVal(formatTimeForInput(end));
-            } else {
-                const startStr = selectedEvent.start_time
-                    ? selectedEvent.start_time.substring(0, 5)
-                    : '';
-                const endStr = selectedEvent.end_time
-                    ? selectedEvent.end_time.substring(0, 5)
-                    : '';
-                setRangeStartVal(startStr);
-                setRangeEndVal(endStr);
-            }
-        } else {
-            setRangeStartVal('');
-            setRangeEndVal('');
-        }
-    }, [selectedEvent]);
-
     const handleDeleteRange = () => {
-        if (!selectedEvent) return;
+        if (!selectedEvent || !selectedEvent.id) return;
 
         let rangeStartIso = '';
         let rangeEndIso = '';
@@ -440,7 +528,7 @@ export default function Availability({ availabilities }: Props) {
         }
 
         if (confirm(t.confirmDeleteRange)) {
-            router.delete(destroy.url(selectedEvent.id), {
+            router.delete(`/teacher/availability/${selectedEvent.id}`, {
                 data: {
                     delete_type: 'range',
                     range_start: rangeStartIso,
@@ -1270,142 +1358,273 @@ export default function Availability({ availabilities }: Props) {
                 </div>
             </div>
 
-            {/* Custom Google Calendar Event details / delete modal */}
+            {/* Custom Google Calendar Event details / edit / delete modal */}
             {selectedEvent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
                     <div className="relative flex w-full max-w-md animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95">
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setSelectedEvent(null)}
+                            onClick={() => {
+                                setSelectedEvent(null);
+                                setIsEditing(false);
+                            }}
                             className="absolute top-4 right-4 h-8 w-8 rounded-lg"
                         >
                             <X className="h-4 w-4" />
                         </Button>
 
-                        <div className="mt-2 flex items-start gap-4">
-                            <div
-                                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${
-                                    selectedEvent.type === 'custom'
-                                        ? 'bg-emerald-500/10 text-emerald-600'
-                                        : 'bg-brand-lightblue text-brand-brown'
-                                }`}
-                            >
-                                <Info className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-lg font-bold text-foreground capitalize">
-                                    {selectedEvent.type === 'custom'
-                                        ? t.typeSingleDate
-                                        : t.typeWeeklyRecurring}
+                        {isEditing ? (
+                            <form onSubmit={handleUpdate} className="space-y-4">
+                                <h3 className="text-lg font-bold text-foreground">
+                                    {t.editAvailability}
                                 </h3>
 
-                                <div className="mt-4 space-y-2 text-sm text-muted-foreground">
-                                    <p className="flex items-center gap-2">
-                                        <span className="font-semibold text-foreground">
-                                            {t.dateDay}
-                                        </span>
-                                        <span className="capitalize">
-                                            {selectedEvent.type === 'recurring'
-                                                ? `${t.every} ${daysMap[lang][selectedEvent.day_of_week as keyof (typeof daysMap)['en']] || selectedEvent.day_of_week}`
-                                                : parseUtcDate(
-                                                      selectedEvent.start_at,
-                                                  ).toLocaleDateString(
-                                                      localeMap[lang],
-                                                      {
-                                                          weekday: 'long',
-                                                          month: 'long',
-                                                          day: 'numeric',
-                                                          year: 'numeric',
-                                                      },
-                                                  )}
-                                        </span>
-                                    </p>
-                                    <p className="flex items-center gap-2">
-                                        <span className="font-semibold text-foreground">
-                                            {t.timeRange}
-                                        </span>
-                                        <span>
-                                            {getEventTimeLabel(selectedEvent)}
-                                        </span>
-                                    </p>
-                                    <p className="flex items-center gap-2">
-                                        <span className="font-semibold text-foreground">
-                                            {t.slotDurationLabel}
-                                        </span>
-                                        <span>
-                                            {selectedEvent.slot_duration === 0
-                                                ? t.slotDurationAll
-                                                : `${selectedEvent.slot_duration} ${t.minutesPerSession}`}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4 border-t pt-4">
-                            <h4 className="text-xs font-bold text-foreground">
-                                {t.deleteRangeTitle}
-                            </h4>
-                            <p className="mt-0.5 mb-2 text-[10px] text-muted-foreground">
-                                {t.deleteRangeDesc}
-                            </p>
-                            <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <Label className="text-[10px]">
-                                        {t.startTime}
-                                    </Label>
-                                    <Input
-                                        type="time"
-                                        value={rangeStartVal}
-                                        onChange={(e) =>
-                                            setRangeStartVal(e.target.value)
+                                    <Label className="text-xs font-semibold">{t.availabilityType}</Label>
+                                    <Select
+                                        value={editData.type}
+                                        onValueChange={(val) =>
+                                            setEditData((prev) => ({ ...prev, type: val }))
                                         }
-                                        className="h-8 px-2 text-xs"
-                                    />
+                                    >
+                                        <SelectTrigger className="mt-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="custom">
+                                                {t.singleDateOverride}
+                                            </SelectItem>
+                                            <SelectItem value="recurring">
+                                                {t.weeklyRecurring}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <div>
-                                    <Label className="text-[10px]">
-                                        {t.endTime}
-                                    </Label>
-                                    <Input
-                                        type="time"
-                                        value={rangeEndVal}
-                                        onChange={(e) =>
-                                            setRangeEndVal(e.target.value)
-                                        }
-                                        className="h-8 px-2 text-xs"
-                                    />
-                                </div>
-                            </div>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleDeleteRange}
-                                className="mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
-                            >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                {t.deleteRangeButton}
-                            </Button>
-                        </div>
 
-                        <div className="mt-6 flex justify-end gap-3 border-t pt-4">
-                            <Button
-                                variant="outline"
-                                onClick={() => setSelectedEvent(null)}
-                                className="rounded-lg"
-                            >
-                                {t.cancel}
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                onClick={() => handleDelete(selectedEvent.id)}
-                                className="flex items-center gap-2 rounded-lg"
-                            >
-                                <Trash2 className="h-4 w-4" />{' '}
-                                {t.deleteAvailability}
-                            </Button>
-                        </div>
+                                {editData.type === 'recurring' ? (
+                                    <div>
+                                        <Label className="text-xs font-semibold">{t.dateDay}</Label>
+                                        <Select
+                                            value={editData.day_of_week}
+                                            onValueChange={(val) =>
+                                                setEditData((prev) => ({ ...prev, day_of_week: val }))
+                                            }
+                                        >
+                                            <SelectTrigger className="mt-1 capitalize">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(
+                                                    (day) => (
+                                                        <SelectItem key={day} value={day} className="capitalize">
+                                                            {daysMap[lang][day as keyof (typeof daysMap)['en']] || day}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <Label className="text-xs font-semibold">{t.dateDay}</Label>
+                                        <Input
+                                            type="date"
+                                            value={editData.date}
+                                            onChange={(e) =>
+                                                setEditData((prev) => ({ ...prev, date: e.target.value }))
+                                            }
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Label className="text-xs font-semibold">{t.startTime}</Label>
+                                        <Input
+                                            type="time"
+                                            value={editData.start_time}
+                                            onChange={(e) =>
+                                                setEditData((prev) => ({ ...prev, start_time: e.target.value }))
+                                            }
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs font-semibold">{t.endTime}</Label>
+                                        <Input
+                                            type="time"
+                                            value={editData.end_time}
+                                            onChange={(e) =>
+                                                setEditData((prev) => ({ ...prev, end_time: e.target.value }))
+                                            }
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs font-semibold">{t.slotDuration}</Label>
+                                    <Select
+                                        value={String(editData.slot_duration)}
+                                        onValueChange={(val) =>
+                                            setEditData((prev) => ({ ...prev, slot_duration: Number(val) }))
+                                        }
+                                    >
+                                        <SelectTrigger className="mt-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="15">15 {t.minSlots}</SelectItem>
+                                            <SelectItem value="30">30 {t.minSlots}</SelectItem>
+                                            <SelectItem value="45">45 {t.minSlots}</SelectItem>
+                                            <SelectItem value="60">60 {t.minSlots}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="mt-6 flex justify-end gap-2 border-t pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsEditing(false)}
+                                        className="rounded-lg"
+                                    >
+                                        {t.cancel}
+                                    </Button>
+                                    <Button type="submit" className="rounded-lg">
+                                        {t.updateAvailability}
+                                    </Button>
+                                </div>
+                            </form>
+                        ) : (
+                            <>
+                                <div className="mt-2 flex items-start gap-4">
+                                    <div
+                                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${
+                                            selectedEvent.type === 'custom'
+                                                ? 'bg-emerald-500/10 text-emerald-600'
+                                                : 'bg-brand-lightblue text-brand-brown'
+                                        }`}
+                                    >
+                                        <Info className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-bold text-foreground capitalize">
+                                            {selectedEvent.type === 'custom'
+                                                ? t.typeSingleDate
+                                                : t.typeWeeklyRecurring}
+                                        </h3>
+
+                                        <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                                            <p className="flex items-center gap-2">
+                                                <span className="font-semibold text-foreground">
+                                                    {t.dateDay}
+                                                </span>
+                                                <span className="capitalize">
+                                                    {selectedEvent.type === 'recurring'
+                                                        ? `${t.every} ${daysMap[lang][selectedEvent.day_of_week as keyof (typeof daysMap)['en']] || selectedEvent.day_of_week}`
+                                                        : parseUtcDate(
+                                                              selectedEvent.start_at,
+                                                          ).toLocaleDateString(
+                                                              localeMap[lang],
+                                                              {
+                                                                  weekday: 'long',
+                                                                  month: 'long',
+                                                                  day: 'numeric',
+                                                                  year: 'numeric',
+                                                              },
+                                                          )}
+                                                </span>
+                                            </p>
+                                            <p className="flex items-center gap-2">
+                                                <span className="font-semibold text-foreground">
+                                                    {t.timeRange}
+                                                </span>
+                                                <span>
+                                                    {getEventTimeLabel(selectedEvent)}
+                                                </span>
+                                            </p>
+                                            <p className="flex items-center gap-2">
+                                                <span className="font-semibold text-foreground">
+                                                    {t.slotDurationLabel}
+                                                </span>
+                                                <span>
+                                                    {selectedEvent.slot_duration === 0
+                                                        ? t.slotDurationAll
+                                                        : `${selectedEvent.slot_duration} ${t.minutesPerSession}`}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 border-t pt-4">
+                                    <h4 className="text-xs font-bold text-foreground">
+                                        {t.deleteRangeTitle}
+                                    </h4>
+                                    <p className="mt-0.5 mb-2 text-[10px] text-muted-foreground">
+                                        {t.deleteRangeDesc}
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <Label className="text-[10px]">
+                                                {t.startTime}
+                                            </Label>
+                                            <Input
+                                                type="time"
+                                                value={rangeStartVal}
+                                                onChange={(e) =>
+                                                    setRangeStartVal(e.target.value)
+                                                }
+                                                className="h-8 px-2 text-xs"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="text-[10px]">
+                                                {t.endTime}
+                                            </Label>
+                                            <Input
+                                                type="time"
+                                                value={rangeEndVal}
+                                                onChange={(e) =>
+                                                    setRangeEndVal(e.target.value)
+                                                }
+                                                className="h-8 px-2 text-xs"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleDeleteRange}
+                                        className="mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        {t.deleteRangeButton}
+                                    </Button>
+                                </div>
+
+                                <div className="mt-6 flex flex-wrap justify-end gap-2 border-t pt-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsEditing(true)}
+                                        className="rounded-lg"
+                                    >
+                                        {t.editAvailability}
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={() => handleDelete(selectedEvent.id)}
+                                        className="flex items-center gap-2 rounded-lg"
+                                    >
+                                        <Trash2 className="h-4 w-4" />{' '}
+                                        {t.deleteAvailability}
+                                    </Button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

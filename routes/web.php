@@ -54,6 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/schedule', [TeacherAppointmentController::class, 'schedule'])->name('schedule');
         Route::get('/availability', [TeacherAvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability', [TeacherAvailabilityController::class, 'store'])->name('availability.store');
+        Route::put('/availability/{id}', [TeacherAvailabilityController::class, 'update'])->name('availability.update');
         Route::delete('/availability/{id}', [TeacherAvailabilityController::class, 'destroy'])->name('availability.destroy');
         Route::get('/sessions', [TeacherAppointmentController::class, 'sessions'])->name('sessions');
         Route::get('/feedback', [TeacherFeedbackController::class, 'index'])->name('feedback');

@@ -93,10 +93,122 @@ class TeacherAvailabilityController extends Controller
         return back()->with('success', 'Availability added successfully.');
     }
 
+    public function update(Request $request, string $id)
+    {
+        $availability = TeacherAvailability::where('teacher_id', $request->user()->id)->find($id);
+
+        if (! $availability) {
+            return back()->withErrors(['range' => 'Availability record not found.']);
+        }
+
+        $validated = $request->validate([
+            'type' => ['required', 'string', 'in:recurring,custom'],
+            'day_of_week' => ['required_if:type,recurring', 'nullable', 'string', 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'],
+            'start_time' => ['required_if:type,recurring', 'nullable', 'date_format:H:i'],
+            'end_time' => [
+                'required_if:type,recurring',
+                'nullable',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->input('type') === 'recurring' && $request->input('start_time') && $value <= $request->input('start_time')) {
+                        $fail('The end time must be a time after start time.');
+                    }
+                },
+            ],
+            'start_at' => ['required_if:type,custom', 'nullable', 'date'],
+            'end_at' => ['required_if:type,custom', 'nullable', 'date', 'after:start_at'],
+            'slot_duration' => ['required', 'integer', 'min:0', 'max:1440'],
+        ]);
+
+        $teacherId = $request->user()->id;
+
+        // Check if there are booked appointments in this availability before modifying
+        if ($availability->type === 'custom' && $availability->start_at && $availability->end_at) {
+            $hasBookings = Appointment::where('teacher_id', $teacherId)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->where(function ($query) use ($availability) {
+                    $query->where('start_at', '<', $availability->end_at)
+                        ->where('end_at', '>', $availability->start_at);
+                })
+                ->exists();
+
+            if ($hasBookings) {
+                return back()->withErrors(['range' => 'Cannot update this availability because it has booked appointments.']);
+            }
+        } elseif ($availability->type === 'recurring' && $availability->day_of_week) {
+            $dayOfWeek = $availability->day_of_week;
+            $appointments = Appointment::where('teacher_id', $teacherId)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->where('start_at', '>=', Carbon::now())
+                ->get();
+
+            $origStart = Carbon::parse($availability->start_time);
+            $origEnd = Carbon::parse($availability->end_time);
+            $startSecs = $origStart->hour * 3600 + $origStart->minute * 60 + $origStart->second;
+            $endSecs = $origEnd->hour * 3600 + $origEnd->minute * 60 + $origEnd->second;
+
+            $hasBookings = false;
+            foreach ($appointments as $appt) {
+                if (strtolower($appt->start_at->format('l')) === strtolower($dayOfWeek)) {
+                    $apptOpen = $appt->start_at->hour * 3600 + $appt->start_at->minute * 60 + $appt->start_at->second;
+                    $apptClose = $appt->end_at->hour * 3600 + $appt->end_at->minute * 60 + $appt->end_at->second;
+                    if ($apptOpen < $endSecs && $apptClose > $startSecs) {
+                        $hasBookings = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($hasBookings) {
+                return back()->withErrors(['range' => 'Cannot update this availability because it has booked appointments.']);
+            }
+        }
+
+        $availability->update([
+            'type' => $validated['type'],
+            'day_of_week' => $validated['type'] === 'recurring' ? $validated['day_of_week'] : null,
+            'start_time' => $validated['type'] === 'recurring' ? $validated['start_time'] : null,
+            'end_time' => $validated['type'] === 'recurring' ? $validated['end_time'] : null,
+            'start_at' => $validated['type'] === 'custom' ? Carbon::parse($validated['start_at']) : null,
+            'end_at' => $validated['type'] === 'custom' ? Carbon::parse($validated['end_at']) : null,
+            'slot_duration' => $validated['slot_duration'],
+        ]);
+
+        // Clear slot cache
+        if ($validated['type'] === 'custom' && ! empty($validated['start_at'])) {
+            $startDate = Carbon::parse($validated['start_at']);
+            $endDate = Carbon::parse($validated['end_at']);
+            $current = $startDate->copy()->subDay();
+            $limit = $endDate->copy()->addDay();
+            while ($current->lte($limit)) {
+                $dateStr = $current->format('Y-m-d');
+                Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
+                $current->addDay();
+            }
+        } elseif ($validated['type'] === 'recurring' && ! empty($validated['day_of_week'])) {
+            $dayOfWeek = $validated['day_of_week'];
+            $current = Carbon::now();
+            if (strtolower($current->format('l')) !== strtolower($dayOfWeek)) {
+                $current->next($dayOfWeek);
+            }
+            for ($i = 0; $i < 8; $i++) {
+                $dateStr = $current->format('Y-m-d');
+                Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
+                $current->addWeek();
+            }
+        }
+
+        return back()->with('success', 'Availability updated successfully.');
+    }
+
     public function destroy(Request $request, string $id)
     {
         $availability = TeacherAvailability::where('teacher_id', $request->user()->id)
-            ->findOrFail($id);
+            ->find($id);
+
+        if (! $availability) {
+            return back()->withErrors(['range' => 'Availability record not found or already deleted.']);
+        }
 
         $deleteType = $request->input('delete_type', 'all');
 
