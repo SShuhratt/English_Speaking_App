@@ -19,7 +19,7 @@ export default function Teachers({ teachers, currentFilters, currentFilter = 'al
     const activeFilters: FilterState = currentFilters || { status: currentFilter };
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('nav.find_teachers') || 'find teachers', href: '/pupil/teachers' }]}>
+        <>
             <Head title={t('teachers.browse')} />
             <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
@@ -28,20 +28,17 @@ export default function Teachers({ teachers, currentFilters, currentFilter = 'al
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
                     <div className="relative z-10 space-y-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
-                            FIND A TEACHER
-                        </span>
-                        <h1 className="text-3xl font-black tracking-tight text-white">
-                            {t('teachers.meet_expert')}
+                        <h1 className="text-2xl font-black tracking-tight md:text-3xl">
+                            {t('teachers_directory.title') || 'Find Your Ideal Teacher'}
                         </h1>
-                        <p className="text-sm font-medium text-brand-lightblue/80">
-                            {t('teachers.subtitle')}
+                        <p className="max-w-2xl text-xs font-medium text-white/80 md:text-sm">
+                            {t('teachers_directory.subtitle') || 'Browse verified English tutors, filter by availability, level, and price to book your live 1-on-1 session.'}
                         </p>
                     </div>
                 </div>
 
-                {/* Filter & Sort Bar */}
-                <TeacherFilterBar baseUrl="/pupil/teachers" currentFilters={activeFilters} showUnverified={true} />
+                {/* Filter Bar */}
+                <TeacherFilterBar initialFilters={activeFilters} currentFilter={currentFilter} />
 
                 {/* Teachers Grid */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -58,6 +55,10 @@ export default function Teachers({ teachers, currentFilters, currentFilter = 'al
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Teachers.layout = {
+    breadcrumbs: [{ title: 'find teachers', href: '/pupil/teachers' }],
+};

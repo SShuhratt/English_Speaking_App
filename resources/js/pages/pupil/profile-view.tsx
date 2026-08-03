@@ -40,7 +40,7 @@ export default function PupilProfileView({ pupil }: Props) {
     const certificates = pupil.pupil_profile?.certificates || [];
 
     return (
-        <AppLayout>
+        <>
             <Head title={`${pupil.full_name} - Profile`} />
 
             <div className="mx-auto max-w-5xl p-6 md:p-8 text-[#22284A]">
@@ -169,13 +169,40 @@ export default function PupilProfileView({ pupil }: Props) {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Labels / Interests Section */}
-                        <div className="bg-white border border-[#E6E9F2] rounded-3xl p-6 shadow-sm">
-                            <h3 className="text-base font-black uppercase tracking-wider text-[#1E2A5A] mb-4 flex items-center gap-2">
-                                <BookOpen className="h-4.5 w-4.5" />
-                                Learning Goals
-                            </h3>
+                {/* Details Grid */}
+                <div className="grid gap-6 md:grid-cols-2">
+                    {/* About & Target Level */}
+                    <div className="space-y-6 rounded-3xl bg-white border border-[#E6E9F2] p-6 shadow-sm">
+                        <h2 className="text-base font-black text-[#1E2A5A]">Student Details</h2>
+
+                        <div className="space-y-4 text-xs font-medium">
+                            <div>
+                                <span className="block text-[11px] text-[#6B7394]">Target English Level</span>
+                                <span className="text-sm font-bold text-[#1E2A5A]">
+                                    {pupil.pupil_profile?.target_level
+                                        ? t(`levels.${pupil.pupil_profile.target_level}`)
+                                        : 'Not specified'}
+                                </span>
+                            </div>
+
+                            <div>
+                                <span className="block text-[11px] text-[#6B7394]">Bio / Intro</span>
+                                <p className="mt-1 text-xs text-[#22284A]">
+                                    {pupil.pupil_profile?.bio || 'No bio provided yet.'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Goals / Interests */}
+                    <div className="space-y-6 rounded-3xl bg-white border border-[#E6E9F2] p-6 shadow-sm">
+                        <h2 className="text-base font-black text-[#1E2A5A]">Goals & Topics</h2>
+
+                        <div>
+                            <span className="mb-2 block text-[11px] font-medium text-[#6B7394]">Learning Goals</span>
                             {labels.length === 0 ? (
                                 <p className="text-xs text-[#6B7394]">No goals specified.</p>
                             ) : (
@@ -194,6 +221,10 @@ export default function PupilProfileView({ pupil }: Props) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+PupilProfileView.layout = {
+    breadcrumbs: [{ title: 'profile', href: '#' }],
+};

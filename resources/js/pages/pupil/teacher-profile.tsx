@@ -318,7 +318,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
     const genderPronoun = teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their';
 
     return (
-        <AppLayout>
+        <>
             <Head title={`${teacher.full_name} — Teacher · ConvoMate`} />
 
             {/* Mockup custom styles */}
@@ -1099,7 +1099,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                 </div>
             )}
 
-        </AppLayout>
+        </>
     );
 }
 

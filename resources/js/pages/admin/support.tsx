@@ -98,7 +98,7 @@ export default function AdminSupport({ userList, activeUser, activeMessages, all
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Convomate Support Desk', href: '/admin/support' }]}>
+        <>
             <Head title="Admin - Support & Announcements" />
 
             <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
@@ -373,6 +373,10 @@ export default function AdminSupport({ userList, activeUser, activeMessages, all
                     </DialogContent>
                 </Dialog>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+AdminSupport.layout = {
+    breadcrumbs: [{ title: 'Convomate Support Desk', href: '/admin/support' }],
+};

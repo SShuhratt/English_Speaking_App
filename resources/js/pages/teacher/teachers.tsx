@@ -20,7 +20,7 @@ export default function TeacherDirectory({ teachers, currentFilters, currentFilt
     const activeFilters: FilterState = currentFilters || { status: currentFilter };
 
     return (
-        <AppLayout breadcrumbs={[{ title: t('nav.teachers_directory') || 'Teachers Directory', href: '/teacher/teachers' }]}>
+        <>
             <Head title={t('teachers_directory.title') || 'Teachers Directory'} />
             <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
@@ -29,23 +29,20 @@ export default function TeacherDirectory({ teachers, currentFilters, currentFilt
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
                     <div className="relative z-10 space-y-1.5">
-                        <div className="flex items-center gap-2">
-                            <Users className="h-5 w-5 text-brand-yellow" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
-                                COMMUNITY DIRECTORY
-                            </span>
-                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                            TEACHERS DIRECTORY
+                        </span>
                         <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('teachers_directory.title') || 'Teachers Directory'}
                         </h1>
                         <p className="text-sm font-medium text-brand-lightblue/80">
-                            {t('teachers_directory.subtitle') || 'Explore profiles, qualifications, and rates of fellow teachers on ConvoMate.'}
+                            {t('teachers_directory.subtitle') || 'Browse all colleague teachers in the platform.'}
                         </p>
                     </div>
                 </div>
 
                 {/* Filter & Sort Bar */}
-                <TeacherFilterBar baseUrl="/teacher/teachers" currentFilters={activeFilters} />
+                <TeacherFilterBar baseUrl="/teacher/teachers" currentFilters={activeFilters} showUnverified={true} />
 
                 {/* Teachers Grid */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -62,6 +59,10 @@ export default function TeacherDirectory({ teachers, currentFilters, currentFilt
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+TeacherDirectory.layout = {
+    breadcrumbs: [{ title: 'Teachers Directory', href: '/teacher/teachers' }],
+};

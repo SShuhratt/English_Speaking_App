@@ -45,7 +45,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Manage Teachers', href: '/admin/teachers' }]}>
+        <>
             <Head title="Admin - Teacher Management" />
 
             <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8">
@@ -219,6 +219,10 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+AdminTeachers.layout = {
+    breadcrumbs: [{ title: 'Manage Teachers', href: '/admin/teachers' }],
+};

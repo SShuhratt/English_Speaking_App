@@ -31,7 +31,7 @@ interface Props {
 
 export default function AdminPupils({ pupils }: Props) {
     return (
-        <AppLayout breadcrumbs={[{ title: 'Manage Pupils', href: '/admin/pupils' }]}>
+        <>
             <Head title="Admin - Pupil Management" />
 
             <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8">
@@ -138,6 +138,6 @@ export default function AdminPupils({ pupils }: Props) {
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </>
     );
 }

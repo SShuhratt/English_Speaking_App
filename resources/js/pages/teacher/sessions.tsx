@@ -91,7 +91,7 @@ export default function Sessions({ appointments }: Props) {
     };
 
     return (
-        <AppLayout>
+        <>
             <Head title="SESSION MANAGEMENT — My Lessons · ConvoMate" />
 
             <div className="mx-auto max-w-6xl space-y-8 p-6 md:p-8" style={{ fontFamily: "'Schibsted Grotesk', sans-serif" }}>
@@ -406,7 +406,7 @@ export default function Sessions({ appointments }: Props) {
                     </form>
                 </DialogContent>
             </Dialog>
-        </AppLayout>
+        </>
     );
 }
 

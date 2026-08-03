@@ -42,7 +42,7 @@ export default function Support({ messages = [] }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Convomate Support', href: '/support' }]}>
+        <>
             <Head title="Convomate Support" />
 
             <div className="mx-auto max-w-5xl space-y-8 p-4 md:p-8">
@@ -53,125 +53,126 @@ export default function Support({ messages = [] }: Props) {
                             <HelpCircle className="h-8 w-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold md:text-3xl">Convomate Support</h1>
-                            <p className="mt-1 text-sm text-indigo-100 md:text-base">
-                                Have an issue, question, or problem? Contact our team directly and we'll assist you immediately.
+                            <h1 className="text-2xl font-bold">Help & Support Desk</h1>
+                            <p className="text-sm text-indigo-100">
+                                Contact the Convomate platform admins, report an issue, or read announcements.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid gap-8 md:grid-cols-12">
+                <div className="grid gap-8 lg:grid-cols-12">
                     {/* Submit Ticket Form */}
-                    <div className="md:col-span-5">
-                        <Card className="shadow-md border-indigo-100 dark:border-indigo-950">
+                    <div className="lg:col-span-5">
+                        <Card className="border-border/50 shadow-md">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
-                                    <MessageSquare className="h-5 w-5 text-indigo-600" />
-                                    Contact Support
+                                    <Send className="h-5 w-5 text-indigo-600" />
+                                    Send Message to Admin
                                 </CardTitle>
                                 <CardDescription>
-                                    Submit your inquiry or problem details below.
+                                    Have a question, feedback, or payment issue? Send us a direct message.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Subject
-                                        </label>
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="subject">Subject</Label>
                                         <Input
-                                            type="text"
-                                            placeholder="Brief title of your inquiry"
+                                            id="subject"
+                                            placeholder="e.g., Booking error or Payment question"
                                             value={data.subject}
                                             onChange={(e) => setData('subject', e.target.value)}
-                                            className="mt-1"
                                         />
                                         {errors.subject && (
-                                            <p className="mt-1 text-xs text-red-500">{errors.subject}</p>
+                                            <p className="text-xs text-destructive">{errors.subject}</p>
                                         )}
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Message Details <span className="text-red-500">*</span>
-                                        </label>
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="message">Message</Label>
                                         <Textarea
+                                            id="message"
                                             rows={5}
-                                            placeholder="Describe your issue or feedback in detail..."
+                                            placeholder="Describe your question or concern in detail..."
                                             value={data.message}
                                             onChange={(e) => setData('message', e.target.value)}
-                                            className="mt-1"
-                                            required
                                         />
                                         {errors.message && (
-                                            <p className="mt-1 text-xs text-red-500">{errors.message}</p>
+                                            <p className="text-xs text-destructive">{errors.message}</p>
                                         )}
                                     </div>
 
                                     <Button
                                         type="submit"
                                         disabled={processing}
-                                        className="w-full bg-indigo-600 text-white hover:bg-indigo-700"
+                                        className="w-full bg-indigo-600 font-semibold text-white hover:bg-indigo-700"
                                     >
-                                        <Send className="mr-2 h-4 w-4" />
-                                        Send Message
+                                        {processing ? 'Sending...' : 'Send Message'}
                                     </Button>
                                 </form>
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Messages History */}
-                    <div className="md:col-span-7">
-                        <Card className="shadow-md border-gray-100 dark:border-gray-800">
+                    {/* Messages & Announcements List */}
+                    <div className="lg:col-span-7">
+                        <Card className="border-border/50 shadow-md">
                             <CardHeader>
-                                <CardTitle className="text-lg">Message History</CardTitle>
-                                <CardDescription>Your ongoing conversation with Support.</CardDescription>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <MessageSquare className="h-5 w-5 text-indigo-600" />
+                                    Support History & Announcements
+                                </CardTitle>
+                                <CardDescription>
+                                    View platform broadcasts and responses from the administration team.
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                {messages.length === 0 ? (
-                                    <div className="py-12 text-center text-gray-500 dark:text-gray-400">
-                                        <HelpCircle className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" />
-                                        <p className="mt-2 text-sm">No support messages yet.</p>
-                                        <p className="text-xs text-gray-400">Submit a ticket on the left to start.</p>
+                            <CardContent>
+                                {supportMessages.length === 0 ? (
+                                    <div className="py-12 text-center text-muted-foreground">
+                                        <MessageSquare className="mx-auto h-12 w-12 stroke-1 opacity-40" />
+                                        <p className="mt-2 text-sm">No messages yet. Feel free to submit a ticket!</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                                        {messages.map((msg) => {
-                                            const isAdmin = Boolean(msg.admin_id);
+                                    <div className="space-y-4">
+                                        {supportMessages.map((msg) => {
+                                            const isBroadcast = msg.type === 'broadcast';
 
                                             return (
                                                 <div
                                                     key={msg.id}
-                                                    className={`rounded-xl p-4 border transition-all ${
-                                                        isAdmin
-                                                            ? 'bg-indigo-50/80 border-indigo-200 text-indigo-950 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-100 ml-4'
-                                                            : 'bg-gray-50 border-gray-200 text-gray-900 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100 mr-4'
+                                                    className={`rounded-xl border p-4 transition-all ${
+                                                        isBroadcast
+                                                            ? 'border-purple-200 bg-purple-50/50 dark:border-purple-900/40 dark:bg-purple-950/20'
+                                                            : 'border-border/60 bg-card'
                                                     }`}
                                                 >
-                                                    <div className="flex items-center justify-between gap-2 border-b border-black/5 dark:border-white/5 pb-2 mb-2">
+                                                    <div className="flex items-start justify-between">
                                                         <div className="flex items-center gap-2">
-                                                            {isAdmin ? (
-                                                                <Badge className="bg-indigo-600 text-white">
-                                                                    Convomate Support
+                                                            {isBroadcast ? (
+                                                                <Badge className="bg-purple-600 hover:bg-purple-700">
+                                                                    Platform Announcement
                                                                 </Badge>
                                                             ) : (
-                                                                <Badge variant="outline" className="bg-white dark:bg-gray-800">
-                                                                    You
+                                                                <Badge variant="outline" className="capitalize">
+                                                                    Ticket
                                                                 </Badge>
                                                             )}
-                                                            {msg.subject && (
-                                                                <span className="font-semibold text-sm">
-                                                                    {msg.subject}
-                                                                </span>
-                                                            )}
+                                                            <h4 className="font-semibold text-foreground">
+                                                                {msg.subject || 'Support Request'}
+                                                            </h4>
                                                         </div>
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {new Date(msg.created_at).toLocaleString()}
+                                                        <span className="text-[11px] text-muted-foreground">
+                                                            {new Date(msg.created_at).toLocaleDateString(undefined, {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            })}
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+
+                                                    <p className="mt-2 text-sm text-foreground/90 whitespace-pre-wrap">
                                                         {msg.message}
                                                     </p>
                                                 </div>
@@ -184,6 +185,10 @@ export default function Support({ messages = [] }: Props) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+SupportPage.layout = {
+    breadcrumbs: [{ title: 'Convomate Support', href: '/support' }],
+};

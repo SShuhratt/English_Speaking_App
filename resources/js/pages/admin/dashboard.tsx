@@ -81,7 +81,7 @@ export default function AdminDashboard({ appointments, stats, currentFilter }: P
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Admin Payment Verification', href: '/admin/dashboard' }]}>
+        <>
             <Head title="Admin Dashboard - Payment Confirmations" />
 
             <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8">
@@ -385,6 +385,6 @@ export default function AdminDashboard({ appointments, stats, currentFilter }: P
                     </DialogContent>
                 </Dialog>
             </div>
-        </AppLayout>
+        </>
     );
 }
