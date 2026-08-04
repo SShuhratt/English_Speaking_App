@@ -38,7 +38,7 @@ export default function Teachers({ teachers, currentFilters, currentFilter = 'al
                 </div>
 
                 {/* Filter Bar */}
-                <TeacherFilterBar initialFilters={activeFilters} currentFilter={currentFilter} />
+                <TeacherFilterBar baseUrl="/pupil/teachers" currentFilters={activeFilters} />
 
                 {/* Teachers Grid */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

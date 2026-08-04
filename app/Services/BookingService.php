@@ -49,8 +49,7 @@ class BookingService
             $start = Carbon::parse($startAt);
             $isTrialRequested = (bool) ($meta['is_trial'] ?? false);
 
-            $rate30 = (float) ($teacher->teacherProfile?->price ?? 0);
-            $hourlyRate = $rate30 * 2;
+            $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 0);
 
             if ($isTrialRequested) {
                 if ($pupil->hasBookedWithTeacher($teacher->id)) {

@@ -95,4 +95,43 @@ class AdminUserController extends Controller
 
         return back()->with('success', 'Teacher verification status updated.');
     }
+
+    /**
+     * Update teacher certificates, score fields, and caches (overall_level & speaking_band) for Admin
+     */
+    public function updateCertificates(Request $request, string $id)
+    {
+        $user = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+
+        $profile = $user->teacherProfile;
+        if (! $profile) {
+            $profile = $user->teacherProfile()->create([
+                'age' => 25,
+                'phone_number' => '',
+                'overall_level' => 'CEFR C1',
+                'speaking_band' => '8.0',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'certificates' => ['required', 'array'],
+            'overall_level' => ['nullable', 'string', 'max:255'],
+            'speaking_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
+        ]);
+
+        $updateData = [
+            'certificates' => $validated['certificates'],
+        ];
+
+        if (isset($validated['overall_level'])) {
+            $updateData['overall_level'] = $validated['overall_level'];
+        }
+        if (isset($validated['speaking_band'])) {
+            $updateData['speaking_band'] = $validated['speaking_band'];
+        }
+
+        $profile->update($updateData);
+
+        return back()->with('success', 'Teacher certificate scores and caches updated successfully.');
+    }
 }

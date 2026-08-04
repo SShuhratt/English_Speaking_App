@@ -90,53 +90,44 @@ class ProfileController extends Controller
                 $profileData['intro_video_url'] = Storage::disk($disk)->url($path);
             }
 
-            // Validate rich certificates upload files if present
-            if ($request->hasFile('ielts_certificates')) {
+            // Validate certificate uploads if present
+            if ($request->hasFile('certificate_files') || $request->hasFile('ielts_certificates')) {
                 $request->validate([
+                    'certificate_files' => ['nullable', 'array'],
+                    'certificate_files.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'],
                     'ielts_certificates' => ['nullable', 'array'],
-                    'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'], // 10MB max per file
+                    'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'],
                 ]);
             }
 
-            $uploadedFiles = $request->file('ielts_certificates') ?? [];
+            $uploadedFiles = $request->file('certificate_files') ?? $request->file('ielts_certificates') ?? [];
             $certsInput = $request->input('certificates', []);
+            if (is_string($certsInput)) {
+                $certsInput = json_decode($certsInput, true) ?? [];
+            }
             $finalCertificates = [];
 
-            // Support both old comma-separated input format and new rich object list
-            if (is_string($certsInput)) {
-                $rawCerts = array_filter(array_map('trim', explode(',', $certsInput)));
-                foreach ($rawCerts as $legacyCert) {
-                    $finalCertificates[] = [
-                        'title' => $legacyCert,
-                        'file_url' => null,
-                        'file_name' => '',
-                        'status' => 'verified',
-                    ];
-                }
-
-                // Process uploaded files if any
-                foreach ($uploadedFiles as $file) {
-                    $disk = env('FILESYSTEM_DISK', 'public');
-                    $path = $file->store('certificates', $disk);
-                    $finalCertificates[] = [
-                        'title' => $file->getClientOriginalName(),
-                        'file_url' => Storage::disk($disk)->url($path),
-                        'file_name' => $file->getClientOriginalName(),
-                        'status' => 'pending',
-                    ];
-                }
-            } elseif (is_array($certsInput)) {
+            if (is_array($certsInput)) {
                 foreach ($certsInput as $index => $certData) {
                     if (is_string($certData)) {
                         $isUrl = str_starts_with($certData, 'http') || str_starts_with($certData, '/storage');
                         $finalCertificates[] = [
+                            'type' => 'ielts',
+                            'custom_type_name' => '',
                             'title' => $isUrl ? '' : $certData,
+                            'overall' => '',
+                            'listening' => '',
+                            'reading' => '',
+                            'writing' => '',
+                            'speaking' => '',
                             'file_url' => $isUrl ? $certData : null,
                             'file_name' => $isUrl ? basename(parse_url($certData, PHP_URL_PATH)) : '',
                             'status' => 'verified',
                         ];
                     } else {
-                        $title = $certData['title'] ?? '';
+                        $type = $certData['type'] ?? 'ielts';
+                        $customName = $certData['custom_type_name'] ?? '';
+                        $title = $certData['title'] ?? ($type === 'other' && !empty($customName) ? $customName : strtoupper($type));
                         $fileUrl = $certData['file_url'] ?? null;
                         $fileName = $certData['file_name'] ?? null;
                         $status = $certData['status'] ?? 'pending';
@@ -150,25 +141,37 @@ class ProfileController extends Controller
                             $status = 'pending';
                         }
 
-                        if ($title || $fileUrl) {
-                            $finalCertificates[] = [
-                                'title' => $title,
-                                'file_url' => $fileUrl,
-                                'file_name' => $fileName,
-                                'status' => $status,
-                            ];
-                        }
+                        $finalCertificates[] = [
+                            'type' => $type,
+                            'custom_type_name' => $customName,
+                            'title' => $title,
+                            'overall' => (string) ($certData['overall'] ?? ''),
+                            'listening' => (string) ($certData['listening'] ?? ''),
+                            'reading' => (string) ($certData['reading'] ?? ''),
+                            'writing' => (string) ($certData['writing'] ?? ''),
+                            'speaking' => (string) ($certData['speaking'] ?? ''),
+                            'file_url' => $fileUrl,
+                            'file_name' => $fileName,
+                            'status' => $status,
+                        ];
                     }
                 }
             }
 
-            // Fallback if certificates is empty but we have file uploads (e.g. from legacy clients or registration)
-            if (empty($certsInput) && ! empty($uploadedFiles)) {
+            // Fallback if certificates input was empty but files uploaded
+            if (empty($certsInput) && !empty($uploadedFiles)) {
                 foreach ($uploadedFiles as $file) {
                     $disk = env('FILESYSTEM_DISK', 'public');
                     $path = $file->store('certificates', $disk);
                     $finalCertificates[] = [
+                        'type' => 'ielts',
+                        'custom_type_name' => '',
                         'title' => $file->getClientOriginalName(),
+                        'overall' => '',
+                        'listening' => '',
+                        'reading' => '',
+                        'writing' => '',
+                        'speaking' => '',
                         'file_url' => Storage::disk($disk)->url($path),
                         'file_name' => $file->getClientOriginalName(),
                         'status' => 'pending',

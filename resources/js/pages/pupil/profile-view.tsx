@@ -14,6 +14,7 @@ interface Props {
         pupil_profile?: {
             headline?: string;
             bio?: string;
+            target_level?: string;
             target_overall_band?: string | number;
             target_speaking_band?: string | number;
             labels?: string[];

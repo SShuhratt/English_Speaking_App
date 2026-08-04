@@ -79,14 +79,44 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             if (typeof c === 'string') {
                 const isUrl = c.startsWith('http') || c.startsWith('/storage');
                 return {
-                    title: isUrl ? '' : c,
+                    type: 'ielts',
+                    custom_type_name: '',
+                    title: isUrl ? 'IELTS Certificate' : c,
+                    overall: '',
+                    listening: '',
+                    reading: '',
+                    writing: '',
+                    speaking: '',
                     file_url: isUrl ? c : null,
                     file_name: isUrl ? c.substring(c.lastIndexOf('/') + 1) : '',
                     status: 'verified',
                 };
             }
+            const certType = c.type ?? 'ielts';
+            const customName = c.custom_type_name ?? '';
+            let displayTitle = c.title || '';
+            if (!displayTitle) {
+                if (certType === 'other' && customName) {
+                    displayTitle = customName;
+                } else if (certType === 'ielts') {
+                    displayTitle = 'IELTS (Academic / General)';
+                } else if (certType === 'cefr') {
+                    displayTitle = 'CEFR / Multilevel';
+                } else if (certType === 'toefl') {
+                    displayTitle = 'TOEFL';
+                } else {
+                    displayTitle = String(certType).toUpperCase();
+                }
+            }
             return {
-                title: c.title ?? '',
+                type: certType,
+                custom_type_name: customName,
+                title: displayTitle,
+                overall: c.overall ?? '',
+                listening: c.listening ?? '',
+                reading: c.reading ?? '',
+                writing: c.writing ?? '',
+                speaking: c.speaking ?? '',
                 file_url: c.file_url ?? null,
                 file_name: c.file_name ?? '',
                 status: c.status ?? 'pending',
@@ -304,9 +334,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
         }
     };
 
-    const rate30Min = Number(teacher.teacher_profile?.price ?? 0);
-    const hourlyPrice = rate30Min * 2;
-    const formatted30MinPrice = rate30Min > 0 ? `${rate30Min.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+    const hourlyPrice = Number(teacher.teacher_profile?.price ?? 0);
     const formattedHourlyPrice = hourlyPrice > 0 ? `${hourlyPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
 
     const calculatedTrialPrice = (trialPrice && trialPrice > 0) ? trialPrice : (hourlyPrice > 0 ? Math.round((hourlyPrice / 3) / 1000) * 1000 : 0);
@@ -659,37 +687,54 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                 Certificates, checked by us
                             </div>
                             {normalizedCerts.length > 0 ? (
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {normalizedCerts.map((cert, idx) => (
-                                        <div key={idx} className="cert">
-                                            <div className="cert-ic">
-                                                <FileText className="h-4.5 w-4.5" />
-                                            </div>
-                                            <div className="cert-body">
-                                                <div className="cert-name">
-                                                    {cert.title || cert.file_name || 'Certificate'}
+                                        <div key={idx} className="rounded-2xl border border-[#E6E9F2] bg-white p-4 space-y-3 shadow-sm">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A]">
+                                                        <FileText className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-sm font-bold text-[#1E2A5A]">
+                                                            {cert.title || (cert.type === 'other' ? cert.custom_type_name : cert.type?.toUpperCase()) || 'Language Certificate'}
+                                                        </h4>
+                                                    </div>
                                                 </div>
-                                                <div className="cert-sub">
-                                                    {cert.file_url ? (
-                                                        <a
-                                                            href={cert.file_url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-brand-brown inline-flex items-center gap-1 hover:underline"
-                                                            style={{ color: 'var(--navy)' }}
-                                                        >
-                                                            Open document <ExternalLink className="h-3 w-3" />
-                                                        </a>
-                                                    ) : (
-                                                        'Verified Document'
-                                                    )}
+                                                {cert.status === 'verified' ? (
+                                                    <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A]">
+                                                        ✓ Verified
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-bold text-[#6B7394]">
+                                                        Under review
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Sub-scores grid */}
+                                            <div className="grid grid-cols-5 gap-1.5 rounded-xl bg-[#FAFBFD] border border-[#E6E9F2]/60 p-2.5 text-center">
+                                                <div>
+                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Overall</span>
+                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.overall || '—'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Listening</span>
+                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.listening || '—'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Reading</span>
+                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.reading || '—'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Writing</span>
+                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.writing || '—'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Speaking</span>
+                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.speaking || '—'}</span>
                                                 </div>
                                             </div>
-                                            {cert.status === 'verified' ? (
-                                                <span className="cert-badge">✓ Verified</span>
-                                            ) : (
-                                                <span className="cert-badge review">Under review</span>
-                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -770,7 +815,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                             </svg>
                             <div className="price-row">
                                 <span className="price">{formattedHourlyPrice}</span>
-                                <span className="per">/ 1 h · {formatted30MinPrice} / 30 min</span>
+                                <span className="per">/ hour</span>
                             </div>
 
                             <div className="rail-label">Lesson type</div>

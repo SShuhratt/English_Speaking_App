@@ -45,10 +45,13 @@ class CreateNewUser implements CreatesNewUsers
         if ($role === 'teacher') {
             $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
             $rules['phone_number'] = ['required', 'string', 'max:20'];
-            $rules['overall_level'] = ['required', 'string', 'max:255'];
-            $rules['speaking_band'] = ['required', 'numeric', 'min:0', 'max:9'];
+            $rules['overall_level'] = ['nullable', 'string', 'max:255'];
+            $rules['speaking_band'] = ['nullable', 'numeric', 'min:0', 'max:9'];
+            $rules['price'] = ['nullable', 'integer', 'min:0'];
             $rules['labels'] = ['nullable', 'array'];
             $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english,practice q&a,job interview prep'];
+            $rules['certificate_files'] = ['nullable', 'array'];
+            $rules['certificate_files.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
             $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
         } elseif ($role === 'pupil') {
@@ -85,56 +88,95 @@ class CreateNewUser implements CreatesNewUsers
             }
 
             $certificates = null;
-            if (request()->hasFile('ielts_certificates')) {
-                $disk = env('FILESYSTEM_DISK', 'public');
-                $certsArray = [];
-                foreach (request()->file('ielts_certificates') as $file) {
-                    $path = $file->store('certificates', $disk);
-                    $url = Storage::disk($disk)->url($path);
-                    $name = $file->getClientOriginalName();
+            $disk = env('FILESYSTEM_DISK', 'public');
 
-                    if ($role === 'teacher') {
-                        $certsArray[] = [
-                            'title' => $name,
-                            'file_url' => $url,
-                            'file_name' => $name,
+            if ($role === 'teacher') {
+                $certsInput = request()->input('certificates');
+                if (is_string($certsInput)) {
+                    $certsInput = json_decode($certsInput, true) ?? [];
+                }
+                $uploadedFiles = request()->file('certificate_files') ?? request()->file('ielts_certificates') ?? [];
+
+                $finalCertificates = [];
+                if (is_array($certsInput) && !empty($certsInput)) {
+                    foreach ($certsInput as $index => $certItem) {
+                        $fileUrl = null;
+                        $fileName = '';
+                        if (isset($uploadedFiles[$index])) {
+                            $file = $uploadedFiles[$index];
+                            $path = $file->store('certificates', $disk);
+                            $fileUrl = Storage::disk($disk)->url($path);
+                            $fileName = $file->getClientOriginalName();
+                        }
+
+                        $certType = $certItem['type'] ?? 'ielts';
+                        $customName = $certItem['custom_type_name'] ?? '';
+                        $title = $certType === 'other' && !empty($customName) ? $customName : strtoupper($certType);
+
+                        $finalCertificates[] = [
+                            'type' => $certType,
+                            'custom_type_name' => $customName,
+                            'title' => $title,
+                            'overall' => (string) ($certItem['overall'] ?? ''),
+                            'listening' => (string) ($certItem['listening'] ?? ''),
+                            'reading' => (string) ($certItem['reading'] ?? ''),
+                            'writing' => (string) ($certItem['writing'] ?? ''),
+                            'speaking' => (string) ($certItem['speaking'] ?? ''),
+                            'file_url' => $fileUrl,
+                            'file_name' => $fileName,
                             'status' => 'pending',
                         ];
-                    } else {
-                        $certsArray[] = $url;
+                    }
+                } elseif (!empty($uploadedFiles)) {
+                    foreach ($uploadedFiles as $file) {
+                        $path = $file->store('certificates', $disk);
+                        $finalCertificates[] = [
+                            'type' => 'ielts',
+                            'custom_type_name' => '',
+                            'title' => $file->getClientOriginalName(),
+                            'overall' => '',
+                            'listening' => '',
+                            'reading' => '',
+                            'writing' => '',
+                            'speaking' => '',
+                            'file_url' => Storage::disk($disk)->url($path),
+                            'file_name' => $file->getClientOriginalName(),
+                            'status' => 'pending',
+                        ];
                     }
                 }
-
-                if ($role === 'teacher') {
+                $certificates = $finalCertificates;
+            } elseif ($role === 'pupil') {
+                if (request()->hasFile('ielts_certificates')) {
+                    $certsArray = [];
+                    foreach (request()->file('ielts_certificates') as $file) {
+                        $path = $file->store('certificates', $disk);
+                        $certsArray[] = Storage::disk($disk)->url($path);
+                    }
                     $certificates = $certsArray;
-                } else {
-                    $certificates = array_values(array_filter($certsArray, function ($cert) {
-                        $cert = trim($cert);
-                        if (empty($cert)) {
-                            return false;
-                        }
-                        if (str_starts_with($cert, 'http') || str_starts_with($cert, '/storage')) {
-                            $path = parse_url($cert, PHP_URL_PATH);
-                            if (empty($path) || $path === '/' || str_ends_with($path, '/')) {
-                                return false;
-                            }
-                            $segments = explode('/', trim($path, '/'));
-                            if (count($segments) <= 1 && (empty($segments[0]) || $segments[0] === 'edtech-media-storage-dev')) {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }));
                 }
             }
 
             if ($role === 'teacher') {
+                $overallLevel = $input['overall_level'] ?? null;
+                $speakingBand = $input['speaking_band'] ?? null;
+
+                if (!empty($certificates) && is_array($certificates)) {
+                    $firstCert = $certificates[0];
+                    if (empty($overallLevel) && !empty($firstCert['overall'])) {
+                        $overallLevel = $firstCert['overall'];
+                    }
+                    if (empty($speakingBand) && !empty($firstCert['speaking'])) {
+                        $speakingBand = $firstCert['speaking'];
+                    }
+                }
+
                 $user->teacherProfile()->create([
                     'age' => $input['age'],
                     'phone_number' => $input['phone_number'],
-                    'overall_level' => $input['overall_level'],
-                    'speaking_band' => $input['speaking_band'],
+                    'overall_level' => $overallLevel ?? 'CEFR C1',
+                    'speaking_band' => $speakingBand ?? 7.5,
+                    'price' => isset($input['price']) && $input['price'] !== '' ? (int) $input['price'] : 0,
                     'labels' => $input['labels'] ?? null,
                     'certificates' => $certificates,
                     'experience_years' => 0.0,

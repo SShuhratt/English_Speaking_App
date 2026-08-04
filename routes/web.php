@@ -37,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/teachers', [AdminUserController::class, 'teachers'])->name('teachers');
         Route::post('/teachers/{id}/verify', [AdminUserController::class, 'verifyTeacher'])->name('teachers.verify');
+        Route::post('/teachers/{id}/certificates', [AdminUserController::class, 'updateCertificates'])->name('teachers.certificates.update');
         Route::get('/pupils', [AdminUserController::class, 'pupils'])->name('pupils');
 
         Route::get('/support', [AdminSupportController::class, 'index'])->name('support');

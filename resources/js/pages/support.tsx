@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { MessageSquare, Send, HelpCircle, ShieldAlert, CheckCircle2, User } from 'lucide-react';
 
 interface AdminUser {
@@ -21,6 +22,7 @@ interface SupportMessage {
     admin?: AdminUser;
     is_read_by_user: boolean;
     recipient_type: string;
+    type?: string;
     created_at: string;
 }
 
@@ -128,14 +130,14 @@ export default function Support({ messages = [] }: Props) {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {supportMessages.length === 0 ? (
+                                {messages.length === 0 ? (
                                     <div className="py-12 text-center text-muted-foreground">
                                         <MessageSquare className="mx-auto h-12 w-12 stroke-1 opacity-40" />
                                         <p className="mt-2 text-sm">No messages yet. Feel free to submit a ticket!</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {supportMessages.map((msg) => {
+                                        {messages.map((msg) => {
                                             const isBroadcast = msg.type === 'broadcast';
 
                                             return (
@@ -189,6 +191,6 @@ export default function Support({ messages = [] }: Props) {
     );
 }
 
-SupportPage.layout = {
+Support.layout = {
     breadcrumbs: [{ title: 'Convomate Support', href: '/support' }],
 };

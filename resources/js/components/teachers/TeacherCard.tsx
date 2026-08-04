@@ -144,7 +144,7 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                                 ? `${Number(teacher.teacher_profile.price).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
                                 : "0 so'm"}{' '}
                             <span className="text-xs font-normal text-muted-foreground">
-                                / 30 min
+                                / hour
                             </span>
                         </div>
                         <div className="mt-0.5 text-xs font-semibold text-[#1D9E75]">

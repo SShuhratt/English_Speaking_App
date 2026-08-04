@@ -173,7 +173,14 @@ export default function Profile({
                 const isUrl = c.startsWith('http') || c.startsWith('/storage');
                 return {
                     id: index,
+                    type: 'ielts',
+                    custom_type_name: '',
                     title: isUrl ? '' : c,
+                    overall: '',
+                    listening: '',
+                    reading: '',
+                    writing: '',
+                    speaking: '',
                     file_url: isUrl ? c : null,
                     file_name: isUrl ? (c.includes('/') ? c.substring(c.lastIndexOf('/') + 1) : c) : '',
                     status: 'verified',
@@ -181,7 +188,14 @@ export default function Profile({
             }
             return {
                 id: index,
+                type: String(c?.type ?? 'ielts'),
+                custom_type_name: String(c?.custom_type_name ?? ''),
                 title: String(c?.title ?? ''),
+                overall: String(c?.overall ?? ''),
+                listening: String(c?.listening ?? ''),
+                reading: String(c?.reading ?? ''),
+                writing: String(c?.writing ?? ''),
+                speaking: String(c?.speaking ?? ''),
                 file_url: c?.file_url ? String(c.file_url) : null,
                 file_name: String(c?.file_name ?? ''),
                 status: String(c?.status ?? 'pending'),
@@ -196,7 +210,14 @@ export default function Profile({
             ...prev,
             {
                 id: Date.now(),
-                title: '',
+                type: 'ielts',
+                custom_type_name: '',
+                title: 'IELTS',
+                overall: '',
+                listening: '',
+                reading: '',
+                writing: '',
+                speaking: '',
                 file_url: null,
                 file_name: '',
                 status: 'pending',
@@ -204,10 +225,10 @@ export default function Profile({
         ]);
     };
 
-    const updateCertTitle = (index: number, title: string) => {
+    const updateCertField = (index: number, field: string, value: string) => {
         setCerts((prev) => {
             const next = [...prev];
-            next[index] = { ...next[index], title };
+            next[index] = { ...next[index], [field]: value };
             return next;
         });
     };
@@ -692,67 +713,161 @@ export default function Profile({
                                                 </div>
                                             </div>
 
-                                            {/* Rich Certificates Section */}
-                                            <div className="space-y-3">
-                                                <label className="text-sm font-bold text-[#22284A]">Certificates</label>
-                                                <div className="space-y-3">
+                                            {/* Language Certificates & Scores Section */}
+                                            <div className="space-y-4 pt-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <label className="text-base font-extrabold text-[#1E2A5A]">Language Certificates & Scores</label>
+                                                        <p className="text-xs text-[#6B7394]">Provide official band scores and upload certificate document credentials.</p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={addCertificate}
+                                                        className="inline-flex items-center gap-1 font-bold text-xs text-[#1E2A5A] hover:bg-[#EEF4FB] border border-[#E6E9F2] rounded-xl px-3 py-1.5 bg-white cursor-pointer transition"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" /> Add Certificate
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-4">
                                                     {certs.map((c, index) => (
                                                         <div
-                                                            key={c.id}
-                                                            className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto] gap-3 items-stretch sm:items-center border border-[#E6E9F2] rounded-2xl p-3 bg-white"
+                                                            key={c.id || index}
+                                                            className="border border-[#E6E9F2] rounded-2xl p-4 bg-white space-y-3.5 shadow-sm"
                                                         >
-                                                            <input
-                                                                type="text"
-                                                                name={`certificates[${index}][title]`}
-                                                                value={c.title}
-                                                                onChange={(e) => updateCertTitle(index, e.target.value)}
-                                                                placeholder="e.g. IELTS Academic — British Council, 2025"
-                                                                className="border-0 focus:ring-0 focus:outline-none p-1.5 font-bold text-sm text-[#22284A] bg-transparent"
-                                                            />
-                                                            <div className="flex gap-2 items-center self-end sm:self-auto">
-                                                                {c.file_url ? (
-                                                                    <a
-                                                                        href={c.file_url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#1E2A5A] hover:border-[#1E2A5A] border border-[#E6E9F2] rounded-full px-3 py-1.5 bg-white cursor-pointer select-none"
-                                                                    >
-                                                                        📎 {c.file_name || 'Document'}
-                                                                    </a>
-                                                                ) : (
-                                                                    <label
-                                                                        htmlFor={`file-input-${index}`}
-                                                                        className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#1E2A5A] hover:border-[#1E2A5A] border border-[#E6E9F2] rounded-full px-3 py-1.5 bg-white cursor-pointer select-none"
-                                                                    >
-                                                                        📎 Attach File
-                                                                    </label>
-                                                                )}
-                                                                <input
-                                                                    type="file"
-                                                                    name={`ielts_certificates[${index}]`}
-                                                                    id={`file-input-${index}`}
-                                                                    accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
-                                                                    hidden
-                                                                    onChange={(e) => handleCertFileSelect(index, e)}
-                                                                />
-                                                                {c.status === 'verified' ? (
-                                                                    <span className="text-[11.5px] font-bold bg-[#F7DE8B] text-[#1E2A5A] rounded-full px-3 py-1.5 whitespace-nowrap">
-                                                                        ✓ Verified
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs font-bold text-[#1E2A5A] bg-[#EEF4FB] px-2.5 py-1 rounded-lg">
+                                                                        Certificate #{index + 1}
                                                                     </span>
-                                                                ) : (
-                                                                    <span className="text-[11.5px] font-bold bg-[#F1F3F8] text-[#6B7394] rounded-full px-3 py-1.5 whitespace-nowrap">
-                                                                        Under review
-                                                                    </span>
+                                                                    {c.status === 'verified' ? (
+                                                                        <span className="text-[11px] font-bold bg-[#F7DE8B] text-[#1E2A5A] rounded-full px-2.5 py-0.5">
+                                                                            ✓ Verified
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-[11px] font-bold bg-[#F1F3F8] text-[#6B7394] rounded-full px-2.5 py-0.5">
+                                                                            Under review
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {certs.length > 1 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeCertificate(index)}
+                                                                        className="p-1 text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" /> Remove
+                                                                    </button>
                                                                 )}
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => removeCertificate(index)}
-                                                                    className="p-1.5 text-red-500 hover:text-red-600 focus:outline-none"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
                                                             </div>
-                                                            {/* Hidden inputs to preserve S3 meta details if unchanged */}
+
+                                                            <div className="space-y-3">
+                                                                <div>
+                                                                    <label className="text-xs font-bold text-[#22284A]">Certificate Type</label>
+                                                                    <select
+                                                                        name={`certificates[${index}][type]`}
+                                                                        value={c.type || 'ielts'}
+                                                                        onChange={(e) => updateCertField(index, 'type', e.target.value)}
+                                                                        className="mt-1 block w-full rounded-xl border border-[#E6E9F2] bg-white px-3 py-2 text-xs font-bold text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                                    >
+                                                                        <option value="other">Other Certificate</option>
+                                                                        <option value="ielts">IELTS (Academic / General)</option>
+                                                                        <option value="cefr">CEFR / Multilevel</option>
+                                                                        <option value="toefl">TOEFL</option>
+                                                                    </select>
+                                                                </div>
+
+                                                                {c.type === 'other' && (
+                                                                    <div>
+                                                                        <input
+                                                                            type="text"
+                                                                            name={`certificates[${index}][custom_type_name]`}
+                                                                            value={c.custom_type_name || ''}
+                                                                            onChange={(e) => updateCertField(index, 'custom_type_name', e.target.value)}
+                                                                            placeholder="Enter certificate name (e.g. Duolingo, Cambridge C1, PTE)"
+                                                                            className="w-full border border-[#E6E9F2] rounded-xl px-3 py-2 text-xs font-medium text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A]"
+                                                                        />
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                                                                    <div>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Overall</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name={`certificates[${index}][overall]`}
+                                                                            value={c.overall || ''}
+                                                                            onChange={(e) => updateCertField(index, 'overall', e.target.value)}
+                                                                            placeholder="e.g. 7.5"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] font-bold"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Listening</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name={`certificates[${index}][listening]`}
+                                                                            value={c.listening || ''}
+                                                                            onChange={(e) => updateCertField(index, 'listening', e.target.value)}
+                                                                            placeholder="e.g. 8.0"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Reading</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name={`certificates[${index}][reading]`}
+                                                                            value={c.reading || ''}
+                                                                            onChange={(e) => updateCertField(index, 'reading', e.target.value)}
+                                                                            placeholder="e.g. 7.0"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Writing</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name={`certificates[${index}][writing]`}
+                                                                            value={c.writing || ''}
+                                                                            onChange={(e) => updateCertField(index, 'writing', e.target.value)}
+                                                                            placeholder="e.g. 6.5"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Speaking</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name={`certificates[${index}][speaking]`}
+                                                                            value={c.speaking || ''}
+                                                                            onChange={(e) => updateCertField(index, 'speaking', e.target.value)}
+                                                                            placeholder="e.g. 8.5"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div>
+                                                                    <label className="text-[11px] font-bold text-[#6B7394] block mb-1">Upload Certificate Document (PDF or Image)</label>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <input
+                                                                            type="file"
+                                                                            name={`certificate_files[${index}]`}
+                                                                            accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
+                                                                            onChange={(e) => handleCertFileSelect(index, e)}
+                                                                            className="text-xs text-[#22284A]"
+                                                                        />
+                                                                        {c.file_name && (
+                                                                            <span className="text-xs text-[#6B7394] font-medium truncate max-w-[200px]">
+                                                                                Attached: {c.file_name}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <input type="hidden" name={`certificates[${index}][title]`} value={c.title || c.custom_type_name || c.type} />
                                                             <input type="hidden" name={`certificates[${index}][file_url]`} value={c.file_url || ''} />
                                                             <input type="hidden" name={`certificates[${index}][file_name]`} value={c.file_name || ''} />
                                                             <input type="hidden" name={`certificates[${index}][status]`} value={c.status || 'pending'} />
@@ -760,16 +875,8 @@ export default function Profile({
                                                     ))}
                                                 </div>
 
-                                                <button
-                                                    type="button"
-                                                    onClick={addCertificate}
-                                                    className="inline-flex items-center gap-1.5 font-bold text-[13.5px] text-[#1E2A5A] hover:underline bg-transparent border-0 cursor-pointer pt-1"
-                                                >
-                                                    <Plus className="w-4 h-4" /> Add another certificate
-                                                </button>
-
-                                                <div className="text-[12.5px] text-[#6B7394] bg-[#EEF4FB] rounded-xl p-3.5 mt-3 select-none">
-                                                    Each certificate needs its document attached. Our team checks it within <b>2 business days</b> — verified certificates get a badge on your public profile.
+                                                <div className="text-[12.5px] text-[#6B7394] bg-[#EEF4FB] rounded-xl p-3.5 select-none">
+                                                    Each certificate is reviewed by platform admins within <b>2 business days</b>.
                                                 </div>
                                             </div>
                                         </div>
