@@ -94,9 +94,15 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             }
             const certType = c.type ?? 'ielts';
             const customName = c.custom_type_name ?? '';
+            
+            const isFileName = (str: string) => {
+                if (!str) return true;
+                return /\.(jpg|jpeg|png|pdf|webp|svg|gif)$/i.test(str) || /^IMG_/i.test(str) || str.includes('/');
+            };
+
             let displayTitle = c.title || '';
-            if (!displayTitle) {
-                if (certType === 'other' && customName) {
+            if (!displayTitle || isFileName(displayTitle)) {
+                if (certType === 'other' && customName && !isFileName(customName)) {
                     displayTitle = customName;
                 } else if (certType === 'ielts') {
                     displayTitle = 'IELTS (Academic / General)';
@@ -105,7 +111,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                 } else if (certType === 'toefl') {
                     displayTitle = 'TOEFL';
                 } else {
-                    displayTitle = String(certType).toUpperCase();
+                    displayTitle = 'Language Certificate';
                 }
             }
             return {
@@ -712,27 +718,54 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                                 )}
                                             </div>
 
-                                            {/* Sub-scores grid */}
-                                            <div className="grid grid-cols-5 gap-1.5 rounded-xl bg-[#FAFBFD] border border-[#E6E9F2]/60 p-2.5 text-center">
-                                                <div>
-                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Overall</span>
-                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.overall || '—'}</span>
+                                            {/* Sub-scores layout */}
+                                            <div className="rounded-xl bg-[#FAFBFD] border border-[#E6E9F2]/60 p-3">
+                                                {/* Mobile layout (< sm): vertical stacked key-value list */}
+                                                <div className="flex flex-col gap-2 sm:hidden text-xs">
+                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
+                                                        <span className="font-bold text-[#6B7394]">Overall:</span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.overall || '—'}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
+                                                        <span className="font-bold text-[#6B7394]">Listening:</span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.listening || '—'}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
+                                                        <span className="font-bold text-[#6B7394]">Reading:</span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.reading || '—'}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
+                                                        <span className="font-bold text-[#6B7394]">Writing:</span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.writing || '—'}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-bold text-[#6B7394]">Speaking:</span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.speaking || '—'}</span>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Listening</span>
-                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.listening || '—'}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Reading</span>
-                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.reading || '—'}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Writing</span>
-                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.writing || '—'}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Speaking</span>
-                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.speaking || '—'}</span>
+
+                                                {/* Desktop layout (>= sm): 5 horizontal columns */}
+                                                <div className="hidden sm:grid sm:grid-cols-5 gap-1.5 text-center">
+                                                    <div>
+                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Overall</span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.overall || '—'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Listening</span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.listening || '—'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Reading</span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.reading || '—'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Writing</span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.writing || '—'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Speaking</span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.speaking || '—'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

@@ -64,11 +64,27 @@ export default function TeacherCard({ teacher }: TeacherProps) {
         }
     };
 
-    const bandText = teacher.teacher_profile?.speaking_band
-        ? `IELTS ${teacher.teacher_profile.speaking_band} verified`
+    const certsArray = React.useMemo(() => {
+        const raw = (teacher.teacher_profile as any)?.certificates;
+        if (!raw) return [];
+        try {
+            return typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
+        } catch (e) {
+            return [];
+        }
+    }, [(teacher.teacher_profile as any)?.certificates]);
+
+    const primaryCert = certsArray[0];
+    const overallScore = primaryCert?.overall || primaryCert?.speaking || teacher.teacher_profile?.speaking_band || '';
+    const certType = primaryCert?.type === 'other' && primaryCert?.custom_type_name
+        ? primaryCert.custom_type_name
+        : (primaryCert?.type ? String(primaryCert.type).toUpperCase() : 'IELTS');
+
+    const bandText = overallScore
+        ? `${certType} ${overallScore} verified`
         : teacher.teacher_profile?.overall_level
         ? `${teacher.teacher_profile.overall_level} verified`
-        : 'IELTS 8.5 verified';
+        : 'Verified Tutor';
 
     const headlineText =
         teacher.teacher_profile?.headline ||

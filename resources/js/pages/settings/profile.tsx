@@ -790,63 +790,61 @@ export default function Profile({
                                                                     </div>
                                                                 )}
 
-                                                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                                                                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Overall</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Overall (Read-only)</label>
                                                                         <input
                                                                             type="text"
-                                                                            name={`certificates[${index}][overall]`}
+                                                                            readOnly
                                                                             value={c.overall || ''}
-                                                                            onChange={(e) => updateCertField(index, 'overall', e.target.value)}
-                                                                            placeholder="e.g. 7.5"
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] font-bold"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] font-bold bg-[#F4F6FB] cursor-not-allowed"
                                                                         />
+                                                                        <input type="hidden" name={`certificates[${index}][overall]`} value={c.overall || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Listening</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Listening (Read-only)</label>
                                                                         <input
                                                                             type="text"
-                                                                            name={`certificates[${index}][listening]`}
+                                                                            readOnly
                                                                             value={c.listening || ''}
-                                                                            onChange={(e) => updateCertField(index, 'listening', e.target.value)}
-                                                                            placeholder="e.g. 8.0"
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
                                                                         />
+                                                                        <input type="hidden" name={`certificates[${index}][listening]`} value={c.listening || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Reading</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Reading (Read-only)</label>
                                                                         <input
                                                                             type="text"
-                                                                            name={`certificates[${index}][reading]`}
+                                                                            readOnly
                                                                             value={c.reading || ''}
-                                                                            onChange={(e) => updateCertField(index, 'reading', e.target.value)}
-                                                                            placeholder="e.g. 7.0"
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
                                                                         />
+                                                                        <input type="hidden" name={`certificates[${index}][reading]`} value={c.reading || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Writing</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Writing (Read-only)</label>
                                                                         <input
                                                                             type="text"
-                                                                            name={`certificates[${index}][writing]`}
+                                                                            readOnly
                                                                             value={c.writing || ''}
-                                                                            onChange={(e) => updateCertField(index, 'writing', e.target.value)}
-                                                                            placeholder="e.g. 6.5"
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
                                                                         />
+                                                                        <input type="hidden" name={`certificates[${index}][writing]`} value={c.writing || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Speaking</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Speaking (Read-only)</label>
                                                                         <input
                                                                             type="text"
-                                                                            name={`certificates[${index}][speaking]`}
+                                                                            readOnly
                                                                             value={c.speaking || ''}
-                                                                            onChange={(e) => updateCertField(index, 'speaking', e.target.value)}
-                                                                            placeholder="e.g. 8.5"
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A]"
+                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
                                                                         />
+                                                                        <input type="hidden" name={`certificates[${index}][speaking]`} value={c.speaking || ''} />
                                                                     </div>
                                                                 </div>
+                                                                <p className="text-[11px] text-[#6B7394] italic">
+                                                                    🔒 Band scores are verified upon registration and can only be updated by platform administrators.
+                                                                </p>
 
                                                                 <div>
                                                                     <label className="text-[11px] font-bold text-[#6B7394] block mb-1">Upload Certificate Document (PDF or Image)</label>
