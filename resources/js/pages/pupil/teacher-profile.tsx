@@ -588,18 +588,20 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                             {teacher.teacher_profile?.headline || 'Professional English Speaking Tutor'}
                         </p>
                         <div className="head-meta">
-                            {teacher.teacher_profile?.speaking_band && (
+                            {normalizedCerts.length > 0 && (normalizedCerts[0]?.speaking || teacher.teacher_profile?.speaking_band) && (
                                 <div className="score-chip hero">
-                                    <span className="sv">{teacher.teacher_profile.speaking_band}</span>
+                                    <span className="sv">{normalizedCerts[0]?.speaking || teacher.teacher_profile?.speaking_band}</span>
                                     <span className="sl">Speaking band</span>
                                 </div>
                             )}
-                            {teacher.teacher_profile?.overall_level && (
+                            {normalizedCerts.length > 0 && (normalizedCerts[0]?.overall || teacher.teacher_profile?.overall_level) && (
                                 <div className="score-chip">
                                     <span className="sv">
-                                        {teacher.teacher_profile.overall_level.replace(/IELTS\s*,?\s*/i, '').trim()}
+                                        {normalizedCerts[0]?.overall || (teacher.teacher_profile?.overall_level ? teacher.teacher_profile.overall_level.replace(/IELTS\s*,?\s*/i, '').trim() : '')}
                                     </span>
-                                    <span className="sl">Overall IELTS</span>
+                                    <span className="sl">
+                                        Overall {normalizedCerts[0]?.type === 'other' && normalizedCerts[0]?.custom_type_name ? normalizedCerts[0].custom_type_name : (normalizedCerts[0]?.type ? String(normalizedCerts[0].type).toUpperCase() : 'IELTS')}
+                                    </span>
                                 </div>
                             )}
                             <span className="new-badge">
@@ -690,7 +692,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                         <div className="section">
                             <div className="sec-title">
                                 <span className="n"><Award className="h-3.5 w-3.5" /></span>
-                                Certificates, checked by us
+                                Certificates
                             </div>
                             {normalizedCerts.length > 0 ? (
                                 <div className="space-y-4">

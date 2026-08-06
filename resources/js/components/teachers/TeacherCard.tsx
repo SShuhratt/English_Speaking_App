@@ -75,14 +75,14 @@ export default function TeacherCard({ teacher }: TeacherProps) {
     }, [(teacher.teacher_profile as any)?.certificates]);
 
     const primaryCert = certsArray[0];
-    const overallScore = primaryCert?.overall || primaryCert?.speaking || teacher.teacher_profile?.speaking_band || '';
+    const overallScore = primaryCert?.overall || primaryCert?.speaking || '';
     const certType = primaryCert?.type === 'other' && primaryCert?.custom_type_name
         ? primaryCert.custom_type_name
         : (primaryCert?.type ? String(primaryCert.type).toUpperCase() : 'IELTS');
 
-    const bandText = overallScore
+    const bandText = certsArray.length > 0 && overallScore
         ? `${certType} ${overallScore} verified`
-        : teacher.teacher_profile?.overall_level
+        : certsArray.length > 0 && teacher.teacher_profile?.overall_level
         ? `${teacher.teacher_profile.overall_level} verified`
         : 'Verified Tutor';
 

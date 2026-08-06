@@ -17,6 +17,7 @@ type PageProps = {
             avatar?: string;
             gender?: string;
             teacher_profile?: {
+                is_verified?: boolean;
                 age?: number;
                 phone_number?: string;
                 experience_years?: string;
@@ -168,34 +169,69 @@ export default function Profile({
     // --- Teacher specific logic ---
     const initialTeacherCerts = React.useMemo(() => {
         const rawCerts = auth.user.teacher_profile?.certificates ?? [];
-        return safeParseArray(rawCerts).map((c: any, index: number) => {
+        const parsed = safeParseArray(rawCerts);
+
+        const profileOverall = auth.user.teacher_profile?.overall_level
+            ? String(auth.user.teacher_profile.overall_level).replace(/[^0-9.]/g, '')
+            : '';
+        const profileSpeaking = auth.user.teacher_profile?.speaking_band
+            ? String(auth.user.teacher_profile.speaking_band)
+            : profileOverall;
+
+        if (parsed.length === 0 && (profileOverall || profileSpeaking)) {
+            return [
+                {
+                    id: 0,
+                    isExisting: true,
+                    type: 'ielts',
+                    custom_type_name: '',
+                    title: 'IELTS (Academic / General)',
+                    overall: profileOverall || profileSpeaking,
+                    listening: profileOverall || profileSpeaking,
+                    reading: profileOverall || profileSpeaking,
+                    writing: profileOverall || profileSpeaking,
+                    speaking: profileSpeaking || profileOverall,
+                    file_url: null,
+                    file_name: '',
+                    status: 'verified',
+                },
+            ];
+        }
+
+        return parsed.map((c: any, index: number) => {
             if (typeof c === 'string') {
                 const isUrl = c.startsWith('http') || c.startsWith('/storage');
                 return {
                     id: index,
+                    isExisting: true,
                     type: 'ielts',
                     custom_type_name: '',
-                    title: isUrl ? '' : c,
-                    overall: '',
-                    listening: '',
-                    reading: '',
-                    writing: '',
-                    speaking: '',
+                    title: isUrl ? 'IELTS (Academic / General)' : c,
+                    overall: profileOverall || profileSpeaking,
+                    listening: profileOverall || profileSpeaking,
+                    reading: profileOverall || profileSpeaking,
+                    writing: profileOverall || profileSpeaking,
+                    speaking: profileSpeaking || profileOverall,
                     file_url: isUrl ? c : null,
                     file_name: isUrl ? (c.includes('/') ? c.substring(c.lastIndexOf('/') + 1) : c) : '',
                     status: 'verified',
                 };
             }
+
+            const overallVal = String(c?.overall ?? '') || profileOverall || profileSpeaking;
+            const speakingVal = String(c?.speaking ?? '') || profileSpeaking || overallVal;
+
             return {
                 id: index,
+                isExisting: true,
                 type: String(c?.type ?? 'ielts'),
                 custom_type_name: String(c?.custom_type_name ?? ''),
                 title: String(c?.title ?? ''),
-                overall: String(c?.overall ?? ''),
-                listening: String(c?.listening ?? ''),
-                reading: String(c?.reading ?? ''),
-                writing: String(c?.writing ?? ''),
-                speaking: String(c?.speaking ?? ''),
+                overall: overallVal,
+                listening: String(c?.listening ?? '') || overallVal,
+                reading: String(c?.reading ?? '') || overallVal,
+                writing: String(c?.writing ?? '') || overallVal,
+                speaking: speakingVal,
                 file_url: c?.file_url ? String(c.file_url) : null,
                 file_name: String(c?.file_name ?? ''),
                 status: String(c?.status ?? 'pending'),
@@ -205,14 +241,19 @@ export default function Profile({
 
     const [certs, setCerts] = React.useState(initialTeacherCerts);
 
+    React.useEffect(() => {
+        setCerts(initialTeacherCerts);
+    }, [initialTeacherCerts]);
+
     const addCertificate = () => {
         setCerts((prev) => [
             ...prev,
             {
                 id: Date.now(),
+                isExisting: false, // New certificate: editable scores!
                 type: 'ielts',
                 custom_type_name: '',
-                title: 'IELTS',
+                title: 'IELTS (Academic / General)',
                 overall: '',
                 listening: '',
                 reading: '',
@@ -655,37 +696,15 @@ export default function Profile({
                                         <div>
                                             <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight flex items-center gap-2">
                                                 Credentials
-                                                <span className="inline-block text-[11px] font-bold text-[#1E2A5A] bg-[#F7DE8B] rounded-full px-2.5 py-0.5">Verified by ConvoMate</span>
+                                                {auth.user.teacher_profile?.is_verified && (
+                                                    <span className="inline-block text-[11px] font-bold text-[#1E2A5A] bg-[#F7DE8B] rounded-full px-2.5 py-0.5">
+                                                        Verified by ConvoMate
+                                                    </span>
+                                                )}
                                             </h2>
                                             <p className="text-[13.5px] text-[#6B7394]">Scores and certificates we check before showing your profile to students.</p>
                                         </div>
                                         <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 space-y-6">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">Overall IELTS band</label>
-                                                    <input
-                                                        type="text"
-                                                        name="overall_level"
-                                                        defaultValue={auth.user.teacher_profile?.overall_level || ''}
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
-                                                    />
-                                                    <InputError message={errors.overall_level} />
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">
-                                                        Speaking band <span className="font-normal text-[#6B7394] text-[12.5px] ml-1">shown first</span>
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        name="speaking_band"
-                                                        defaultValue={auth.user.teacher_profile?.speaking_band || ''}
-                                                        inputMode="decimal"
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
-                                                    />
-                                                    <InputError message={errors.speaking_band} />
-                                                </div>
-                                            </div>
-
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1.5">
                                                     <label className="text-sm font-bold text-[#22284A]">Teaching experience</label>
@@ -750,15 +769,13 @@ export default function Profile({
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                {certs.length > 1 && (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => removeCertificate(index)}
-                                                                        className="p-1 text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                                                                    >
-                                                                        <Trash2 className="w-3.5 h-3.5" /> Remove
-                                                                    </button>
-                                                                )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeCertificate(index)}
+                                                                    className="p-1 text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" /> Delete Certificate
+                                                                </button>
                                                             </div>
 
                                                             <div className="space-y-3">
@@ -766,15 +783,21 @@ export default function Profile({
                                                                     <label className="text-xs font-bold text-[#22284A]">Certificate Type</label>
                                                                     <select
                                                                         name={`certificates[${index}][type]`}
+                                                                        disabled={Boolean(c.isExisting)}
                                                                         value={c.type || 'ielts'}
                                                                         onChange={(e) => updateCertField(index, 'type', e.target.value)}
-                                                                        className="mt-1 block w-full rounded-xl border border-[#E6E9F2] bg-white px-3 py-2 text-xs font-bold text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                                        className={`mt-1 block w-full rounded-xl border border-[#E6E9F2] px-3 py-2 text-xs font-bold text-[#22284A] ${
+                                                                            c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A] focus:outline-none'
+                                                                        }`}
                                                                     >
                                                                         <option value="other">Other Certificate</option>
                                                                         <option value="ielts">IELTS (Academic / General)</option>
                                                                         <option value="cefr">CEFR / Multilevel</option>
                                                                         <option value="toefl">TOEFL</option>
                                                                     </select>
+                                                                    {c.isExisting && (
+                                                                        <input type="hidden" name={`certificates[${index}][type]`} value={c.type || 'ielts'} />
+                                                                    )}
                                                                 </div>
 
                                                                 {c.type === 'other' && (
@@ -782,83 +805,131 @@ export default function Profile({
                                                                         <input
                                                                             type="text"
                                                                             name={`certificates[${index}][custom_type_name]`}
+                                                                            readOnly={Boolean(c.isExisting)}
                                                                             value={c.custom_type_name || ''}
                                                                             onChange={(e) => updateCertField(index, 'custom_type_name', e.target.value)}
                                                                             placeholder="Enter certificate name (e.g. Duolingo, Cambridge C1, PTE)"
-                                                                            className="w-full border border-[#E6E9F2] rounded-xl px-3 py-2 text-xs font-medium text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A]"
+                                                                            className={`w-full border border-[#E6E9F2] rounded-xl px-3 py-2 text-xs font-medium text-[#22284A] ${
+                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:outline-none focus:border-[#1E2A5A]'
+                                                                            }`}
                                                                         />
                                                                     </div>
                                                                 )}
 
                                                                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Overall (Read-only)</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
+                                                                            Overall
+                                                                        </label>
                                                                         <input
                                                                             type="text"
-                                                                            readOnly
+                                                                            name={`certificates[${index}][overall]`}
+                                                                            readOnly={Boolean(c.isExisting)}
                                                                             value={c.overall || ''}
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] font-bold bg-[#F4F6FB] cursor-not-allowed"
+                                                                            onChange={(e) => updateCertField(index, 'overall', e.target.value)}
+                                                                            placeholder="e.g. 7.5"
+                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] font-bold ${
+                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            }`}
                                                                         />
-                                                                        <input type="hidden" name={`certificates[${index}][overall]`} value={c.overall || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Listening (Read-only)</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
+                                                                            Listening
+                                                                        </label>
                                                                         <input
                                                                             type="text"
-                                                                            readOnly
+                                                                            name={`certificates[${index}][listening]`}
+                                                                            readOnly={Boolean(c.isExisting)}
                                                                             value={c.listening || ''}
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
+                                                                            onChange={(e) => updateCertField(index, 'listening', e.target.value)}
+                                                                            placeholder="e.g. 8.0"
+                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            }`}
                                                                         />
-                                                                        <input type="hidden" name={`certificates[${index}][listening]`} value={c.listening || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Reading (Read-only)</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
+                                                                            Reading
+                                                                        </label>
                                                                         <input
                                                                             type="text"
-                                                                            readOnly
+                                                                            name={`certificates[${index}][reading]`}
+                                                                            readOnly={Boolean(c.isExisting)}
                                                                             value={c.reading || ''}
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
+                                                                            onChange={(e) => updateCertField(index, 'reading', e.target.value)}
+                                                                            placeholder="e.g. 7.0"
+                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            }`}
                                                                         />
-                                                                        <input type="hidden" name={`certificates[${index}][reading]`} value={c.reading || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Writing (Read-only)</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
+                                                                            Writing
+                                                                        </label>
                                                                         <input
                                                                             type="text"
-                                                                            readOnly
+                                                                            name={`certificates[${index}][writing]`}
+                                                                            readOnly={Boolean(c.isExisting)}
                                                                             value={c.writing || ''}
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
+                                                                            onChange={(e) => updateCertField(index, 'writing', e.target.value)}
+                                                                            placeholder="e.g. 6.5"
+                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            }`}
                                                                         />
-                                                                        <input type="hidden" name={`certificates[${index}][writing]`} value={c.writing || ''} />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">Speaking (Read-only)</label>
+                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
+                                                                            Speaking
+                                                                        </label>
                                                                         <input
                                                                             type="text"
-                                                                            readOnly
+                                                                            name={`certificates[${index}][speaking]`}
+                                                                            readOnly={Boolean(c.isExisting)}
                                                                             value={c.speaking || ''}
-                                                                            className="mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] bg-[#F4F6FB] cursor-not-allowed"
+                                                                            onChange={(e) => updateCertField(index, 'speaking', e.target.value)}
+                                                                            placeholder="e.g. 8.5"
+                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            }`}
                                                                         />
-                                                                        <input type="hidden" name={`certificates[${index}][speaking]`} value={c.speaking || ''} />
                                                                     </div>
                                                                 </div>
-                                                                <p className="text-[11px] text-[#6B7394] italic">
-                                                                    🔒 Band scores are verified upon registration and can only be updated by platform administrators.
-                                                                </p>
+
+                                                                {c.isExisting ? (
+                                                                    <p className="text-[11px] text-[#6B7394] italic flex items-center gap-1">
+                                                                        🔒 Verified registration scores are locked. New certificates added below can be assigned band scores.
+                                                                    </p>
+                                                                ) : (
+                                                                    <p className="text-[11px] text-[#1D9E75] font-semibold flex items-center gap-1">
+                                                                        ✎ Enter official band scores for this new certificate before saving.
+                                                                    </p>
+                                                                )}
 
                                                                 <div>
-                                                                    <label className="text-[11px] font-bold text-[#6B7394] block mb-1">Upload Certificate Document (PDF or Image)</label>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <input
-                                                                            type="file"
-                                                                            name={`certificate_files[${index}]`}
-                                                                            accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
-                                                                            onChange={(e) => handleCertFileSelect(index, e)}
-                                                                            className="text-xs text-[#22284A]"
-                                                                        />
-                                                                        {c.file_name && (
-                                                                            <span className="text-xs text-[#6B7394] font-medium truncate max-w-[200px]">
-                                                                                Attached: {c.file_name}
+                                                                    <label className="text-[11px] font-bold text-[#6B7394] block mb-1.5">Certificate Document Credential</label>
+                                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                                        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#EEF4FB] hover:bg-[#E2ECF8] border border-[#D5E2F2] text-xs font-bold text-[#1E2A5A] cursor-pointer shadow-sm transition">
+                                                                            <Upload className="w-4 h-4 text-[#1E2A5A]" />
+                                                                            <span>Upload Certificate Document (PDF or Image)</span>
+                                                                            <input
+                                                                                type="file"
+                                                                                name={`certificate_files[${index}]`}
+                                                                                accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
+                                                                                onChange={(e) => handleCertFileSelect(index, e)}
+                                                                                className="hidden"
+                                                                            />
+                                                                        </label>
+                                                                        {c.file_name ? (
+                                                                            <span className="text-xs font-semibold text-[#1D9E75] bg-[#E8F8F3] border border-[#B3E8D7] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+                                                                                ✓ File Attached: {c.file_name}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-xs text-[#6B7394] italic">
+                                                                                No file attached yet
                                                                             </span>
                                                                         )}
                                                                     </div>

@@ -42,6 +42,11 @@ class HandleInertiaRequests extends Middleware
         $userShared = null;
 
         if ($user) {
+            if ($user->role === 'teacher') {
+                $user->loadMissing('teacherProfile');
+            } elseif ($user->role === 'pupil') {
+                $user->loadMissing('pupilProfile');
+            }
             $userArray = $user->toArray();
             if ($user->role !== 'admin') {
                 $userArray['streak_count'] = StreakService::calculateForUser($user);

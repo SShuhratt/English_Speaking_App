@@ -1,5 +1,6 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Upload } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -21,7 +22,16 @@ export default function Register({ passwordRules }: Props) {
     const { t } = useTranslation();
     const { google_register } = usePage<any>().props;
 
-    const [certificates, setCertificates] = useState([
+    const [certificates, setCertificates] = useState<Array<{
+        type: string;
+        custom_type_name: string;
+        overall: string;
+        listening: string;
+        reading: string;
+        writing: string;
+        speaking: string;
+        file_name?: string;
+    }>>([
         {
             type: 'other',
             custom_type_name: '',
@@ -30,6 +40,7 @@ export default function Register({ passwordRules }: Props) {
             reading: '',
             writing: '',
             speaking: '',
+            file_name: '',
         },
     ]);
 
@@ -44,6 +55,7 @@ export default function Register({ passwordRules }: Props) {
                 reading: '',
                 writing: '',
                 speaking: '',
+                file_name: '',
             },
         ]);
     };
@@ -343,36 +355,7 @@ export default function Register({ passwordRules }: Props) {
                                         />
                                     </div>
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="overall_level">
-                                            {t('auth.overall_level')}
-                                        </Label>
-                                        <Input
-                                            id="overall_level"
-                                            type="text"
-                                            name="overall_level"
-                                            placeholder="e.g. IELTS 8.5 or CEFR C1"
-                                        />
-                                        <InputError
-                                            message={errors.overall_level}
-                                        />
-                                    </div>
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="speaking_band">
-                                            {t('auth.speaking_band')}
-                                        </Label>
-                                        <Input
-                                            id="speaking_band"
-                                            type="number"
-                                            step="0.5"
-                                            name="speaking_band"
-                                            placeholder="e.g. 8.5"
-                                        />
-                                        <InputError
-                                            message={errors.speaking_band}
-                                        />
-                                    </div>
 
                                     <div className="grid gap-2">
                                         <Label className="text-sm font-semibold">
@@ -542,13 +525,34 @@ export default function Register({ passwordRules }: Props) {
                                                         </div>
 
                                                         <div>
-                                                            <Label className="text-[11px] font-bold">Upload Certificate Document (PDF or Image)</Label>
-                                                            <Input
-                                                                type="file"
-                                                                name={`certificate_files[${index}]`}
-                                                                className="mt-1 block w-full text-xs"
-                                                                accept=".pdf,.png,.jpg,.jpeg"
-                                                            />
+                                                            <Label className="text-[11px] font-bold block mb-1.5">Upload Certificate Document (PDF or Image)</Label>
+                                                            <div className="flex items-center gap-3">
+                                                                <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950 hover:bg-indigo-100 dark:hover:bg-indigo-900 border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-indigo-700 dark:text-indigo-300 cursor-pointer shadow-sm transition">
+                                                                    <Upload className="w-4 h-4" />
+                                                                    <span>Choose Certificate File</span>
+                                                                    <input
+                                                                        type="file"
+                                                                        name={`certificate_files[${index}]`}
+                                                                        accept=".pdf,.png,.jpg,.jpeg,.svg,.webp"
+                                                                        className="hidden"
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                updateCertificate(index, 'file_name', file.name);
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                                {cert.file_name ? (
+                                                                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-1.5">
+                                                                        ✓ Attached: {cert.file_name}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-xs text-muted-foreground italic">
+                                                                        No file chosen yet
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

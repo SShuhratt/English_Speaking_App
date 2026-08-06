@@ -102,10 +102,13 @@ class ProfileController extends Controller
 
             $uploadedFiles = $request->file('certificate_files') ?? $request->file('ielts_certificates') ?? [];
             $certsInput = $request->input('certificates', []);
-            if (is_string($certsInput)) {
-                $certsInput = json_decode($certsInput, true) ?? [];
+            $existingCerts = $teacherProfile->certificates ?? [];
+            if (is_string($existingCerts)) {
+                $existingCerts = json_decode($existingCerts, true) ?? [];
             }
-            $finalCertificates = [];
+            if (! is_array($existingCerts)) {
+                $existingCerts = [];
+            }
 
             if (is_array($certsInput)) {
                 foreach ($certsInput as $index => $certData) {
@@ -114,7 +117,7 @@ class ProfileController extends Controller
                         $finalCertificates[] = [
                             'type' => 'ielts',
                             'custom_type_name' => '',
-                            'title' => $isUrl ? '' : $certData,
+                            'title' => $isUrl ? 'IELTS (Academic / General)' : $certData,
                             'overall' => '',
                             'listening' => '',
                             'reading' => '',
@@ -125,41 +128,87 @@ class ProfileController extends Controller
                             'status' => 'verified',
                         ];
                     } else {
-                        $type = $certData['type'] ?? 'ielts';
-                        $customName = $certData['custom_type_name'] ?? '';
-                        $title = $certData['title'] ?? ($type === 'other' && !empty($customName) ? $customName : strtoupper($type));
-                        $fileUrl = $certData['file_url'] ?? null;
-                        $fileName = $certData['file_name'] ?? null;
-                        $status = $certData['status'] ?? 'pending';
-
-                        if (isset($uploadedFiles[$index])) {
-                            $file = $uploadedFiles[$index];
-                            $disk = env('FILESYSTEM_DISK', 'public');
-                            $path = $file->store('certificates', $disk);
-                            $fileUrl = Storage::disk($disk)->url($path);
-                            $fileName = $file->getClientOriginalName();
-                            $status = 'pending';
+                        // Find matching existing cert in DB by file_url or title/type if present
+                        $matchedExisting = null;
+                        foreach ($existingCerts as $ex) {
+                            if (is_array($ex)) {
+                                $urlMatch = ! empty($certData['file_url']) && ! empty($ex['file_url']) && $certData['file_url'] === $ex['file_url'];
+                                $titleMatch = ! empty($certData['title']) && ! empty($ex['title']) && $certData['title'] === $ex['title'];
+                                $typeMatch = ! empty($certData['type']) && ! empty($ex['type']) && $certData['type'] === $ex['type'];
+                                if ($urlMatch || ($titleMatch && $typeMatch)) {
+                                    $matchedExisting = $ex;
+                                    break;
+                                }
+                            }
                         }
 
-                        $finalCertificates[] = [
-                            'type' => $type,
-                            'custom_type_name' => $customName,
-                            'title' => $title,
-                            'overall' => (string) ($certData['overall'] ?? ''),
-                            'listening' => (string) ($certData['listening'] ?? ''),
-                            'reading' => (string) ($certData['reading'] ?? ''),
-                            'writing' => (string) ($certData['writing'] ?? ''),
-                            'speaking' => (string) ($certData['speaking'] ?? ''),
-                            'file_url' => $fileUrl,
-                            'file_name' => $fileName,
-                            'status' => $status,
-                        ];
+                        if ($matchedExisting) {
+                            // Locked existing cert: preserve DB type, title, scores, and status
+                            $type = $matchedExisting['type'] ?? 'ielts';
+                            $customName = $matchedExisting['custom_type_name'] ?? '';
+                            $title = $matchedExisting['title'] ?? ($type === 'other' && ! empty($customName) ? $customName : strtoupper($type));
+                            $fileUrl = $matchedExisting['file_url'] ?? null;
+                            $fileName = $matchedExisting['file_name'] ?? null;
+                            $status = $matchedExisting['status'] ?? 'pending';
+
+                            if (isset($uploadedFiles[$index])) {
+                                $file = $uploadedFiles[$index];
+                                $disk = env('FILESYSTEM_DISK', 'public');
+                                $path = $file->store('certificates', $disk);
+                                $fileUrl = Storage::disk($disk)->url($path);
+                                $fileName = $file->getClientOriginalName();
+                            }
+
+                            $finalCertificates[] = [
+                                'type' => $type,
+                                'custom_type_name' => $customName,
+                                'title' => $title,
+                                'overall' => (string) ($matchedExisting['overall'] ?? ''),
+                                'listening' => (string) ($matchedExisting['listening'] ?? ''),
+                                'reading' => (string) ($matchedExisting['reading'] ?? ''),
+                                'writing' => (string) ($matchedExisting['writing'] ?? ''),
+                                'speaking' => (string) ($matchedExisting['speaking'] ?? ''),
+                                'file_url' => $fileUrl,
+                                'file_name' => $fileName,
+                                'status' => $status,
+                            ];
+                        } else {
+                            // New certificate entry
+                            $type = $certData['type'] ?? 'ielts';
+                            $customName = $certData['custom_type_name'] ?? '';
+                            $title = $certData['title'] ?? ($type === 'other' && ! empty($customName) ? $customName : strtoupper($type));
+                            $fileUrl = $certData['file_url'] ?? null;
+                            $fileName = $certData['file_name'] ?? null;
+                            $status = 'pending';
+
+                            if (isset($uploadedFiles[$index])) {
+                                $file = $uploadedFiles[$index];
+                                $disk = env('FILESYSTEM_DISK', 'public');
+                                $path = $file->store('certificates', $disk);
+                                $fileUrl = Storage::disk($disk)->url($path);
+                                $fileName = $file->getClientOriginalName();
+                            }
+
+                            $finalCertificates[] = [
+                                'type' => $type,
+                                'custom_type_name' => $customName,
+                                'title' => $title,
+                                'overall' => (string) ($certData['overall'] ?? ''),
+                                'listening' => (string) ($certData['listening'] ?? ''),
+                                'reading' => (string) ($certData['reading'] ?? ''),
+                                'writing' => (string) ($certData['writing'] ?? ''),
+                                'speaking' => (string) ($certData['speaking'] ?? ''),
+                                'file_url' => $fileUrl,
+                                'file_name' => $fileName,
+                                'status' => $status,
+                            ];
+                        }
                     }
                 }
             }
 
             // Fallback if certificates input was empty but files uploaded
-            if (empty($certsInput) && !empty($uploadedFiles)) {
+            if (empty($certsInput) && ! empty($uploadedFiles)) {
                 foreach ($uploadedFiles as $file) {
                     $disk = env('FILESYSTEM_DISK', 'public');
                     $path = $file->store('certificates', $disk);
@@ -180,6 +229,19 @@ class ProfileController extends Controller
             }
 
             $profileData['certificates'] = $finalCertificates;
+
+            if (! empty($finalCertificates)) {
+                $primaryCert = $finalCertificates[0];
+                $primarySpeaking = ! empty($primaryCert['speaking']) ? (float) $primaryCert['speaking'] : (! empty($primaryCert['overall']) ? (float) $primaryCert['overall'] : null);
+                $typeTitle = ! empty($primaryCert['custom_type_name']) ? $primaryCert['custom_type_name'] : (! empty($primaryCert['type']) ? strtoupper($primaryCert['type']) : 'IELTS');
+                $primaryOverall = ! empty($primaryCert['overall']) ? $typeTitle.' '.$primaryCert['overall'] : ($primarySpeaking ? $typeTitle.' '.$primarySpeaking : null);
+
+                $profileData['speaking_band'] = $primarySpeaking;
+                $profileData['overall_level'] = $primaryOverall;
+            } else {
+                $profileData['speaking_band'] = null;
+                $profileData['overall_level'] = null;
+            }
 
             $user->teacherProfile()->updateOrCreate(
                 ['user_id' => $user->id],
