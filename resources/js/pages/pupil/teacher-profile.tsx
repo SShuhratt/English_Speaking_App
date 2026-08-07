@@ -902,7 +902,6 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                     <div className="durs">
                                         {[
                                             { mins: 30, label: '30 min' },
-                                            { mins: 45, label: '45 min' },
                                             { mins: 60, label: '1 h' },
                                             { mins: 90, label: '1.5 h' },
                                             { mins: 120, label: '2 h' },

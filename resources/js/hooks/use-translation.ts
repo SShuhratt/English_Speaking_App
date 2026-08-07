@@ -365,7 +365,7 @@ const dictionary = {
         'meeting.starting': 'Starting...',
 
         // Dashboard
-        'dashboard.welcome_back': 'Welcome back, :name 👋',
+        'dashboard.welcome_back': 'Welcome, :name 👋',
         'dashboard.learning_journey_desc':
             "Here is what's happening with your learning journey.",
         'dashboard.speaking_hours': 'Total Speaking Hours',
@@ -393,7 +393,7 @@ const dictionary = {
 
         'dashboard.teacher_title': 'Teacher Dashboard',
         'dashboard.teacher_subtitle':
-            'Welcome back, :name. Manage your sessions and availability.',
+            'Welcome, :name. Manage your sessions and availability.',
         'dashboard.manage_availability': 'Manage Availability',
         'dashboard.google_not_connected': 'Google Calendar Not Connected',
         'dashboard.google_not_connected_desc':
@@ -1708,7 +1708,7 @@ const dictionary = {
         'meeting.starting': 'Запуск...',
 
         // Dashboard
-        'dashboard.welcome_back': 'С возвращением, :name 👋',
+        'dashboard.welcome_back': 'Добро пожаловать, :name 👋',
         'dashboard.learning_journey_desc':
             'Вот что происходит с вашим обучением.',
         'dashboard.speaking_hours': 'Часы практики',

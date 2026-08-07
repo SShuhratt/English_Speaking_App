@@ -1464,25 +1464,7 @@ export default function Availability({ availabilities }: Props) {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <Label className="text-xs font-semibold">{t.slotDuration}</Label>
-                                    <Select
-                                        value={String(editData.slot_duration)}
-                                        onValueChange={(val) =>
-                                            setEditData((prev) => ({ ...prev, slot_duration: Number(val) }))
-                                        }
-                                    >
-                                        <SelectTrigger className="mt-1">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="15">15 {t.minSlots}</SelectItem>
-                                            <SelectItem value="30">30 {t.minSlots}</SelectItem>
-                                            <SelectItem value="45">45 {t.minSlots}</SelectItem>
-                                            <SelectItem value="60">60 {t.minSlots}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+
 
                                 <div className="mt-6 flex justify-end gap-2 border-t pt-4">
                                     <Button
@@ -1747,67 +1729,7 @@ export default function Availability({ availabilities }: Props) {
                                 </div>
                             </div>
 
-                            <div className="grid gap-1.5">
-                                <Label htmlFor="slot_duration">
-                                    {t.slotDuration}
-                                </Label>
-                                <Select
-                                    value={
-                                        isCustomDuration
-                                            ? 'custom'
-                                            : String(data.slot_duration)
-                                    }
-                                    onValueChange={handleSlotDurationChange}
-                                >
-                                    <SelectTrigger
-                                        className="rounded-xl"
-                                        id="slot_duration"
-                                    >
-                                        <SelectValue placeholder="Select duration" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl">
-                                        <SelectItem value="15">
-                                            15 {t.minSlots}
-                                        </SelectItem>
-                                        <SelectItem value="30">
-                                            30 {t.minSlots}
-                                        </SelectItem>
-                                        <SelectItem value="45">
-                                            45 {t.minSlots}
-                                        </SelectItem>
-                                        <SelectItem value="60">
-                                            60 {t.minSlots}
-                                        </SelectItem>
-                                        <SelectItem value="0">
-                                            {t.slotDurationAll}
-                                        </SelectItem>
-                                        <SelectItem value="custom">
-                                            {t.slotDurationCustom}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {isCustomDuration && (
-                                    <div className="mt-1.5">
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            value={customMinutes}
-                                            onChange={(e) =>
-                                                handleCustomMinutesChange(
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder={t.enterMinutes}
-                                            className="rounded-xl"
-                                        />
-                                    </div>
-                                )}
-                                {errors.slot_duration && (
-                                    <p className="text-xs text-destructive">
-                                        {errors.slot_duration}
-                                    </p>
-                                )}
-                            </div>
+
                         </div>
 
                         <div className="mt-6 flex justify-end gap-3 border-t pt-4">

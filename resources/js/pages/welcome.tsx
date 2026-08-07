@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
-import { Globe, Check, ShieldCheck, Video, Calendar, User, ArrowRight, Star, PhoneOff, Camera, Mic } from 'lucide-react';
+import { Globe, Check, ShieldCheck, Video, Calendar, User, ArrowRight, Star, PhoneOff, Camera, Mic, Menu, X } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -43,6 +43,7 @@ const teachers = [
 export default function Welcome() {
     const { auth } = usePage<{ auth: { user: unknown } }>().props;
     const { t, locale, setLanguage } = useTranslation();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const getBookLessonLink = () => {
         if (!auth.user) return '/register';
@@ -173,15 +174,16 @@ export default function Welcome() {
                             <a href="#teachers" className="transition-colors hover:text-[#1E2A5A]">Teachers</a>
                         </nav>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 md:gap-4 shrink-0">
+                            {/* 1. Language Dropdown */}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="hidden cursor-pointer items-center gap-1 rounded-full border-2 border-[#EAE4D2] bg-white px-3 py-1.5 text-xs font-bold text-[#5C6480] sm:flex">
-                                        <Globe className="h-3.5 w-3.5" />
-                                        <span className="uppercase">{locale}</span>
+                                    <button className="cursor-pointer items-center gap-1 rounded-full border-2 border-[#EAE4D2] bg-white px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-[#5C6480] flex shrink-0">
+                                        <Globe className="h-3.5 w-3.5 text-[#1E2A5A]" />
+                                        <span className="uppercase font-extrabold">{locale}</span>
                                     </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-2xl border border-[#EAE4D2] bg-white p-1.5 shadow-xl">
+                                <DropdownMenuContent align="end" className="rounded-2xl border border-[#EAE4D2] bg-white p-1.5 shadow-xl z-[60]">
                                     <DropdownMenuItem onClick={() => setLanguage('en')} className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold">
                                         <span>English (EN)</span>
                                         {locale === 'en' && <Check className="h-3.5 w-3.5 text-[#1E2A5A]" />}
@@ -200,25 +202,107 @@ export default function Welcome() {
                             {auth.user ? (
                                 <Link
                                     href="/dashboard"
-                                    className="btn-primary rounded-full px-5 py-2.5 text-[15px] font-bold transition-transform hover:-translate-y-0.5"
+                                    className="btn-primary rounded-full px-3.5 sm:px-5 py-1.5 sm:py-2.5 text-xs sm:text-[15px] font-bold transition-transform hover:-translate-y-0.5 shrink-0"
                                 >
                                     Dashboard
                                 </Link>
                             ) : (
                                 <>
-                                    <Link href="/login" className="hidden text-[15px] font-bold text-[#1E2A5A] sm:block">
+                                    {/* 2. Text Link: Log In */}
+                                    <Link href="/login" className="text-xs sm:text-[15px] font-bold text-[#1E2A5A] hover:underline px-0.5 sm:px-1 shrink-0">
                                         Log in
                                     </Link>
+
+                                    {/* 3. Outlined Secondary Button: Be a teacher (Desktop: full label, Mobile: compact Teach badge) */}
+                                    <Link
+                                        href="/register?role=teacher"
+                                        className="inline-flex items-center border border-[#1E2A5A]/30 rounded-full px-2 sm:px-4 py-1 sm:py-2 text-[11px] sm:text-sm font-bold text-[#1E2A5A] hover:bg-[#EEF4FB] transition-all shrink-0"
+                                    >
+                                        <span className="hidden sm:inline">Be a teacher</span>
+                                        <span className="sm:hidden">Teach</span>
+                                    </Link>
+
+                                    {/* 4. Solid Primary CTA: Book a lesson */}
                                     <Link
                                         href="/register"
-                                        className="btn-primary rounded-full px-5 py-2.5 text-[15px] font-bold transition-transform hover:-translate-y-0.5"
+                                        className="btn-primary rounded-full px-2.5 sm:px-5 py-1 sm:py-2.5 text-[11px] sm:text-[15px] font-bold transition-transform hover:-translate-y-0.5 shrink-0"
                                     >
-                                        Book a lesson
+                                        <span className="hidden sm:inline">Book a lesson</span>
+                                        <span className="sm:hidden">Book</span>
                                     </Link>
                                 </>
                             )}
+
+                            {/* Mobile Drawer Hamburger Button */}
+                            <button
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="flex md:hidden p-1 text-[#1E2A5A] rounded-xl hover:bg-[#EEF4FB] transition-colors shrink-0"
+                                aria-label="Toggle Menu"
+                            >
+                                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                            </button>
                         </div>
                     </div>
+
+                    {/* Mobile Drawer Menu */}
+                    {mobileMenuOpen && (
+                        <div className="border-t border-[#EAE4D2] bg-white px-6 py-5 md:hidden shadow-lg animate-in slide-in-from-top duration-200">
+                            <div className="flex flex-col gap-4 font-semibold text-[#5C6480]">
+                                <a
+                                    href="#why"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="py-1 text-base text-[#1E2A5A] hover:text-[#D9B437] transition-colors"
+                                >
+                                    Why humans
+                                </a>
+                                <a
+                                    href="#how"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="py-1 text-base text-[#1E2A5A] hover:text-[#D9B437] transition-colors"
+                                >
+                                    How it works
+                                </a>
+                                <a
+                                    href="#teachers"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="py-1 text-base text-[#1E2A5A] hover:text-[#D9B437] transition-colors"
+                                >
+                                    Teachers
+                                </a>
+                                <Link
+                                    href="/register?role=teacher"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="inline-flex items-center gap-1.5 py-1 text-base font-bold text-[#1E2A5A]"
+                                >
+                                    Be a teacher →
+                                </Link>
+
+                                <div className="pt-4 border-t border-[#EAE4D2] flex items-center justify-between">
+                                    <span className="text-xs font-bold text-[#6B7394]">Language:</span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => { setLanguage('en'); setMobileMenuOpen(false); }}
+                                            className={`px-3 py-1 text-xs font-bold rounded-full ${locale === 'en' ? 'bg-[#1E2A5A] text-white' : 'bg-[#EEF4FB] text-[#1E2A5A]'}`}
+                                        >
+                                            EN
+                                        </button>
+                                        <button
+                                            onClick={() => { setLanguage('uz'); setMobileMenuOpen(false); }}
+                                            className={`px-3 py-1 text-xs font-bold rounded-full ${locale === 'uz' ? 'bg-[#1E2A5A] text-white' : 'bg-[#EEF4FB] text-[#1E2A5A]'}`}
+                                        >
+                                            UZ
+                                        </button>
+                                        <button
+                                            onClick={() => { setLanguage('ru'); setMobileMenuOpen(false); }}
+                                            className={`px-3 py-1 text-xs font-bold rounded-full ${locale === 'ru' ? 'bg-[#1E2A5A] text-white' : 'bg-[#EEF4FB] text-[#1E2A5A]'}`}
+                                        >
+                                            RU
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </header>
 
                 {/* ── Hero Section ── */}

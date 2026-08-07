@@ -196,37 +196,20 @@ class SlotService
                 $tz
             );
 
-            if ($availability->slot_duration === 0) {
-                $slots->push([
-                    'start_at' => $current->copy(),
-                    'end_at' => $end->copy(),
-                    'is_all_time' => true,
-                ]);
-
-                continue;
-            }
+            $slotDur = ($availability->slot_duration && (int) $availability->slot_duration > 0) ? (int) $availability->slot_duration : 30;
 
             while (
                 $current
                     ->copy()
-                    ->addMinutes(
-                        $availability->slot_duration
-                    )
+                    ->addMinutes($slotDur)
                     ->lte($end)
             ) {
-
                 $slots->push([
                     'start_at' => $current->copy(),
-                    'end_at' => $current
-                        ->copy()
-                        ->addMinutes(
-                            $availability->slot_duration
-                        ),
+                    'end_at' => $current->copy()->addMinutes($slotDur),
                 ]);
 
-                $current = $current->addMinutes(
-                    $availability->slot_duration
-                );
+                $current = $current->addMinutes($slotDur);
             }
         }
 
@@ -243,38 +226,20 @@ class SlotService
 
             $current = $availability->start_at->copy();
             $end = $availability->end_at->copy();
-
-            if ($availability->slot_duration === 0) {
-                $slots->push([
-                    'start_at' => $current,
-                    'end_at' => $end,
-                    'is_all_time' => true,
-                ]);
-
-                continue;
-            }
+            $slotDur = ($availability->slot_duration && (int) $availability->slot_duration > 0) ? (int) $availability->slot_duration : 30;
 
             while (
                 $current
                     ->copy()
-                    ->addMinutes(
-                        $availability->slot_duration
-                    )
-                    ->lte($availability->end_at)
+                    ->addMinutes($slotDur)
+                    ->lte($end)
             ) {
-
                 $slots->push([
                     'start_at' => $current->copy(),
-                    'end_at' => $current
-                        ->copy()
-                        ->addMinutes(
-                            $availability->slot_duration
-                        ),
+                    'end_at' => $current->copy()->addMinutes($slotDur),
                 ]);
 
-                $current = $current->addMinutes(
-                    $availability->slot_duration
-                );
+                $current = $current->addMinutes($slotDur);
             }
         }
 
@@ -322,12 +287,12 @@ class SlotService
                 'pending',
                 'accepted',
                 'confirmed',
+                'cancelled',
             ])
             ->where(function ($query) use (
                 $startOfDay,
                 $endOfDay
             ) {
-
                 $query
                     ->where('start_at', '<', $endOfDay)
                     ->where('end_at', '>', $startOfDay);
@@ -337,40 +302,45 @@ class SlotService
         $finalSlots = collect();
 
         foreach ($slots as $slot) {
-            if (isset($slot['is_all_time']) && $slot['is_all_time'] === true) {
-                $freeIntervals = [$slot];
-                foreach ($appointments as $appointment) {
-                    $freeIntervals = $this->subtractIntervals($freeIntervals, $appointment->start_at, $appointment->end_at);
-                }
-                foreach ($freeIntervals as $interval) {
-                    if ($interval['start_at']->diffInMinutes($interval['end_at']) >= 5) {
-                        $finalSlots->push($interval);
+            $slotStart = Carbon::parse($slot['start_at']);
+            $slotEnd = Carbon::parse($slot['end_at']);
+            $isBooked = false;
+
+            foreach ($appointments as $appointment) {
+                if ($appointment->status === 'cancelled') {
+                    $cancelledAt = $appointment->updated_at ?? now();
+                    // If cancelled before or at start time, all slots are freed up
+                    if ($cancelledAt->lte($appointment->start_at)) {
+                        continue;
                     }
-                }
-            } else {
-                $isBooked = false;
-                foreach ($appointments as $appointment) {
-                    if (
-                        $appointment->start_at < $slot['end_at']
-                        &&
-                        $appointment->end_at > $slot['start_at']
-                    ) {
+                    // If cancelled mid-session, slots starting before cancelledAt remain unavailable
+                    if ($slotStart < $cancelledAt && $appointment->start_at < $slotEnd && $appointment->end_at > $slotStart) {
+                        $isBooked = true;
+                        break;
+                    }
+                } else {
+                    // Active appointment (pending, accepted, confirmed)
+                    if ($appointment->start_at < $slotEnd && $appointment->end_at > $slotStart) {
                         $isBooked = true;
                         break;
                     }
                 }
-                if (! $isBooked) {
-                    $finalSlots->push($slot);
-                }
+            }
+
+            if (! $isBooked) {
+                $finalSlots->push($slot);
             }
         }
 
         return $finalSlots
             ->map(function ($slot) {
+                $sStart = $slot['start_at'] instanceof Carbon ? $slot['start_at']->toIso8601String() : (string) $slot['start_at'];
+                $sEnd = $slot['end_at'] instanceof Carbon ? $slot['end_at']->toIso8601String() : (string) $slot['end_at'];
+
                 return [
-                    'start_at' => $slot['start_at']->toIso8601String(),
-                    'end_at' => $slot['end_at']->toIso8601String(),
-                    'is_all_time' => $slot['is_all_time'] ?? false,
+                    'start_at' => $sStart,
+                    'end_at' => $sEnd,
+                    'is_all_time' => false,
                 ];
             })
             ->values()

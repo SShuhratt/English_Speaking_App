@@ -49,7 +49,7 @@ class TeacherAvailabilityController extends Controller
             'start_at' => ['required_if:type,custom', 'nullable', 'date'],
             'end_at' => ['required_if:type,custom', 'nullable', 'date', 'after:start_at'],
             // Shared fields
-            'slot_duration' => ['required', 'integer', 'min:0', 'max:1440'],
+            'slot_duration' => ['nullable', 'integer', 'min:0', 'max:1440'],
         ]);
 
         $availability = TeacherAvailability::create([
@@ -60,7 +60,7 @@ class TeacherAvailabilityController extends Controller
             'end_time' => $validated['type'] === 'recurring' ? $validated['end_time'] : null,
             'start_at' => $validated['type'] === 'custom' ? Carbon::parse($validated['start_at']) : null,
             'end_at' => $validated['type'] === 'custom' ? Carbon::parse($validated['end_at']) : null,
-            'slot_duration' => $validated['slot_duration'],
+            'slot_duration' => (isset($validated['slot_duration']) && (int) $validated['slot_duration'] > 0) ? (int) $validated['slot_duration'] : 30,
             'is_active' => true,
         ]);
 
@@ -117,7 +117,7 @@ class TeacherAvailabilityController extends Controller
             ],
             'start_at' => ['required_if:type,custom', 'nullable', 'date'],
             'end_at' => ['required_if:type,custom', 'nullable', 'date', 'after:start_at'],
-            'slot_duration' => ['required', 'integer', 'min:0', 'max:1440'],
+            'slot_duration' => ['nullable', 'integer', 'min:0', 'max:1440'],
         ]);
 
         $teacherId = $request->user()->id;

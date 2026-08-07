@@ -18,7 +18,16 @@ type Props = {
 };
 
 export default function Register({ passwordRules }: Props) {
-    const [role, setRole] = useState<'teacher' | 'pupil'>('pupil');
+    const [role, setRole] = useState<'teacher' | 'pupil'>(() => {
+        if (typeof window !== 'undefined') {
+            const searchParams = new URLSearchParams(window.location.search);
+            const roleParam = searchParams.get('role');
+            if (roleParam === 'teacher' || roleParam === 'instructor') {
+                return 'teacher';
+            }
+        }
+        return 'pupil';
+    });
     const { t } = useTranslation();
     const { google_register } = usePage<any>().props;
 
