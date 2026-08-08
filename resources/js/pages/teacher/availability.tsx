@@ -12,6 +12,9 @@ import {
     X,
     Info,
     Sparkles,
+    Check,
+    AlertCircle,
+    User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +37,7 @@ import { useTranslation } from '@/hooks/use-translation';
 
 interface Props {
     availabilities: any[];
+    appointments?: any[];
 }
 
 const translations = {
@@ -104,6 +108,14 @@ const translations = {
         updateAvailability: 'Update Availability',
         updateSuccess: 'Availability updated successfully.',
         updateError: 'Failed to update availability.',
+        awaitingPayment: 'Awaiting for payment',
+        booked: 'Booked',
+        available: 'Available',
+        expired: 'Expired',
+        completed: 'Completed',
+        statusLabel: 'Status',
+        studentLabel: 'Student',
+        topicsLabel: 'Topics',
     },
     uz: {
         title: 'Bandlik jadvali',
@@ -173,6 +185,14 @@ const translations = {
         updateAvailability: 'Yangilash',
         updateSuccess: 'Bandlik muvaffaqiyatli yangilandi.',
         updateError: "Bandlikni yangilab bo'lmadi.",
+        awaitingPayment: "To'lov kutilmoqda",
+        booked: 'Band qilingan',
+        available: "Bo'sh",
+        expired: "Muddati o'tgan",
+        completed: 'Bajarildi',
+        statusLabel: 'Holat',
+        studentLabel: 'Talaba',
+        topicsLabel: 'Mavzular',
     },
     ru: {
         title: 'График доступности',
@@ -242,6 +262,14 @@ const translations = {
         updateAvailability: 'Обновить',
         updateSuccess: 'Доступность успешно обновлена.',
         updateError: 'Не удалось обновить доступность.',
+        awaitingPayment: 'Ожидается оплата',
+        booked: 'Забронировано',
+        available: 'Свободно',
+        expired: 'Истекло',
+        completed: 'Завершено',
+        statusLabel: 'Статус',
+        studentLabel: 'Студент',
+        topicsLabel: 'Темы',
     },
 };
 
@@ -281,7 +309,10 @@ const localeMap = {
     ru: 'ru-RU',
 };
 
-export default function Availability({ availabilities }: Props) {
+export default function Availability({
+    availabilities,
+    appointments = [],
+}: Props) {
     const { locale } = useTranslation();
     const lang = (
         locale === 'en' || locale === 'uz' || locale === 'ru' ? locale : 'en'
@@ -294,6 +325,7 @@ export default function Availability({ availabilities }: Props) {
     const [currentDate, setCurrentDate] = useState(new Date()); // Month focus for sidebar mini-calendar
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+    const [selectedSlotDetail, setSelectedSlotDetail] = useState<any | null>(null);
 
     // Calendar visibility toggles
     const [showCustom, setShowCustom] = useState(true);
@@ -593,6 +625,100 @@ export default function Availability({ availabilities }: Props) {
                 return avail.day_of_week === dayName;
             }
         });
+    };
+
+    const getSlotsWithStatusForDate = (colDate: Date) => {
+        const avails = getAvailabilitiesForDate(colDate);
+        if (avails.length === 0) return [];
+
+        const now = new Date();
+        const dateStr = formatDateString(colDate);
+        const slotsList: any[] = [];
+
+        avails.forEach((avail) => {
+            let startH = 9, startM = 0, endH = 17, endM = 0;
+            if (avail.type === 'custom') {
+                const sLocal = parseUtcDate(avail.start_at);
+                const eLocal = parseUtcDate(avail.end_at);
+                startH = sLocal.getHours();
+                startM = sLocal.getMinutes();
+                endH = eLocal.getHours();
+                endM = eLocal.getMinutes();
+                if (formatDateString(sLocal) !== dateStr) { startH = 0; startM = 0; }
+                if (formatDateString(eLocal) !== dateStr) { endH = 24; endM = 0; }
+            } else {
+                const [sh, sm] = (avail.start_time || '09:00').split(':').map(Number);
+                const [eh, em] = (avail.end_time || '17:00').split(':').map(Number);
+                startH = sh; startM = sm;
+                endH = eh; endM = em;
+            }
+
+            const slotDur = (avail.slot_duration && avail.slot_duration > 0) ? avail.slot_duration : 30;
+            let currMinutes = startH * 60 + startM;
+            const endMinutes = endH * 60 + endM;
+
+            while (currMinutes + slotDur <= endMinutes) {
+                const sH = Math.floor(currMinutes / 60);
+                const sM = currMinutes % 60;
+                const eH = Math.floor((currMinutes + slotDur) / 60);
+                const eM = (currMinutes + slotDur) % 60;
+
+                const slotStart = new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate(), sH, sM, 0);
+                const slotEnd = new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate(), eH, eM, 0);
+
+                const matchingApp = (appointments || []).find((app: any) => {
+                    if (app.status === 'cancelled') {
+                        const cancelledAt = app.updated_at ? new Date(app.updated_at) : new Date();
+                        const appStart = new Date(app.start_at);
+                        if (cancelledAt.getTime() <= appStart.getTime()) {
+                            return false; // restored slot!
+                        }
+                    }
+                    const appStart = new Date(app.start_at).getTime();
+                    const appEnd = new Date(app.end_at).getTime();
+                    const sStartMs = slotStart.getTime();
+                    const sEndMs = slotEnd.getTime();
+                    return appStart < sEndMs && appEnd > sStartMs;
+                });
+
+                let status = 'available';
+                if (matchingApp) {
+                    if (matchingApp.payment_status === 'verifying' || matchingApp.status === 'pending') {
+                        status = 'awaiting_payment';
+                    } else if (matchingApp.status === 'accepted' || matchingApp.status === 'confirmed' || matchingApp.payment_status === 'paid') {
+                        if (now.getTime() >= slotEnd.getTime()) {
+                            status = 'completed';
+                        } else {
+                            status = 'booked';
+                        }
+                    }
+                } else {
+                    if (now.getTime() >= slotStart.getTime()) {
+                        status = 'expired';
+                    } else {
+                        status = 'available';
+                    }
+                }
+
+                const timeLabel = `${String(sH).padStart(2, '0')}:${String(sM).padStart(2, '0')} - ${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
+
+                slotsList.push({
+                    id: `${avail.id}-${sH}-${sM}`,
+                    avail,
+                    startMinutes: currMinutes,
+                    durationMinutes: slotDur,
+                    slotStart,
+                    slotEnd,
+                    timeLabel,
+                    status,
+                    appointment: matchingApp || null,
+                });
+
+                currMinutes += slotDur;
+            }
+        });
+
+        return slotsList;
     };
 
     // Form setup matching standard Inertia Form hook
@@ -1055,6 +1181,26 @@ export default function Availability({ availabilities }: Props) {
                         }
                     >
                         <div className="flex w-full min-w-0 flex-1 flex-col overflow-hidden">
+                            {/* Status Legend Bar */}
+                            <div className="flex flex-wrap items-center gap-2 border-b bg-card/60 p-2.5 px-4 text-xs">
+                                <span className="font-bold text-muted-foreground mr-1">Status Legend:</span>
+                                <div className="flex items-center gap-1.5 font-bold text-emerald-900 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-600"></span> Available
+                                </div>
+                                <div className="flex items-center gap-1.5 font-bold text-amber-950 bg-amber-400 px-2 py-0.5 rounded-md border border-amber-600">
+                                    <span className="h-2 w-2 rounded-full bg-amber-700"></span> Awaiting for payment
+                                </div>
+                                <div className="flex items-center gap-1.5 font-bold text-white bg-indigo-950 px-2 py-0.5 rounded-md border border-indigo-700">
+                                    <span className="h-2 w-2 rounded-full bg-indigo-400"></span> Booked
+                                </div>
+                                <div className="flex items-center gap-1.5 font-bold text-rose-900 bg-rose-500/15 px-2 py-0.5 rounded-md border border-rose-400">
+                                    <Clock className="h-3 w-3 text-rose-600" /> Expired
+                                </div>
+                                <div className="flex items-center gap-1.5 font-bold text-white bg-rose-600 px-2 py-0.5 rounded-md border border-rose-800">
+                                    <Check className="h-3 w-3 text-white" /> Completed
+                                </div>
+                            </div>
+
                             {/* Day/Week header row */}
                             <div className="flex border-b bg-card">
                                 <div className="w-14 flex-shrink-0 border-r bg-card md:w-16"></div>
@@ -1194,48 +1340,72 @@ export default function Availability({ availabilities }: Props) {
                                                     )
                                                 }
                                             >
-                                                {/* Render Availability Blocks */}
-                                                {getAvailabilitiesForDate(
+                                                {/* Render 30-min Sub-slots with explicit status colors */}
+                                                {getSlotsWithStatusForDate(
                                                     selectedDate,
-                                                ).map((avail) => (
-                                                    <div
-                                                        key={avail.id}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedEvent(
-                                                                avail,
-                                                            );
-                                                        }}
-                                                        style={getBlockStyle(
-                                                            avail,
-                                                            selectedDate,
-                                                        )}
-                                                        className={`availability-block absolute right-2 left-2 flex cursor-pointer flex-col overflow-hidden rounded-xl border-l-4 p-2.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md ${
-                                                            avail.type ===
-                                                            'custom'
-                                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700'
-                                                                : 'border-brand-brown bg-brand-lightblue text-brand-brown'
-                                                        }`}
-                                                    >
-                                                        <span className="text-[11px] font-extrabold tracking-wide uppercase">
-                                                            {avail.type ===
-                                                            'custom'
-                                                                ? t.singleDate
-                                                                : t.recurringWeekly}
-                                                        </span>
-                                                        <span className="mt-1 text-xs font-bold">
-                                                            {getEventTimeLabel(
-                                                                avail,
+                                                ).map((slot) => {
+                                                    const topPx = (slot.startMinutes / 60) * 60;
+                                                    const heightPx = Math.max(26, (slot.durationMinutes / 60) * 60);
+
+                                                    let statusStyle = 'border-emerald-500 bg-emerald-500/20 text-emerald-900 border-l-4';
+                                                    let statusText = t.available || 'Available';
+                                                    let icon = null;
+
+                                                    if (slot.status === 'awaiting_payment') {
+                                                        statusStyle = 'border-amber-600 bg-amber-400 text-amber-950 border-l-4 font-bold shadow-sm';
+                                                        statusText = t.awaitingPayment || 'Awaiting for payment';
+                                                    } else if (slot.status === 'booked') {
+                                                        statusStyle = 'border-indigo-700 bg-indigo-950 text-white border-l-4 font-bold shadow-sm';
+                                                        statusText = t.booked || 'Booked';
+                                                    } else if (slot.status === 'completed') {
+                                                        statusStyle = 'border-rose-800 bg-rose-600 text-white border-l-4 font-bold shadow-sm';
+                                                        statusText = t.completed || 'Completed';
+                                                        icon = <Check className="h-3.5 w-3.5 inline text-white mr-1" />;
+                                                    } else if (slot.status === 'expired') {
+                                                        statusStyle = 'border-rose-400 bg-rose-500/15 text-rose-900 border-l-2';
+                                                        statusText = t.expired || 'Expired';
+                                                        icon = <Clock className="h-3.5 w-3.5 inline text-rose-600 mr-1" />;
+                                                    }
+
+                                                    return (
+                                                        <div
+                                                            key={slot.id}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (slot.appointment) {
+                                                                    setSelectedSlotDetail(slot);
+                                                                } else {
+                                                                    setSelectedEvent(slot.avail);
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                position: 'absolute',
+                                                                top: `${topPx}px`,
+                                                                height: `${heightPx}px`,
+                                                                left: '8px',
+                                                                right: '8px',
+                                                                zIndex: 10,
+                                                            }}
+                                                            title={`${slot.timeLabel} • ${statusText}`}
+                                                            className={`availability-block flex cursor-pointer flex-col overflow-hidden rounded-xl p-2 transition-all hover:scale-[1.01] hover:shadow-md ${statusStyle}`}
+                                                        >
+                                                            <div className="flex items-center justify-between text-[11px] leading-tight">
+                                                                <span className="font-bold truncate flex items-center">
+                                                                    {icon}
+                                                                    {slot.timeLabel}
+                                                                </span>
+                                                                <span className="text-[10px] uppercase tracking-wider font-extrabold truncate ml-1 opacity-90">
+                                                                    {statusText}
+                                                                </span>
+                                                            </div>
+                                                            {slot.appointment?.pupil && (
+                                                                <div className="text-[11px] truncate font-medium mt-0.5 opacity-95">
+                                                                    👤 {slot.appointment.pupil.full_name}
+                                                                </div>
                                                             )}
-                                                        </span>
-                                                        <span className="mt-0.5 text-[10px] font-semibold opacity-80">
-                                                            {avail.slot_duration ===
-                                                            0
-                                                                ? t.slotDurationAll
-                                                                : `${avail.slot_duration} ${t.minSlots}`}
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                                        </div>
+                                                    );
+                                                })}
 
                                                 {/* Red Current Time Indicator */}
                                                 {formatDateString(
@@ -1267,68 +1437,71 @@ export default function Availability({ availabilities }: Props) {
                                                             )
                                                         }
                                                     >
-                                                        {/* Render Availability Blocks */}
-                                                        {getAvailabilitiesForDate(
-                                                            day,
-                                                        ).map((avail) => (
-                                                            <div
-                                                                key={avail.id}
-                                                                onClick={(
-                                                                    e,
-                                                                ) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedEvent(
-                                                                        avail,
-                                                                    );
-                                                                }}
-                                                                style={getBlockStyle(
-                                                                    avail,
-                                                                    day,
-                                                                )}
-                                                                className={`availability-block absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border-l-2 p-0.5 shadow-sm transition-all hover:scale-[1.01] hover:shadow-md md:rounded-xl md:border-l-4 md:p-2 ${
-                                                                    avail.type ===
-                                                                    'custom'
-                                                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700'
-                                                                        : 'border-brand-brown bg-brand-lightblue text-brand-brown'
-                                                                }`}
-                                                            >
-                                                                <span className="hidden text-[9px] font-extrabold tracking-wide uppercase md:inline-block">
-                                                                    {avail.type ===
-                                                                    'custom'
-                                                                        ? t.singleDate
-                                                                        : t.recurringWeekly}
-                                                                </span>
-                                                                <div className="mt-0.5 flex flex-col text-[7px] leading-none font-bold md:flex-row md:gap-1 md:text-[11px]">
-                                                                    <span>
-                                                                        {
-                                                                            getEventTimeLabel(
-                                                                                avail,
-                                                                            ).split(
-                                                                                ' - ',
-                                                                            )[0]
+                                                        {/* Render 30-min Sub-slots with explicit status colors */}
+                                                        {getSlotsWithStatusForDate(day).map((slot) => {
+                                                            const topPx = (slot.startMinutes / 60) * 60;
+                                                            const heightPx = Math.max(22, (slot.durationMinutes / 60) * 60);
+
+                                                            let statusStyle = 'border-emerald-500 bg-emerald-500/20 text-emerald-900 border-l-2';
+                                                            let statusText = t.available || 'Available';
+                                                            let icon = null;
+
+                                                            if (slot.status === 'awaiting_payment') {
+                                                                statusStyle = 'border-amber-600 bg-amber-400 text-amber-950 border-l-4 font-bold shadow-sm';
+                                                                statusText = t.awaitingPayment || 'Awaiting for payment';
+                                                            } else if (slot.status === 'booked') {
+                                                                statusStyle = 'border-indigo-700 bg-indigo-950 text-white border-l-4 font-bold shadow-sm';
+                                                                statusText = t.booked || 'Booked';
+                                                            } else if (slot.status === 'completed') {
+                                                                statusStyle = 'border-rose-800 bg-rose-600 text-white border-l-4 font-bold shadow-sm';
+                                                                statusText = t.completed || 'Completed';
+                                                                icon = <Check className="h-3 w-3 inline text-white mr-1" />;
+                                                            } else if (slot.status === 'expired') {
+                                                                statusStyle = 'border-rose-400 bg-rose-500/15 text-rose-900 border-l-2';
+                                                                statusText = t.expired || 'Expired';
+                                                                icon = <Clock className="h-3 w-3 inline text-rose-600 mr-1" />;
+                                                            }
+
+                                                            return (
+                                                                <div
+                                                                    key={slot.id}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (slot.appointment) {
+                                                                            setSelectedSlotDetail(slot);
+                                                                        } else {
+                                                                            setSelectedEvent(slot.avail);
                                                                         }
-                                                                    </span>
-                                                                    <span className="hidden md:inline">
-                                                                        -
-                                                                    </span>
-                                                                    <span>
-                                                                        {
-                                                                            getEventTimeLabel(
-                                                                                avail,
-                                                                            ).split(
-                                                                                ' - ',
-                                                                            )[1]
-                                                                        }
-                                                                    </span>
+                                                                    }}
+                                                                    style={{
+                                                                        position: 'absolute',
+                                                                        top: `${topPx}px`,
+                                                                        height: `${heightPx}px`,
+                                                                        left: '1px',
+                                                                        right: '1px',
+                                                                        zIndex: 10,
+                                                                    }}
+                                                                    title={`${slot.timeLabel} • ${statusText}`}
+                                                                    className={`availability-block flex cursor-pointer flex-col overflow-hidden rounded-md p-1 transition-all hover:scale-[1.01] hover:shadow-md ${statusStyle}`}
+                                                                >
+                                                                    <div className="flex items-center justify-between text-[10px] leading-tight">
+                                                                        <span className="font-semibold truncate flex items-center">
+                                                                            {icon}
+                                                                            <span className="hidden md:inline">{slot.timeLabel}</span>
+                                                                            <span className="inline md:hidden">{slot.timeLabel.split(' - ')[0]}</span>
+                                                                        </span>
+                                                                        <span className="hidden text-[9px] uppercase tracking-wider font-extrabold truncate ml-1 opacity-90 md:inline">
+                                                                            {statusText}
+                                                                        </span>
+                                                                    </div>
+                                                                    {slot.appointment?.pupil && (
+                                                                        <div className="hidden text-[9px] truncate font-medium mt-0.5 opacity-95 md:block">
+                                                                            👤 {slot.appointment.pupil.full_name}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                                <span className="mt-0.5 hidden text-[9px] font-semibold opacity-80 md:inline-block">
-                                                                    {avail.slot_duration ===
-                                                                    0
-                                                                        ? t.slotDurationAll
-                                                                        : `${avail.slot_duration} ${t.minSlots}`}
-                                                                </span>
-                                                            </div>
-                                                        ))}
+                                                            );
+                                                        })}
 
                                                         {/* Red Current Time Indicator */}
                                                         {formatDateString(
@@ -1750,6 +1923,87 @@ export default function Availability({ availabilities }: Props) {
                             </Button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* Selected Slot Detail Modal */}
+            {selectedSlotDetail && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="flex items-center justify-between border-b pb-3 mb-4">
+                            <div className="flex items-center gap-2">
+                                <CalendarIcon className="h-5 w-5 text-[#1E2A5A]" />
+                                <h3 className="text-base font-bold text-[#1E2A5A]">
+                                    Session Details
+                                </h3>
+                            </div>
+                            <button
+                                onClick={() => setSelectedSlotDetail(null)}
+                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-3 text-sm text-gray-700">
+                            <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
+                                <span className="font-medium text-gray-500">Time Range:</span>
+                                <span className="font-bold text-gray-900">{selectedSlotDetail.timeLabel}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
+                                <span className="font-medium text-gray-500">Status:</span>
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider ${
+                                    selectedSlotDetail.status === 'awaiting_payment'
+                                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                        : selectedSlotDetail.status === 'booked'
+                                        ? 'bg-indigo-950 text-white border border-indigo-700'
+                                        : selectedSlotDetail.status === 'completed'
+                                        ? 'bg-rose-100 text-rose-900 border border-rose-300'
+                                        : selectedSlotDetail.status === 'expired'
+                                        ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                                        : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                }`}>
+                                    {selectedSlotDetail.status === 'awaiting_payment'
+                                        ? 'Awaiting for payment'
+                                        : selectedSlotDetail.status === 'booked'
+                                        ? 'Booked'
+                                        : selectedSlotDetail.status === 'completed'
+                                        ? 'Completed'
+                                        : selectedSlotDetail.status === 'expired'
+                                        ? 'Expired'
+                                        : 'Available'}
+                                </span>
+                            </div>
+
+                            {selectedSlotDetail.appointment?.pupil && (
+                                <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
+                                    <span className="font-medium text-gray-500">Student:</span>
+                                    <span className="font-bold text-gray-900 flex items-center gap-1.5">
+                                        <User className="h-4 w-4 text-brand-brown" />
+                                        {selectedSlotDetail.appointment.pupil.full_name}
+                                    </span>
+                                </div>
+                            )}
+
+                            {selectedSlotDetail.appointment?.topics && selectedSlotDetail.appointment.topics.length > 0 && (
+                                <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
+                                    <span className="font-medium text-gray-500">Topics:</span>
+                                    <span className="font-bold text-gray-900">{selectedSlotDetail.appointment.topics.join(', ')}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-6 flex justify-end">
+                            <Button
+                                variant="outline"
+                                onClick={() => setSelectedSlotDetail(null)}
+                                className="rounded-xl font-semibold"
+                            >
+                                Close
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
         </>

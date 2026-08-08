@@ -46,7 +46,22 @@ class BookingService
                 $teacher->teacherProfile()->create([]);
             }
 
-            $start = Carbon::parse($startAt);
+            $parseTz = function ($dtString) {
+                if (empty($dtString)) {
+                    return null;
+                }
+                if ($dtString instanceof Carbon) {
+                    return $dtString->copy()->setTimezone('Asia/Tashkent');
+                }
+                $str = (string) $dtString;
+                if (preg_match('/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/', trim($str), $matches)) {
+                    return Carbon::parse("{$matches[1]} {$matches[2]}", 'Asia/Tashkent');
+                }
+
+                return Carbon::parse($str, 'Asia/Tashkent');
+            };
+
+            $start = $parseTz($startAt);
             $isTrialRequested = (bool) ($meta['is_trial'] ?? false);
 
             $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 0);
@@ -61,11 +76,11 @@ class BookingService
                 $price = $hourlyRate > 0 ? (int) (round(($hourlyRate / 3) / 1000) * 1000) : 0;
             } else {
                 $isTrial = false;
-                $duration = isset($meta['duration_minutes']) ? (int) $meta['duration_minutes'] : (int) $start->diffInMinutes(Carbon::parse($endAt));
+                $end = $parseTz($endAt);
+                $duration = isset($meta['duration_minutes']) ? (int) $meta['duration_minutes'] : (int) $start->diffInMinutes($end);
                 if ($duration <= 0) {
                     $duration = 60;
                 }
-                $end = Carbon::parse($endAt);
                 $price = $hourlyRate > 0 ? (int) (round(($hourlyRate * $duration / 60) / 1000) * 1000) : 0;
             }
 
@@ -78,8 +93,8 @@ class BookingService
             $appointment = Appointment::create([
                 'teacher_id' => $teacher->id,
                 'pupil_id' => $pupil->id,
-                'start_at' => $start,
-                'end_at' => $end,
+                'start_at' => $start->format('Y-m-d H:i:s'),
+                'end_at' => $end->format('Y-m-d H:i:s'),
                 'status' => 'pending',
                 'notes' => $meta['notes'] ?? null,
                 'topics' => $meta['topics'] ?? null,
@@ -94,8 +109,10 @@ class BookingService
             ]);
 
             // 4. Clear slot cache
-            $current = $start->copy()->subDay();
-            $limit = $end->copy()->addDay();
+            $startTz = $start->copy()->setTimezone('Asia/Tashkent');
+            $endTz = $end->copy()->setTimezone('Asia/Tashkent');
+            $current = $startTz->copy()->subDay();
+            $limit = $endTz->copy()->addDay();
             while ($current->lte($limit)) {
                 $dateStr = $current->toDateString();
                 Cache::forget("teacher:{$teacher->id}:slots:{$dateStr}");
@@ -296,25 +313,36 @@ class BookingService
      */
     protected function validateAvailability(string $teacherId, Carbon $start, Carbon $end): void
     {
-        $day = strtolower($start->format('l'));
+        $startTz = $start->copy()->setTimezone('Asia/Tashkent');
+        $endTz = $end->copy()->setTimezone('Asia/Tashkent');
+        $day = strtolower($startTz->format('l'));
 
         $available = TeacherAvailability::where('teacher_id', $teacherId)
             ->where('is_active', true)
-            ->where(function ($q) use ($start, $end, $day) {
+            ->where(function ($q) use ($startTz, $endTz, $day) {
 
                 // recurring schedule
-                $q->where(function ($q) use ($start, $end, $day) {
+                $q->where(function ($q) use ($startTz, $endTz, $day) {
                     $q->where('type', 'recurring')
                         ->where('day_of_week', $day)
-                        ->whereTime('start_time', '<=', $start->format('H:i:s'))
-                        ->whereTime('end_time', '>=', $end->format('H:i:s'));
+                        ->whereTime('start_time', '<=', $startTz->format('H:i:s'))
+                        ->whereTime('end_time', '>=', $endTz->format('H:i:s'));
                 })
 
                 // custom availability override
-                    ->orWhere(function ($q) use ($start, $end) {
+                    ->orWhere(function ($q) use ($startTz, $endTz) {
+                        $startUtc = $startTz->copy()->utc();
+                        $endUtc = $endTz->copy()->utc();
                         $q->where('type', 'custom')
-                            ->where('start_at', '<=', $start)
-                            ->where('end_at', '>=', $end);
+                            ->where(function ($sub) use ($startTz, $endTz, $startUtc, $endUtc) {
+                                $sub->where(function ($c1) use ($startTz, $endTz) {
+                                    $c1->where('start_at', '<=', $startTz)
+                                        ->where('end_at', '>=', $endTz);
+                                })->orWhere(function ($c2) use ($startUtc, $endUtc) {
+                                    $c2->where('start_at', '<=', $startUtc)
+                                        ->where('end_at', '>=', $endUtc);
+                                });
+                            });
                     });
 
             })
@@ -330,16 +358,21 @@ class BookingService
      */
     protected function ensureNoConflicts(string $teacherId, Carbon $start, Carbon $end): void
     {
-        $conflict = Appointment::where('teacher_id', $teacherId)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->where(function ($q) use ($start, $end) {
+        $startTz = $start->copy()->setTimezone('Asia/Tashkent');
+        $endTz = $end->copy()->setTimezone('Asia/Tashkent');
 
-                $q->whereBetween('start_at', [$start, $end])
-                    ->orWhereBetween('end_at', [$start, $end])
-                    ->orWhere(function ($q) use ($start, $end) {
-                        $q->where('start_at', '<=', $start)
-                            ->where('end_at', '>=', $end);
-                    });
+        $conflict = Appointment::where('teacher_id', $teacherId)
+            ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+            ->where(function ($q) use ($startTz, $endTz) {
+                $q->where(function ($sub) use ($startTz, $endTz) {
+                    $sub->where('start_at', '<', $endTz)
+                        ->where('end_at', '>', $startTz);
+                })->orWhere(function ($sub) use ($startTz, $endTz) {
+                    $startUtc = $startTz->copy()->utc();
+                    $endUtc = $endTz->copy()->utc();
+                    $sub->where('start_at', '<', $endUtc)
+                        ->where('end_at', '>', $startUtc);
+                });
             })
             ->exists();
 

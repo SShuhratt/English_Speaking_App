@@ -23,8 +23,14 @@ class TeacherAvailabilityController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $appointments = Appointment::where('teacher_id', $request->user()->id)
+            ->with('pupil:id,full_name,avatar')
+            ->orderBy('start_at', 'asc')
+            ->get();
+
         return Inertia::render('teacher/availability', [
             'availabilities' => $availabilities,
+            'appointments' => $appointments,
         ]);
     }
 

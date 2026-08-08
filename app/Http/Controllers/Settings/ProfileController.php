@@ -110,7 +110,48 @@ class ProfileController extends Controller
                 $existingCerts = [];
             }
 
-            if (is_array($certsInput)) {
+            $finalCertificates = [];
+
+            if (is_string($certsInput)) {
+                $certsList = array_filter(array_map('trim', explode(',', $certsInput)));
+                foreach ($certsList as $cName) {
+                    $isUrl = str_starts_with($cName, 'http') || str_starts_with($cName, '/storage');
+                    $speakingScore = isset($profileData['speaking_band']) ? (string) $profileData['speaking_band'] : '';
+                    $overallScore = isset($profileData['overall_level']) ? (string) $profileData['overall_level'] : '';
+                    $finalCertificates[] = [
+                        'type' => 'ielts',
+                        'custom_type_name' => '',
+                        'title' => $isUrl ? 'IELTS (Academic / General)' : $cName,
+                        'overall' => $overallScore,
+                        'listening' => '',
+                        'reading' => '',
+                        'writing' => '',
+                        'speaking' => $speakingScore,
+                        'file_url' => $isUrl ? $cName : null,
+                        'file_name' => $isUrl ? basename(parse_url($cName, PHP_URL_PATH)) : '',
+                        'status' => 'verified',
+                    ];
+                }
+                if (! empty($uploadedFiles)) {
+                    foreach ($uploadedFiles as $file) {
+                        $disk = env('FILESYSTEM_DISK', 'public');
+                        $path = $file->store('certificates', $disk);
+                        $finalCertificates[] = [
+                            'type' => 'ielts',
+                            'custom_type_name' => '',
+                            'title' => $file->getClientOriginalName(),
+                            'overall' => '',
+                            'listening' => '',
+                            'reading' => '',
+                            'writing' => '',
+                            'speaking' => '',
+                            'file_url' => Storage::disk($disk)->url($path),
+                            'file_name' => $file->getClientOriginalName(),
+                            'status' => 'pending',
+                        ];
+                    }
+                }
+            } elseif (is_array($certsInput)) {
                 foreach ($certsInput as $index => $certData) {
                     if (is_string($certData)) {
                         $isUrl = str_starts_with($certData, 'http') || str_starts_with($certData, '/storage');
@@ -233,11 +274,15 @@ class ProfileController extends Controller
             if (! empty($finalCertificates)) {
                 $primaryCert = $finalCertificates[0];
                 $primarySpeaking = ! empty($primaryCert['speaking']) ? (float) $primaryCert['speaking'] : (! empty($primaryCert['overall']) ? (float) $primaryCert['overall'] : null);
-                $typeTitle = ! empty($primaryCert['custom_type_name']) ? $primaryCert['custom_type_name'] : (! empty($primaryCert['type']) ? strtoupper($primaryCert['type']) : 'IELTS');
-                $primaryOverall = ! empty($primaryCert['overall']) ? $typeTitle.' '.$primaryCert['overall'] : ($primarySpeaking ? $typeTitle.' '.$primarySpeaking : null);
+                $certTitle = ! empty($primaryCert['title']) ? $primaryCert['title'] : (! empty($primaryCert['custom_type_name']) ? $primaryCert['custom_type_name'] : strtoupper($primaryCert['type'] ?? 'IELTS'));
+                $primaryOverall = ! empty($primaryCert['overall'])
+                    ? (str_starts_with($primaryCert['overall'], $certTitle) || str_starts_with($primaryCert['overall'], 'IELTS') ? $primaryCert['overall'] : $certTitle.' '.$primaryCert['overall'])
+                    : ($primarySpeaking ? $certTitle.' '.$primarySpeaking : null);
 
-                $profileData['speaking_band'] = $primarySpeaking;
-                $profileData['overall_level'] = $primaryOverall;
+                $profileData['speaking_band'] = $primarySpeaking ?? ($profileData['speaking_band'] ?? null);
+                $profileData['overall_level'] = $primaryOverall ?? ($profileData['overall_level'] ?? null);
+            } elseif (! isset($certsInput)) {
+                // Preserve speaking_band and overall_level if certificates field was omitted
             } else {
                 $profileData['speaking_band'] = null;
                 $profileData['overall_level'] = null;

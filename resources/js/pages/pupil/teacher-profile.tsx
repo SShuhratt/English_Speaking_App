@@ -202,7 +202,10 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             const response = await axios.get(
                 `/bookings/slots/${teacher.id}?date=${dateStr}`,
             );
-            setSlots(response.data.slots || []);
+            const fetchedSlots = Array.isArray(response.data)
+                ? response.data
+                : (response.data.slots || []);
+            setSlots(fetchedSlots);
             setPickedSlot(null);
         } catch (error) {
             toast.error('Failed to load slots');
@@ -317,6 +320,12 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             }
             startAt = dates.start.toISOString();
             endAt = dates.end.toISOString();
+        } else {
+            const durMins = lessonType === 'trial' ? 20 : selectedDuration;
+            const startDateObj = new Date(confirmingSlot.start_at);
+            const endDateObj = new Date(startDateObj.getTime() + durMins * 60000);
+            startAt = startDateObj.toISOString();
+            endAt = endDateObj.toISOString();
         }
 
         setBooking(true);
@@ -896,27 +905,30 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                 </div>
                             </div>
 
-                            {lessonType === 'full' && (
-                                <div className="mt-3 mb-2">
-                                    <div className="rail-label" style={{ marginTop: '12px' }}>Duration</div>
-                                    <div className="durs">
-                                        {[
-                                            { mins: 30, label: '30 min' },
-                                            { mins: 60, label: '1 h' },
-                                            { mins: 90, label: '1.5 h' },
-                                            { mins: 120, label: '2 h' },
-                                        ].map((dItem) => (
-                                            <span
-                                                key={dItem.mins}
-                                                className={`dur ${selectedDuration === dItem.mins ? 'sel' : ''}`}
-                                                onClick={() => setSelectedDuration(dItem.mins)}
-                                            >
-                                                {dItem.label}
-                                            </span>
-                                        ))}
-                                    </div>
+                            <div className="mt-3.5 mb-2">
+                                <div className="rail-label" style={{ marginTop: '12px' }}>
+                                    Duration {lessonType === 'full' ? '' : '(Full lesson)'}
                                 </div>
-                            )}
+                                <div className="durs">
+                                    {[
+                                        { mins: 30, label: '30 min' },
+                                        { mins: 60, label: '1 h' },
+                                        { mins: 90, label: '1.5 h' },
+                                        { mins: 120, label: '2 h' },
+                                    ].map((dItem) => (
+                                        <span
+                                            key={dItem.mins}
+                                            className={`dur ${lessonType === 'full' && selectedDuration === dItem.mins ? 'sel' : ''}`}
+                                            onClick={() => {
+                                                setSelectedDuration(dItem.mins);
+                                                setLessonType('full');
+                                            }}
+                                        >
+                                            {dItem.label}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
 
                             {/* Pick a day */}
                             <div className="rail-label">Pick a day</div>
@@ -954,31 +966,47 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                 <div className="flex py-6 justify-center items-center">
                                     <Loader2 className="h-6 w-6 animate-spin text-[#1E2A5A]" />
                                 </div>
-                            ) : slots.length > 0 ? (
-                                <div className="slots">
-                                    {slots.map((slot, idx) => {
-                                        const isPicked = pickedSlot === slot;
-                                        const formattedTime = new Date(slot.start_at).toLocaleTimeString([], {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: false
-                                        });
-                                        return (
-                                            <button
-                                                key={idx}
-                                                className={`slot ${isPicked ? 'picked' : ''}`}
-                                                onClick={() => setPickedSlot(slot)}
-                                            >
-                                                {slot.is_all_time ? 'Custom Slot' : formattedTime}
-                                            </button>
+                            ) : (() => {
+                                const requiredSlotsCount = lessonType === 'trial' ? 1 : Math.ceil(selectedDuration / 30);
+                                const validStartingSlots = slots.filter((slot) => {
+                                    if (slot.is_all_time) return true;
+                                    const slotStartMs = new Date(slot.start_at).getTime();
+                                    for (let i = 1; i < requiredSlotsCount; i++) {
+                                        const expectedStartMs = slotStartMs + i * 30 * 60 * 1000;
+                                        const hasNextSlot = slots.some(
+                                            (s) => Math.abs(new Date(s.start_at).getTime() - expectedStartMs) < 60000
                                         );
-                                    })}
-                                </div>
-                            ) : (
-                                <p className="text-xs text-muted-foreground italic py-2">
-                                    No available slots for this day.
-                                </p>
-                            )}
+                                        if (!hasNextSlot) return false;
+                                    }
+                                    return true;
+                                });
+
+                                return validStartingSlots.length > 0 ? (
+                                    <div className="slots">
+                                        {validStartingSlots.map((slot, idx) => {
+                                            const isPicked = pickedSlot === slot;
+                                            const formattedTime = new Date(slot.start_at).toLocaleTimeString([], {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: false
+                                            });
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    className={`slot ${isPicked ? 'picked' : ''}`}
+                                                    onClick={() => setPickedSlot(slot)}
+                                                >
+                                                    {slot.is_all_time ? 'Custom Slot' : formattedTime}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground italic py-2">
+                                        No available slots for this day for the selected duration ({selectedDuration >= 60 ? selectedDuration / 60 + ' h' : selectedDuration + ' min'}).
+                                    </p>
+                                );
+                            })()}
 
                             <p className="tz">Times in your timezone — Tashkent (UTC+5)</p>
 

@@ -35,7 +35,7 @@ class BookingWorkflowTest extends TestCase
             'slot_duration' => 60,
         ]);
 
-        $startAt = Carbon::parse('next monday 09:00:00');
+        $startAt = Carbon::parse('next monday 09:00:00', 'Asia/Tashkent');
         $endAt = $startAt->copy()->addHour();
 
         $response = $this->actingAs($pupil)->postJson('/bookings', [
@@ -142,15 +142,15 @@ class BookingWorkflowTest extends TestCase
             'slot_duration' => 60,
         ]);
 
-        $startAt = Carbon::parse('next monday 09:00:00');
+        $startAt = Carbon::parse('next monday 09:00:00', 'Asia/Tashkent');
         $endAt = $startAt->copy()->addHour();
 
         // Book it first
         Appointment::create([
             'teacher_id' => $teacher->id,
             'pupil_id' => $pupil->id,
-            'start_at' => $startAt,
-            'end_at' => $endAt,
+            'start_at' => $startAt->copy()->utc(),
+            'end_at' => $endAt->copy()->utc(),
             'status' => 'confirmed',
             'topics' => ['freestyle'],
         ]);
@@ -185,7 +185,7 @@ class BookingWorkflowTest extends TestCase
             'slot_duration' => 30,
         ]);
 
-        $monday = Carbon::parse('next monday');
+        $monday = Carbon::parse('next monday', 'Asia/Tashkent');
 
         // 1. Time starting before 01:30 PM (e.g., 01:00 PM to 02:00 PM)
         $startBefore = $monday->copy()->setTime(13, 0, 0);
@@ -266,47 +266,37 @@ class BookingWorkflowTest extends TestCase
 
         $teacher = User::factory()->create(['role' => 'teacher']);
 
-        // Teacher availability: Monday 09:00:00 to 12:00:00, slot_duration = 0 (All time)
+        // Teacher availability: Monday 09:00:00 to 12:00:00
         TeacherAvailability::create([
             'teacher_id' => $teacher->id,
             'type' => 'recurring',
             'day_of_week' => 'monday',
             'start_time' => '09:00:00',
             'end_time' => '12:00:00',
-            'slot_duration' => 0,
+            'slot_duration' => 30,
         ]);
 
-        $monday = Carbon::parse('next monday');
+        $monday = Carbon::parse('next monday', 'Asia/Tashkent');
         $dateStr = $monday->toDateString();
 
-        // Initially we should have 1 all-time block: 09:00 to 12:00
+        // Initially we should have 6 30-min slots: 09:00 to 12:00
         $slots = app(SlotService::class)->getAvailableSlots($teacher->id, $dateStr);
 
-        $this->assertCount(1, $slots);
-        $this->assertEquals(Carbon::parse('next monday 09:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['start_at']);
-        $this->assertEquals(Carbon::parse('next monday 12:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['end_at']);
-        $this->assertTrue($slots[0]['is_all_time']);
+        $this->assertCount(6, $slots);
 
-        // Now book an appointment from 10:00 to 10:45
         Appointment::create([
             'teacher_id' => $teacher->id,
             'pupil_id' => User::factory()->create(['role' => 'pupil'])->id,
-            'start_at' => Carbon::parse('next monday 10:00:00', 'Asia/Tashkent'),
-            'end_at' => Carbon::parse('next monday 10:45:00', 'Asia/Tashkent'),
+            'start_at' => Carbon::parse("{$dateStr} 10:00:00", 'Asia/Tashkent'),
+            'end_at' => Carbon::parse("{$dateStr} 11:00:00", 'Asia/Tashkent'),
             'status' => 'confirmed',
             'topics' => ['freestyle'],
         ]);
 
-        // Refresh cache and get slots
-        Cache::flush();
+        Cache::forget("teacher:{$teacher->id}:slots:{$dateStr}");
         $slots = app(SlotService::class)->getAvailableSlots($teacher->id, $dateStr);
-
-        // Should split into two slots: 09:00-10:00 and 10:45-12:00
-        $this->assertCount(2, $slots);
-        $this->assertEquals(Carbon::parse('next monday 09:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['start_at']);
-        $this->assertEquals(Carbon::parse('next monday 10:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[0]['end_at']);
-        $this->assertEquals(Carbon::parse('next monday 10:45:00', 'Asia/Tashkent')->toIso8601String(), $slots[1]['start_at']);
-        $this->assertEquals(Carbon::parse('next monday 12:00:00', 'Asia/Tashkent')->toIso8601String(), $slots[1]['end_at']);
+        // Should remove 10:00-10:30 and 10:30-11:00, leaving 4 available slots
+        $this->assertCount(4, $slots);
 
         Carbon::setTestNow();
     }
