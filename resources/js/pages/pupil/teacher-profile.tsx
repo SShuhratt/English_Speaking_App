@@ -1,7 +1,9 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, setLayoutProps, usePage } from '@inertiajs/react';
+import { Head, Link, setLayoutProps, usePage, router } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
+import { Button } from '@/components/ui/button';
+import DeleteUserModal from '@/components/delete-user-modal';
 import {
     Star,
     Video,
@@ -16,7 +18,10 @@ import {
     Check,
     Sparkles,
     Loader2,
-    ExternalLink
+    ExternalLink,
+    Trash2,
+    ShieldCheck,
+    ShieldAlert
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -68,6 +73,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
     const { t } = useTranslation();
 
     const [lessonType, setLessonType] = React.useState<'trial' | 'full'>(hasEligibleTrial ? 'trial' : 'full');
+    const [deletingUser, setDeletingUser] = React.useState<{ id: string; name: string } | null>(null);
     const [selectedDuration, setSelectedDuration] = React.useState<number>(60);
 
     // Raw certificates normalization
@@ -593,6 +599,34 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                 </span>
                             )}
                         </div>
+
+                        {auth?.user?.role === 'admin' && (
+                            <div className="my-3 flex flex-wrap items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/80 p-2.5 shadow-sm dark:border-indigo-800 dark:bg-indigo-950/60">
+                                <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1">
+                                    <ShieldCheck className="h-4 w-4 text-indigo-600" /> Admin Controls:
+                                </span>
+                                <Button
+                                    size="sm"
+                                    variant={teacher.teacher_profile?.is_verified ? 'outline' : 'default'}
+                                    onClick={() => {
+                                        router.post(`/admin/teachers/${teacher.id}/verify`, {
+                                            verified: !teacher.teacher_profile?.is_verified,
+                                        });
+                                    }}
+                                    className={!teacher.teacher_profile?.is_verified ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-7 text-xs' : 'font-bold h-7 text-xs'}
+                                >
+                                    {teacher.teacher_profile?.is_verified ? t('admin.unverify_teacher') : t('admin.verify_teacher')}
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => setDeletingUser({ id: teacher.id, name: teacher.full_name })}
+                                    className="bg-red-600 hover:bg-red-700 text-white font-bold h-7 text-xs"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5 mr-1" /> {t('admin.delete_teacher')}
+                                </Button>
+                            </div>
+                        )}
                         <p className="headline">
                             {teacher.teacher_profile?.headline || 'Professional English Speaking Tutor'}
                         </p>
@@ -718,15 +752,32 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                                         </h4>
                                                     </div>
                                                 </div>
-                                                {cert.status === 'verified' ? (
-                                                    <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A]">
-                                                        ✓ Verified
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-bold text-[#6B7394]">
-                                                        Under review
-                                                    </span>
-                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    {cert.status === 'verified' ? (
+                                                        <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A]">
+                                                            ✓ Verified
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-bold text-[#6B7394]">
+                                                            Under review
+                                                        </span>
+                                                    )}
+
+                                                    {auth?.user?.role === 'admin' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant={cert.status === 'verified' ? 'outline' : 'default'}
+                                                            onClick={() => {
+                                                                router.post(`/admin/teachers/${teacher.id}/certificates/${idx}/verify`, {
+                                                                    status: cert.status === 'verified' ? 'under_review' : 'verified',
+                                                                });
+                                                            }}
+                                                            className={cert.status !== 'verified' ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-6 text-[11px] px-2' : 'font-bold h-6 text-[11px] px-2'}
+                                                        >
+                                                            {cert.status === 'verified' ? t('admin.unverify_certificate') : t('admin.verify_certificate')}
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             {/* Sub-scores layout */}
@@ -1212,6 +1263,12 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                 </div>
             )}
 
+            <DeleteUserModal
+                isOpen={!!deletingUser}
+                onClose={() => setDeletingUser(null)}
+                userId={deletingUser?.id ?? null}
+                userName={deletingUser?.name}
+            />
         </>
     );
 }

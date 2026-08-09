@@ -656,6 +656,17 @@ const dictionary = {
         'appearance.light': 'Light',
         'appearance.dark': 'Dark',
         'appearance.system': 'System',
+
+        // admin management
+        'admin.confirm_delete_user_title': 'Delete User Account',
+        'admin.confirm_delete_user_message': 'Are you sure you want to delete this user? This action cannot be undone and will permanently remove their profile, appointments, and support history.',
+        'admin.delete_user': 'Delete User',
+        'admin.delete_teacher': 'Delete Teacher',
+        'admin.delete_pupil': 'Delete Pupil',
+        'admin.verify_teacher': 'Verify Teacher',
+        'admin.unverify_teacher': 'Unverify Teacher',
+        'admin.verify_certificate': 'Verify Certificate',
+        'admin.unverify_certificate': 'Unverify Certificate',
     },
     uz: {
         // common / layout
@@ -1334,8 +1345,19 @@ const dictionary = {
         'appearance.desc':
             "Hisobingiz uchun mavzu va ko'rinish sozlamalarini yangilang",
         'appearance.light': "Yorug'",
-        'appearance.dark': "Qorong'u",
-        'appearance.system': 'Tizim',
+        'appearance.dark': 'Tungi rejim',
+        'appearance.system': 'Tizim rejimi',
+
+        // admin management
+        'admin.confirm_delete_user_title': "Foydalanuvchi hisobini o'chirish",
+        'admin.confirm_delete_user_message': "Ushbu foydalanuvchini o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi va barcha darslar hamda ma'lumotlar butunlay o'chiriladi.",
+        'admin.delete_user': "Foydalanuvchini o'chirish",
+        'admin.delete_teacher': "O'qituvchini o'chirish",
+        'admin.delete_pupil': "O'quvchini o'chirish",
+        'admin.verify_teacher': "O'qituvchini tasdiqlash",
+        'admin.unverify_teacher': "Tasdiqni bekor qilish",
+        'admin.verify_certificate': 'Sertifikatni tasdiqlash',
+        'admin.unverify_certificate': 'Sertifikat tasdigʻini bekor qilish',
     },
     ru: {
         // common / layout
@@ -1415,7 +1437,7 @@ const dictionary = {
         'welcome.title_today': 'Сегодня',
         'welcome.view_teachers': 'Посмотреть учителей',
         'welcome.subtitle':
-            'Бронируйте индивидуальные уроки с сертифицированными преподавателями. Практируйте общение, получайте мгновенные отзывы и отслеживайте прогресс — всё через Google Meet.',
+            'Бронируйте индивидуальные уроки с сертифицированными преподавателями. Практикуйте общение, получайте мгновенные отзывы и отслеживайте прогресс — всё через Google Meet.',
         'welcome.get_started': 'Начать',
         'welcome.cta_start': 'Начните говорить сегодня',
         'welcome.cta_how_it_works': 'Как это работает',
@@ -2001,8 +2023,19 @@ const dictionary = {
         'appearance.title': 'Настройки оформления',
         'appearance.desc': 'Обновите настройки внешнего вида вашего аккаунта',
         'appearance.light': 'Светлая',
-        'appearance.dark': 'Тёмная',
+        'appearance.dark': 'Темная',
         'appearance.system': 'Системная',
+
+        // admin management
+        'admin.confirm_delete_user_title': 'Удалить аккаунт пользователя',
+        'admin.confirm_delete_user_message': 'Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить, и все данные профиля и занятий будут безвозвратно удалены.',
+        'admin.delete_user': 'Удалить пользователя',
+        'admin.delete_teacher': 'Удалить преподавателя',
+        'admin.delete_pupil': 'Удалить ученика',
+        'admin.verify_teacher': 'Подтвердить преподавателя',
+        'admin.unverify_teacher': 'Отменить подтверждение',
+        'admin.verify_certificate': 'Подтвердить сертификат',
+        'admin.unverify_certificate': 'Отменить сертификат',
     },
 };
 

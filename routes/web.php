@@ -38,7 +38,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/teachers', [AdminUserController::class, 'teachers'])->name('teachers');
         Route::post('/teachers/{id}/verify', [AdminUserController::class, 'verifyTeacher'])->name('teachers.verify');
         Route::post('/teachers/{id}/certificates', [AdminUserController::class, 'updateCertificates'])->name('teachers.certificates.update');
+        Route::post('/teachers/{id}/certificates/{index}/verify', [AdminUserController::class, 'verifySingleCertificate'])->name('teachers.certificates.verify-single');
         Route::get('/pupils', [AdminUserController::class, 'pupils'])->name('pupils');
+        Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('/support', [AdminSupportController::class, 'index'])->name('support');
         Route::post('/support/reply', [AdminSupportController::class, 'reply'])->name('support.reply');

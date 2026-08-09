@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ShieldCheck, ShieldAlert, Sparkles, MessageSquare, ExternalLink, GraduationCap, FileText, Edit, Check } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Sparkles, MessageSquare, ExternalLink, GraduationCap, FileText, Edit, Check, Trash2 } from 'lucide-react';
+import DeleteUserModal from '@/components/delete-user-modal';
 
 interface TeacherProfile {
     id: string;
@@ -42,6 +43,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
     const [editingCerts, setEditingCerts] = useState<any[]>([]);
     const [editingOverallLevel, setEditingOverallLevel] = useState<string>('');
     const [editingSpeakingBand, setEditingSpeakingBand] = useState<string>('');
+    const [deletingUser, setDeletingUser] = useState<{ id: string; name: string } | null>(null);
 
     const handleToggleVerify = (id: string, currentStatus?: boolean) => {
         router.post(`/admin/teachers/${id}/verify`, {
@@ -284,6 +286,16 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                             >
                                                                 {isVerified ? 'Unverify' : 'Verify Teacher'}
                                                             </Button>
+
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() => setDeletingUser({ id: teacher.id, name: teacher.full_name })}
+                                                                className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                                                Delete
+                                                            </Button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -432,6 +444,13 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                     </CardContent>
                 </Card>
             </div>
+
+            <DeleteUserModal
+                isOpen={!!deletingUser}
+                onClose={() => setDeletingUser(null)}
+                userId={deletingUser?.id ?? null}
+                userName={deletingUser?.name}
+            />
         </>
     );
 }

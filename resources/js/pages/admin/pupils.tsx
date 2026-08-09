@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, ExternalLink } from 'lucide-react';
+import { Users, MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
+import DeleteUserModal from '@/components/delete-user-modal';
 
 interface PupilProfile {
     id: string;
@@ -30,6 +32,8 @@ interface Props {
 }
 
 export default function AdminPupils({ pupils }: Props) {
+    const [deletingUser, setDeletingUser] = useState<{ id: string; name: string } | null>(null);
+
     return (
         <>
             <Head title="Admin - Pupil Management" />
@@ -124,11 +128,23 @@ export default function AdminPupils({ pupils }: Props) {
                                             </td>
 
                                             <td className="px-4 py-4 text-right">
-                                                <Link href={`/profile/${pupil.id}`}>
-                                                    <Button size="sm" variant="outline">
-                                                        View Profile
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Link href={`/profile/${pupil.id}`}>
+                                                        <Button size="sm" variant="outline">
+                                                            View Profile
+                                                        </Button>
+                                                    </Link>
+
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={() => setDeletingUser({ id: pupil.id, name: pupil.full_name })}
+                                                        className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                                        Delete
                                                     </Button>
-                                                </Link>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -138,6 +154,13 @@ export default function AdminPupils({ pupils }: Props) {
                     </CardContent>
                 </Card>
             </div>
+
+            <DeleteUserModal
+                isOpen={!!deletingUser}
+                onClose={() => setDeletingUser(null)}
+                userId={deletingUser?.id ?? null}
+                userName={deletingUser?.name}
+            />
         </>
     );
 }

@@ -89,8 +89,26 @@ class AdminUserController extends Controller
 
         $isVerified = $request->has('verified') ? (bool) $request->input('verified') : ! $profile->is_verified;
 
+        $certs = $profile->certificates ?? [];
+        if (is_string($certs)) {
+            $certs = json_decode($certs, true) ?? [];
+        }
+
+        $targetStatus = $isVerified ? 'verified' : 'under_review';
+
+        if (is_array($certs)) {
+            $certs = array_map(function ($cert) use ($targetStatus) {
+                if (is_array($cert)) {
+                    $cert['status'] = $targetStatus;
+                }
+
+                return $cert;
+            }, $certs);
+        }
+
         $profile->update([
             'is_verified' => $isVerified,
+            'certificates' => $certs,
         ]);
 
         return back()->with('success', 'Teacher verification status updated.');
@@ -133,5 +151,56 @@ class AdminUserController extends Controller
         $profile->update($updateData);
 
         return back()->with('success', 'Teacher certificate scores and caches updated successfully.');
+    }
+
+    /**
+     * Verify or unverify an individual certificate at a specific index
+     */
+    public function verifySingleCertificate(Request $request, string $id, int $index)
+    {
+        $user = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+        $profile = $user->teacherProfile;
+
+        if (! $profile) {
+            return back()->with('error', 'Teacher profile not found.');
+        }
+
+        $certs = $profile->certificates ?? [];
+        if (is_string($certs)) {
+            $certs = json_decode($certs, true) ?? [];
+        }
+
+        if (! isset($certs[$index]) || ! is_array($certs[$index])) {
+            return back()->with('error', 'Certificate not found.');
+        }
+
+        $status = $request->input('status');
+        if (! in_array($status, ['verified', 'under_review'])) {
+            $status = ($certs[$index]['status'] ?? 'under_review') === 'verified' ? 'under_review' : 'verified';
+        }
+
+        $certs[$index]['status'] = $status;
+
+        $profile->update([
+            'certificates' => $certs,
+        ]);
+
+        return back()->with('success', 'Certificate status updated successfully.');
+    }
+
+    /**
+     * Delete a teacher or pupil account cleanly
+     */
+    public function destroy(string $id)
+    {
+        $user = User::findOrFail($id);
+
+        if ($user->role === 'admin') {
+            abort(403, 'Admin users cannot be deleted.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User deleted successfully.');
     }
 }
