@@ -19,15 +19,29 @@ export default function Progress({ progress }: Props) {
     const { t } = useTranslation();
 
     // Default 4-week goals from props or fallback
-    const initialWeeklyGoals = (progress.weekly_goals && progress.weekly_goals.length === 4)
-        ? progress.weekly_goals
-        : [progress.weekly_goal || 2, progress.weekly_goal || 2, progress.weekly_goal || 2, progress.weekly_goal || 2];
+    const initialWeeklyGoals =
+        progress.weekly_goals && progress.weekly_goals.length === 4
+            ? progress.weekly_goals
+            : [
+                  progress.weekly_goal || 2,
+                  progress.weekly_goal || 2,
+                  progress.weekly_goal || 2,
+                  progress.weekly_goal || 2,
+              ];
 
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
-    const [week1Input, setWeek1Input] = useState(initialWeeklyGoals[0].toString());
-    const [week2Input, setWeek2Input] = useState(initialWeeklyGoals[1].toString());
-    const [week3Input, setWeek3Input] = useState(initialWeeklyGoals[2].toString());
-    const [week4Input, setWeek4Input] = useState(initialWeeklyGoals[3].toString());
+    const [week1Input, setWeek1Input] = useState(
+        initialWeeklyGoals[0].toString(),
+    );
+    const [week2Input, setWeek2Input] = useState(
+        initialWeeklyGoals[1].toString(),
+    );
+    const [week3Input, setWeek3Input] = useState(
+        initialWeeklyGoals[2].toString(),
+    );
+    const [week4Input, setWeek4Input] = useState(
+        initialWeeklyGoals[3].toString(),
+    );
     const [submitting, setSubmitting] = useState(false);
 
     const handleSaveGoals = (e: React.FormEvent) => {
@@ -41,13 +55,16 @@ export default function Progress({ progress }: Props) {
 
         for (let i = 0; i < goals.length; i++) {
             if (isNaN(goals[i]) || goals[i] <= 0) {
-                toast.error(t('progress.positive_goal_error') || `Please enter a positive integer for Week ${i + 1} goal.`);
+                toast.error(
+                    t('progress.positive_goal_error') ||
+                        `Please enter a positive integer for Week ${i + 1} goal.`,
+                );
                 return;
             }
             if (goals[i] > 350) {
                 toast.error(
                     t('progress.unrealistic_goal') ||
-                    'Respect to huge goals! But be a realist like the developer!'
+                        'Respect to huge goals! But be a realist like the developer!',
                 );
                 return;
             }
@@ -62,14 +79,21 @@ export default function Progress({ progress }: Props) {
             },
             {
                 onSuccess: () => {
-                    toast.success(t('progress.goal_updated_success') || 'Weekly goals updated successfully!');
+                    toast.success(
+                        t('progress.goal_updated_success') ||
+                            'Weekly goals updated successfully!',
+                    );
                     setIsGoalModalOpen(false);
                 },
                 onError: (errors) => {
-                    toast.error(errors.weekly_goals || errors.weekly_goal || 'Failed to update goal');
+                    toast.error(
+                        errors.weekly_goals ||
+                            errors.weekly_goal ||
+                            'Failed to update goal',
+                    );
                 },
                 onFinish: () => setSubmitting(false),
-            }
+            },
         );
     };
 
@@ -148,7 +172,10 @@ export default function Progress({ progress }: Props) {
     }
     const currentWeekGoal = weeklyGoals[currentWeekIndex] || 2;
     const currentWeekCompleted = Math.max(0, completedSessions - accumulated);
-    const sessionsLeftThisWeek = Math.max(0, currentWeekGoal - currentWeekCompleted);
+    const sessionsLeftThisWeek = Math.max(
+        0,
+        currentWeekGoal - currentWeekCompleted,
+    );
 
     return (
         <>
@@ -171,7 +198,8 @@ export default function Progress({ progress }: Props) {
                             }}
                             className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E8E4D8] px-3.5 py-1.5 text-xs font-semibold text-[#1E2A5A] transition hover:bg-[#FDF9EC]"
                         >
-                            Goals: W1 ({weeklyGoals[0]}) · W2 ({weeklyGoals[1]}) · W3 ({weeklyGoals[2]}) · W4 ({weeklyGoals[3]})
+                            Goals: W1 ({weeklyGoals[0]}) · W2 ({weeklyGoals[1]})
+                            · W3 ({weeklyGoals[2]}) · W4 ({weeklyGoals[3]})
                             <Pencil className="h-3 w-3 text-[#888780]" />
                         </button>
                     </div>
@@ -180,7 +208,8 @@ export default function Progress({ progress }: Props) {
                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="rounded-2xl bg-[#FDF9EC] p-3.5">
                             <p className="text-[11.5px] font-semibold text-[#854F0B]">
-                                {t('progress.sessions_completed') || 'Sessions completed'}
+                                {t('progress.sessions_completed') ||
+                                    'Sessions completed'}
                             </p>
                             <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A]">
                                 {completedSessions}
@@ -188,7 +217,8 @@ export default function Progress({ progress }: Props) {
                         </div>
                         <div className="rounded-2xl bg-[#EEF4FB] p-3.5">
                             <p className="text-[11.5px] font-semibold text-[#185FA5]">
-                                {t('progress.minutes_spoken') || 'Minutes spoken'}
+                                {t('progress.minutes_spoken') ||
+                                    'Minutes spoken'}
                             </p>
                             <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A]">
                                 {progress.minutes_spoken}
@@ -196,7 +226,8 @@ export default function Progress({ progress }: Props) {
                         </div>
                         <div className="rounded-2xl bg-[#F4F1E8] p-3.5">
                             <p className="text-[11.5px] font-semibold text-[#5F5E5A]">
-                                {t('progress.teachers_tried') || 'Teachers tried'}
+                                {t('progress.teachers_tried') ||
+                                    'Teachers tried'}
                             </p>
                             <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A]">
                                 {progress.teachers_tried}
@@ -227,8 +258,12 @@ export default function Progress({ progress }: Props) {
 
                                 {/* Render Checkpoint & Milestone Nodes */}
                                 {curveNodes.map((node) => {
-                                    const isDone = node.globalSessionIndex <= completedSessions;
-                                    const isNextUp = node.globalSessionIndex === completedSessions + 1;
+                                    const isDone =
+                                        node.globalSessionIndex <=
+                                        completedSessions;
+                                    const isNextUp =
+                                        node.globalSessionIndex ===
+                                        completedSessions + 1;
 
                                     if (node.isMilestone) {
                                         // Week Milestone Flag Node
@@ -240,8 +275,18 @@ export default function Progress({ progress }: Props) {
                                                     width="40"
                                                     height="40"
                                                     rx="12"
-                                                    fill={isDone ? '#1D9E75' : isNextUp ? '#F7DE8B' : '#FFFFFF'}
-                                                    stroke={isDone || isNextUp ? 'none' : '#E8E4D8'}
+                                                    fill={
+                                                        isDone
+                                                            ? '#1D9E75'
+                                                            : isNextUp
+                                                              ? '#F7DE8B'
+                                                              : '#FFFFFF'
+                                                    }
+                                                    stroke={
+                                                        isDone || isNextUp
+                                                            ? 'none'
+                                                            : '#E8E4D8'
+                                                    }
                                                     strokeWidth="1.5"
                                                     className="transition-colors duration-300"
                                                 />
@@ -249,7 +294,13 @@ export default function Progress({ progress }: Props) {
                                                     x={node.x}
                                                     y={node.y + 5}
                                                     textAnchor="middle"
-                                                    fill={isDone ? '#FFFFFF' : isNextUp ? '#1E2A5A' : '#B4B2A9'}
+                                                    fill={
+                                                        isDone
+                                                            ? '#FFFFFF'
+                                                            : isNextUp
+                                                              ? '#1E2A5A'
+                                                              : '#B4B2A9'
+                                                    }
                                                     fontSize="15"
                                                     fontWeight="bold"
                                                 >
@@ -259,11 +310,18 @@ export default function Progress({ progress }: Props) {
                                                     x={node.x}
                                                     y={node.y - 28}
                                                     textAnchor="middle"
-                                                    fill={isDone ? '#0F6E56' : isNextUp ? '#854F0B' : '#B4B2A9'}
+                                                    fill={
+                                                        isDone
+                                                            ? '#0F6E56'
+                                                            : isNextUp
+                                                              ? '#854F0B'
+                                                              : '#B4B2A9'
+                                                    }
                                                     fontSize="11"
                                                     fontWeight="600"
                                                 >
-                                                    Week {node.weekIndex + 1} {isDone ? 'done' : 'goal'}
+                                                    Week {node.weekIndex + 1}{' '}
+                                                    {isDone ? 'done' : 'goal'}
                                                 </text>
                                                 {isNextUp && (
                                                     <text
@@ -298,15 +356,27 @@ export default function Progress({ progress }: Props) {
                                                 cx={node.x}
                                                 cy={node.y}
                                                 r="14"
-                                                fill={isDone || isNextUp ? '#1E2A5A' : '#FFFFFF'}
-                                                stroke={isDone || isNextUp ? 'none' : '#D3D1C7'}
+                                                fill={
+                                                    isDone || isNextUp
+                                                        ? '#1E2A5A'
+                                                        : '#FFFFFF'
+                                                }
+                                                stroke={
+                                                    isDone || isNextUp
+                                                        ? 'none'
+                                                        : '#D3D1C7'
+                                                }
                                                 strokeWidth="1.5"
                                             />
                                             <text
                                                 x={node.x}
                                                 y={node.y + 4}
                                                 textAnchor="middle"
-                                                fill={isDone || isNextUp ? '#FFFFFF' : '#888780'}
+                                                fill={
+                                                    isDone || isNextUp
+                                                        ? '#FFFFFF'
+                                                        : '#888780'
+                                                }
                                                 fontSize="12"
                                                 fontWeight="600"
                                             >
@@ -335,11 +405,14 @@ export default function Progress({ progress }: Props) {
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#FDF9EC] p-3.5">
                         <p className="m-0 text-xs font-medium text-[#1E2A5A]">
                             {sessionsLeftThisWeek === 1
-                                ? t('progress.one_session_left') || '1 session left to finish Week ' + (currentWeekIndex + 1)
+                                ? t('progress.one_session_left') ||
+                                  '1 session left to finish Week ' +
+                                      (currentWeekIndex + 1)
                                 : `${sessionsLeftThisWeek} ${t('progress.sessions_left') || 'sessions left to finish Week ' + (currentWeekIndex + 1)}`}
                             {' — '}
                             <span className="text-[#5F5E5A]">
-                                {t('progress.book_with_teacher_free') || 'book your next session with a top teacher'}
+                                {t('progress.book_with_teacher_free') ||
+                                    'book your next session with a top teacher'}
                             </span>
                         </p>
                         <Link
@@ -368,9 +441,13 @@ export default function Progress({ progress }: Props) {
                             </button>
                         </div>
 
-                        <form onSubmit={handleSaveGoals} className="mt-4 space-y-4">
+                        <form
+                            onSubmit={handleSaveGoals}
+                            className="mt-4 space-y-4"
+                        >
                             <p className="text-xs font-medium text-slate-500">
-                                Configure the number of session checkpoints for each week (1 to 350 sessions/week).
+                                Configure the number of session checkpoints for
+                                each week (1 to 350 sessions/week).
                             </p>
 
                             <div className="grid grid-cols-2 gap-3">
@@ -383,7 +460,9 @@ export default function Progress({ progress }: Props) {
                                         min="1"
                                         max="350"
                                         value={week1Input}
-                                        onChange={(e) => setWeek1Input(e.target.value)}
+                                        onChange={(e) =>
+                                            setWeek1Input(e.target.value)
+                                        }
                                         className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
                                         required
                                     />
@@ -397,7 +476,9 @@ export default function Progress({ progress }: Props) {
                                         min="1"
                                         max="350"
                                         value={week2Input}
-                                        onChange={(e) => setWeek2Input(e.target.value)}
+                                        onChange={(e) =>
+                                            setWeek2Input(e.target.value)
+                                        }
                                         className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
                                         required
                                     />
@@ -411,7 +492,9 @@ export default function Progress({ progress }: Props) {
                                         min="1"
                                         max="350"
                                         value={week3Input}
-                                        onChange={(e) => setWeek3Input(e.target.value)}
+                                        onChange={(e) =>
+                                            setWeek3Input(e.target.value)
+                                        }
                                         className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
                                         required
                                     />
@@ -425,14 +508,16 @@ export default function Progress({ progress }: Props) {
                                         min="1"
                                         max="350"
                                         value={week4Input}
-                                        onChange={(e) => setWeek4Input(e.target.value)}
+                                        onChange={(e) =>
+                                            setWeek4Input(e.target.value)
+                                        }
                                         className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E8E4D8]/60">
+                            <div className="flex items-center justify-end gap-2 border-t border-[#E8E4D8]/60 pt-3">
                                 <button
                                     type="button"
                                     onClick={() => setIsGoalModalOpen(false)}

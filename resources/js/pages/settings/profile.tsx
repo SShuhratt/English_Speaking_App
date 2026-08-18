@@ -1,7 +1,16 @@
 import React from 'react';
 import { Form, Head, usePage } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
-import { Trash2, FileText, ExternalLink, Award, Plus, Lock, Upload, Play } from 'lucide-react';
+import {
+    Trash2,
+    FileText,
+    ExternalLink,
+    Award,
+    Plus,
+    Lock,
+    Upload,
+    Play,
+} from 'lucide-react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import InputError from '@/components/input-error';
@@ -24,7 +33,14 @@ type PageProps = {
                 workplace?: string;
                 overall_level?: string;
                 speaking_band?: number;
-                certificates?: Array<{ title: string; file_url: string; file_name?: string; status?: string }> | string[];
+                certificates?:
+                    | Array<{
+                          title: string;
+                          file_url: string;
+                          file_name?: string;
+                          status?: string;
+                      }>
+                    | string[];
                 labels?: string[];
                 headline?: string;
                 bio?: string;
@@ -35,14 +51,25 @@ type PageProps = {
                 age?: number;
                 phone_number?: string;
                 level?: string;
-                certificates?: Array<{ title: string; file_url: string; file_name?: string; status?: string }> | string[];
+                certificates?:
+                    | Array<{
+                          title: string;
+                          file_url: string;
+                          file_name?: string;
+                          status?: string;
+                      }>
+                    | string[];
                 headline?: string;
                 bio?: string;
                 target_overall_band?: string | number;
                 target_speaking_band?: string | number;
                 labels?: string[];
             };
-            availabilities?: Array<{ day_of_week: string; start_time: string; end_time: string }>;
+            availabilities?: Array<{
+                day_of_week: string;
+                start_time: string;
+                end_time: string;
+            }>;
         };
     };
 };
@@ -92,7 +119,11 @@ export default function Profile({
                     id: index,
                     title: isUrl ? '' : c,
                     file_url: isUrl ? c : null,
-                    file_name: isUrl ? (c.includes('/') ? c.substring(c.lastIndexOf('/') + 1) : c) : '',
+                    file_name: isUrl
+                        ? c.includes('/')
+                            ? c.substring(c.lastIndexOf('/') + 1)
+                            : c
+                        : '',
                     status: 'verified',
                 };
             }
@@ -129,7 +160,10 @@ export default function Profile({
         });
     };
 
-    const handlePupilCertFileSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePupilCertFileSelect = (
+        index: number,
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const file = e.target.files?.[0];
         if (file) {
             setPupilCerts((prev) => {
@@ -146,23 +180,38 @@ export default function Profile({
     };
 
     const removePupilCertificate = (index: number) => {
-        setPupilCerts((prev) => (Array.isArray(prev) ? prev.filter((_, i) => i !== index) : []));
+        setPupilCerts((prev) =>
+            Array.isArray(prev) ? prev.filter((_, i) => i !== index) : [],
+        );
     };
 
-    const [pupilHeadline, setPupilHeadline] = React.useState(auth.user.pupil_profile?.headline ?? '');
-    const [pupilBio, setPupilBio] = React.useState(auth.user.pupil_profile?.bio ?? '');
-    const [targetOverallBand, setTargetOverallBand] = React.useState(auth.user.pupil_profile?.target_overall_band ?? '');
-    const [targetSpeakingBand, setTargetSpeakingBand] = React.useState(auth.user.pupil_profile?.target_speaking_band ?? '');
-    
+    const [pupilHeadline, setPupilHeadline] = React.useState(
+        auth.user.pupil_profile?.headline ?? '',
+    );
+    const [pupilBio, setPupilBio] = React.useState(
+        auth.user.pupil_profile?.bio ?? '',
+    );
+    const [targetOverallBand, setTargetOverallBand] = React.useState(
+        auth.user.pupil_profile?.target_overall_band ?? '',
+    );
+    const [targetSpeakingBand, setTargetSpeakingBand] = React.useState(
+        auth.user.pupil_profile?.target_speaking_band ?? '',
+    );
+
     const initialPupilLabels = React.useMemo(() => {
-        return safeParseArray(auth.user.pupil_profile?.labels).filter((x): x is string => typeof x === 'string');
+        return safeParseArray(auth.user.pupil_profile?.labels).filter(
+            (x): x is string => typeof x === 'string',
+        );
     }, [auth.user]);
-    const [pupilLabels, setPupilLabels] = React.useState<string[]>(initialPupilLabels);
+    const [pupilLabels, setPupilLabels] =
+        React.useState<string[]>(initialPupilLabels);
 
     const togglePupilLabel = (val: string) => {
         setPupilLabels((prev) => {
             const safePrev = Array.isArray(prev) ? prev : [];
-            return safePrev.includes(val) ? safePrev.filter((x) => x !== val) : [...safePrev, val];
+            return safePrev.includes(val)
+                ? safePrev.filter((x) => x !== val)
+                : [...safePrev, val];
         });
     };
 
@@ -172,7 +221,10 @@ export default function Profile({
         const parsed = safeParseArray(rawCerts);
 
         const profileOverall = auth.user.teacher_profile?.overall_level
-            ? String(auth.user.teacher_profile.overall_level).replace(/[^0-9.]/g, '')
+            ? String(auth.user.teacher_profile.overall_level).replace(
+                  /[^0-9.]/g,
+                  '',
+              )
             : '';
         const profileSpeaking = auth.user.teacher_profile?.speaking_band
             ? String(auth.user.teacher_profile.speaking_band)
@@ -213,13 +265,19 @@ export default function Profile({
                     writing: profileOverall || profileSpeaking,
                     speaking: profileSpeaking || profileOverall,
                     file_url: isUrl ? c : null,
-                    file_name: isUrl ? (c.includes('/') ? c.substring(c.lastIndexOf('/') + 1) : c) : '',
+                    file_name: isUrl
+                        ? c.includes('/')
+                            ? c.substring(c.lastIndexOf('/') + 1)
+                            : c
+                        : '',
                     status: 'verified',
                 };
             }
 
-            const overallVal = String(c?.overall ?? '') || profileOverall || profileSpeaking;
-            const speakingVal = String(c?.speaking ?? '') || profileSpeaking || overallVal;
+            const overallVal =
+                String(c?.overall ?? '') || profileOverall || profileSpeaking;
+            const speakingVal =
+                String(c?.speaking ?? '') || profileSpeaking || overallVal;
 
             return {
                 id: index,
@@ -274,7 +332,10 @@ export default function Profile({
         });
     };
 
-    const handleCertFileSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCertFileSelect = (
+        index: number,
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const file = e.target.files?.[0];
         if (file) {
             setCerts((prev) => {
@@ -295,7 +356,9 @@ export default function Profile({
     };
 
     // Avatar preview
-    const [avatarPreview, setAvatarPreview] = React.useState(auth.user.avatar || '');
+    const [avatarPreview, setAvatarPreview] = React.useState(
+        auth.user.avatar || '',
+    );
 
     const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -305,11 +368,15 @@ export default function Profile({
     };
 
     // Headline & Bio with char counts
-    const [headline, setHeadline] = React.useState(auth.user.teacher_profile?.headline ?? '');
+    const [headline, setHeadline] = React.useState(
+        auth.user.teacher_profile?.headline ?? '',
+    );
     const [bio, setBio] = React.useState(auth.user.teacher_profile?.bio ?? '');
 
     // Video Upload Preview
-    const [videoPreview, setVideoPreview] = React.useState(auth.user.teacher_profile?.intro_video_url || '');
+    const [videoPreview, setVideoPreview] = React.useState(
+        auth.user.teacher_profile?.intro_video_url || '',
+    );
     const [videoFileName, setVideoFileName] = React.useState('');
 
     const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -322,14 +389,18 @@ export default function Profile({
 
     // Focus / Labels
     const initialTeacherLabels = React.useMemo(() => {
-        return safeParseArray(auth.user.teacher_profile?.labels).filter((x): x is string => typeof x === 'string');
+        return safeParseArray(auth.user.teacher_profile?.labels).filter(
+            (x): x is string => typeof x === 'string',
+        );
     }, [auth.user]);
     const [labels, setLabels] = React.useState<string[]>(initialTeacherLabels);
 
     const toggleLabel = (val: string) => {
         setLabels((prev) => {
             const safePrev = Array.isArray(prev) ? prev : [];
-            return safePrev.includes(val) ? safePrev.filter((x) => x !== val) : [...safePrev, val];
+            return safePrev.includes(val)
+                ? safePrev.filter((x) => x !== val)
+                : [...safePrev, val];
         });
     };
 
@@ -346,8 +417,6 @@ export default function Profile({
         const clean = val.replace(/\D/g, '');
         return clean ? clean.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : '';
     };
-
-
 
     const getInitials = (name: string) => {
         return name
@@ -366,9 +435,11 @@ export default function Profile({
 
             <h1 className="sr-only">{t('profile.title')}</h1>
 
-            <div className="teacher-settings-container text-[#22284A] bg-[#FAFBFD] font-sans antialiased">
+            <div className="teacher-settings-container bg-[#FAFBFD] font-sans text-[#22284A] antialiased">
                 {/* Embed mockup style definitions cleanly */}
-                <style dangerouslySetInnerHTML={{ __html: `
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                     .teacher-settings-container {
                         --butter: #F7DE8B;
                         --butter-deep: #F0CE5F;
@@ -520,7 +591,9 @@ export default function Profile({
                     .teacher-settings-container .check input:checked ~ .check-label { color: var(--navy); }
                     .teacher-settings-container .check.checked { border-color: var(--navy); background: var(--blue-tint); }
                     .teacher-settings-container .check-label { font-size: 14.5px; font-weight: 600; }
-                ` }} />
+                `,
+                    }}
+                />
 
                 <Form
                     {...ProfileController.update.form()}
@@ -528,7 +601,7 @@ export default function Profile({
                     options={{
                         preserveScroll: true,
                     }}
-                    className="max-w-[760px] mx-auto px-4 py-8 space-y-12"
+                    className="mx-auto max-w-[760px] space-y-12 px-4 py-8"
                 >
                     {({ processing, errors }) => (
                         <>
@@ -540,30 +613,40 @@ export default function Profile({
                                     {/* 1. Basics */}
                                     <div className="space-y-4">
                                         <div>
-                                            <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight">The basics</h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">Your name, face, and one line that makes a student pick you.</p>
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                                The basics
+                                            </h2>
+                                            <p className="text-[13.5px] text-[#6B7394]">
+                                                Your name, face, and one line
+                                                that makes a student pick you.
+                                            </p>
                                         </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 space-y-6">
+                                        <div className="space-y-6 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
                                             <div className="space-y-2">
-                                                <label className="text-sm font-bold text-[#22284A]">Profile photo</label>
-                                                <div className="flex gap-5 items-center">
+                                                <label className="text-sm font-bold text-[#22284A]">
+                                                    Profile photo
+                                                </label>
+                                                <div className="flex items-center gap-5">
                                                     {avatarPreview ? (
                                                         <img
                                                             src={avatarPreview}
                                                             alt="Avatar"
-                                                            className="w-[92px] height-[92px] h-[92px] rounded-[24px] object-cover flex-shrink-0 border border-[#E6E9F2]"
+                                                            className="height-[92px] h-[92px] w-[92px] flex-shrink-0 rounded-[24px] border border-[#E6E9F2] object-cover"
                                                         />
                                                     ) : (
-                                                        <div className="w-[92px] h-[92px] rounded-[24px] flex-shrink-0 bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] flex items-center justify-center font-bold text-3xl text-[#1E2A5A] bricolage-font">
-                                                            {getInitials(auth.user.name || '')}
+                                                        <div className="bricolage-font flex h-[92px] w-[92px] flex-shrink-0 items-center justify-center rounded-[24px] bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-3xl font-bold text-[#1E2A5A]">
+                                                            {getInitials(
+                                                                auth.user
+                                                                    .name || '',
+                                                            )}
                                                         </div>
                                                     )}
                                                     <div>
                                                         <label
-                                                            className="inline-flex items-center gap-2 cursor-pointer border border-[#E6E9F2] rounded-full px-[18px] py-2.5 text-[13.5px] font-bold text-[#1E2A5A] bg-white transition hover:border-[#1E2A5A]"
+                                                            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#E6E9F2] bg-white px-[18px] py-2.5 text-[13.5px] font-bold text-[#1E2A5A] transition hover:border-[#1E2A5A]"
                                                             htmlFor="photo-file"
                                                         >
-                                                            <Upload className="w-3.5 h-3.5" />
+                                                            <Upload className="h-3.5 w-3.5" />
                                                             Upload photo
                                                         </label>
                                                         <input
@@ -572,61 +655,106 @@ export default function Profile({
                                                             id="photo-file"
                                                             accept="image/*"
                                                             hidden
-                                                            onChange={handleAvatarSelect}
+                                                            onChange={
+                                                                handleAvatarSelect
+                                                            }
                                                         />
-                                                        <div className="text-[12.5px] text-[#6B7394] mt-2">
-                                                            A clear, friendly photo of your face. No logos, no filters — students book people.
+                                                        <div className="mt-2 text-[12.5px] text-[#6B7394]">
+                                                            A clear, friendly
+                                                            photo of your face.
+                                                            No logos, no filters
+                                                            — students book
+                                                            people.
                                                         </div>
-                                                        <InputError message={errors.avatar} className="mt-1" />
+                                                        <InputError
+                                                            message={
+                                                                errors.avatar
+                                                            }
+                                                            className="mt-1"
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-1.5">
                                                 <label className="text-sm font-bold text-[#22284A]">
-                                                    Display name <span className="font-normal text-[#6B7394] text-[12.5px] ml-1.5">shown as first name + initial</span>
+                                                    Display name{' '}
+                                                    <span className="ml-1.5 text-[12.5px] font-normal text-[#6B7394]">
+                                                        shown as first name +
+                                                        initial
+                                                    </span>
                                                 </label>
                                                 <input
                                                     type="text"
                                                     name="name"
-                                                    defaultValue={auth.user.name || auth.user.full_name || ''}
-                                                    className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                    defaultValue={
+                                                        auth.user.name ||
+                                                        auth.user.full_name ||
+                                                        ''
+                                                    }
+                                                    className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     required
                                                 />
-                                                <InputError message={errors.name} />
+                                                <InputError
+                                                    message={errors.name}
+                                                />
                                             </div>
 
                                             <div className="space-y-1.5">
                                                 <label className="text-sm font-bold text-[#22284A]">
-                                                    Headline <span className="font-normal text-[#6B7394] text-[12.5px] ml-1.5">one sentence, shown under your name</span>
+                                                    Headline{' '}
+                                                    <span className="ml-1.5 text-[12.5px] font-normal text-[#6B7394]">
+                                                        one sentence, shown
+                                                        under your name
+                                                    </span>
                                                 </label>
                                                 <input
                                                     type="text"
                                                     name="headline"
                                                     value={headline}
-                                                    onChange={(e) => setHeadline(e.target.value.substring(0, 90))}
+                                                    onChange={(e) =>
+                                                        setHeadline(
+                                                            e.target.value.substring(
+                                                                0,
+                                                                90,
+                                                            ),
+                                                        )
+                                                    }
                                                     placeholder="e.g. Helps shy speakers stop translating in their head — and just talk."
-                                                    className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                    className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                 />
-                                                <div className="text-[12px] text-[#6B7394] text-right mt-1">
+                                                <div className="mt-1 text-right text-[12px] text-[#6B7394]">
                                                     {headline.length} / 90
                                                 </div>
-                                                <InputError message={errors.headline} />
+                                                <InputError
+                                                    message={errors.headline}
+                                                />
                                             </div>
 
                                             <div className="space-y-1.5">
-                                                <label className="text-sm font-bold text-[#22284A]">About you</label>
+                                                <label className="text-sm font-bold text-[#22284A]">
+                                                    About you
+                                                </label>
                                                 <textarea
                                                     name="bio"
                                                     value={bio}
-                                                    onChange={(e) => setBio(e.target.value.substring(0, 600))}
+                                                    onChange={(e) =>
+                                                        setBio(
+                                                            e.target.value.substring(
+                                                                0,
+                                                                600,
+                                                            ),
+                                                        )
+                                                    }
                                                     placeholder="Why do you teach speaking? What are your sessions actually like? Write how you talk — students can tell."
-                                                    className="w-full min-h-[110px] resize-y border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                    className="min-h-[110px] w-full resize-y rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                 />
-                                                <div className="text-[12px] text-[#6B7394] text-right mt-1">
+                                                <div className="mt-1 text-right text-[12px] text-[#6B7394]">
                                                     {bio.length} / 600
                                                 </div>
-                                                <InputError message={errors.bio} />
+                                                <InputError
+                                                    message={errors.bio}
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -634,58 +762,96 @@ export default function Profile({
                                     {/* 2. Contact details (private) */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight">Contact details</h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">Never shown to students. Used only for your account and verification.</p>
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                                Contact details
+                                            </h2>
+                                            <p className="text-[13.5px] text-[#6B7394]">
+                                                Never shown to students. Used
+                                                only for your account and
+                                                verification.
+                                            </p>
                                         </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 space-y-4">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-4 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A] flex items-center gap-2">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[#22284A]">
                                                         Email address
-                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#6B7394] bg-[#F1F3F8] rounded-full px-2 py-0.5">
-                                                            <Lock className="w-2.5 h-2.5" /> Private
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F1F3F8] px-2 py-0.5 text-[11px] font-bold text-[#6B7394]">
+                                                            <Lock className="h-2.5 w-2.5" />{' '}
+                                                            Private
                                                         </span>
                                                     </label>
                                                     <input
                                                         type="email"
                                                         name="email"
-                                                        defaultValue={auth.user.email}
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                        defaultValue={
+                                                            auth.user.email
+                                                        }
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                         required
                                                     />
-                                                    <InputError message={errors.email} />
+                                                    <InputError
+                                                        message={errors.email}
+                                                    />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A] flex items-center gap-2">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[#22284A]">
                                                         Phone number
-                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#6B7394] bg-[#F1F3F8] rounded-full px-2 py-0.5">
-                                                            <Lock className="w-2.5 h-2.5" /> Private
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F1F3F8] px-2 py-0.5 text-[11px] font-bold text-[#6B7394]">
+                                                            <Lock className="h-2.5 w-2.5" />{' '}
+                                                            Private
                                                         </span>
                                                     </label>
                                                     <input
                                                         type="tel"
                                                         name="phone_number"
-                                                        defaultValue={auth.user.teacher_profile?.phone_number || ''}
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                        defaultValue={
+                                                            auth.user
+                                                                .teacher_profile
+                                                                ?.phone_number ||
+                                                            ''
+                                                        }
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     />
-                                                    <InputError message={errors.phone_number} />
+                                                    <InputError
+                                                        message={
+                                                            errors.phone_number
+                                                        }
+                                                    />
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1.5">
                                                     <label className="text-sm font-bold text-[#22284A]">
                                                         {t('auth.gender')}
                                                     </label>
                                                     <select
                                                         name="gender"
-                                                        defaultValue={String(auth.user.gender || 'prefer_not_to_say')}
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                        defaultValue={String(
+                                                            auth.user.gender ||
+                                                                'prefer_not_to_say',
+                                                        )}
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     >
-                                                        <option value="male">{t('auth.gender_male')}</option>
-                                                        <option value="female">{t('auth.gender_female')}</option>
-                                                        <option value="prefer_not_to_say">{t('auth.gender_prefer_not_to_say')}</option>
+                                                        <option value="male">
+                                                            {t(
+                                                                'auth.gender_male',
+                                                            )}
+                                                        </option>
+                                                        <option value="female">
+                                                            {t(
+                                                                'auth.gender_female',
+                                                            )}
+                                                        </option>
+                                                        <option value="prefer_not_to_say">
+                                                            {t(
+                                                                'auth.gender_prefer_not_to_say',
+                                                            )}
+                                                        </option>
                                                     </select>
-                                                    <InputError message={errors.gender} />
+                                                    <InputError
+                                                        message={errors.gender}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
@@ -694,41 +860,69 @@ export default function Profile({
                                     {/* 3. Credentials */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight flex items-center gap-2">
+                                            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#1E2A5A]">
                                                 Credentials
-                                                {auth.user.teacher_profile?.is_verified && (
-                                                    <span className="inline-block text-[11px] font-bold text-[#1E2A5A] bg-[#F7DE8B] rounded-full px-2.5 py-0.5">
+                                                {auth.user.teacher_profile
+                                                    ?.is_verified && (
+                                                    <span className="inline-block rounded-full bg-[#F7DE8B] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A]">
                                                         Verified by ConvoMate
                                                     </span>
                                                 )}
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">Scores and certificates we check before showing your profile to students.</p>
+                                            <p className="text-[13.5px] text-[#6B7394]">
+                                                Scores and certificates we check
+                                                before showing your profile to
+                                                students.
+                                            </p>
                                         </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 space-y-6">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-6 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">Teaching experience</label>
+                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                        Teaching experience
+                                                    </label>
                                                     <input
                                                         type="text"
                                                         name="experience_years"
                                                         placeholder="e.g. 3 years"
-                                                        defaultValue={auth.user.teacher_profile?.experience_years || ''}
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                        defaultValue={
+                                                            auth.user
+                                                                .teacher_profile
+                                                                ?.experience_years ||
+                                                            ''
+                                                        }
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     />
-                                                    <InputError message={errors.experience_years} />
+                                                    <InputError
+                                                        message={
+                                                            errors.experience_years
+                                                        }
+                                                    />
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-sm font-bold text-[#22284A]">
-                                                        Current workplace <span className="font-normal text-[#6B7394] text-[12.5px] ml-1">optional</span>
+                                                        Current workplace{' '}
+                                                        <span className="ml-1 text-[12.5px] font-normal text-[#6B7394]">
+                                                            optional
+                                                        </span>
                                                     </label>
                                                     <input
                                                         type="text"
                                                         name="workplace"
                                                         placeholder="e.g. British Council"
-                                                        defaultValue={auth.user.teacher_profile?.workplace || ''}
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                        defaultValue={
+                                                            auth.user
+                                                                .teacher_profile
+                                                                ?.workplace ||
+                                                            ''
+                                                        }
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     />
-                                                    <InputError message={errors.workplace} />
+                                                    <InputError
+                                                        message={
+                                                            errors.workplace
+                                                        }
+                                                    />
                                                 </div>
                                             </div>
 
@@ -736,15 +930,26 @@ export default function Profile({
                                             <div className="space-y-4 pt-2">
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <label className="text-base font-extrabold text-[#1E2A5A]">Language Certificates & Scores</label>
-                                                        <p className="text-xs text-[#6B7394]">Provide official band scores and upload certificate document credentials.</p>
+                                                        <label className="text-base font-extrabold text-[#1E2A5A]">
+                                                            Language
+                                                            Certificates &
+                                                            Scores
+                                                        </label>
+                                                        <p className="text-xs text-[#6B7394]">
+                                                            Provide official
+                                                            band scores and
+                                                            upload certificate
+                                                            document
+                                                            credentials.
+                                                        </p>
                                                     </div>
                                                     <button
                                                         type="button"
                                                         onClick={addCertificate}
-                                                        className="inline-flex items-center gap-1 font-bold text-xs text-[#1E2A5A] hover:bg-[#EEF4FB] border border-[#E6E9F2] rounded-xl px-3 py-1.5 bg-white cursor-pointer transition"
+                                                        className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-[#E6E9F2] bg-white px-3 py-1.5 text-xs font-bold text-[#1E2A5A] transition hover:bg-[#EEF4FB]"
                                                     >
-                                                        <Plus className="w-3.5 h-3.5" /> Add Certificate
+                                                        <Plus className="h-3.5 w-3.5" />{' '}
+                                                        Add Certificate
                                                     </button>
                                                 </div>
 
@@ -752,71 +957,142 @@ export default function Profile({
                                                     {certs.map((c, index) => (
                                                         <div
                                                             key={c.id || index}
-                                                            className="border border-[#E6E9F2] rounded-2xl p-4 bg-white space-y-3.5 shadow-sm"
+                                                            className="space-y-3.5 rounded-2xl border border-[#E6E9F2] bg-white p-4 shadow-sm"
                                                         >
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="text-xs font-bold text-[#1E2A5A] bg-[#EEF4FB] px-2.5 py-1 rounded-lg">
-                                                                        Certificate #{index + 1}
+                                                                    <span className="rounded-lg bg-[#EEF4FB] px-2.5 py-1 text-xs font-bold text-[#1E2A5A]">
+                                                                        Certificate
+                                                                        #
+                                                                        {index +
+                                                                            1}
                                                                     </span>
-                                                                    {c.status === 'verified' ? (
-                                                                        <span className="text-[11px] font-bold bg-[#F7DE8B] text-[#1E2A5A] rounded-full px-2.5 py-0.5">
-                                                                            ✓ Verified
+                                                                    {c.status ===
+                                                                    'verified' ? (
+                                                                        <span className="rounded-full bg-[#F7DE8B] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A]">
+                                                                            ✓
+                                                                            Verified
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="text-[11px] font-bold bg-[#F1F3F8] text-[#6B7394] rounded-full px-2.5 py-0.5">
-                                                                            Under review
+                                                                        <span className="rounded-full bg-[#F1F3F8] px-2.5 py-0.5 text-[11px] font-bold text-[#6B7394]">
+                                                                            Under
+                                                                            review
                                                                         </span>
                                                                     )}
                                                                 </div>
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => removeCertificate(index)}
-                                                                    className="p-1 text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition"
+                                                                    onClick={() =>
+                                                                        removeCertificate(
+                                                                            index,
+                                                                        )
+                                                                    }
+                                                                    className="flex cursor-pointer items-center gap-1 p-1 text-xs font-bold text-red-500 transition hover:text-red-700"
                                                                 >
-                                                                    <Trash2 className="w-3.5 h-3.5" /> Delete Certificate
+                                                                    <Trash2 className="h-3.5 w-3.5" />{' '}
+                                                                    Delete
+                                                                    Certificate
                                                                 </button>
                                                             </div>
 
                                                             <div className="space-y-3">
                                                                 <div>
-                                                                    <label className="text-xs font-bold text-[#22284A]">Certificate Type</label>
+                                                                    <label className="text-xs font-bold text-[#22284A]">
+                                                                        Certificate
+                                                                        Type
+                                                                    </label>
                                                                     <select
                                                                         name={`certificates[${index}][type]`}
-                                                                        disabled={Boolean(c.isExisting)}
-                                                                        value={c.type || 'ielts'}
-                                                                        onChange={(e) => updateCertField(index, 'type', e.target.value)}
+                                                                        disabled={Boolean(
+                                                                            c.isExisting,
+                                                                        )}
+                                                                        value={
+                                                                            c.type ||
+                                                                            'ielts'
+                                                                        }
+                                                                        onChange={(
+                                                                            e,
+                                                                        ) =>
+                                                                            updateCertField(
+                                                                                index,
+                                                                                'type',
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                            )
+                                                                        }
                                                                         className={`mt-1 block w-full rounded-xl border border-[#E6E9F2] px-3 py-2 text-xs font-bold text-[#22284A] ${
-                                                                            c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A] focus:outline-none'
+                                                                            c.isExisting
+                                                                                ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                : 'bg-white focus:border-[#1E2A5A] focus:outline-none'
                                                                         }`}
                                                                     >
-                                                                        <option value="other">Other Certificate</option>
-                                                                        <option value="ielts">IELTS (Academic / General)</option>
-                                                                        <option value="cefr">CEFR / Multilevel</option>
-                                                                        <option value="toefl">TOEFL</option>
+                                                                        <option value="other">
+                                                                            Other
+                                                                            Certificate
+                                                                        </option>
+                                                                        <option value="ielts">
+                                                                            IELTS
+                                                                            (Academic
+                                                                            /
+                                                                            General)
+                                                                        </option>
+                                                                        <option value="cefr">
+                                                                            CEFR
+                                                                            /
+                                                                            Multilevel
+                                                                        </option>
+                                                                        <option value="toefl">
+                                                                            TOEFL
+                                                                        </option>
                                                                     </select>
                                                                     {c.isExisting && (
-                                                                        <input type="hidden" name={`certificates[${index}][type]`} value={c.type || 'ielts'} />
+                                                                        <input
+                                                                            type="hidden"
+                                                                            name={`certificates[${index}][type]`}
+                                                                            value={
+                                                                                c.type ||
+                                                                                'ielts'
+                                                                            }
+                                                                        />
                                                                     )}
                                                                 </div>
 
-                                                                {c.type === 'other' && (
+                                                                {c.type ===
+                                                                    'other' && (
                                                                     <div>
                                                                         <input
                                                                             type="text"
                                                                             name={`certificates[${index}][custom_type_name]`}
-                                                                            readOnly={Boolean(c.isExisting)}
-                                                                            value={c.custom_type_name || ''}
-                                                                            onChange={(e) => updateCertField(index, 'custom_type_name', e.target.value)}
+                                                                            readOnly={Boolean(
+                                                                                c.isExisting,
+                                                                            )}
+                                                                            value={
+                                                                                c.custom_type_name ||
+                                                                                ''
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                updateCertField(
+                                                                                    index,
+                                                                                    'custom_type_name',
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
                                                                             placeholder="Enter certificate name (e.g. Duolingo, Cambridge C1, PTE)"
-                                                                            className={`w-full border border-[#E6E9F2] rounded-xl px-3 py-2 text-xs font-medium text-[#22284A] ${
-                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:outline-none focus:border-[#1E2A5A]'
+                                                                            className={`w-full rounded-xl border border-[#E6E9F2] px-3 py-2 text-xs font-medium text-[#22284A] ${
+                                                                                c.isExisting
+                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                    : 'bg-white focus:border-[#1E2A5A] focus:outline-none'
                                                                             }`}
                                                                         />
                                                                     </div>
                                                                 )}
 
-                                                                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                                                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                                                                     <div>
                                                                         <label className="text-[11px] font-bold text-[#6B7394]">
                                                                             Overall
@@ -824,12 +1100,29 @@ export default function Profile({
                                                                         <input
                                                                             type="text"
                                                                             name={`certificates[${index}][overall]`}
-                                                                            readOnly={Boolean(c.isExisting)}
-                                                                            value={c.overall || ''}
-                                                                            onChange={(e) => updateCertField(index, 'overall', e.target.value)}
+                                                                            readOnly={Boolean(
+                                                                                c.isExisting,
+                                                                            )}
+                                                                            value={
+                                                                                c.overall ||
+                                                                                ''
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                updateCertField(
+                                                                                    index,
+                                                                                    'overall',
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
                                                                             placeholder="e.g. 7.5"
-                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] font-bold ${
-                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs font-bold text-[#22284A] ${
+                                                                                c.isExisting
+                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                    : 'bg-white focus:border-[#1E2A5A]'
                                                                             }`}
                                                                         />
                                                                     </div>
@@ -840,12 +1133,29 @@ export default function Profile({
                                                                         <input
                                                                             type="text"
                                                                             name={`certificates[${index}][listening]`}
-                                                                            readOnly={Boolean(c.isExisting)}
-                                                                            value={c.listening || ''}
-                                                                            onChange={(e) => updateCertField(index, 'listening', e.target.value)}
+                                                                            readOnly={Boolean(
+                                                                                c.isExisting,
+                                                                            )}
+                                                                            value={
+                                                                                c.listening ||
+                                                                                ''
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                updateCertField(
+                                                                                    index,
+                                                                                    'listening',
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
                                                                             placeholder="e.g. 8.0"
-                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting
+                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                    : 'bg-white focus:border-[#1E2A5A]'
                                                                             }`}
                                                                         />
                                                                     </div>
@@ -856,12 +1166,29 @@ export default function Profile({
                                                                         <input
                                                                             type="text"
                                                                             name={`certificates[${index}][reading]`}
-                                                                            readOnly={Boolean(c.isExisting)}
-                                                                            value={c.reading || ''}
-                                                                            onChange={(e) => updateCertField(index, 'reading', e.target.value)}
+                                                                            readOnly={Boolean(
+                                                                                c.isExisting,
+                                                                            )}
+                                                                            value={
+                                                                                c.reading ||
+                                                                                ''
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                updateCertField(
+                                                                                    index,
+                                                                                    'reading',
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
                                                                             placeholder="e.g. 7.0"
-                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting
+                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                    : 'bg-white focus:border-[#1E2A5A]'
                                                                             }`}
                                                                         />
                                                                     </div>
@@ -872,12 +1199,29 @@ export default function Profile({
                                                                         <input
                                                                             type="text"
                                                                             name={`certificates[${index}][writing]`}
-                                                                            readOnly={Boolean(c.isExisting)}
-                                                                            value={c.writing || ''}
-                                                                            onChange={(e) => updateCertField(index, 'writing', e.target.value)}
+                                                                            readOnly={Boolean(
+                                                                                c.isExisting,
+                                                                            )}
+                                                                            value={
+                                                                                c.writing ||
+                                                                                ''
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                updateCertField(
+                                                                                    index,
+                                                                                    'writing',
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
                                                                             placeholder="e.g. 6.5"
-                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting
+                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                    : 'bg-white focus:border-[#1E2A5A]'
                                                                             }`}
                                                                         />
                                                                     </div>
@@ -888,64 +1232,159 @@ export default function Profile({
                                                                         <input
                                                                             type="text"
                                                                             name={`certificates[${index}][speaking]`}
-                                                                            readOnly={Boolean(c.isExisting)}
-                                                                            value={c.speaking || ''}
-                                                                            onChange={(e) => updateCertField(index, 'speaking', e.target.value)}
+                                                                            readOnly={Boolean(
+                                                                                c.isExisting,
+                                                                            )}
+                                                                            value={
+                                                                                c.speaking ||
+                                                                                ''
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                updateCertField(
+                                                                                    index,
+                                                                                    'speaking',
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
                                                                             placeholder="e.g. 8.5"
-                                                                            className={`mt-1 w-full border border-[#E6E9F2] rounded-lg px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting ? 'bg-[#F4F6FB] cursor-not-allowed' : 'bg-white focus:border-[#1E2A5A]'
+                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                c.isExisting
+                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                    : 'bg-white focus:border-[#1E2A5A]'
                                                                             }`}
                                                                         />
                                                                     </div>
                                                                 </div>
 
                                                                 {c.isExisting ? (
-                                                                    <p className="text-[11px] text-[#6B7394] italic flex items-center gap-1">
-                                                                        🔒 Verified registration scores are locked. New certificates added below can be assigned band scores.
+                                                                    <p className="flex items-center gap-1 text-[11px] text-[#6B7394] italic">
+                                                                        🔒
+                                                                        Verified
+                                                                        registration
+                                                                        scores
+                                                                        are
+                                                                        locked.
+                                                                        New
+                                                                        certificates
+                                                                        added
+                                                                        below
+                                                                        can be
+                                                                        assigned
+                                                                        band
+                                                                        scores.
                                                                     </p>
                                                                 ) : (
-                                                                    <p className="text-[11px] text-[#1D9E75] font-semibold flex items-center gap-1">
-                                                                        ✎ Enter official band scores for this new certificate before saving.
+                                                                    <p className="flex items-center gap-1 text-[11px] font-semibold text-[#1D9E75]">
+                                                                        ✎ Enter
+                                                                        official
+                                                                        band
+                                                                        scores
+                                                                        for this
+                                                                        new
+                                                                        certificate
+                                                                        before
+                                                                        saving.
                                                                     </p>
                                                                 )}
 
                                                                 <div>
-                                                                    <label className="text-[11px] font-bold text-[#6B7394] block mb-1.5">Certificate Document Credential</label>
-                                                                    <div className="flex items-center gap-3 flex-wrap">
-                                                                        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#EEF4FB] hover:bg-[#E2ECF8] border border-[#D5E2F2] text-xs font-bold text-[#1E2A5A] cursor-pointer shadow-sm transition">
-                                                                            <Upload className="w-4 h-4 text-[#1E2A5A]" />
-                                                                            <span>Upload Certificate Document (PDF or Image)</span>
+                                                                    <label className="mb-1.5 block text-[11px] font-bold text-[#6B7394]">
+                                                                        Certificate
+                                                                        Document
+                                                                        Credential
+                                                                    </label>
+                                                                    <div className="flex flex-wrap items-center gap-3">
+                                                                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#D5E2F2] bg-[#EEF4FB] px-4 py-2.5 text-xs font-bold text-[#1E2A5A] shadow-sm transition hover:bg-[#E2ECF8]">
+                                                                            <Upload className="h-4 w-4 text-[#1E2A5A]" />
+                                                                            <span>
+                                                                                Upload
+                                                                                Certificate
+                                                                                Document
+                                                                                (PDF
+                                                                                or
+                                                                                Image)
+                                                                            </span>
                                                                             <input
                                                                                 type="file"
                                                                                 name={`certificate_files[${index}]`}
                                                                                 accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
-                                                                                onChange={(e) => handleCertFileSelect(index, e)}
+                                                                                onChange={(
+                                                                                    e,
+                                                                                ) =>
+                                                                                    handleCertFileSelect(
+                                                                                        index,
+                                                                                        e,
+                                                                                    )
+                                                                                }
                                                                                 className="hidden"
                                                                             />
                                                                         </label>
                                                                         {c.file_name ? (
-                                                                            <span className="text-xs font-semibold text-[#1D9E75] bg-[#E8F8F3] border border-[#B3E8D7] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-                                                                                ✓ File Attached: {c.file_name}
+                                                                            <span className="flex items-center gap-1.5 rounded-lg border border-[#B3E8D7] bg-[#E8F8F3] px-3 py-1.5 text-xs font-semibold text-[#1D9E75]">
+                                                                                ✓
+                                                                                File
+                                                                                Attached:{' '}
+                                                                                {
+                                                                                    c.file_name
+                                                                                }
                                                                             </span>
                                                                         ) : (
                                                                             <span className="text-xs text-[#6B7394] italic">
-                                                                                No file attached yet
+                                                                                No
+                                                                                file
+                                                                                attached
+                                                                                yet
                                                                             </span>
                                                                         )}
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            <input type="hidden" name={`certificates[${index}][title]`} value={c.title || c.custom_type_name || c.type} />
-                                                            <input type="hidden" name={`certificates[${index}][file_url]`} value={c.file_url || ''} />
-                                                            <input type="hidden" name={`certificates[${index}][file_name]`} value={c.file_name || ''} />
-                                                            <input type="hidden" name={`certificates[${index}][status]`} value={c.status || 'pending'} />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][title]`}
+                                                                value={
+                                                                    c.title ||
+                                                                    c.custom_type_name ||
+                                                                    c.type
+                                                                }
+                                                            />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][file_url]`}
+                                                                value={
+                                                                    c.file_url ||
+                                                                    ''
+                                                                }
+                                                            />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][file_name]`}
+                                                                value={
+                                                                    c.file_name ||
+                                                                    ''
+                                                                }
+                                                            />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][status]`}
+                                                                value={
+                                                                    c.status ||
+                                                                    'pending'
+                                                                }
+                                                            />
                                                         </div>
                                                     ))}
                                                 </div>
 
-                                                <div className="text-[12.5px] text-[#6B7394] bg-[#EEF4FB] rounded-xl p-3.5 select-none">
-                                                    Each certificate is reviewed by platform admins within <b>2 business days</b>.
+                                                <div className="rounded-xl bg-[#EEF4FB] p-3.5 text-[12.5px] text-[#6B7394] select-none">
+                                                    Each certificate is reviewed
+                                                    by platform admins within{' '}
+                                                    <b>2 business days</b>.
                                                 </div>
                                             </div>
                                         </div>
@@ -954,23 +1393,34 @@ export default function Profile({
                                     {/* 4. Intro video */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight flex items-center gap-2">
+                                            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#1E2A5A]">
                                                 Intro video
-                                                <span className="inline-block text-[11px] font-bold text-[#1E2A5A] bg-[#F7DE8B] rounded-full px-2.5 py-0.5">Required</span>
+                                                <span className="inline-block rounded-full bg-[#F7DE8B] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A]">
+                                                    Required
+                                                </span>
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">The first thing students play. Unscripted, 30–90 seconds, just you saying hello.</p>
+                                            <p className="text-[13.5px] text-[#6B7394]">
+                                                The first thing students play.
+                                                Unscripted, 30–90 seconds, just
+                                                you saying hello.
+                                            </p>
                                         </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6 space-y-4">
+                                        <div className="space-y-4 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
                                             <label
                                                 htmlFor="video-file"
-                                                className="block border border-[#A9C6E8] border-dashed rounded-2xl bg-[#EEF4FB] p-7 text-center cursor-pointer hover:bg-[#E3EDF9] transition"
+                                                className="block cursor-pointer rounded-2xl border border-dashed border-[#A9C6E8] bg-[#EEF4FB] p-7 text-center transition hover:bg-[#E3EDF9]"
                                             >
-                                                <div className="w-[52px] h-[52px] rounded-full bg-[#F7DE8B] mx-auto mb-3 flex items-center justify-center text-[#1E2A5A]">
-                                                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                                                <div className="mx-auto mb-3 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#F7DE8B] text-[#1E2A5A]">
+                                                    <Play className="ml-0.5 h-5 w-5 fill-current" />
                                                 </div>
-                                                <b className="text-base text-[#1E2A5A] block">Upload or record your intro</b>
-                                                <span className="text-[13px] text-[#6B7394] block mt-1 max-w-[44ch] mx-auto">
-                                                    MP4 or WebM, up to 100 MB. Phone camera is perfect — students trust real over polished.
+                                                <b className="block text-base text-[#1E2A5A]">
+                                                    Upload or record your intro
+                                                </b>
+                                                <span className="mx-auto mt-1 block max-w-[44ch] text-[13px] text-[#6B7394]">
+                                                    MP4 or WebM, up to 100 MB.
+                                                    Phone camera is perfect —
+                                                    students trust real over
+                                                    polished.
                                                 </span>
                                             </label>
                                             <input
@@ -983,42 +1433,81 @@ export default function Profile({
                                             />
                                             {videoFileName && (
                                                 <div className="text-xs font-bold text-[#1E2A5A]">
-                                                    Selected file: {videoFileName}
+                                                    Selected file:{' '}
+                                                    {videoFileName}
                                                 </div>
                                             )}
                                             {videoPreview && (
-                                                <div className="relative aspect-video rounded-xl overflow-hidden border border-[#E6E9F2] bg-neutral-900 mt-2 max-w-sm">
-                                                    <video src={videoPreview} controls className="w-full h-full object-cover" />
+                                                <div className="relative mt-2 aspect-video max-w-sm overflow-hidden rounded-xl border border-[#E6E9F2] bg-neutral-900">
+                                                    <video
+                                                        src={videoPreview}
+                                                        controls
+                                                        className="h-full w-full object-cover"
+                                                    />
                                                 </div>
                                             )}
                                             <div className="text-[13px] text-[#6B7394]">
-                                                <b>What works:</b> say your name, why you teach, and what a session with you feels like. <b>Skip:</b> reading a script, listing certificates — they're already on your profile.
+                                                <b>What works:</b> say your
+                                                name, why you teach, and what a
+                                                session with you feels like.{' '}
+                                                <b>Skip:</b> reading a script,
+                                                listing certificates — they're
+                                                already on your profile.
                                             </div>
-                                            <InputError message={errors.intro_video} />
+                                            <InputError
+                                                message={errors.intro_video}
+                                            />
                                         </div>
                                     </div>
 
                                     {/* 5. Teaching focus */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight">What you offer</h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">Shown as tags on your profile. Pick only what you genuinely run sessions for.</p>
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                                What you offer
+                                            </h2>
+                                            <p className="text-[13.5px] text-[#6B7394]">
+                                                Shown as tags on your profile.
+                                                Pick only what you genuinely run
+                                                sessions for.
+                                            </p>
                                         </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                                                 {[
-                                                    { label: 'Freestyle conversation', val: 'freestyle' },
-                                                    { label: 'Practice Q&A', val: 'practice q&a' },
-                                                    { label: 'IELTS Speaking mock', val: 'mock' },
-                                                    { label: 'Job interview prep', val: 'job interview prep' },
-                                                    { label: 'Structured lessons', val: 'lessons' },
-                                                    { label: 'Business English', val: 'business english' },
+                                                    {
+                                                        label: 'Freestyle conversation',
+                                                        val: 'freestyle',
+                                                    },
+                                                    {
+                                                        label: 'Practice Q&A',
+                                                        val: 'practice q&a',
+                                                    },
+                                                    {
+                                                        label: 'IELTS Speaking mock',
+                                                        val: 'mock',
+                                                    },
+                                                    {
+                                                        label: 'Job interview prep',
+                                                        val: 'job interview prep',
+                                                    },
+                                                    {
+                                                        label: 'Structured lessons',
+                                                        val: 'lessons',
+                                                    },
+                                                    {
+                                                        label: 'Business English',
+                                                        val: 'business english',
+                                                    },
                                                 ].map((tag) => {
-                                                    const isChecked = labels.includes(tag.val);
+                                                    const isChecked =
+                                                        labels.includes(
+                                                            tag.val,
+                                                        );
                                                     return (
                                                         <label
                                                             key={tag.val}
-                                                            className={`flex items-center gap-3 border rounded-2xl p-4 cursor-pointer select-none transition-all ${
+                                                            className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all select-none ${
                                                                 isChecked
                                                                     ? 'border-[#1E2A5A] bg-[#EEF4FB]'
                                                                     : 'border-[#E6E9F2] bg-white hover:border-[#A9C6E8]'
@@ -1028,96 +1517,173 @@ export default function Profile({
                                                                 type="checkbox"
                                                                 name="labels[]"
                                                                 value={tag.val}
-                                                                checked={isChecked}
-                                                                onChange={() => toggleLabel(tag.val)}
+                                                                checked={
+                                                                    isChecked
+                                                                }
+                                                                onChange={() =>
+                                                                    toggleLabel(
+                                                                        tag.val,
+                                                                    )
+                                                                }
                                                                 className="hidden"
                                                             />
                                                             <div
-                                                                className={`w-[22px] h-[22px] rounded-md border flex items-center justify-center transition-all ${
+                                                                className={`flex h-[22px] w-[22px] items-center justify-center rounded-md border transition-all ${
                                                                     isChecked
-                                                                        ? 'bg-[#1E2A5A] border-[#1E2A5A]'
+                                                                        ? 'border-[#1E2A5A] bg-[#1E2A5A]'
                                                                         : 'border-[#C9CFDE] bg-white'
                                                                 }`}
                                                             >
                                                                 <svg
                                                                     viewBox="0 0 16 16"
                                                                     fill="none"
-                                                                    className={`w-3 h-3 stroke-white stroke-[3px] transition-opacity ${
-                                                                        isChecked ? 'opacity-100' : 'opacity-0'
+                                                                    className={`h-3 w-3 stroke-white stroke-[3px] transition-opacity ${
+                                                                        isChecked
+                                                                            ? 'opacity-100'
+                                                                            : 'opacity-0'
                                                                     }`}
                                                                 >
-                                                                    <path d="M3 8.5 L6.5 12 L13 4.5" strokeLinecap="round" />
+                                                                    <path
+                                                                        d="M3 8.5 L6.5 12 L13 4.5"
+                                                                        strokeLinecap="round"
+                                                                    />
                                                                 </svg>
                                                             </div>
-                                                            <span className="text-[14.5px] font-bold text-[#22284A]">{tag.label}</span>
+                                                            <span className="text-[14.5px] font-bold text-[#22284A]">
+                                                                {tag.label}
+                                                            </span>
                                                         </label>
                                                     );
                                                 })}
                                             </div>
-                                            <InputError message={errors.labels} className="mt-2" />
+                                            <InputError
+                                                message={errors.labels}
+                                                className="mt-2"
+                                            />
                                         </div>
                                     </div>
 
                                     {/* 6. Price */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold text-[#1E2A5A] tracking-tight">Your rate</h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">Per 30-minute session. You can change it anytime — existing bookings keep their price.</p>
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                                Your rate
+                                            </h2>
+                                            <p className="text-[13.5px] text-[#6B7394]">
+                                                Per 30-minute session. You can
+                                                change it anytime — existing
+                                                bookings keep their price.
+                                            </p>
                                         </div>
-                                        <div className="bg-white border border-[#E6E9F2] rounded-[22px] p-6">
+                                        <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6">
                                             <div className="space-y-1.5">
-                                                <label className="text-sm font-bold text-[#22284A]">Price per session <span className="text-xs font-normal text-[#6B7394] ml-1">(optional)</span></label>
+                                                <label className="text-sm font-bold text-[#22284A]">
+                                                    Price per session{' '}
+                                                    <span className="ml-1 text-xs font-normal text-[#6B7394]">
+                                                        (optional)
+                                                    </span>
+                                                </label>
                                                 <div className="relative">
                                                     <input
                                                         type="text"
                                                         value={price}
-                                                        onChange={(e) => setPrice(formatPrice(e.target.value))}
+                                                        onChange={(e) =>
+                                                            setPrice(
+                                                                formatPrice(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
                                                         inputMode="numeric"
                                                         placeholder="45 000"
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] pl-4 pr-28 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 transition-all"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white py-3.5 pr-28 pl-4 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     />
-                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13.5px] text-[#6B7394] font-bold pointer-events-none">
+                                                    <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[13.5px] font-bold text-[#6B7394]">
                                                         so'm / 30 min
                                                     </span>
-                                                    <input type="hidden" name="price" value={price.replace(/\s/g, '')} />
+                                                    <input
+                                                        type="hidden"
+                                                        name="price"
+                                                        value={price.replace(
+                                                            /\s/g,
+                                                            '',
+                                                        )}
+                                                    />
                                                 </div>
-                                                <div className="text-[12.5px] text-[#6B7394] mt-2 select-none">
-                                                    Most teachers with your scores charge <b>40 000 – 60 000 so'm</b>. New teachers often start lower to collect first reviews.
+                                                <div className="mt-2 text-[12.5px] text-[#6B7394] select-none">
+                                                    Most teachers with your
+                                                    scores charge{' '}
+                                                    <b>40 000 – 60 000 so'm</b>.
+                                                    New teachers often start
+                                                    lower to collect first
+                                                    reviews.
                                                 </div>
-                                                <InputError message={errors.price} />
+                                                <InputError
+                                                    message={errors.price}
+                                                />
                                             </div>
                                         </div>
                                     </div>
-
-
                                 </>
                             ) : (
                                 // Redesigned Pupil View Layout
                                 <>
                                     {/* Eyebrow & Hero Header */}
                                     <div className="hero shadow-md">
-                                        <svg className="naqsh" viewBox="0 0 80 80" fill="none" stroke="#A9C6E8" strokeWidth="1.1">
-                                            <path d="M40 6 L52 28 L74 40 L52 52 L40 74 L28 52 L6 40 L28 28 Z"/>
-                                            <path d="M40 20 L47 33 L60 40 L47 47 L40 60 L33 47 L20 40 L33 33 Z"/>
-                                            <circle cx="40" cy="40" r="5"/>
+                                        <svg
+                                            className="naqsh"
+                                            viewBox="0 0 80 80"
+                                            fill="none"
+                                            stroke="#A9C6E8"
+                                            strokeWidth="1.1"
+                                        >
+                                            <path d="M40 6 L52 28 L74 40 L52 52 L40 74 L28 52 L6 40 L28 28 Z" />
+                                            <path d="M40 20 L47 33 L60 40 L47 47 L40 60 L33 47 L20 40 L33 33 Z" />
+                                            <circle cx="40" cy="40" r="5" />
                                         </svg>
-                                        <div className="eyebrow">Pupil settings</div>
+                                        <div className="eyebrow">
+                                            Pupil settings
+                                        </div>
                                         <h1>Your profile</h1>
-                                        <p>Customize how teachers and conversation partners see you during matching.</p>
+                                        <p>
+                                            Customize how teachers and
+                                            conversation partners see you during
+                                            matching.
+                                        </p>
                                     </div>
 
                                     {/* Tabs */}
                                     <div className="tabs">
-                                        <Link href="/settings/profile" className="tab active">Profile</Link>
-                                        <Link href="/settings/security" className="tab">Security</Link>
-                                        <Link href="/settings/appearance" className="tab">Appearance</Link>
+                                        <Link
+                                            href="/settings/profile"
+                                            className="tab active"
+                                        >
+                                            Profile
+                                        </Link>
+                                        <Link
+                                            href="/settings/security"
+                                            className="tab"
+                                        >
+                                            Security
+                                        </Link>
+                                        <Link
+                                            href="/settings/appearance"
+                                            className="tab"
+                                        >
+                                            Appearance
+                                        </Link>
                                     </div>
 
                                     {/* 1. Basics */}
                                     <div className="sec">
                                         <div className="sec-head">
                                             <h2>The basics</h2>
-                                            <p>Your name, photo, and one line about your conversation style or goal.</p>
+                                            <p>
+                                                Your name, photo, and one line
+                                                about your conversation style or
+                                                goal.
+                                            </p>
                                         </div>
                                         <div className="card shadow-sm">
                                             <div className="field">
@@ -1127,16 +1693,25 @@ export default function Profile({
                                                         <img
                                                             src={avatarPreview}
                                                             alt="Avatar"
-                                                            className="w-[92px] h-[92px] rounded-[24px] object-cover flex-shrink-0 border border-[#E6E9F2]"
+                                                            className="h-[92px] w-[92px] flex-shrink-0 rounded-[24px] border border-[#E6E9F2] object-cover"
                                                         />
                                                     ) : (
                                                         <div className="photo-preview">
-                                                            {getInitials(auth.user.name || auth.user.full_name || '')}
+                                                            {getInitials(
+                                                                auth.user
+                                                                    .name ||
+                                                                    auth.user
+                                                                        .full_name ||
+                                                                    '',
+                                                            )}
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <label className="upload-btn" htmlFor="photo-file">
-                                                            <Upload className="w-3.5 h-3.5" />
+                                                        <label
+                                                            className="upload-btn"
+                                                            htmlFor="photo-file"
+                                                        >
+                                                            <Upload className="h-3.5 w-3.5" />
                                                             Upload photo
                                                         </label>
                                                         <input
@@ -1145,37 +1720,76 @@ export default function Profile({
                                                             id="photo-file"
                                                             accept="image/*"
                                                             hidden
-                                                            onChange={handleAvatarSelect}
+                                                            onChange={
+                                                                handleAvatarSelect
+                                                            }
                                                         />
                                                         <div className="photo-note">
-                                                            Use a clear picture of yourself, or choose from our default presets.
+                                                            Use a clear picture
+                                                            of yourself, or
+                                                            choose from our
+                                                            default presets.
                                                         </div>
-                                                        <InputError message={errors.avatar} className="mt-1" />
+                                                        <InputError
+                                                            message={
+                                                                errors.avatar
+                                                            }
+                                                            className="mt-1"
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="field">
-                                                <label>Display name <span className="hint">How teachers and partners address you</span></label>
+                                                <label>
+                                                    Display name{' '}
+                                                    <span className="hint">
+                                                        How teachers and
+                                                        partners address you
+                                                    </span>
+                                                </label>
                                                 <input
                                                     type="text"
                                                     name="name"
-                                                    defaultValue={auth.user.name || auth.user.full_name || ''}
+                                                    defaultValue={
+                                                        auth.user.name ||
+                                                        auth.user.full_name ||
+                                                        ''
+                                                    }
                                                     required
                                                 />
-                                                <InputError message={errors.name} className="mt-1" />
+                                                <InputError
+                                                    message={errors.name}
+                                                    className="mt-1"
+                                                />
                                             </div>
                                             <div className="field">
-                                                <label>Headline <span className="hint">A brief description about your learning objective</span></label>
+                                                <label>
+                                                    Headline{' '}
+                                                    <span className="hint">
+                                                        A brief description
+                                                        about your learning
+                                                        objective
+                                                    </span>
+                                                </label>
                                                 <input
                                                     type="text"
                                                     name="headline"
                                                     placeholder="e.g. Intermediate speaker trying to conquer English-speaking anxiety."
                                                     maxLength={90}
                                                     value={pupilHeadline}
-                                                    onChange={(e) => setPupilHeadline(e.target.value)}
+                                                    onChange={(e) =>
+                                                        setPupilHeadline(
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                 />
-                                                <div className="char-count">{pupilHeadline.length} / 90</div>
-                                                <InputError message={errors.headline} className="mt-1" />
+                                                <div className="char-count">
+                                                    {pupilHeadline.length} / 90
+                                                </div>
+                                                <InputError
+                                                    message={errors.headline}
+                                                    className="mt-1"
+                                                />
                                             </div>
                                             <div className="field">
                                                 <label>About you</label>
@@ -1184,10 +1798,19 @@ export default function Profile({
                                                     placeholder="Introduce yourself. What are your main struggles in English? What hobbies do you like to talk about?"
                                                     maxLength={600}
                                                     value={pupilBio}
-                                                    onChange={(e) => setPupilBio(e.target.value)}
+                                                    onChange={(e) =>
+                                                        setPupilBio(
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                 ></textarea>
-                                                <div className="char-count">{pupilBio.length} / 600</div>
-                                                <InputError message={errors.bio} className="mt-1" />
+                                                <div className="char-count">
+                                                    {pupilBio.length} / 600
+                                                </div>
+                                                <InputError
+                                                    message={errors.bio}
+                                                    className="mt-1"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -1196,7 +1819,12 @@ export default function Profile({
                                     <div className="sec">
                                         <div className="sec-head">
                                             <h2>Contact details</h2>
-                                            <p>Never shown to other students or teachers. Used strictly for notifications and authentication.</p>
+                                            <p>
+                                                Never shown to other students or
+                                                teachers. Used strictly for
+                                                notifications and
+                                                authentication.
+                                            </p>
                                         </div>
                                         <div className="card shadow-sm">
                                             <div className="row2 mb-4">
@@ -1204,46 +1832,83 @@ export default function Profile({
                                                     <label className="flex items-center gap-2">
                                                         Email address
                                                         <span className="private-tag">
-                                                            <Lock className="w-2.5 h-2.5" /> Private
+                                                            <Lock className="h-2.5 w-2.5" />{' '}
+                                                            Private
                                                         </span>
                                                     </label>
                                                     <input
                                                         type="email"
                                                         name="email"
-                                                        defaultValue={auth.user.email}
+                                                        defaultValue={
+                                                            auth.user.email
+                                                        }
                                                         required
                                                     />
-                                                    <InputError message={errors.email} className="mt-1" />
+                                                    <InputError
+                                                        message={errors.email}
+                                                        className="mt-1"
+                                                    />
                                                 </div>
                                                 <div className="field">
                                                     <label className="flex items-center gap-2">
                                                         Phone number
                                                         <span className="private-tag">
-                                                            <Lock className="w-2.5 h-2.5" /> Private
+                                                            <Lock className="h-2.5 w-2.5" />{' '}
+                                                            Private
                                                         </span>
                                                     </label>
                                                     <input
                                                         type="tel"
                                                         name="phone_number"
-                                                        defaultValue={auth.user.pupil_profile?.phone_number || ''}
+                                                        defaultValue={
+                                                            auth.user
+                                                                .pupil_profile
+                                                                ?.phone_number ||
+                                                            ''
+                                                        }
                                                         placeholder="+998 90 123 4567"
                                                     />
-                                                    <InputError message={errors.phone_number} className="mt-1" />
+                                                    <InputError
+                                                        message={
+                                                            errors.phone_number
+                                                        }
+                                                        className="mt-1"
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="row2">
                                                 <div className="field">
-                                                    <label>{t('auth.gender')}</label>
+                                                    <label>
+                                                        {t('auth.gender')}
+                                                    </label>
                                                     <select
                                                         name="gender"
-                                                        defaultValue={String(auth.user.gender || 'prefer_not_to_say')}
-                                                        className="w-full border border-[#E6E9F2] rounded-[14px] px-4 py-3.5 text-base text-[#22284A] bg-white focus:outline-none focus:border-[#1E2A5A]"
+                                                        defaultValue={String(
+                                                            auth.user.gender ||
+                                                                'prefer_not_to_say',
+                                                        )}
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
                                                     >
-                                                        <option value="male">{t('auth.gender_male')}</option>
-                                                        <option value="female">{t('auth.gender_female')}</option>
-                                                        <option value="prefer_not_to_say">{t('auth.gender_prefer_not_to_say')}</option>
+                                                        <option value="male">
+                                                            {t(
+                                                                'auth.gender_male',
+                                                            )}
+                                                        </option>
+                                                        <option value="female">
+                                                            {t(
+                                                                'auth.gender_female',
+                                                            )}
+                                                        </option>
+                                                        <option value="prefer_not_to_say">
+                                                            {t(
+                                                                'auth.gender_prefer_not_to_say',
+                                                            )}
+                                                        </option>
                                                     </select>
-                                                    <InputError message={errors.gender} className="mt-1" />
+                                                    <InputError
+                                                        message={errors.gender}
+                                                        className="mt-1"
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
@@ -1253,104 +1918,205 @@ export default function Profile({
                                     <div className="sec">
                                         <div className="sec-head">
                                             <h2>
-                                                IELTS Target Metrics <span className="req">ConvoMate Path</span>
+                                                IELTS Target Metrics{' '}
+                                                <span className="req">
+                                                    ConvoMate Path
+                                                </span>
                                             </h2>
-                                            <p>Your previous target metrics and certificates checked to optimize matches.</p>
+                                            <p>
+                                                Your previous target metrics and
+                                                certificates checked to optimize
+                                                matches.
+                                            </p>
                                         </div>
                                         <div className="card shadow-sm">
                                             <div className="row2 mb-6">
                                                 <div className="field">
-                                                    <label>Target IELTS overall band</label>
+                                                    <label>
+                                                        Target IELTS overall
+                                                        band
+                                                    </label>
                                                     <input
                                                         type="text"
                                                         name="target_overall_band"
-                                                        value={targetOverallBand}
-                                                        onChange={(e) => setTargetOverallBand(e.target.value)}
+                                                        value={
+                                                            targetOverallBand
+                                                        }
+                                                        onChange={(e) =>
+                                                            setTargetOverallBand(
+                                                                e.target.value,
+                                                            )
+                                                        }
                                                         inputMode="decimal"
                                                         placeholder="e.g. 7.5"
                                                     />
-                                                    <InputError message={errors.target_overall_band} className="mt-1" />
+                                                    <InputError
+                                                        message={
+                                                            errors.target_overall_band
+                                                        }
+                                                        className="mt-1"
+                                                    />
                                                 </div>
                                                 <div className="field">
-                                                    <label>Target Speaking band <span className="hint">Matches you with optimal peers</span></label>
+                                                    <label>
+                                                        Target Speaking band{' '}
+                                                        <span className="hint">
+                                                            Matches you with
+                                                            optimal peers
+                                                        </span>
+                                                    </label>
                                                     <input
                                                         type="text"
                                                         name="target_speaking_band"
-                                                        value={targetSpeakingBand}
-                                                        onChange={(e) => setTargetSpeakingBand(e.target.value)}
+                                                        value={
+                                                            targetSpeakingBand
+                                                        }
+                                                        onChange={(e) =>
+                                                            setTargetSpeakingBand(
+                                                                e.target.value,
+                                                            )
+                                                        }
                                                         inputMode="decimal"
                                                         placeholder="e.g. 7.0"
                                                     />
-                                                    <InputError message={errors.target_speaking_band} className="mt-1" />
+                                                    <InputError
+                                                        message={
+                                                            errors.target_speaking_band
+                                                        }
+                                                        className="mt-1"
+                                                    />
                                                 </div>
                                             </div>
 
                                             <div className="field">
-                                                <label>Diagnostic Test Results / Certificates</label>
-                                                {pupilCerts.map((c: any, index: number) => (
-                                                    <div key={c.id || index} className="cert-row shadow-sm">
-                                                        <input
-                                                            type="text"
-                                                            name={`certificates[${index}][title]`}
-                                                            value={c.title}
-                                                            onChange={(e) => updatePupilCertTitle(index, e.target.value)}
-                                                            placeholder="Certificate title..."
-                                                            className="w-full border-none p-1 font-bold text-sm bg-transparent focus:outline-none focus:ring-0 focus:border-none"
-                                                            required
-                                                        />
-                                                        {c.file_url ? (
-                                                            <a
-                                                                href={c.file_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="cert-file flex items-center gap-1.5"
-                                                            >
-                                                                📎 {c.file_name || 'View file'}
-                                                            </a>
-                                                        ) : (
-                                                            <label
-                                                                className="cert-file flex items-center gap-1.5 cursor-pointer"
-                                                                htmlFor={`pupil-file-${index}`}
-                                                            >
-                                                                <Upload className="w-3.5 h-3.5" /> Upload
-                                                            </label>
-                                                        )}
-                                                        <input
-                                                            type="file"
-                                                            id={`pupil-file-${index}`}
-                                                            name={`ielts_certificates[${index}]`}
-                                                            accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
-                                                            hidden
-                                                            onChange={(e) => handlePupilCertFileSelect(index, e)}
-                                                        />
-                                                        <input type="hidden" name={`certificates[${index}][file_url]`} value={c.file_url || ''} />
-                                                        <input type="hidden" name={`certificates[${index}][file_name]`} value={c.file_name || ''} />
-                                                        <input type="hidden" name={`certificates[${index}][status]`} value={c.status || 'pending'} />
-
-                                                        {c.status === 'verified' ? (
-                                                            <span className="cert-status verified">✓ Verified</span>
-                                                        ) : (
-                                                            <span className="cert-status pending">Under review</span>
-                                                        )}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removePupilCertificate(index)}
-                                                            className="p-2 text-red-500 hover:text-red-700 transition"
+                                                <label>
+                                                    Diagnostic Test Results /
+                                                    Certificates
+                                                </label>
+                                                {pupilCerts.map(
+                                                    (c: any, index: number) => (
+                                                        <div
+                                                            key={c.id || index}
+                                                            className="cert-row shadow-sm"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                ))}
+                                                            <input
+                                                                type="text"
+                                                                name={`certificates[${index}][title]`}
+                                                                value={c.title}
+                                                                onChange={(e) =>
+                                                                    updatePupilCertTitle(
+                                                                        index,
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                placeholder="Certificate title..."
+                                                                className="w-full border-none bg-transparent p-1 text-sm font-bold focus:border-none focus:ring-0 focus:outline-none"
+                                                                required
+                                                            />
+                                                            {c.file_url ? (
+                                                                <a
+                                                                    href={
+                                                                        c.file_url
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="cert-file flex items-center gap-1.5"
+                                                                >
+                                                                    📎{' '}
+                                                                    {c.file_name ||
+                                                                        'View file'}
+                                                                </a>
+                                                            ) : (
+                                                                <label
+                                                                    className="cert-file flex cursor-pointer items-center gap-1.5"
+                                                                    htmlFor={`pupil-file-${index}`}
+                                                                >
+                                                                    <Upload className="h-3.5 w-3.5" />{' '}
+                                                                    Upload
+                                                                </label>
+                                                            )}
+                                                            <input
+                                                                type="file"
+                                                                id={`pupil-file-${index}`}
+                                                                name={`ielts_certificates[${index}]`}
+                                                                accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
+                                                                hidden
+                                                                onChange={(e) =>
+                                                                    handlePupilCertFileSelect(
+                                                                        index,
+                                                                        e,
+                                                                    )
+                                                                }
+                                                            />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][file_url]`}
+                                                                value={
+                                                                    c.file_url ||
+                                                                    ''
+                                                                }
+                                                            />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][file_name]`}
+                                                                value={
+                                                                    c.file_name ||
+                                                                    ''
+                                                                }
+                                                            />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][status]`}
+                                                                value={
+                                                                    c.status ||
+                                                                    'pending'
+                                                                }
+                                                            />
+
+                                                            {c.status ===
+                                                            'verified' ? (
+                                                                <span className="cert-status verified">
+                                                                    ✓ Verified
+                                                                </span>
+                                                            ) : (
+                                                                <span className="cert-status pending">
+                                                                    Under review
+                                                                </span>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removePupilCertificate(
+                                                                        index,
+                                                                    )
+                                                                }
+                                                                className="p-2 text-red-500 transition hover:text-red-700"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    ),
+                                                )}
 
                                                 <button
                                                     type="button"
-                                                    onClick={addPupilCertificate}
-                                                    className="add-cert text-[#1E2A5A] hover:underline flex items-center gap-1 mt-2"
+                                                    onClick={
+                                                        addPupilCertificate
+                                                    }
+                                                    className="add-cert mt-2 flex items-center gap-1 text-[#1E2A5A] hover:underline"
                                                 >
-                                                    + Add diagnostic file / certificate
+                                                    + Add diagnostic file /
+                                                    certificate
                                                 </button>
                                                 <div className="verify-note">
-                                                    Uploading official results helps us optimize matchmaking parameters to pair you with partners of complementary fluency bands. Verified results display on your target charts.
+                                                    Uploading official results
+                                                    helps us optimize
+                                                    matchmaking parameters to
+                                                    pair you with partners of
+                                                    complementary fluency bands.
+                                                    Verified results display on
+                                                    your target charts.
                                                 </div>
                                             </div>
                                         </div>
@@ -1360,19 +2126,44 @@ export default function Profile({
                                     <div className="sec">
                                         <div className="sec-head">
                                             <h2>My conversational goals</h2>
-                                            <p>Shown as profile focus areas. Select the types of sessions you want to run.</p>
+                                            <p>
+                                                Shown as profile focus areas.
+                                                Select the types of sessions you
+                                                want to run.
+                                            </p>
                                         </div>
                                         <div className="card shadow-sm">
                                             <div className="focus-grid">
                                                 {[
-                                                    { val: 'freestyle conversation', label: 'Freestyle conversation' },
-                                                    { val: 'practice q&a', label: 'Practice Q&A' },
-                                                    { val: 'ielts speaking mock', label: 'IELTS Speaking mock' },
-                                                    { val: 'job interview prep', label: 'Job interview prep' },
-                                                    { val: 'vocabulary expansion', label: 'Vocabulary expansion' },
-                                                    { val: 'business english', label: 'Business English' },
+                                                    {
+                                                        val: 'freestyle conversation',
+                                                        label: 'Freestyle conversation',
+                                                    },
+                                                    {
+                                                        val: 'practice q&a',
+                                                        label: 'Practice Q&A',
+                                                    },
+                                                    {
+                                                        val: 'ielts speaking mock',
+                                                        label: 'IELTS Speaking mock',
+                                                    },
+                                                    {
+                                                        val: 'job interview prep',
+                                                        label: 'Job interview prep',
+                                                    },
+                                                    {
+                                                        val: 'vocabulary expansion',
+                                                        label: 'Vocabulary expansion',
+                                                    },
+                                                    {
+                                                        val: 'business english',
+                                                        label: 'Business English',
+                                                    },
                                                 ].map((tag) => {
-                                                    const isChecked = pupilLabels.includes(tag.val);
+                                                    const isChecked =
+                                                        pupilLabels.includes(
+                                                            tag.val,
+                                                        );
                                                     return (
                                                         <label
                                                             key={tag.val}
@@ -1382,20 +2173,39 @@ export default function Profile({
                                                                 type="checkbox"
                                                                 name="labels[]"
                                                                 value={tag.val}
-                                                                checked={isChecked}
-                                                                onChange={() => togglePupilLabel(tag.val)}
+                                                                checked={
+                                                                    isChecked
+                                                                }
+                                                                onChange={() =>
+                                                                    togglePupilLabel(
+                                                                        tag.val,
+                                                                    )
+                                                                }
                                                                 className="hidden"
                                                             />
-                                                            <div className={`box border transition-all ${
-                                                                isChecked ? 'bg-[#1E2A5A] border-[#1E2A5A]' : 'border-[#C9CFDE]'
-                                                            }`}>
-                                                                <svg viewBox="0 0 16 16" fill="none" strokeLinecap="round" className={`w-3 h-3 stroke-white stroke-[3px] transition-opacity ${
-                                                                    isChecked ? 'opacity-100' : 'opacity-0'
-                                                                }`}>
+                                                            <div
+                                                                className={`box border transition-all ${
+                                                                    isChecked
+                                                                        ? 'border-[#1E2A5A] bg-[#1E2A5A]'
+                                                                        : 'border-[#C9CFDE]'
+                                                                }`}
+                                                            >
+                                                                <svg
+                                                                    viewBox="0 0 16 16"
+                                                                    fill="none"
+                                                                    strokeLinecap="round"
+                                                                    className={`h-3 w-3 stroke-white stroke-[3px] transition-opacity ${
+                                                                        isChecked
+                                                                            ? 'opacity-100'
+                                                                            : 'opacity-0'
+                                                                    }`}
+                                                                >
                                                                     <path d="M3 8.5 L6.5 12 L13 4.5" />
                                                                 </svg>
                                                             </div>
-                                                            <span className="check-label">{tag.label}</span>
+                                                            <span className="check-label">
+                                                                {tag.label}
+                                                            </span>
                                                         </label>
                                                     );
                                                 })}
@@ -1406,40 +2216,49 @@ export default function Profile({
                             )}
 
                             {/* Section 3: Verification status warning & Submit action bar */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-brand-pale-blue/20 pt-8 mt-8">
+                            <div className="mt-8 grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-8 lg:grid-cols-12">
                                 <div className="lg:col-span-4">
-                                    {mustVerifyEmail && auth.user.email_verified_at === null && (
-                                        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200">
-                                            <p className="text-sm font-semibold text-amber-800">
-                                                {t('profile.email_unverified')}{' '}
-                                                <Link
-                                                    href={send()}
-                                                    as="button"
-                                                    className="underline font-bold text-amber-900 hover:text-amber-950 transition-colors"
-                                                >
-                                                    {t('profile.resend_btn')}
-                                                </Link>
-                                            </p>
-                                            {status === 'verification-link-sent' && (
-                                                <div className="mt-2 text-xs font-bold text-emerald-700">
-                                                    {t('profile.resend_sent')}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                    {mustVerifyEmail &&
+                                        auth.user.email_verified_at ===
+                                            null && (
+                                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                                                <p className="text-sm font-semibold text-amber-800">
+                                                    {t(
+                                                        'profile.email_unverified',
+                                                    )}{' '}
+                                                    <Link
+                                                        href={send()}
+                                                        as="button"
+                                                        className="font-bold text-amber-900 underline transition-colors hover:text-amber-950"
+                                                    >
+                                                        {t(
+                                                            'profile.resend_btn',
+                                                        )}
+                                                    </Link>
+                                                </p>
+                                                {status ===
+                                                    'verification-link-sent' && (
+                                                    <div className="mt-2 text-xs font-bold text-emerald-700">
+                                                        {t(
+                                                            'profile.resend_sent',
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                 </div>
-                                <div className="lg:col-span-8 flex justify-end items-center gap-4">
+                                <div className="flex items-center justify-end gap-4 lg:col-span-8">
                                     <button
                                         type="button"
                                         onClick={() => window.location.reload()}
-                                        className="px-8 py-3.5 rounded-full font-bold text-sm text-[#1E2A5A] hover:bg-neutral-100 transition-all cursor-pointer bg-transparent border-0"
+                                        className="cursor-pointer rounded-full border-0 bg-transparent px-8 py-3.5 text-sm font-bold text-[#1E2A5A] transition-all hover:bg-neutral-100"
                                     >
                                         Discard Changes
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="px-12 py-4 rounded-full font-bold text-sm bg-[#F7DE8B] text-[#1E2A5A] shadow-lg hover:shadow-xl hover:translate-y-[-2px] active:scale-95 duration-200 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none border-0"
+                                        className="cursor-pointer rounded-full border-0 bg-[#F7DE8B] px-12 py-4 text-sm font-bold text-[#1E2A5A] shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-50"
                                         data-test="update-profile-button"
                                     >
                                         {t('profile.save')}
@@ -1451,15 +2270,18 @@ export default function Profile({
                 </Form>
 
                 {/* Section 4: Delete Account */}
-                <div className="max-w-[760px] mx-auto px-4 pb-20">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-brand-pale-blue/20 pt-12">
-                        <div className="lg:col-span-4 space-y-2">
-                            <h3 className="text-xl font-extrabold text-red-600">Delete Account</h3>
+                <div className="mx-auto max-w-[760px] px-4 pb-20">
+                    <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12">
+                        <div className="space-y-2 lg:col-span-4">
+                            <h3 className="text-xl font-extrabold text-red-600">
+                                Delete Account
+                            </h3>
                             <p className="text-sm font-medium text-[#6B7394]">
-                                Permanently delete your account and all of its resources.
+                                Permanently delete your account and all of its
+                                resources.
                             </p>
                         </div>
-                        <div className="lg:col-span-8 p-8 bg-white rounded-[32px] border border-brand-pale-blue/30 shadow-ambient">
+                        <div className="shadow-ambient rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8">
                             <DeleteUser />
                         </div>
                     </div>

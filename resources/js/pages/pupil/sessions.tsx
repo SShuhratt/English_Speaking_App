@@ -84,9 +84,9 @@ export default function Sessions({ sessions }: Props) {
                 <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
-                    
+
                     <div className="relative z-10 space-y-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                        <span className="text-[10px] font-black tracking-widest text-brand-yellow uppercase">
                             SESSION HISTORY
                         </span>
                         <h1 className="text-3xl font-black tracking-tight text-white">
@@ -115,9 +115,13 @@ export default function Sessions({ sessions }: Props) {
                                 >
                                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 overflow-hidden">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
                                                 {apt.teacher?.avatar ? (
-                                                    <img src={apt.teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                    <img
+                                                        src={apt.teacher.avatar}
+                                                        className="h-full w-full object-cover"
+                                                        alt="avatar"
+                                                    />
                                                 ) : (
                                                     <User className="h-6 w-6" />
                                                 )}
@@ -125,8 +129,14 @@ export default function Sessions({ sessions }: Props) {
                                             <div>
                                                 <h4 className="text-base font-bold text-foreground">
                                                     {apt.teacher ? (
-                                                        <Link href={`/profile/${apt.teacher.id}`} className="hover:underline">
-                                                            {apt.teacher.full_name}
+                                                        <Link
+                                                            href={`/profile/${apt.teacher.id}`}
+                                                            className="hover:underline"
+                                                        >
+                                                            {
+                                                                apt.teacher
+                                                                    .full_name
+                                                            }
                                                         </Link>
                                                     ) : (
                                                         'Teacher'
@@ -220,7 +230,9 @@ export default function Sessions({ sessions }: Props) {
                                             <div className="mb-2 flex items-center gap-1.5 font-bold text-brand-navy">
                                                 <MessageSquare className="h-4 w-4 text-brand-brown" />
                                                 <span>
-                                                    {t('sessions.teacher_feedback')}
+                                                    {t(
+                                                        'sessions.teacher_feedback',
+                                                    )}
                                                 </span>
                                             </div>
                                             <p className="font-medium text-muted-foreground italic">
@@ -329,7 +341,7 @@ export default function Sessions({ sessions }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="cursor-pointer rounded-xl bg-brand-button hover:bg-brand-button-hover px-5 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all disabled:opacity-50"
+                                className="cursor-pointer rounded-xl bg-brand-button px-5 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all hover:bg-brand-button-hover disabled:opacity-50"
                             >
                                 {processing
                                     ? t('sessions.submitting')

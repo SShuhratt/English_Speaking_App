@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
@@ -33,9 +34,9 @@ class GoogleOAuthController extends Controller
             $googleUser = Socialite::driver('google')->user();
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 // Try to find existing user by email
-                $existingUser = \App\Models\User::where('email', $googleUser->getEmail())->first();
+                $existingUser = User::where('email', $googleUser->getEmail())->first();
                 if ($existingUser) {
                     $existingUser->update([
                         'google_connected' => true,
@@ -44,8 +45,9 @@ class GoogleOAuthController extends Controller
                         'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
                         'google_scopes' => $googleUser->approvedScopes ?? [],
                     ]);
-                    
+
                     Auth::login($existingUser);
+
                     return redirect()->route('dashboard')->with('success', 'Logged in with Google successfully.');
                 }
 
@@ -58,7 +60,7 @@ class GoogleOAuthController extends Controller
                         'google_token' => $googleUser->token,
                         'google_refresh_token' => $googleUser->refreshToken,
                         'google_expires_in' => $googleUser->expiresIn,
-                    ]
+                    ],
                 ]);
 
                 return redirect()->route('register')->with('info', 'Google authenticated successfully. Please complete your registration details.');
@@ -76,7 +78,8 @@ class GoogleOAuthController extends Controller
             return redirect()->route('dashboard')->with('success', 'Google account connected successfully.');
         } catch (\Exception $e) {
             $redirectRoute = Auth::check() ? 'dashboard' : 'login';
-            return redirect()->route($redirectRoute)->with('error', 'Google authentication failed: ' . $e->getMessage());
+
+            return redirect()->route($redirectRoute)->with('error', 'Google authentication failed: '.$e->getMessage());
         }
     }
 }

@@ -19,7 +19,8 @@ export default function AuthSimpleLayout({
                         >
                             <AppLogoIcon className="h-12 w-12 border-2 border-brand-navy/10 transition-transform hover:scale-105" />
                             <span className="text-xl font-black tracking-tight text-brand-navy">
-                                Convo<span className="text-brand-yellow">Mate</span>
+                                Convo
+                                <span className="text-brand-yellow">Mate</span>
                             </span>
                         </Link>
 

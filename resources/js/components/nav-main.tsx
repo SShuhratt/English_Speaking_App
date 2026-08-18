@@ -14,7 +14,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="text-slate-400 uppercase text-xs font-semibold px-2 py-1 mb-1">
+            <SidebarGroupLabel className="mb-1 px-2 py-1 text-xs font-semibold text-slate-400 uppercase">
                 Platform
             </SidebarGroupLabel>
             <SidebarMenu className="space-y-1">
@@ -28,7 +28,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                 tooltip={{ children: item.title }}
                                 className={`group/item flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition-colors ${
                                     active
-                                        ? 'bg-white/10 text-white font-medium'
+                                        ? 'bg-white/10 font-medium text-white'
                                         : 'text-slate-300 hover:bg-white/5 hover:text-white'
                                 }`}
                             >
@@ -43,17 +43,18 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                                 className={`h-4 w-4 shrink-0 transition-colors ${
                                                     active
                                                         ? 'text-blue-400'
-                                                        : 'text-slate-400 group-hover/item:text-blue-400 group-hover:text-blue-400'
+                                                        : 'text-slate-400 group-hover:text-blue-400 group-hover/item:text-blue-400'
                                                 }`}
                                             />
                                         )}
                                         <span>{item.title}</span>
                                     </div>
-                                    {item.badge !== undefined && item.badge > 0 && (
-                                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
-                                            {item.badge}
-                                        </span>
-                                    )}
+                                    {item.badge !== undefined &&
+                                        item.badge > 0 && (
+                                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                                                {item.badge}
+                                            </span>
+                                        )}
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

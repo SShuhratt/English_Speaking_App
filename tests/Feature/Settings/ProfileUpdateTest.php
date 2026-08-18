@@ -99,6 +99,72 @@ class ProfileUpdateTest extends TestCase
         $this->assertNotNull($user->fresh());
     }
 
+    public function test_user_without_password_can_delete_account_with_email_confirmation()
+    {
+        $user = User::factory()->create([
+            'email' => 'googleuser@example.com',
+            'has_password' => false,
+            'google_connected' => true,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->delete(route('profile.destroy'), [
+                'email' => 'googleuser@example.com',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('home'));
+
+        $this->assertGuest();
+        $this->assertNull($user->fresh());
+    }
+
+    public function test_user_without_password_fails_delete_with_wrong_email()
+    {
+        $user = User::factory()->create([
+            'email' => 'googleuser@example.com',
+            'has_password' => false,
+            'google_connected' => true,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->from(route('profile.edit'))
+            ->delete(route('profile.destroy'), [
+                'email' => 'wrongemail@example.com',
+            ]);
+
+        $response
+            ->assertSessionHasErrors('email')
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertNotNull($user->fresh());
+    }
+
+    public function test_user_without_password_can_delete_account_with_case_insensitive_trimmed_email()
+    {
+        $user = User::factory()->create([
+            'email' => 'googleuser@example.com',
+            'has_password' => false,
+            'google_connected' => true,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->delete(route('profile.destroy'), [
+                'email' => '  GoogleUser@Example.COM  ',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('home'));
+
+        $this->assertGuest();
+        $this->assertNull($user->fresh());
+    }
+
     public function test_teacher_profile_can_be_updated()
     {
         $user = User::factory()->create(['role' => 'teacher']);
@@ -251,7 +317,7 @@ class ProfileUpdateTest extends TestCase
 
         $user->refresh();
         $this->assertEquals(['mock', 'business english'], $user->teacherProfile->labels);
-     }
+    }
 
     public function test_teacher_profile_can_be_updated_with_age_under_18()
     {
@@ -301,13 +367,13 @@ class ProfileUpdateTest extends TestCase
                 'email' => 'pupil@example.com',
                 'certificates' => [
                     ['title' => 'IELTS 7.5 Certificate', 'file_url' => 'http://example.com/cert1.pdf', 'file_name' => 'cert1.pdf', 'status' => 'verified'],
-                    ['title' => 'CEFR B2', 'file_url' => 'http://example.com/cert2.pdf', 'file_name' => 'cert2.pdf', 'status' => 'pending']
+                    ['title' => 'CEFR B2', 'file_url' => 'http://example.com/cert2.pdf', 'file_name' => 'cert2.pdf', 'status' => 'pending'],
                 ],
             ]);
 
         $response->assertSessionHasNoErrors();
         $user->refresh();
-        
+
         $certs = $user->pupilProfile->certificates;
         $this->assertEquals('IELTS 7.5 Certificate', $certs[0]['title']);
         $this->assertEquals('CEFR B2', $certs[1]['title']);
@@ -327,7 +393,7 @@ class ProfileUpdateTest extends TestCase
                 'certificates' => 'CELTA, TESOL',
                 'ielts_certificates' => [
                     UploadedFile::fake()->create('t_cert1.jpg', 100, 'image/jpeg'),
-                    UploadedFile::fake()->create('t_doc2.pdf', 100, 'application/pdf')
+                    UploadedFile::fake()->create('t_doc2.pdf', 100, 'application/pdf'),
                 ],
             ]);
 
@@ -348,7 +414,7 @@ class ProfileUpdateTest extends TestCase
         $user = User::factory()->create(['role' => 'teacher']);
 
         $user->teacherProfile()->create([
-            'certificates' => ['CELTA', 'https://storage.googleapis.com/bucket/old_cert.pdf']
+            'certificates' => ['CELTA', 'https://storage.googleapis.com/bucket/old_cert.pdf'],
         ]);
 
         $response = $this
@@ -385,8 +451,8 @@ class ProfileUpdateTest extends TestCase
                 'workplace' => 'English Academy',
                 'overall_level' => 'IELTS 8.5',
                 'speaking_band' => 8.5,
-                'avatar' => \Illuminate\Http\UploadedFile::fake()->create('avatar.jpg', 100, 'image/jpeg'),
-                'intro_video' => \Illuminate\Http\UploadedFile::fake()->create('video.mp4', 500, 'video/mp4'),
+                'avatar' => UploadedFile::fake()->create('avatar.jpg', 100, 'image/jpeg'),
+                'intro_video' => UploadedFile::fake()->create('video.mp4', 500, 'video/mp4'),
             ]);
 
         $response->assertSessionHasNoErrors();

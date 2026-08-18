@@ -60,7 +60,8 @@ createInertiaApp({
             // Only wrap layout if component.layout is not already a layout function
             if (typeof component.layout !== 'function') {
                 const layoutProps =
-                    typeof component.layout === 'object' && component.layout !== null
+                    typeof component.layout === 'object' &&
+                    component.layout !== null
                         ? component.layout
                         : {};
 

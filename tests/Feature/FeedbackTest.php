@@ -3,9 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Appointment;
-use App\Models\User;
 use App\Models\Conversation;
 use App\Models\Feedback;
+use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,14 +17,14 @@ class FeedbackTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class);
+        $this->withoutMiddleware(PreventRequestForgery::class);
     }
 
     public function test_pupil_can_submit_feedback_with_rating()
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
-        
+
         $appointment = Appointment::create([
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -39,7 +40,7 @@ class FeedbackTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('feedbacks', [
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -56,7 +57,7 @@ class FeedbackTest extends TestCase
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
-        
+
         $appointment = Appointment::create([
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -71,7 +72,7 @@ class FeedbackTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('feedbacks', [
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -86,7 +87,7 @@ class FeedbackTest extends TestCase
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
         $otherUser = User::factory()->create(['role' => 'pupil']);
-        
+
         $appointment = Appointment::create([
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -109,7 +110,7 @@ class FeedbackTest extends TestCase
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
-        
+
         $appointment = Appointment::create([
             'pupil_id' => $pupil->id,
             'teacher_id' => $teacher->id,
@@ -133,7 +134,7 @@ class FeedbackTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['message']);
-        
+
         $this->assertDatabaseCount('feedbacks', 1);
         $this->assertDatabaseHas('feedbacks', [
             'comment_text' => 'First attempt comment.',

@@ -1,7 +1,14 @@
 import React from 'react';
 import { router } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -12,7 +19,12 @@ interface Props {
     userName?: string;
 }
 
-export default function DeleteUserModal({ isOpen, onClose, userId, userName }: Props) {
+export default function DeleteUserModal({
+    isOpen,
+    onClose,
+    userId,
+    userName,
+}: Props) {
     const { t } = useTranslation();
     const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -35,7 +47,10 @@ export default function DeleteUserModal({ isOpen, onClose, userId, userName }: P
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && !isDeleting && onClose()}>
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => !open && !isDeleting && onClose()}
+        >
             <DialogContent className="sm:max-w-md">
                 <DialogHeader className="space-y-3">
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/60">
@@ -48,7 +63,10 @@ export default function DeleteUserModal({ isOpen, onClose, userId, userName }: P
                         {userName ? (
                             <>
                                 {t('admin.confirm_delete_user_message')}{' '}
-                                <strong className="text-gray-900 dark:text-gray-100 font-semibold">{userName}</strong>.
+                                <strong className="font-semibold text-gray-900 dark:text-gray-100">
+                                    {userName}
+                                </strong>
+                                .
                             </>
                         ) : (
                             t('admin.confirm_delete_user_message')
@@ -57,14 +75,19 @@ export default function DeleteUserModal({ isOpen, onClose, userId, userName }: P
                 </DialogHeader>
 
                 <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                    <Button variant="outline" onClick={onClose} disabled={isDeleting} className="w-full sm:w-auto">
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                        disabled={isDeleting}
+                        className="w-full sm:w-auto"
+                    >
                         Cancel
                     </Button>
                     <Button
                         variant="destructive"
                         onClick={handleDelete}
                         disabled={isDeleting}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white sm:w-auto font-bold"
+                        className="w-full bg-red-600 font-bold text-white hover:bg-red-700 sm:w-auto"
                     >
                         {isDeleting ? (
                             <>

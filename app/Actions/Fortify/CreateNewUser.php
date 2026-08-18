@@ -76,6 +76,7 @@ class CreateNewUser implements CreatesNewUsers
 
             if (session()->has('google_register')) {
                 $googleData = session()->get('google_register');
+                $user->has_password = false;
                 $user->google_connected = true;
                 $user->google_access_token = $googleData['access_token'] ?? null;
                 $user->google_refresh_token = $googleData['refresh_token'] ?? null;
@@ -98,7 +99,7 @@ class CreateNewUser implements CreatesNewUsers
                 $uploadedFiles = request()->file('certificate_files') ?? request()->file('ielts_certificates') ?? [];
 
                 $finalCertificates = [];
-                if (is_array($certsInput) && !empty($certsInput)) {
+                if (is_array($certsInput) && ! empty($certsInput)) {
                     foreach ($certsInput as $index => $certItem) {
                         $fileUrl = null;
                         $fileName = '';
@@ -111,7 +112,7 @@ class CreateNewUser implements CreatesNewUsers
 
                         $certType = $certItem['type'] ?? 'ielts';
                         $customName = $certItem['custom_type_name'] ?? '';
-                        $title = $certType === 'other' && !empty($customName) ? $customName : strtoupper($certType);
+                        $title = $certType === 'other' && ! empty($customName) ? $customName : strtoupper($certType);
 
                         $finalCertificates[] = [
                             'type' => $certType,
@@ -127,7 +128,7 @@ class CreateNewUser implements CreatesNewUsers
                             'status' => 'pending',
                         ];
                     }
-                } elseif (!empty($uploadedFiles)) {
+                } elseif (! empty($uploadedFiles)) {
                     foreach ($uploadedFiles as $file) {
                         $path = $file->store('certificates', $disk);
                         $finalCertificates[] = [
@@ -161,12 +162,12 @@ class CreateNewUser implements CreatesNewUsers
                 $overallLevel = $input['overall_level'] ?? null;
                 $speakingBand = $input['speaking_band'] ?? null;
 
-                if (!empty($certificates) && is_array($certificates)) {
+                if (! empty($certificates) && is_array($certificates)) {
                     $firstCert = $certificates[0];
-                    if (empty($overallLevel) && !empty($firstCert['overall'])) {
+                    if (empty($overallLevel) && ! empty($firstCert['overall'])) {
                         $overallLevel = $firstCert['overall'];
                     }
-                    if (empty($speakingBand) && !empty($firstCert['speaking'])) {
+                    if (empty($speakingBand) && ! empty($firstCert['speaking'])) {
                         $speakingBand = $firstCert['speaking'];
                     }
                 }

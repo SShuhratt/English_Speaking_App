@@ -7,8 +7,8 @@ export default function AppLogoIcon({ className, ...props }: AppLogoIconProps) {
     return (
         <div
             className={cn(
-                "flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-brand-navy/10 bg-white shadow-md shadow-brand-navy/10 aspect-square p-1",
-                className
+                'flex aspect-square shrink-0 items-center justify-center overflow-hidden rounded-full border border-brand-navy/10 bg-white p-1 shadow-md shadow-brand-navy/10',
+                className,
             )}
             {...props}
         >

@@ -67,15 +67,17 @@ return [
         'gcs' => [
             'driver' => 'gcs',
             'project_id' => env('GOOGLE_CLOUD_PROJECT_ID', env('GCP_PROJECT_ID')),
-            'key_file_path' => (function() {
+            'key_file_path' => (function () {
                 $key = env('GOOGLE_CLOUD_KEY_FILE', env('GCP_KEY_FILE'));
-                if (is_string($key) && !str_starts_with(trim($key), '{') && !str_contains($key, '"') && !str_contains($key, ':')) {
+                if (is_string($key) && ! str_starts_with(trim($key), '{') && ! str_contains($key, '"') && ! str_contains($key, ':')) {
                     $key = trim($key);
+
                     return str_starts_with($key, '/') ? $key : base_path($key);
                 }
+
                 return null;
             })(),
-            'key_file' => (function() {
+            'key_file' => (function () {
                 $key = env('GOOGLE_CLOUD_KEY_FILE', env('GCP_KEY_FILE'));
                 if (is_string($key)) {
                     $trimmed = trim($key);
@@ -89,6 +91,7 @@ return [
                         }
                     }
                 }
+
                 return is_array($key) ? $key : null;
             })(),
             'bucket' => env('GOOGLE_CLOUD_STORAGE_BUCKET', env('GCP_STORAGE_BUCKET')),

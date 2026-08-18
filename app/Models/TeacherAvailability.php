@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TeacherAvailability extends Model
 {
-    use HasUuids, HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'teacher_id',

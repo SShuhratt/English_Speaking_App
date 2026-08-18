@@ -189,9 +189,10 @@ export default function Booking({ teacher }: Props) {
     const renderTopicSelection = () => {
         const labels = teacher.teacher_profile?.labels || [];
         return (
-            <div className="space-y-2 mt-4 border-t pt-3">
+            <div className="mt-4 space-y-2 border-t pt-3">
                 <Label className="text-xs font-semibold text-foreground">
-                    {t('booking.select_topics') || 'Select Speaking Topics'} <span className="text-destructive">*</span>
+                    {t('booking.select_topics') || 'Select Speaking Topics'}{' '}
+                    <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex flex-wrap gap-2">
                     {labels.map((lbl: string) => {
@@ -202,12 +203,19 @@ export default function Booking({ teacher }: Props) {
                                 type="button"
                                 onClick={() => {
                                     if (isChecked) {
-                                        setSelectedTopics(selectedTopics.filter(t => t !== lbl));
+                                        setSelectedTopics(
+                                            selectedTopics.filter(
+                                                (t) => t !== lbl,
+                                            ),
+                                        );
                                     } else {
-                                        setSelectedTopics([...selectedTopics, lbl]);
+                                        setSelectedTopics([
+                                            ...selectedTopics,
+                                            lbl,
+                                        ]);
                                     }
                                 }}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
                                     isChecked
                                         ? 'bg-brand-brown text-white shadow-sm'
                                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -222,7 +230,7 @@ export default function Booking({ teacher }: Props) {
                         onClick={() => {
                             setOtherChecked(!otherChecked);
                         }}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
                             otherChecked
                                 ? 'bg-brand-brown text-white shadow-sm'
                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -236,10 +244,13 @@ export default function Booking({ teacher }: Props) {
                     <div className="mt-2">
                         <Input
                             type="text"
-                            placeholder={t('booking.custom_topic_placeholder') || 'Enter custom topic...'}
+                            placeholder={
+                                t('booking.custom_topic_placeholder') ||
+                                'Enter custom topic...'
+                            }
                             value={customTopic}
                             onChange={(e) => setCustomTopic(e.target.value)}
-                            className="text-xs rounded-xl"
+                            className="rounded-xl text-xs"
                             maxLength={100}
                         />
                     </div>
@@ -253,7 +264,10 @@ export default function Booking({ teacher }: Props) {
 
         const finalTopics = getFinalTopics();
         if (finalTopics.length === 0) {
-            toast.error(t('booking.topics_required') || 'Please select at least one topic');
+            toast.error(
+                t('booking.topics_required') ||
+                    'Please select at least one topic',
+            );
             return;
         }
 
@@ -419,7 +433,10 @@ export default function Booking({ teacher }: Props) {
 
         const finalTopics = getFinalTopics();
         if (finalTopics.length === 0) {
-            toast.error(t('booking.topics_required') || 'Please select at least one topic');
+            toast.error(
+                t('booking.topics_required') ||
+                    'Please select at least one topic',
+            );
             return;
         }
 
@@ -670,9 +687,13 @@ export default function Booking({ teacher }: Props) {
                     >
                         {/* Teacher Profile Card */}
                         <div className="flex flex-col items-center rounded-2xl border bg-muted/20 p-4 text-center shadow-sm">
-                            <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-brown text-2xl font-bold text-white shadow-lg shadow-brand-brown/10 overflow-hidden">
+                            <div className="mb-3 flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-brown text-2xl font-bold text-white shadow-lg shadow-brand-brown/10">
                                 {teacher.avatar ? (
-                                    <img src={teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                    <img
+                                        src={teacher.avatar}
+                                        className="h-full w-full object-cover"
+                                        alt="avatar"
+                                    />
                                 ) : (
                                     teacher.full_name
                                         .split(' ')
@@ -874,7 +895,7 @@ export default function Booking({ teacher }: Props) {
                                 <Button
                                     type="submit"
                                     disabled={booking}
-                                    className="w-full rounded-xl bg-brand-button hover:bg-brand-button-hover py-4 text-xs font-semibold text-brand-brown shadow-md transition-all disabled:opacity-50"
+                                    className="w-full rounded-xl bg-brand-button py-4 text-xs font-semibold text-brand-brown shadow-md transition-all hover:bg-brand-button-hover disabled:opacity-50"
                                 >
                                     {booking
                                         ? t('booking.requesting')
@@ -1297,7 +1318,7 @@ export default function Booking({ teacher }: Props) {
                                         disabled={
                                             booking || !validateSelectedRange()
                                         }
-                                        className="cursor-pointer rounded-xl bg-brand-button hover:bg-brand-button-hover px-5 py-2 text-sm font-semibold text-brand-brown shadow-md shadow-brand-button/10 transition-colors disabled:opacity-50"
+                                        className="cursor-pointer rounded-xl bg-brand-button px-5 py-2 text-sm font-semibold text-brand-brown shadow-md shadow-brand-button/10 transition-colors hover:bg-brand-button-hover disabled:opacity-50"
                                     >
                                         {booking
                                             ? t('booking.requesting')
@@ -1339,13 +1360,15 @@ export default function Booking({ teacher }: Props) {
                             <div className="mt-6 flex w-full flex-col gap-2.5">
                                 <Link
                                     href="/pupil/bookings"
-                                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover py-3 text-sm font-bold text-brand-brown shadow-md transition-all hover:scale-[1.01]"
+                                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-button py-3 text-sm font-bold text-brand-brown shadow-md transition-all hover:scale-[1.01] hover:bg-brand-button-hover"
                                 >
                                     <BookOpen className="h-4 w-4" />
                                     {t('booking.view_my_bookings')}
                                 </Link>
                                 <button
-                                    onClick={() => setShowRequestSentModal(false)}
+                                    onClick={() =>
+                                        setShowRequestSentModal(false)
+                                    }
                                     className="w-full cursor-pointer rounded-xl border py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted"
                                 >
                                     {t('booking.cancel_btn')}

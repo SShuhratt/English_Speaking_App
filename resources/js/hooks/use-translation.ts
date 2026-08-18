@@ -15,7 +15,8 @@ const dictionary = {
         'nav.teachers_directory': 'Teachers Directory',
         'nav.my_bookings': 'My Bookings',
         'teachers_directory.title': 'Teachers Directory',
-        'teachers_directory.subtitle': 'Explore profiles, qualifications, and rates of fellow teachers on ConvoMate.',
+        'teachers_directory.subtitle':
+            'Explore profiles, qualifications, and rates of fellow teachers on ConvoMate.',
         'teachers_directory.filter_all': 'All Teachers',
         'teachers_directory.filter_verified': 'Verified Only',
         'teachers_directory.filter_ielts_asc': 'IELTS Band (Low to High)',
@@ -23,7 +24,8 @@ const dictionary = {
         'teachers_directory.filter_new': 'New (Within 7 Days)',
         'teachers_directory.filter_price_asc': 'Price (Low to High)',
         'teachers_directory.filter_price_desc': 'Price (High to Low)',
-        'teachers_directory.no_teachers': 'No teachers found for the selected filter.',
+        'teachers_directory.no_teachers':
+            'No teachers found for the selected filter.',
         'nav.past_sessions': 'Past Sessions',
         'nav.my_progress': 'My Progress',
         'nav.logout': 'Log out',
@@ -33,9 +35,11 @@ const dictionary = {
 
         // speaking matchmaking
         'speaking.title': 'Start Speaking',
-        'speaking.desc': 'Practice speaking English with random students in real-time.',
+        'speaking.desc':
+            'Practice speaking English with random students in real-time.',
         'speaking.ready_title': 'Match with a Speaking Partner',
-        'speaking.ready_desc': 'Join the queue to be matched instantly with an active user for English practice.',
+        'speaking.ready_desc':
+            'Join the queue to be matched instantly with an active user for English practice.',
         'speaking.btn_start': 'Start Speaking',
         'speaking.searching_title': 'Finding speaking partner...',
         'speaking.connecting_title': 'Connecting to partner...',
@@ -44,19 +48,24 @@ const dictionary = {
         'speaking.connected': 'Connected',
         'speaking.btn_end': 'End Conversation',
         'speaking.partner_disconnected': 'Partner left the conversation.',
-        'speaking.media_error': 'Microphone access denied or audio device not found.',
+        'speaking.media_error':
+            'Microphone access denied or audio device not found.',
         'speaking.available_for_speaking': 'Available for Speaking',
         'speaking.online_count': ':count Online',
-        'speaking.no_online_pupils': 'No other pupils are online right now. Keep this page open to show up!',
+        'speaking.no_online_pupils':
+            'No other pupils are online right now. Keep this page open to show up!',
         'speaking.requested': 'Requested',
         'speaking.request_btn': 'Request',
         'speaking.active_session_detected': 'Active Session Detected',
-        'speaking.active_session_desc': 'We found an active conversation with :name. Would you like to resume it?',
+        'speaking.active_session_desc':
+            'We found an active conversation with :name. Would you like to resume it?',
         'speaking.resume_conversation': 'Resume Conversation',
         'speaking.cancel_session': 'Cancel Session',
-        'speaking.mic_permission_warning': 'Please ensure microphone permission is allowed in your browser settings to connect.',
+        'speaking.mic_permission_warning':
+            'Please ensure microphone permission is allowed in your browser settings to connect.',
         'speaking.incoming_requests': 'Incoming Requests',
-        'speaking.no_incoming_requests': 'No incoming requests yet. Keep this page open to receive them!',
+        'speaking.no_incoming_requests':
+            'No incoming requests yet. Keep this page open to receive them!',
 
         // settings
         'settings.title': 'Settings',
@@ -161,7 +170,8 @@ const dictionary = {
         'welcome.home_bento_title_highlight': 'master English',
         'welcome.home_bento_title_2': '',
         'welcome.journey_cta_ready': 'Ready to find your voice?',
-        'welcome.journey_cta_desc': "Join thousands of students who have improved their fluency with ConvoMate's personalized teaching approach.",
+        'welcome.journey_cta_desc':
+            "Join thousands of students who have improved their fluency with ConvoMate's personalized teaching approach.",
         'welcome.journey_cta_btn_start': 'Start Free Trial',
         'welcome.journey_cta_btn_teachers': 'View Teachers',
         'welcome.home_bento_subtitle':
@@ -271,9 +281,12 @@ const dictionary = {
         'auth.gender_male': 'Male',
         'auth.gender_female': 'Female',
         'auth.gender_prefer_not_to_say': 'Rather not to say',
-        'teacher.taking_first_students_his': 'New on ConvoMate — taking his first students',
-        'teacher.taking_first_students_her': 'New on ConvoMate — taking her first students',
-        'teacher.taking_first_students_their': 'New on ConvoMate — taking their first students',
+        'teacher.taking_first_students_his':
+            'New on ConvoMate — taking his first students',
+        'teacher.taking_first_students_her':
+            'New on ConvoMate — taking her first students',
+        'teacher.taking_first_students_their':
+            'New on ConvoMate — taking their first students',
         'teacher.no_reviews_be_his': 'No reviews yet — be his first',
         'teacher.no_reviews_be_her': 'No reviews yet — be her first',
         'teacher.no_reviews_be_their': 'No reviews yet — be their first',
@@ -465,10 +478,13 @@ const dictionary = {
         'teacher.cancel_success': 'Booking cancelled successfully',
         'teacher.cancel_title': 'Cancel Appointment',
         'teacher.reject_title': 'Reject Request',
-        'teacher.cancel_desc': 'Please state the reason for cancelling this appointment. This will be visible to the student.',
-        'teacher.reject_desc': 'Please state the reason for rejecting this booking request. This will be visible to the student.',
+        'teacher.cancel_desc':
+            'Please state the reason for cancelling this appointment. This will be visible to the student.',
+        'teacher.reject_desc':
+            'Please state the reason for rejecting this booking request. This will be visible to the student.',
         'teacher.reason_placeholder': 'Enter your reason here...',
-        'teacher.reason_length_validation': 'Reason must be between 3 and 1000 characters',
+        'teacher.reason_length_validation':
+            'Reason must be between 3 and 1000 characters',
         'teacher.action_failed': 'Action failed',
         'schedule.title': 'My Schedule',
         'schedule.desc': 'Your upcoming confirmed sessions.',
@@ -549,7 +565,8 @@ const dictionary = {
         'bookings.delete_error': 'Failed to delete session record',
         'bookings.status_rejected': 'Rejected',
         'bookings.cancel_title': 'Cancel Booking',
-        'bookings.cancel_desc': 'Please state the reason for cancellation. This will be visible to the teacher.',
+        'bookings.cancel_desc':
+            'Please state the reason for cancellation. This will be visible to the teacher.',
         'bookings.cancel_reason_placeholder': 'Enter your reason here...',
         'bookings.cancelling': 'Cancelling...',
         'bookings.confirm_cancel': 'Confirm Cancel',
@@ -604,14 +621,18 @@ const dictionary = {
         'progress.week_3': 'Week 3',
         'progress.one_session_left': '1 session left to finish this week',
         'progress.sessions_left': ':count sessions left to finish this week',
-        'progress.book_with_teacher_free': 'book your next session with a top teacher',
+        'progress.book_with_teacher_free':
+            'book your next session with a top teacher',
         'progress.book_it': 'Book it',
         'progress.set_weekly_goal_title': 'Set Weekly Session Goal',
         'progress.sessions_per_week_label': 'Target Sessions / Week',
-        'progress.goal_range_hint': 'Enter a realistic goal between 1 and 350 sessions per week.',
+        'progress.goal_range_hint':
+            'Enter a realistic goal between 1 and 350 sessions per week.',
         'progress.save_goal': 'Save Goal',
-        'progress.positive_goal_error': 'Please enter a positive integer for your weekly goal.',
-        'progress.unrealistic_goal': 'Respect to huge goals! But be a realist like the developer!',
+        'progress.positive_goal_error':
+            'Please enter a positive integer for your weekly goal.',
+        'progress.unrealistic_goal':
+            'Respect to huge goals! But be a realist like the developer!',
         'progress.goal_updated_success': 'Weekly goal updated successfully!',
         'profile.title': 'Profile',
         'profile.desc': 'Update your name and email address',
@@ -648,9 +669,18 @@ const dictionary = {
         'security.update_password': 'Update password',
         'security.update_password_desc':
             'Ensure your account is using a long, random password to stay secure',
+        'security.set_password': 'Set a password',
+        'security.set_password_desc':
+            'You signed in with Google. Set a password to enable email and password login.',
+        'security.set_password_button': 'Set password',
         'security.current_password': 'Current password',
         'security.new_password': 'New password',
         'security.confirm_password': 'Confirm password',
+        'profile.delete_confirm_desc_password':
+            'Please enter your password to confirm you would like to permanently delete your account.',
+        'profile.delete_confirm_desc_email':
+            'Please enter your email (:email) to confirm you would like to permanently delete your account.',
+        'profile.delete_email_placeholder': 'Enter your email address',
         'appearance.title': 'Appearance settings',
         'appearance.desc': 'Update the appearance settings for your account',
         'appearance.light': 'Light',
@@ -659,7 +689,8 @@ const dictionary = {
 
         // admin management
         'admin.confirm_delete_user_title': 'Delete User Account',
-        'admin.confirm_delete_user_message': 'Are you sure you want to delete this user? This action cannot be undone and will permanently remove their profile, appointments, and support history.',
+        'admin.confirm_delete_user_message':
+            'Are you sure you want to delete this user? This action cannot be undone and will permanently remove their profile, appointments, and support history.',
         'admin.delete_user': 'Delete User',
         'admin.delete_teacher': 'Delete Teacher',
         'admin.delete_pupil': 'Delete Pupil',
@@ -682,15 +713,18 @@ const dictionary = {
         'nav.teachers_directory': "O'qituvchilar katalogi",
         'nav.my_bookings': 'Buyurtmalarim',
         'teachers_directory.title': "O'qituvchilar katalogi",
-        'teachers_directory.subtitle': "ConvoMate-dagi boshqa o'qituvchilar profillari, malakalari va narxlarini ko'rib chiqing.",
+        'teachers_directory.subtitle':
+            "ConvoMate-dagi boshqa o'qituvchilar profillari, malakalari va narxlarini ko'rib chiqing.",
         'teachers_directory.filter_all': "Barcha o'qituvchilar",
         'teachers_directory.filter_verified': 'Faqat tasdiqlanganlar',
         'teachers_directory.filter_ielts_asc': 'IELTS Balli (pastdan balandga)',
-        'teachers_directory.filter_ielts_desc': 'IELTS Balli (balanddan pastga)',
+        'teachers_directory.filter_ielts_desc':
+            'IELTS Balli (balanddan pastga)',
         'teachers_directory.filter_new': 'Yangi (7 kun ichida)',
         'teachers_directory.filter_price_asc': 'Narx (pastdan balandga)',
         'teachers_directory.filter_price_desc': 'Narx (balanddan pastga)',
-        'teachers_directory.no_teachers': "Tanlangan filtr uchun o'qituvchilar topilmadi.",
+        'teachers_directory.no_teachers':
+            "Tanlangan filtr uchun o'qituvchilar topilmadi.",
         'nav.past_sessions': "O'tgan darslar",
         'nav.my_progress': 'Mening natijalarim',
         'nav.logout': 'Chiqish',
@@ -700,9 +734,11 @@ const dictionary = {
 
         // speaking matchmaking
         'speaking.title': 'Suhbatni boshlash',
-        'speaking.desc': 'Haqiqiy vaqtda tasodifiy foydalanuvchilar bilan ingliz tilida gaplashishni mashq qiling.',
+        'speaking.desc':
+            'Haqiqiy vaqtda tasodifiy foydalanuvchilar bilan ingliz tilida gaplashishni mashq qiling.',
         'speaking.ready_title': "Suhbatdosh bilan bog'lanish",
-        'speaking.ready_desc': "Ingliz tilida gaplashish uchun navbatga qo'shiling va faol foydalanuvchi bilan bir zumda bog'laning.",
+        'speaking.ready_desc':
+            "Ingliz tilida gaplashish uchun navbatga qo'shiling va faol foydalanuvchi bilan bir zumda bog'laning.",
         'speaking.btn_start': 'Suhbatni boshlash',
         'speaking.searching_title': 'Suhbatdosh qidirilmoqda...',
         'speaking.connecting_title': "Suhbatdosh bilan bog'lanmoqda...",
@@ -711,19 +747,24 @@ const dictionary = {
         'speaking.connected': "Bog'landi",
         'speaking.btn_end': 'Suhbatni yakunlash',
         'speaking.partner_disconnected': 'Suhbatdosh aloqani uzdi.',
-        'speaking.media_error': 'Mikrofon ruxsati rad etildi yoki audio qurilma topilmadi.',
+        'speaking.media_error':
+            'Mikrofon ruxsati rad etildi yoki audio qurilma topilmadi.',
         'speaking.available_for_speaking': 'Suhbat uchun faol foydalanuvchilar',
         'speaking.online_count': ':count ta online',
-        'speaking.no_online_pupils': 'Hozircha boshqa online foydalanuvchilar yo‘q. Faol bo‘lib ko‘rinish uchun ushbu sahifani ochiq qoldiring!',
+        'speaking.no_online_pupils':
+            'Hozircha boshqa online foydalanuvchilar yo‘q. Faol bo‘lib ko‘rinish uchun ushbu sahifani ochiq qoldiring!',
         'speaking.requested': 'So‘rov yuborildi',
         'speaking.request_btn': 'So‘rov yuborish',
         'speaking.active_session_detected': 'Faol suhbat aniqlandi',
-        'speaking.active_session_desc': 'Biz :name bilan faol suhbatni aniqladik. Uni davom ettirmoqchimisiz?',
+        'speaking.active_session_desc':
+            'Biz :name bilan faol suhbatni aniqladik. Uni davom ettirmoqchimisiz?',
         'speaking.resume_conversation': 'Suhbatni davom ettirish',
         'speaking.cancel_session': 'Suhbatni bekor qilish',
-        'speaking.mic_permission_warning': 'Ulanish uchun brauzeringiz sozlamalarida mikrofon ruxsati yoqilganligiga ishonch hosil qiling.',
+        'speaking.mic_permission_warning':
+            'Ulanish uchun brauzeringiz sozlamalarida mikrofon ruxsati yoqilganligiga ishonch hosil qiling.',
         'speaking.incoming_requests': 'Kiruvchi so‘rovlar',
-        'speaking.no_incoming_requests': 'Hozircha kiruvchi so‘rovlar yo‘q. Ularni qabul qilish uchun ushbu sahifani ochiq qoldiring!',
+        'speaking.no_incoming_requests':
+            'Hozircha kiruvchi so‘rovlar yo‘q. Ularni qabul qilish uchun ushbu sahifani ochiq qoldiring!',
 
         // settings
         'settings.title': 'Sozlamalar',
@@ -833,7 +874,8 @@ const dictionary = {
         'welcome.home_bento_title_highlight': "mukammal o'rganish",
         'welcome.home_bento_title_2': ' uchun barcha imkoniyatlar',
         'welcome.journey_cta_ready': "O'zingizni sinab ko'rishga tayyormisiz?",
-        'welcome.journey_cta_desc': "ConvoMate-ning individual yondashuvi yordamida o'z so'zlashuv ko'nikmalarini oshirgan minglab o'quvchilarga qo'shiling.",
+        'welcome.journey_cta_desc':
+            "ConvoMate-ning individual yondashuvi yordamida o'z so'zlashuv ko'nikmalarini oshirgan minglab o'quvchilarga qo'shiling.",
         'welcome.journey_cta_btn_start': 'Bepul boshlash',
         'welcome.journey_cta_btn_teachers': "O'qituvchilarni ko'rish",
         'welcome.home_bento_subtitle':
@@ -950,9 +992,12 @@ const dictionary = {
         'auth.gender_male': 'Erkak',
         'auth.gender_female': 'Ayol',
         'auth.gender_prefer_not_to_say': 'Aytishni xohlamayman',
-        'teacher.taking_first_students_his': 'ConvoMate-da yangi — birinchi talabalarini qabul qilmoqda',
-        'teacher.taking_first_students_her': 'ConvoMate-da yangi — birinchi talabalarini qabul qilmoqda',
-        'teacher.taking_first_students_their': 'ConvoMate-da yangi — birinchi talabalarini qabul qilmoqda',
+        'teacher.taking_first_students_his':
+            'ConvoMate-da yangi — birinchi talabalarini qabul qilmoqda',
+        'teacher.taking_first_students_her':
+            'ConvoMate-da yangi — birinchi talabalarini qabul qilmoqda',
+        'teacher.taking_first_students_their':
+            'ConvoMate-da yangi — birinchi talabalarini qabul qilmoqda',
         'teacher.no_reviews_be_his': "Hali sharhlar yo'q — birinchi bo'ling",
         'teacher.no_reviews_be_her': "Hali sharhlar yo'q — birinchi bo'ling",
         'teacher.no_reviews_be_their': "Hali sharhlar yo'q — birinchi bo'ling",
@@ -1020,13 +1065,13 @@ const dictionary = {
         'payment.modal_title': "To'lovni amalga oshirish",
         'payment.modal_desc':
             "Quyidagi kartaga to'lov yuboring va kvitansiyangizni Telegram guruhiga ismingiz hamda Pupil IDingiz bilan yuboring.",
-        'payment.copy_card': "Karta raqamini nusxalash",
-        'payment.copied_toast': "Karta raqami nusxalandi!",
-        'payment.card_holder': "Karta egasi",
-        'payment.pupil_id': "Pupil ID",
+        'payment.copy_card': 'Karta raqamini nusxalash',
+        'payment.copied_toast': 'Karta raqami nusxalandi!',
+        'payment.card_holder': 'Karta egasi',
+        'payment.pupil_id': 'Pupil ID',
         'payment.warning_notice':
             "MAJBURIY: Adminlar broningizni tasdiqlashi uchun Telegram-ga chek yuborayotganda ismingiz va Pupil ID-ingizni ko'rsating.",
-        'payment.open_telegram': "Telegram-da chek yuborish",
+        'payment.open_telegram': 'Telegram-da chek yuborish',
 
         // Pupil Progress
         'pupil.progress_title': 'Mening natijalarim',
@@ -1149,11 +1194,14 @@ const dictionary = {
             'Haqiqatan ham ushbu darsni bekor qilmoqchimisiz?',
         'teacher.cancel_success': 'Dars muvaffaqiyatli bekor qilindi',
         'teacher.cancel_title': 'Darsni bekor qilish',
-        'teacher.reject_title': 'So\'rovni rad etish',
-        'teacher.cancel_desc': 'Iltimos, ushbu darsni bekor qilish sababini ko\'rsating. Bu o\'quvchiga ko\'rinadi.',
-        'teacher.reject_desc': 'Iltimos, ushbu bandlik so\'rovini rad etish sababini ko\'rsating. Bu o\'quvchiga ko\'rinadi.',
+        'teacher.reject_title': "So'rovni rad etish",
+        'teacher.cancel_desc':
+            "Iltimos, ushbu darsni bekor qilish sababini ko'rsating. Bu o'quvchiga ko'rinadi.",
+        'teacher.reject_desc':
+            "Iltimos, ushbu bandlik so'rovini rad etish sababini ko'rsating. Bu o'quvchiga ko'rinadi.",
         'teacher.reason_placeholder': 'Sababini shu yerga yozing...',
-        'teacher.reason_length_validation': 'Sabab 3 tadan 1000 tagacha belgidan iborat bo\'lishi kerak',
+        'teacher.reason_length_validation':
+            "Sabab 3 tadan 1000 tagacha belgidan iborat bo'lishi kerak",
         'teacher.action_failed': 'Amal bajarilmadi',
         'schedule.title': 'Mening jadvalim',
         'schedule.desc': 'Kelgusi tasdiqlangan darslaringiz.',
@@ -1238,15 +1286,16 @@ const dictionary = {
             "Dars ma'lumotini o'chirishda xatolik yuz berdi",
         'bookings.status_rejected': 'Rad etilgan',
         'bookings.cancel_title': 'Darsni bekor qilish',
-        'bookings.cancel_desc': 'Iltimos, bekor qilish sababini ko\'rsating. Bu o\'qituvchiga ko\'rinadi.',
+        'bookings.cancel_desc':
+            "Iltimos, bekor qilish sababini ko'rsating. Bu o'qituvchiga ko'rinadi.",
         'bookings.cancel_reason_placeholder': 'Sababini shu yerga yozing...',
         'bookings.cancelling': 'Bekor qilinmoqda...',
         'bookings.confirm_cancel': 'Bekor qilishni tasdiqlash',
         'bookings.cancelled_by': ':name tomonidan bekor qilindi',
         'bookings.you': 'Siz',
-        'bookings.teacher': 'O\'qituvchi',
-        'bookings.pupil': 'O\'quvchi',
-        'bookings.rejected_by_teacher': 'O\'qituvchi tomonidan rad etildi',
+        'bookings.teacher': "O'qituvchi",
+        'bookings.pupil': "O'quvchi",
+        'bookings.rejected_by_teacher': "O'qituvchi tomonidan rad etildi",
         'bookings.close_btn': 'Yopish',
         'bookings.submitting': 'Yuborilmoqda...',
         'bookings.confirm_submit': 'Tasdiqlash',
@@ -1291,17 +1340,24 @@ const dictionary = {
         'progress.you_are_here': 'Siz shu yerdasiz',
         'progress.week_2_goal': '2-hafta maqsadi',
         'progress.week_3': '3-hafta',
-        'progress.one_session_left': 'Ushbu haftani yakunlash uchun 1 ta dars qoldi',
-        'progress.sessions_left': 'Ushbu haftani yakunlash uchun :count ta dars qoldi',
-        'progress.book_with_teacher_free': "keyingi darsingizni eng yaxshi o'qituvchi bilan bron qiling",
+        'progress.one_session_left':
+            'Ushbu haftani yakunlash uchun 1 ta dars qoldi',
+        'progress.sessions_left':
+            'Ushbu haftani yakunlash uchun :count ta dars qoldi',
+        'progress.book_with_teacher_free':
+            "keyingi darsingizni eng yaxshi o'qituvchi bilan bron qiling",
         'progress.book_it': 'Bron qilish',
         'progress.set_weekly_goal_title': 'Haftalik dars maqsadini belgilash',
         'progress.sessions_per_week_label': 'Maqsad qilingan darslar / Hafta',
-        'progress.goal_range_hint': 'Haftasiga 1 dan 350 gacha realistic maqsad kiriting.',
+        'progress.goal_range_hint':
+            'Haftasiga 1 dan 350 gacha realistic maqsad kiriting.',
         'progress.save_goal': 'Maqsadni saqlash',
-        'progress.positive_goal_error': 'Iltimos, haftalik maqsad uchun musbat butun son kiriting.',
-        'progress.unrealistic_goal': 'Katta maqsadlarga hurmat! Lekin dasturchi kabi realist bo‘ling!',
-        'progress.goal_updated_success': 'Haftalik maqsad muvaffaqiyatli yangilandi!',
+        'progress.positive_goal_error':
+            'Iltimos, haftalik maqsad uchun musbat butun son kiriting.',
+        'progress.unrealistic_goal':
+            'Katta maqsadlarga hurmat! Lekin dasturchi kabi realist bo‘ling!',
+        'progress.goal_updated_success':
+            'Haftalik maqsad muvaffaqiyatli yangilandi!',
         'profile.title': 'Profil',
         'profile.desc': 'Ismingiz va email manzilingizni yangilang',
         'profile.name': 'Ism',
@@ -1338,9 +1394,18 @@ const dictionary = {
         'security.update_password': 'Parolni yangilash',
         'security.update_password_desc':
             "Hisobingiz xavfsizligini ta'minlash uchun uzun va tasodifiy paroldan foydalaning",
+        'security.set_password': 'Parol o‘rnatish',
+        'security.set_password_desc':
+            'Siz Google orqali kirdingiz. Email va parol orqali kirishni yoqish uchun parol o‘rnating.',
+        'security.set_password_button': 'Parol o‘rnatish',
         'security.current_password': 'Joriy parol',
         'security.new_password': 'Yangi parol',
         'security.confirm_password': 'Parolni tasdiqlang',
+        'profile.delete_confirm_desc_password':
+            "Hisobingizni butunlay o'chirishni tasdiqlash uchun parolingizni kiriting.",
+        'profile.delete_confirm_desc_email':
+            "Hisobingizni butunlay o'chirishni tasdiqlash uchun emailingizni (:email) kiriting.",
+        'profile.delete_email_placeholder': 'Email manzilingizni kiriting',
         'appearance.title': 'Mavzu sozlamalari',
         'appearance.desc':
             "Hisobingiz uchun mavzu va ko'rinish sozlamalarini yangilang",
@@ -1350,12 +1415,13 @@ const dictionary = {
 
         // admin management
         'admin.confirm_delete_user_title': "Foydalanuvchi hisobini o'chirish",
-        'admin.confirm_delete_user_message': "Ushbu foydalanuvchini o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi va barcha darslar hamda ma'lumotlar butunlay o'chiriladi.",
+        'admin.confirm_delete_user_message':
+            "Ushbu foydalanuvchini o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi va barcha darslar hamda ma'lumotlar butunlay o'chiriladi.",
         'admin.delete_user': "Foydalanuvchini o'chirish",
         'admin.delete_teacher': "O'qituvchini o'chirish",
         'admin.delete_pupil': "O'quvchini o'chirish",
         'admin.verify_teacher': "O'qituvchini tasdiqlash",
-        'admin.unverify_teacher': "Tasdiqni bekor qilish",
+        'admin.unverify_teacher': 'Tasdiqni bekor qilish',
         'admin.verify_certificate': 'Sertifikatni tasdiqlash',
         'admin.unverify_certificate': 'Sertifikat tasdigʻini bekor qilish',
     },
@@ -1373,7 +1439,8 @@ const dictionary = {
         'nav.teachers_directory': 'Каталог преподавателей',
         'nav.my_bookings': 'Мои бронирования',
         'teachers_directory.title': 'Каталог преподавателей',
-        'teachers_directory.subtitle': 'Просматривайте профили, квалификации и ставки коллег-преподавателей на ConvoMate.',
+        'teachers_directory.subtitle':
+            'Просматривайте профили, квалификации и ставки коллег-преподавателей на ConvoMate.',
         'teachers_directory.filter_all': 'Все преподаватели',
         'teachers_directory.filter_verified': 'Только проверенные',
         'teachers_directory.filter_ielts_asc': 'Балл IELTS (по возрастанию)',
@@ -1381,7 +1448,8 @@ const dictionary = {
         'teachers_directory.filter_new': 'Новые (за 7 дней)',
         'teachers_directory.filter_price_asc': 'Цена (по возрастанию)',
         'teachers_directory.filter_price_desc': 'Цена (по убыванию)',
-        'teachers_directory.no_teachers': 'Преподаватели по выбранному фильтру не найдены.',
+        'teachers_directory.no_teachers':
+            'Преподаватели по выбранному фильтру не найдены.',
         'nav.past_sessions': 'Прошедшие уроки',
         'nav.my_progress': 'Мой прогресс',
         'nav.logout': 'Выйти',
@@ -1391,9 +1459,11 @@ const dictionary = {
 
         // speaking matchmaking
         'speaking.title': 'Начать разговор',
-        'speaking.desc': 'Практикуйте разговорный английский с другими студентами в реальном времени.',
+        'speaking.desc':
+            'Практикуйте разговорный английский с другими студентами в реальном времени.',
         'speaking.ready_title': 'Найти собеседника',
-        'speaking.ready_desc': 'Вступите в очередь, чтобы мгновенно связаться с активным пользователем для практики.',
+        'speaking.ready_desc':
+            'Вступите в очередь, чтобы мгновенно связаться с активным пользователем для практики.',
         'speaking.btn_start': 'Начать разговор',
         'speaking.searching_title': 'Поиск собеседника...',
         'speaking.connecting_title': 'Подключение к собеседнику...',
@@ -1402,19 +1472,24 @@ const dictionary = {
         'speaking.connected': 'Подключено',
         'speaking.btn_end': 'Завершить разговор',
         'speaking.partner_disconnected': 'Собеседник покинул разговор.',
-        'speaking.media_error': 'Доступ к микрофону запрещен или аудиоустройство не найдено.',
+        'speaking.media_error':
+            'Доступ к микрофону запрещен или аудиоустройство не найдено.',
         'speaking.available_for_speaking': 'Доступны для разговора',
         'speaking.online_count': ':count онлайн',
-        'speaking.no_online_pupils': 'Сейчас нет других пользователей онлайн. Держите эту страницу открытой, чтобы появиться в списке!',
+        'speaking.no_online_pupils':
+            'Сейчас нет других пользователей онлайн. Держите эту страницу открытой, чтобы появиться в списке!',
         'speaking.requested': 'Запрос отправлен',
         'speaking.request_btn': 'Запрос',
         'speaking.active_session_detected': 'Обнаружен активный сеанс',
-        'speaking.active_session_desc': 'Мы обнаружили активный разговор с :name. Хотите продолжить его?',
+        'speaking.active_session_desc':
+            'Мы обнаружили активный разговор с :name. Хотите продолжить его?',
         'speaking.resume_conversation': 'Продолжить разговор',
         'speaking.cancel_session': 'Отменить сеанс',
-        'speaking.mic_permission_warning': 'Для подключения убедитесь, что в настройках браузера разрешен доступ к микрофону.',
+        'speaking.mic_permission_warning':
+            'Для подключения убедитесь, что в настройках браузера разрешен доступ к микрофону.',
         'speaking.incoming_requests': 'Входящие запросы',
-        'speaking.no_incoming_requests': 'Входящих запросов пока нет. Держите эту страницу открытой, чтобы получать их!',
+        'speaking.no_incoming_requests':
+            'Входящих запросов пока нет. Держите эту страницу открытой, чтобы получать их!',
 
         // settings
         'settings.title': 'Настройки',
@@ -1521,7 +1596,8 @@ const dictionary = {
         'welcome.home_bento_title_highlight': 'освоения английского',
         'welcome.home_bento_title_2': '',
         'welcome.journey_cta_ready': 'Готовы раскрыть свой потенциал?',
-        'welcome.journey_cta_desc': 'Присоединяйтесь к тысячам студентов, которые улучшили свою разговорную речь с помощью персонализированного обучения в ConvoMate.',
+        'welcome.journey_cta_desc':
+            'Присоединяйтесь к тысячам студентов, которые улучшили свою разговорную речь с помощью персонализированного обучения в ConvoMate.',
         'welcome.journey_cta_btn_start': 'Начать бесплатно',
         'welcome.journey_cta_btn_teachers': 'Посмотреть преподавателей',
         'welcome.home_bento_subtitle':
@@ -1635,12 +1711,18 @@ const dictionary = {
         'auth.gender_male': 'Мужской',
         'auth.gender_female': 'Женский',
         'auth.gender_prefer_not_to_say': 'Предпочитаю не указывать',
-        'teacher.taking_first_students_his': 'Новый на ConvoMate — набирает первых учеников',
-        'teacher.taking_first_students_her': 'Новая на ConvoMate — набирает первых учеников',
-        'teacher.taking_first_students_their': 'Новый на ConvoMate — набирает первых учеников',
-        'teacher.no_reviews_be_his': 'Пока нет отзывов — станьте его первым учеником',
-        'teacher.no_reviews_be_her': 'Пока нет отзывов — станьте её первым учеником',
-        'teacher.no_reviews_be_their': 'Пока нет отзывов — станьте первым учеником',
+        'teacher.taking_first_students_his':
+            'Новый на ConvoMate — набирает первых учеников',
+        'teacher.taking_first_students_her':
+            'Новая на ConvoMate — набирает первых учеников',
+        'teacher.taking_first_students_their':
+            'Новый на ConvoMate — набирает первых учеников',
+        'teacher.no_reviews_be_his':
+            'Пока нет отзывов — станьте его первым учеником',
+        'teacher.no_reviews_be_her':
+            'Пока нет отзывов — станьте её первым учеником',
+        'teacher.no_reviews_be_their':
+            'Пока нет отзывов — станьте первым учеником',
 
         // Pupil booking / teachers list
         'pupil.find_teachers': 'Найти учителя',
@@ -1830,10 +1912,13 @@ const dictionary = {
         'teacher.cancel_success': 'Бронирование успешно отменено',
         'teacher.cancel_title': 'Отмена занятия',
         'teacher.reject_title': 'Отклонить запрос',
-        'teacher.cancel_desc': 'Укажите причину отмены этого занятия. Она будет видна ученику.',
-        'teacher.reject_desc': 'Укажите причину отклонения этого запроса. Она будет видна ученику.',
+        'teacher.cancel_desc':
+            'Укажите причину отмены этого занятия. Она будет видна ученику.',
+        'teacher.reject_desc':
+            'Укажите причину отклонения этого запроса. Она будет видна ученику.',
         'teacher.reason_placeholder': 'Введите причину здесь...',
-        'teacher.reason_length_validation': 'Причина должна быть длиной от 3 до 1000 символов',
+        'teacher.reason_length_validation':
+            'Причина должна быть длиной от 3 до 1000 символов',
         'teacher.action_failed': 'Действие не удалось',
         'schedule.title': 'Моё расписание',
         'schedule.desc': 'Ваши предстоящие подтвержденные занятия.',
@@ -1917,7 +2002,8 @@ const dictionary = {
         'bookings.delete_error': 'Не удалось удалить запись о занятии',
         'bookings.status_rejected': 'Отклонено',
         'bookings.cancel_title': 'Отмена бронирования',
-        'bookings.cancel_desc': 'Укажите причину отмены. Она будет видна преподавателю.',
+        'bookings.cancel_desc':
+            'Укажите причину отмены. Она будет видна преподавателю.',
         'bookings.cancel_reason_placeholder': 'Введите причину здесь...',
         'bookings.cancelling': 'Отмена...',
         'bookings.confirm_cancel': 'Подтвердить отмену',
@@ -1970,15 +2056,21 @@ const dictionary = {
         'progress.week_2_goal': 'Цель недели 2',
         'progress.week_3': 'Неделя 3',
         'progress.one_session_left': 'Остался 1 урок до завершения этой недели',
-        'progress.sessions_left': 'Осталось :count уроков до завершения этой недели',
-        'progress.book_with_teacher_free': 'забронируйте следующий урок с топ-преподавателем',
+        'progress.sessions_left':
+            'Осталось :count уроков до завершения этой недели',
+        'progress.book_with_teacher_free':
+            'забронируйте следующий урок с топ-преподавателем',
         'progress.book_it': 'Забронировать',
         'progress.set_weekly_goal_title': 'Установить недельную цель уроков',
-        'progress.sessions_per_week_label': 'Целевое количество уроков / неделя',
-        'progress.goal_range_hint': 'Введите реалистичную цель от 1 до 350 уроков в неделю.',
+        'progress.sessions_per_week_label':
+            'Целевое количество уроков / неделя',
+        'progress.goal_range_hint':
+            'Введите реалистичную цель от 1 до 350 уроков в неделю.',
         'progress.save_goal': 'Сохранить цель',
-        'progress.positive_goal_error': 'Пожалуйста, введите положительное целое число для недельной цели.',
-        'progress.unrealistic_goal': 'Респект большим целям! Но будьте реалистом, как разработчик!',
+        'progress.positive_goal_error':
+            'Пожалуйста, введите положительное целое число для недельной цели.',
+        'progress.unrealistic_goal':
+            'Респект большим целям! Но будьте реалистом, как разработчик!',
         'progress.goal_updated_success': 'Недельная цель успешно обновлена!',
         'profile.title': 'Профиль',
         'profile.desc': 'Обновите свое имя и адрес электронной почты',
@@ -2017,9 +2109,18 @@ const dictionary = {
         'security.update_password': 'Обновить пароль',
         'security.update_password_desc':
             'Убедитесь, что ваш аккаунт использует длинный и случайный пароль для безопасности',
+        'security.set_password': 'Установить пароль',
+        'security.set_password_desc':
+            'Вы вошли через Google. Установите пароль, чтобы входить по email и паролю.',
+        'security.set_password_button': 'Установить пароль',
         'security.current_password': 'Текущий пароль',
         'security.new_password': 'Новый пароль',
         'security.confirm_password': 'Подтвердите пароль',
+        'profile.delete_confirm_desc_password':
+            'Пожалуйста, введите пароль, чтобы подтвердить безвозвратное удаление аккаунта.',
+        'profile.delete_confirm_desc_email':
+            'Пожалуйста, введите email (:email), чтобы подтвердить безвозвратное удаление аккаунта.',
+        'profile.delete_email_placeholder': 'Введите адрес электронной почты',
         'appearance.title': 'Настройки оформления',
         'appearance.desc': 'Обновите настройки внешнего вида вашего аккаунта',
         'appearance.light': 'Светлая',
@@ -2028,7 +2129,8 @@ const dictionary = {
 
         // admin management
         'admin.confirm_delete_user_title': 'Удалить аккаунт пользователя',
-        'admin.confirm_delete_user_message': 'Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить, и все данные профиля и занятий будут безвозвратно удалены.',
+        'admin.confirm_delete_user_message':
+            'Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить, и все данные профиля и занятий будут безвозвратно удалены.',
         'admin.delete_user': 'Удалить пользователя',
         'admin.delete_teacher': 'Удалить преподавателя',
         'admin.delete_pupil': 'Удалить ученика',
@@ -2060,7 +2162,9 @@ export function useTranslation() {
             const raw = parts[parts.length - 1];
             text = raw
                 .split('_')
-                .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .map(
+                    (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
+                )
                 .join(' ');
         }
 

@@ -35,6 +35,7 @@ class User extends Authenticatable implements PasskeyUser
         'role',
         'avatar',
         'gender',
+        'has_password',
 
         // Google OAuth
         'google_connected',
@@ -51,6 +52,7 @@ class User extends Authenticatable implements PasskeyUser
     ];
 
     protected $casts = [
+        'has_password' => 'boolean',
         'google_connected' => 'boolean',
         'google_scopes' => 'array',
         'google_token_expires_at' => 'datetime',

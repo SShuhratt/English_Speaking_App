@@ -5,6 +5,8 @@ export type User = {
     email: string;
     role?: string;
     avatar?: string;
+    has_password?: boolean;
+    google_connected?: boolean;
     streak_count?: number;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;

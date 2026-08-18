@@ -10,15 +10,17 @@ import ManageTwoFactor from '@/components/manage-two-factor';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/security';
 import { useTranslation } from '@/hooks/use-translation';
+import { edit } from '@/routes/security';
 
 type Props = {
+    hasPassword?: boolean;
     passwordRules: string;
 } & ManagePasskeysProps &
     ManageTwoFactorProps;
 
 export default function Security(props: Props) {
+    const hasPassword = props.hasPassword ?? true;
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
     const { t } = useTranslation();
@@ -32,8 +34,16 @@ export default function Security(props: Props) {
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title={t('security.update_password')}
-                    description={t('security.update_password_desc')}
+                    title={
+                        hasPassword
+                            ? t('security.update_password')
+                            : t('security.set_password')
+                    }
+                    description={
+                        hasPassword
+                            ? t('security.update_password_desc')
+                            : t('security.set_password_desc')
+                    }
                 />
 
                 <Form
@@ -41,11 +51,15 @@ export default function Security(props: Props) {
                     options={{
                         preserveScroll: true,
                     }}
-                    resetOnError={[
-                        'password',
-                        'password_confirmation',
-                        'current_password',
-                    ]}
+                    resetOnError={
+                        hasPassword
+                            ? [
+                                  'password',
+                                  'password_confirmation',
+                                  'current_password',
+                              ]
+                            : ['password', 'password_confirmation']
+                    }
                     resetOnSuccess
                     onError={(errors) => {
                         if (errors.password) {
@@ -60,22 +74,28 @@ export default function Security(props: Props) {
                 >
                     {({ errors, processing }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="current_password">
-                                    {t('security.current_password')}
-                                </Label>
+                            {hasPassword && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="current_password">
+                                        {t('security.current_password')}
+                                    </Label>
 
-                                <PasswordInput
-                                    id="current_password"
-                                    ref={currentPasswordInput}
-                                    name="current_password"
-                                    className="mt-1 block w-full"
-                                    autoComplete="current-password"
-                                    placeholder={t('security.current_password')}
-                                />
+                                    <PasswordInput
+                                        id="current_password"
+                                        ref={currentPasswordInput}
+                                        name="current_password"
+                                        className="mt-1 block w-full"
+                                        autoComplete="current-password"
+                                        placeholder={t(
+                                            'security.current_password',
+                                        )}
+                                    />
 
-                                <InputError message={errors.current_password} />
-                            </div>
+                                    <InputError
+                                        message={errors.current_password}
+                                    />
+                                </div>
+                            )}
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password">
@@ -119,7 +139,9 @@ export default function Security(props: Props) {
                                     disabled={processing}
                                     data-test="update-password-button"
                                 >
-                                    {t('profile.save')}
+                                    {hasPassword
+                                        ? t('profile.save')
+                                        : t('security.set_password_button')}
                                 </Button>
                             </div>
                         </>

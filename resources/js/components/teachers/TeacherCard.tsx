@@ -32,7 +32,9 @@ export default function TeacherCard({ teacher }: TeacherProps) {
     const { auth } = usePage<any>().props;
     const isTeacher = auth?.user?.role === 'teacher';
 
-    const cardHref = isTeacher ? `/teacher/teachers/${teacher.id}` : `/pupil/teachers/${teacher.id}`;
+    const cardHref = isTeacher
+        ? `/teacher/teachers/${teacher.id}`
+        : `/pupil/teachers/${teacher.id}`;
 
     const initials = teacher.full_name
         .split(' ')
@@ -43,7 +45,8 @@ export default function TeacherCard({ teacher }: TeacherProps) {
     const labels = teacher.teacher_profile?.labels || [];
 
     const formatNextSlot = (nextSlot?: { start_at: string } | null) => {
-        if (!nextSlot?.start_at) return t('teachers.no_slots') || 'Next slot: available soon';
+        if (!nextSlot?.start_at)
+            return t('teachers.no_slots') || 'Next slot: available soon';
         const start = new Date(nextSlot.start_at);
         const now = new Date();
         const todayStr = now.toDateString();
@@ -52,14 +55,22 @@ export default function TeacherCard({ teacher }: TeacherProps) {
         tomorrow.setDate(tomorrow.getDate() + 1);
         const tomorrowStr = tomorrow.toDateString();
 
-        const timeStr = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const timeStr = start.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
 
         if (start.toDateString() === todayStr) {
             return `Next slot: today ${timeStr}`;
         } else if (start.toDateString() === tomorrowStr) {
             return `Next slot: tomorrow ${timeStr}`;
         } else {
-            const dayName = start.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+            const dayName = start.toLocaleDateString([], {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+            });
             return `Next slot: ${dayName} ${timeStr}`;
         }
     };
@@ -68,7 +79,11 @@ export default function TeacherCard({ teacher }: TeacherProps) {
         const raw = (teacher.teacher_profile as any)?.certificates;
         if (!raw) return [];
         try {
-            return typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
+            return typeof raw === 'string'
+                ? JSON.parse(raw)
+                : Array.isArray(raw)
+                  ? raw
+                  : [];
         } catch (e) {
             return [];
         }
@@ -76,15 +91,19 @@ export default function TeacherCard({ teacher }: TeacherProps) {
 
     const primaryCert = certsArray[0];
     const overallScore = primaryCert?.overall || primaryCert?.speaking || '';
-    const certType = primaryCert?.type === 'other' && primaryCert?.custom_type_name
-        ? primaryCert.custom_type_name
-        : (primaryCert?.type ? String(primaryCert.type).toUpperCase() : 'IELTS');
+    const certType =
+        primaryCert?.type === 'other' && primaryCert?.custom_type_name
+            ? primaryCert.custom_type_name
+            : primaryCert?.type
+              ? String(primaryCert.type).toUpperCase()
+              : 'IELTS';
 
-    const bandText = certsArray.length > 0 && overallScore
-        ? `${certType} ${overallScore} verified`
-        : certsArray.length > 0 && teacher.teacher_profile?.overall_level
-        ? `${teacher.teacher_profile.overall_level} verified`
-        : 'Verified Tutor';
+    const bandText =
+        certsArray.length > 0 && overallScore
+            ? `${certType} ${overallScore} verified`
+            : certsArray.length > 0 && teacher.teacher_profile?.overall_level
+              ? `${teacher.teacher_profile.overall_level} verified`
+              : 'Verified Tutor';
 
     const headlineText =
         teacher.teacher_profile?.headline ||
@@ -98,9 +117,13 @@ export default function TeacherCard({ teacher }: TeacherProps) {
             <div>
                 {/* Header Profile Section */}
                 <div className="flex items-center gap-3.5">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] text-sm font-bold text-[#1E2A5A] shadow-sm transition-transform duration-300 group-hover:scale-105 overflow-hidden">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#F7DE8B] text-sm font-bold text-[#1E2A5A] shadow-sm transition-transform duration-300 group-hover:scale-105">
                         {teacher.avatar ? (
-                            <img src={teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                            <img
+                                src={teacher.avatar}
+                                className="h-full w-full object-cover"
+                                alt="avatar"
+                            />
                         ) : (
                             initials
                         )}
@@ -169,7 +192,9 @@ export default function TeacherCard({ teacher }: TeacherProps) {
                     </div>
 
                     <div className="inline-flex items-center justify-center rounded-full bg-[#1E2A5A] px-5 py-2 text-xs font-bold text-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-hover:bg-[#061445]">
-                        {isTeacher ? (t('teachers.view') || 'View') : (t('teachers.book') || 'Book')}
+                        {isTeacher
+                            ? t('teachers.view') || 'View'
+                            : t('teachers.book') || 'Book'}
                     </div>
                 </div>
             </div>

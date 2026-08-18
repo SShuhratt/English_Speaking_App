@@ -38,6 +38,7 @@ class SecurityController extends Controller
                     ->values()
                     ->all()
                 : [],
+            'hasPassword' => (bool) ($request->user()->has_password ?? true),
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
         ];
 
@@ -56,11 +57,16 @@ class SecurityController extends Controller
      */
     public function update(PasswordUpdateRequest $request): RedirectResponse
     {
-        $request->user()->update([
+        $user = $request->user();
+        $isFirstTime = ! $user->has_password;
+
+        $user->update([
             'password' => Hash::make($request->password),
+            'has_password' => true,
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
+        $message = $isFirstTime ? __('Password created successfully.') : __('Password updated.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
 
         return back();
     }

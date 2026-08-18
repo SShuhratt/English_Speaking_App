@@ -2,12 +2,25 @@ import { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { MessageSquare, Send, HelpCircle, ShieldAlert, CheckCircle2, User } from 'lucide-react';
+import {
+    MessageSquare,
+    Send,
+    HelpCircle,
+    ShieldAlert,
+    CheckCircle2,
+    User,
+} from 'lucide-react';
 
 interface AdminUser {
     id: string;
@@ -55,9 +68,12 @@ export default function Support({ messages = [] }: Props) {
                             <HelpCircle className="h-8 w-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold">Help & Support Desk</h1>
+                            <h1 className="text-2xl font-bold">
+                                Help & Support Desk
+                            </h1>
                             <p className="text-sm text-indigo-100">
-                                Contact the Convomate platform admins, report an issue, or read announcements.
+                                Contact the Convomate platform admins, report an
+                                issue, or read announcements.
                             </p>
                         </div>
                     </div>
@@ -73,21 +89,32 @@ export default function Support({ messages = [] }: Props) {
                                     Send Message to Admin
                                 </CardTitle>
                                 <CardDescription>
-                                    Have a question, feedback, or payment issue? Send us a direct message.
+                                    Have a question, feedback, or payment issue?
+                                    Send us a direct message.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <form onSubmit={handleSubmit} className="space-y-4">
+                                <form
+                                    onSubmit={handleSubmit}
+                                    className="space-y-4"
+                                >
                                     <div className="space-y-1.5">
                                         <Label htmlFor="subject">Subject</Label>
                                         <Input
                                             id="subject"
                                             placeholder="e.g., Booking error or Payment question"
                                             value={data.subject}
-                                            onChange={(e) => setData('subject', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'subject',
+                                                    e.target.value,
+                                                )
+                                            }
                                         />
                                         {errors.subject && (
-                                            <p className="text-xs text-destructive">{errors.subject}</p>
+                                            <p className="text-xs text-destructive">
+                                                {errors.subject}
+                                            </p>
                                         )}
                                     </div>
 
@@ -98,10 +125,17 @@ export default function Support({ messages = [] }: Props) {
                                             rows={5}
                                             placeholder="Describe your question or concern in detail..."
                                             value={data.message}
-                                            onChange={(e) => setData('message', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'message',
+                                                    e.target.value,
+                                                )
+                                            }
                                         />
                                         {errors.message && (
-                                            <p className="text-xs text-destructive">{errors.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {errors.message}
+                                            </p>
                                         )}
                                     </div>
 
@@ -110,7 +144,9 @@ export default function Support({ messages = [] }: Props) {
                                         disabled={processing}
                                         className="w-full bg-indigo-600 font-semibold text-white hover:bg-indigo-700"
                                     >
-                                        {processing ? 'Sending...' : 'Send Message'}
+                                        {processing
+                                            ? 'Sending...'
+                                            : 'Send Message'}
                                     </Button>
                                 </form>
                             </CardContent>
@@ -126,19 +162,24 @@ export default function Support({ messages = [] }: Props) {
                                     Support History & Announcements
                                 </CardTitle>
                                 <CardDescription>
-                                    View platform broadcasts and responses from the administration team.
+                                    View platform broadcasts and responses from
+                                    the administration team.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {messages.length === 0 ? (
                                     <div className="py-12 text-center text-muted-foreground">
                                         <MessageSquare className="mx-auto h-12 w-12 stroke-1 opacity-40" />
-                                        <p className="mt-2 text-sm">No messages yet. Feel free to submit a ticket!</p>
+                                        <p className="mt-2 text-sm">
+                                            No messages yet. Feel free to submit
+                                            a ticket!
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
                                         {messages.map((msg) => {
-                                            const isBroadcast = msg.type === 'broadcast';
+                                            const isBroadcast =
+                                                msg.type === 'broadcast';
 
                                             return (
                                                 <div
@@ -153,28 +194,38 @@ export default function Support({ messages = [] }: Props) {
                                                         <div className="flex items-center gap-2">
                                                             {isBroadcast ? (
                                                                 <Badge className="bg-purple-600 hover:bg-purple-700">
-                                                                    Platform Announcement
+                                                                    Platform
+                                                                    Announcement
                                                                 </Badge>
                                                             ) : (
-                                                                <Badge variant="outline" className="capitalize">
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className="capitalize"
+                                                                >
                                                                     Ticket
                                                                 </Badge>
                                                             )}
                                                             <h4 className="font-semibold text-foreground">
-                                                                {msg.subject || 'Support Request'}
+                                                                {msg.subject ||
+                                                                    'Support Request'}
                                                             </h4>
                                                         </div>
                                                         <span className="text-[11px] text-muted-foreground">
-                                                            {new Date(msg.created_at).toLocaleDateString(undefined, {
-                                                                month: 'short',
-                                                                day: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit',
-                                                            })}
+                                                            {new Date(
+                                                                msg.created_at,
+                                                            ).toLocaleDateString(
+                                                                undefined,
+                                                                {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                },
+                                                            )}
                                                         </span>
                                                     </div>
 
-                                                    <p className="mt-2 text-sm text-foreground/90 whitespace-pre-wrap">
+                                                    <p className="mt-2 text-sm whitespace-pre-wrap text-foreground/90">
                                                         {msg.message}
                                                     </p>
                                                 </div>

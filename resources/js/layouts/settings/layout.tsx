@@ -61,27 +61,28 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     };
 
     return (
-        <div className="px-4 py-8 max-w-6xl mx-auto space-y-8">
+        <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
             {/* Header Section */}
             <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
                 <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                 <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
-                
+
                 <div className="relative z-10 space-y-1.5">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                    <span className="text-[10px] font-black tracking-widest text-brand-yellow uppercase">
                         USER SETTINGS
                     </span>
                     <h1 className="text-3xl font-black tracking-tight text-white">
                         {t('settings.title') || 'Settings'}
                     </h1>
                     <p className="text-sm font-medium text-brand-lightblue/80">
-                        {t('settings.subtitle') || 'Manage your account settings and preferences.'}
+                        {t('settings.subtitle') ||
+                            'Manage your account settings and preferences.'}
                     </p>
                 </div>
             </div>
 
             {/* Horizontal Settings Sub-Navigation */}
-            <div className="flex gap-6 border-b border-brand-pale-blue/30 overflow-x-auto whitespace-nowrap scrollbar-none">
+            <div className="flex scrollbar-none gap-6 overflow-x-auto border-b border-brand-pale-blue/30 whitespace-nowrap">
                 {sidebarNavItems.map((item, index) => {
                     const isActive = isCurrentOrParentUrl(item.href);
                     return (
@@ -89,10 +90,10 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                             key={`${toUrl(item.href)}-${index}`}
                             href={item.href}
                             className={cn(
-                                "pb-4 text-sm font-bold tracking-wide transition-colors relative",
+                                'relative pb-4 text-sm font-bold tracking-wide transition-colors',
                                 isActive
-                                    ? "text-brand-navy border-b-2 border-brand-yellow -mb-[2px]"
-                                    : "text-brand-navy/50 hover:text-brand-navy"
+                                    ? '-mb-[2px] border-b-2 border-brand-yellow text-brand-navy'
+                                    : 'text-brand-navy/50 hover:text-brand-navy',
                             )}
                         >
                             {getTranslatedTitle(item.title)}
@@ -102,9 +103,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             </div>
 
             {/* Form Content Wrapper */}
-            <div className="w-full">
-                {children}
-            </div>
+            <div className="w-full">{children}</div>
         </div>
     );
 }

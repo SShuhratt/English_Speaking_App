@@ -151,7 +151,11 @@ export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-1 group-data-[collapsible=icon]:py-3">
-                <Link href={role === 'admin' ? '/admin/dashboard' : '/dashboard'} prefetch className="flex items-center">
+                <Link
+                    href={role === 'admin' ? '/admin/dashboard' : '/dashboard'}
+                    prefetch
+                    className="flex items-center"
+                >
                     <AppLogo />
                 </Link>
             </SidebarHeader>

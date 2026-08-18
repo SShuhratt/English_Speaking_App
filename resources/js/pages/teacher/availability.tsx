@@ -325,7 +325,9 @@ export default function Availability({
     const [currentDate, setCurrentDate] = useState(new Date()); // Month focus for sidebar mini-calendar
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-    const [selectedSlotDetail, setSelectedSlotDetail] = useState<any | null>(null);
+    const [selectedSlotDetail, setSelectedSlotDetail] = useState<any | null>(
+        null,
+    );
 
     // Calendar visibility toggles
     const [showCustom, setShowCustom] = useState(true);
@@ -457,12 +459,30 @@ export default function Availability({
             payload.start_time = editData.start_time;
             payload.end_time = editData.end_time;
         } else {
-            const [startHour, startMin] = editData.start_time.split(':').map(Number);
+            const [startHour, startMin] = editData.start_time
+                .split(':')
+                .map(Number);
             const [endHour, endMin] = editData.end_time.split(':').map(Number);
             const [year, month, day] = editData.date.split('-').map(Number);
 
-            const startLocal = new Date(year, month - 1, day, startHour, startMin, 0, 0);
-            const endLocal = new Date(year, month - 1, day, endHour, endMin, 0, 0);
+            const startLocal = new Date(
+                year,
+                month - 1,
+                day,
+                startHour,
+                startMin,
+                0,
+                0,
+            );
+            const endLocal = new Date(
+                year,
+                month - 1,
+                day,
+                endHour,
+                endMin,
+                0,
+                0,
+            );
             if (endLocal <= startLocal) {
                 endLocal.setDate(endLocal.getDate() + 1);
             }
@@ -636,7 +656,10 @@ export default function Availability({
         const slotsList: any[] = [];
 
         avails.forEach((avail) => {
-            let startH = 9, startM = 0, endH = 17, endM = 0;
+            let startH = 9,
+                startM = 0,
+                endH = 17,
+                endM = 0;
             if (avail.type === 'custom') {
                 const sLocal = parseUtcDate(avail.start_at);
                 const eLocal = parseUtcDate(avail.end_at);
@@ -644,16 +667,31 @@ export default function Availability({
                 startM = sLocal.getMinutes();
                 endH = eLocal.getHours();
                 endM = eLocal.getMinutes();
-                if (formatDateString(sLocal) !== dateStr) { startH = 0; startM = 0; }
-                if (formatDateString(eLocal) !== dateStr) { endH = 24; endM = 0; }
+                if (formatDateString(sLocal) !== dateStr) {
+                    startH = 0;
+                    startM = 0;
+                }
+                if (formatDateString(eLocal) !== dateStr) {
+                    endH = 24;
+                    endM = 0;
+                }
             } else {
-                const [sh, sm] = (avail.start_time || '09:00').split(':').map(Number);
-                const [eh, em] = (avail.end_time || '17:00').split(':').map(Number);
-                startH = sh; startM = sm;
-                endH = eh; endM = em;
+                const [sh, sm] = (avail.start_time || '09:00')
+                    .split(':')
+                    .map(Number);
+                const [eh, em] = (avail.end_time || '17:00')
+                    .split(':')
+                    .map(Number);
+                startH = sh;
+                startM = sm;
+                endH = eh;
+                endM = em;
             }
 
-            const slotDur = (avail.slot_duration && avail.slot_duration > 0) ? avail.slot_duration : 30;
+            const slotDur =
+                avail.slot_duration && avail.slot_duration > 0
+                    ? avail.slot_duration
+                    : 30;
             let currMinutes = startH * 60 + startM;
             const endMinutes = endH * 60 + endM;
 
@@ -663,12 +701,28 @@ export default function Availability({
                 const eH = Math.floor((currMinutes + slotDur) / 60);
                 const eM = (currMinutes + slotDur) % 60;
 
-                const slotStart = new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate(), sH, sM, 0);
-                const slotEnd = new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate(), eH, eM, 0);
+                const slotStart = new Date(
+                    colDate.getFullYear(),
+                    colDate.getMonth(),
+                    colDate.getDate(),
+                    sH,
+                    sM,
+                    0,
+                );
+                const slotEnd = new Date(
+                    colDate.getFullYear(),
+                    colDate.getMonth(),
+                    colDate.getDate(),
+                    eH,
+                    eM,
+                    0,
+                );
 
                 const matchingApp = (appointments || []).find((app: any) => {
                     if (app.status === 'cancelled') {
-                        const cancelledAt = app.updated_at ? new Date(app.updated_at) : new Date();
+                        const cancelledAt = app.updated_at
+                            ? new Date(app.updated_at)
+                            : new Date();
                         const appStart = new Date(app.start_at);
                         if (cancelledAt.getTime() <= appStart.getTime()) {
                             return false; // restored slot!
@@ -683,9 +737,16 @@ export default function Availability({
 
                 let status = 'available';
                 if (matchingApp) {
-                    if (matchingApp.payment_status === 'verifying' || matchingApp.status === 'pending') {
+                    if (
+                        matchingApp.payment_status === 'verifying' ||
+                        matchingApp.status === 'pending'
+                    ) {
                         status = 'awaiting_payment';
-                    } else if (matchingApp.status === 'accepted' || matchingApp.status === 'confirmed' || matchingApp.payment_status === 'paid') {
+                    } else if (
+                        matchingApp.status === 'accepted' ||
+                        matchingApp.status === 'confirmed' ||
+                        matchingApp.payment_status === 'paid'
+                    ) {
                         if (now.getTime() >= slotEnd.getTime()) {
                             status = 'completed';
                         } else {
@@ -1021,7 +1082,10 @@ export default function Availability({
                 <div className="mx-6 mt-3 mb-1 flex items-center gap-3 rounded-2xl border border-[#F7DE8B] bg-[#FBEDBD]/60 px-4 py-3 text-xs text-[#5C4500]">
                     <Sparkles className="h-4 w-4 shrink-0 text-[#8A6A12]" />
                     <span>
-                        <strong>Trial lessons happen automatically.</strong> First-time students can book a 20-minute trial (⅓ of your lesson price) inside any slot you open below. You don't need to create or manage anything extra.
+                        <strong>Trial lessons happen automatically.</strong>{' '}
+                        First-time students can book a 20-minute trial (⅓ of
+                        your lesson price) inside any slot you open below. You
+                        don't need to create or manage anything extra.
                     </span>
                 </div>
 
@@ -1048,7 +1112,7 @@ export default function Availability({
                             }}
                             className="w-full justify-start gap-3 rounded-full border bg-white px-5 py-6 text-gray-800 shadow-md transition-all hover:bg-muted hover:shadow-lg"
                         >
-                             <Plus className="h-6 w-6 text-brand-brown" />
+                            <Plus className="h-6 w-6 text-brand-brown" />
                             <span className="text-sm font-semibold tracking-wide">
                                 {t.createAvailability}
                             </span>
@@ -1151,7 +1215,7 @@ export default function Availability({
                                     }
                                     className="h-4.5 w-4.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                 />
-                                 <span className="text-sm font-medium text-foreground transition-all group-hover:text-brand-brown">
+                                <span className="text-sm font-medium text-foreground transition-all group-hover:text-brand-brown">
                                     {t.singleDateOverride}
                                 </span>
                             </label>
@@ -1163,7 +1227,7 @@ export default function Availability({
                                     onChange={(e) =>
                                         setShowRecurring(e.target.checked)
                                     }
-                                     className="h-4.5 w-4.5 rounded border-gray-300 text-brand-brown focus:ring-brand-brown"
+                                    className="h-4.5 w-4.5 rounded border-gray-300 text-brand-brown focus:ring-brand-brown"
                                 />
                                 <span className="text-sm font-medium text-foreground transition-all group-hover:text-brand-brown">
                                     {t.weeklyRecurring}
@@ -1183,21 +1247,28 @@ export default function Availability({
                         <div className="flex w-full min-w-0 flex-1 flex-col overflow-hidden">
                             {/* Status Legend Bar */}
                             <div className="flex flex-wrap items-center gap-2 border-b bg-card/60 p-2.5 px-4 text-xs">
-                                <span className="font-bold text-muted-foreground mr-1">Status Legend:</span>
-                                <div className="flex items-center gap-1.5 font-bold text-emerald-900 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-600"></span> Available
+                                <span className="mr-1 font-bold text-muted-foreground">
+                                    Status Legend:
+                                </span>
+                                <div className="flex items-center gap-1.5 rounded-md border border-emerald-500 bg-emerald-500/20 px-2 py-0.5 font-bold text-emerald-900">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-600"></span>{' '}
+                                    Available
                                 </div>
-                                <div className="flex items-center gap-1.5 font-bold text-amber-950 bg-amber-400 px-2 py-0.5 rounded-md border border-amber-600">
-                                    <span className="h-2 w-2 rounded-full bg-amber-700"></span> Awaiting for payment
+                                <div className="flex items-center gap-1.5 rounded-md border border-amber-600 bg-amber-400 px-2 py-0.5 font-bold text-amber-950">
+                                    <span className="h-2 w-2 rounded-full bg-amber-700"></span>{' '}
+                                    Awaiting for payment
                                 </div>
-                                <div className="flex items-center gap-1.5 font-bold text-white bg-indigo-950 px-2 py-0.5 rounded-md border border-indigo-700">
-                                    <span className="h-2 w-2 rounded-full bg-indigo-400"></span> Booked
+                                <div className="flex items-center gap-1.5 rounded-md border border-indigo-700 bg-indigo-950 px-2 py-0.5 font-bold text-white">
+                                    <span className="h-2 w-2 rounded-full bg-indigo-400"></span>{' '}
+                                    Booked
                                 </div>
-                                <div className="flex items-center gap-1.5 font-bold text-rose-900 bg-rose-500/15 px-2 py-0.5 rounded-md border border-rose-400">
-                                    <Clock className="h-3 w-3 text-rose-600" /> Expired
+                                <div className="flex items-center gap-1.5 rounded-md border border-rose-400 bg-rose-500/15 px-2 py-0.5 font-bold text-rose-900">
+                                    <Clock className="h-3 w-3 text-rose-600" />{' '}
+                                    Expired
                                 </div>
-                                <div className="flex items-center gap-1.5 font-bold text-white bg-rose-600 px-2 py-0.5 rounded-md border border-rose-800">
-                                    <Check className="h-3 w-3 text-white" /> Completed
+                                <div className="flex items-center gap-1.5 rounded-md border border-rose-800 bg-rose-600 px-2 py-0.5 font-bold text-white">
+                                    <Check className="h-3 w-3 text-white" />{' '}
+                                    Completed
                                 </div>
                             </div>
 
@@ -1219,7 +1290,7 @@ export default function Availability({
                                                         selectedDate,
                                                     ) ===
                                                     formatDateString(new Date())
-                                                         ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/20'
+                                                        ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/20'
                                                         : ''
                                                 }`}
                                             >
@@ -1332,7 +1403,7 @@ export default function Availability({
                                     <div className="absolute inset-0 flex">
                                         {view === 'day' ? (
                                             <div
-                                                 className="relative h-full flex-1 cursor-pointer transition-colors hover:bg-brand-brown/5"
+                                                className="relative h-full flex-1 cursor-pointer transition-colors hover:bg-brand-brown/5"
                                                 onClick={(e) =>
                                                     handleGridClick(
                                                         e,
@@ -1344,27 +1415,65 @@ export default function Availability({
                                                 {getSlotsWithStatusForDate(
                                                     selectedDate,
                                                 ).map((slot) => {
-                                                    const topPx = (slot.startMinutes / 60) * 60;
-                                                    const heightPx = Math.max(26, (slot.durationMinutes / 60) * 60);
+                                                    const topPx =
+                                                        (slot.startMinutes /
+                                                            60) *
+                                                        60;
+                                                    const heightPx = Math.max(
+                                                        26,
+                                                        (slot.durationMinutes /
+                                                            60) *
+                                                            60,
+                                                    );
 
-                                                    let statusStyle = 'border-emerald-500 bg-emerald-500/20 text-emerald-900 border-l-4';
-                                                    let statusText = t.available || 'Available';
+                                                    let statusStyle =
+                                                        'border-emerald-500 bg-emerald-500/20 text-emerald-900 border-l-4';
+                                                    let statusText =
+                                                        t.available ||
+                                                        'Available';
                                                     let icon = null;
 
-                                                    if (slot.status === 'awaiting_payment') {
-                                                        statusStyle = 'border-amber-600 bg-amber-400 text-amber-950 border-l-4 font-bold shadow-sm';
-                                                        statusText = t.awaitingPayment || 'Awaiting for payment';
-                                                    } else if (slot.status === 'booked') {
-                                                        statusStyle = 'border-indigo-700 bg-indigo-950 text-white border-l-4 font-bold shadow-sm';
-                                                        statusText = t.booked || 'Booked';
-                                                    } else if (slot.status === 'completed') {
-                                                        statusStyle = 'border-rose-800 bg-rose-600 text-white border-l-4 font-bold shadow-sm';
-                                                        statusText = t.completed || 'Completed';
-                                                        icon = <Check className="h-3.5 w-3.5 inline text-white mr-1" />;
-                                                    } else if (slot.status === 'expired') {
-                                                        statusStyle = 'border-rose-400 bg-rose-500/15 text-rose-900 border-l-2';
-                                                        statusText = t.expired || 'Expired';
-                                                        icon = <Clock className="h-3.5 w-3.5 inline text-rose-600 mr-1" />;
+                                                    if (
+                                                        slot.status ===
+                                                        'awaiting_payment'
+                                                    ) {
+                                                        statusStyle =
+                                                            'border-amber-600 bg-amber-400 text-amber-950 border-l-4 font-bold shadow-sm';
+                                                        statusText =
+                                                            t.awaitingPayment ||
+                                                            'Awaiting for payment';
+                                                    } else if (
+                                                        slot.status === 'booked'
+                                                    ) {
+                                                        statusStyle =
+                                                            'border-indigo-700 bg-indigo-950 text-white border-l-4 font-bold shadow-sm';
+                                                        statusText =
+                                                            t.booked ||
+                                                            'Booked';
+                                                    } else if (
+                                                        slot.status ===
+                                                        'completed'
+                                                    ) {
+                                                        statusStyle =
+                                                            'border-rose-800 bg-rose-600 text-white border-l-4 font-bold shadow-sm';
+                                                        statusText =
+                                                            t.completed ||
+                                                            'Completed';
+                                                        icon = (
+                                                            <Check className="mr-1 inline h-3.5 w-3.5 text-white" />
+                                                        );
+                                                    } else if (
+                                                        slot.status ===
+                                                        'expired'
+                                                    ) {
+                                                        statusStyle =
+                                                            'border-rose-400 bg-rose-500/15 text-rose-900 border-l-2';
+                                                        statusText =
+                                                            t.expired ||
+                                                            'Expired';
+                                                        icon = (
+                                                            <Clock className="mr-1 inline h-3.5 w-3.5 text-rose-600" />
+                                                        );
                                                     }
 
                                                     return (
@@ -1372,14 +1481,21 @@ export default function Availability({
                                                             key={slot.id}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                if (slot.appointment) {
-                                                                    setSelectedSlotDetail(slot);
+                                                                if (
+                                                                    slot.appointment
+                                                                ) {
+                                                                    setSelectedSlotDetail(
+                                                                        slot,
+                                                                    );
                                                                 } else {
-                                                                    setSelectedEvent(slot.avail);
+                                                                    setSelectedEvent(
+                                                                        slot.avail,
+                                                                    );
                                                                 }
                                                             }}
                                                             style={{
-                                                                position: 'absolute',
+                                                                position:
+                                                                    'absolute',
                                                                 top: `${topPx}px`,
                                                                 height: `${heightPx}px`,
                                                                 left: '8px',
@@ -1390,17 +1506,26 @@ export default function Availability({
                                                             className={`availability-block flex cursor-pointer flex-col overflow-hidden rounded-xl p-2 transition-all hover:scale-[1.01] hover:shadow-md ${statusStyle}`}
                                                         >
                                                             <div className="flex items-center justify-between text-[11px] leading-tight">
-                                                                <span className="font-bold truncate flex items-center">
+                                                                <span className="flex items-center truncate font-bold">
                                                                     {icon}
-                                                                    {slot.timeLabel}
+                                                                    {
+                                                                        slot.timeLabel
+                                                                    }
                                                                 </span>
-                                                                <span className="text-[10px] uppercase tracking-wider font-extrabold truncate ml-1 opacity-90">
+                                                                <span className="ml-1 truncate text-[10px] font-extrabold tracking-wider uppercase opacity-90">
                                                                     {statusText}
                                                                 </span>
                                                             </div>
-                                                            {slot.appointment?.pupil && (
-                                                                <div className="text-[11px] truncate font-medium mt-0.5 opacity-95">
-                                                                    👤 {slot.appointment.pupil.full_name}
+                                                            {slot.appointment
+                                                                ?.pupil && (
+                                                                <div className="mt-0.5 truncate text-[11px] font-medium opacity-95">
+                                                                    👤{' '}
+                                                                    {
+                                                                        slot
+                                                                            .appointment
+                                                                            .pupil
+                                                                            .full_name
+                                                                    }
                                                                 </div>
                                                             )}
                                                         </div>
@@ -1429,7 +1554,7 @@ export default function Availability({
                                                 (day, colIdx) => (
                                                     <div
                                                         key={colIdx}
-                                                         className="relative h-full min-w-[35px] flex-1 cursor-pointer border-r border-muted-foreground/10 transition-colors last:border-r-0 hover:bg-brand-brown/5 md:min-w-[100px]"
+                                                        className="relative h-full min-w-[35px] flex-1 cursor-pointer border-r border-muted-foreground/10 transition-colors last:border-r-0 hover:bg-brand-brown/5 md:min-w-[100px]"
                                                         onClick={(e) =>
                                                             handleGridClick(
                                                                 e,
@@ -1438,43 +1563,96 @@ export default function Availability({
                                                         }
                                                     >
                                                         {/* Render 30-min Sub-slots with explicit status colors */}
-                                                        {getSlotsWithStatusForDate(day).map((slot) => {
-                                                            const topPx = (slot.startMinutes / 60) * 60;
-                                                            const heightPx = Math.max(22, (slot.durationMinutes / 60) * 60);
+                                                        {getSlotsWithStatusForDate(
+                                                            day,
+                                                        ).map((slot) => {
+                                                            const topPx =
+                                                                (slot.startMinutes /
+                                                                    60) *
+                                                                60;
+                                                            const heightPx =
+                                                                Math.max(
+                                                                    22,
+                                                                    (slot.durationMinutes /
+                                                                        60) *
+                                                                        60,
+                                                                );
 
-                                                            let statusStyle = 'border-emerald-500 bg-emerald-500/20 text-emerald-900 border-l-2';
-                                                            let statusText = t.available || 'Available';
+                                                            let statusStyle =
+                                                                'border-emerald-500 bg-emerald-500/20 text-emerald-900 border-l-2';
+                                                            let statusText =
+                                                                t.available ||
+                                                                'Available';
                                                             let icon = null;
 
-                                                            if (slot.status === 'awaiting_payment') {
-                                                                statusStyle = 'border-amber-600 bg-amber-400 text-amber-950 border-l-4 font-bold shadow-sm';
-                                                                statusText = t.awaitingPayment || 'Awaiting for payment';
-                                                            } else if (slot.status === 'booked') {
-                                                                statusStyle = 'border-indigo-700 bg-indigo-950 text-white border-l-4 font-bold shadow-sm';
-                                                                statusText = t.booked || 'Booked';
-                                                            } else if (slot.status === 'completed') {
-                                                                statusStyle = 'border-rose-800 bg-rose-600 text-white border-l-4 font-bold shadow-sm';
-                                                                statusText = t.completed || 'Completed';
-                                                                icon = <Check className="h-3 w-3 inline text-white mr-1" />;
-                                                            } else if (slot.status === 'expired') {
-                                                                statusStyle = 'border-rose-400 bg-rose-500/15 text-rose-900 border-l-2';
-                                                                statusText = t.expired || 'Expired';
-                                                                icon = <Clock className="h-3 w-3 inline text-rose-600 mr-1" />;
+                                                            if (
+                                                                slot.status ===
+                                                                'awaiting_payment'
+                                                            ) {
+                                                                statusStyle =
+                                                                    'border-amber-600 bg-amber-400 text-amber-950 border-l-4 font-bold shadow-sm';
+                                                                statusText =
+                                                                    t.awaitingPayment ||
+                                                                    'Awaiting for payment';
+                                                            } else if (
+                                                                slot.status ===
+                                                                'booked'
+                                                            ) {
+                                                                statusStyle =
+                                                                    'border-indigo-700 bg-indigo-950 text-white border-l-4 font-bold shadow-sm';
+                                                                statusText =
+                                                                    t.booked ||
+                                                                    'Booked';
+                                                            } else if (
+                                                                slot.status ===
+                                                                'completed'
+                                                            ) {
+                                                                statusStyle =
+                                                                    'border-rose-800 bg-rose-600 text-white border-l-4 font-bold shadow-sm';
+                                                                statusText =
+                                                                    t.completed ||
+                                                                    'Completed';
+                                                                icon = (
+                                                                    <Check className="mr-1 inline h-3 w-3 text-white" />
+                                                                );
+                                                            } else if (
+                                                                slot.status ===
+                                                                'expired'
+                                                            ) {
+                                                                statusStyle =
+                                                                    'border-rose-400 bg-rose-500/15 text-rose-900 border-l-2';
+                                                                statusText =
+                                                                    t.expired ||
+                                                                    'Expired';
+                                                                icon = (
+                                                                    <Clock className="mr-1 inline h-3 w-3 text-rose-600" />
+                                                                );
                                                             }
 
                                                             return (
                                                                 <div
-                                                                    key={slot.id}
-                                                                    onClick={(e) => {
+                                                                    key={
+                                                                        slot.id
+                                                                    }
+                                                                    onClick={(
+                                                                        e,
+                                                                    ) => {
                                                                         e.stopPropagation();
-                                                                        if (slot.appointment) {
-                                                                            setSelectedSlotDetail(slot);
+                                                                        if (
+                                                                            slot.appointment
+                                                                        ) {
+                                                                            setSelectedSlotDetail(
+                                                                                slot,
+                                                                            );
                                                                         } else {
-                                                                            setSelectedEvent(slot.avail);
+                                                                            setSelectedEvent(
+                                                                                slot.avail,
+                                                                            );
                                                                         }
                                                                     }}
                                                                     style={{
-                                                                        position: 'absolute',
+                                                                        position:
+                                                                            'absolute',
                                                                         top: `${topPx}px`,
                                                                         height: `${heightPx}px`,
                                                                         left: '1px',
@@ -1485,18 +1663,40 @@ export default function Availability({
                                                                     className={`availability-block flex cursor-pointer flex-col overflow-hidden rounded-md p-1 transition-all hover:scale-[1.01] hover:shadow-md ${statusStyle}`}
                                                                 >
                                                                     <div className="flex items-center justify-between text-[10px] leading-tight">
-                                                                        <span className="font-semibold truncate flex items-center">
-                                                                            {icon}
-                                                                            <span className="hidden md:inline">{slot.timeLabel}</span>
-                                                                            <span className="inline md:hidden">{slot.timeLabel.split(' - ')[0]}</span>
+                                                                        <span className="flex items-center truncate font-semibold">
+                                                                            {
+                                                                                icon
+                                                                            }
+                                                                            <span className="hidden md:inline">
+                                                                                {
+                                                                                    slot.timeLabel
+                                                                                }
+                                                                            </span>
+                                                                            <span className="inline md:hidden">
+                                                                                {
+                                                                                    slot.timeLabel.split(
+                                                                                        ' - ',
+                                                                                    )[0]
+                                                                                }
+                                                                            </span>
                                                                         </span>
-                                                                        <span className="hidden text-[9px] uppercase tracking-wider font-extrabold truncate ml-1 opacity-90 md:inline">
-                                                                            {statusText}
+                                                                        <span className="ml-1 hidden truncate text-[9px] font-extrabold tracking-wider uppercase opacity-90 md:inline">
+                                                                            {
+                                                                                statusText
+                                                                            }
                                                                         </span>
                                                                     </div>
-                                                                    {slot.appointment?.pupil && (
-                                                                        <div className="hidden text-[9px] truncate font-medium mt-0.5 opacity-95 md:block">
-                                                                            👤 {slot.appointment.pupil.full_name}
+                                                                    {slot
+                                                                        .appointment
+                                                                        ?.pupil && (
+                                                                        <div className="mt-0.5 hidden truncate text-[9px] font-medium opacity-95 md:block">
+                                                                            👤{' '}
+                                                                            {
+                                                                                slot
+                                                                                    .appointment
+                                                                                    .pupil
+                                                                                    .full_name
+                                                                            }
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -1554,11 +1754,16 @@ export default function Availability({
                                 </h3>
 
                                 <div>
-                                    <Label className="text-xs font-semibold">{t.availabilityType}</Label>
+                                    <Label className="text-xs font-semibold">
+                                        {t.availabilityType}
+                                    </Label>
                                     <Select
                                         value={editData.type}
                                         onValueChange={(val) =>
-                                            setEditData((prev) => ({ ...prev, type: val }))
+                                            setEditData((prev) => ({
+                                                ...prev,
+                                                type: val,
+                                            }))
                                         }
                                     >
                                         <SelectTrigger className="mt-1">
@@ -1577,35 +1782,57 @@ export default function Availability({
 
                                 {editData.type === 'recurring' ? (
                                     <div>
-                                        <Label className="text-xs font-semibold">{t.dateDay}</Label>
+                                        <Label className="text-xs font-semibold">
+                                            {t.dateDay}
+                                        </Label>
                                         <Select
                                             value={editData.day_of_week}
                                             onValueChange={(val) =>
-                                                setEditData((prev) => ({ ...prev, day_of_week: val }))
+                                                setEditData((prev) => ({
+                                                    ...prev,
+                                                    day_of_week: val,
+                                                }))
                                             }
                                         >
                                             <SelectTrigger className="mt-1 capitalize">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(
-                                                    (day) => (
-                                                        <SelectItem key={day} value={day} className="capitalize">
-                                                            {daysMap[lang][day as keyof (typeof daysMap)['en']] || day}
-                                                        </SelectItem>
-                                                    ),
-                                                )}
+                                                {[
+                                                    'monday',
+                                                    'tuesday',
+                                                    'wednesday',
+                                                    'thursday',
+                                                    'friday',
+                                                    'saturday',
+                                                    'sunday',
+                                                ].map((day) => (
+                                                    <SelectItem
+                                                        key={day}
+                                                        value={day}
+                                                        className="capitalize"
+                                                    >
+                                                        {daysMap[lang][
+                                                            day as keyof (typeof daysMap)['en']
+                                                        ] || day}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                 ) : (
                                     <div>
-                                        <Label className="text-xs font-semibold">{t.dateDay}</Label>
+                                        <Label className="text-xs font-semibold">
+                                            {t.dateDay}
+                                        </Label>
                                         <Input
                                             type="date"
                                             value={editData.date}
                                             onChange={(e) =>
-                                                setEditData((prev) => ({ ...prev, date: e.target.value }))
+                                                setEditData((prev) => ({
+                                                    ...prev,
+                                                    date: e.target.value,
+                                                }))
                                             }
                                             className="mt-1"
                                         />
@@ -1614,30 +1841,38 @@ export default function Availability({
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <Label className="text-xs font-semibold">{t.startTime}</Label>
+                                        <Label className="text-xs font-semibold">
+                                            {t.startTime}
+                                        </Label>
                                         <Input
                                             type="time"
                                             value={editData.start_time}
                                             onChange={(e) =>
-                                                setEditData((prev) => ({ ...prev, start_time: e.target.value }))
+                                                setEditData((prev) => ({
+                                                    ...prev,
+                                                    start_time: e.target.value,
+                                                }))
                                             }
                                             className="mt-1"
                                         />
                                     </div>
                                     <div>
-                                        <Label className="text-xs font-semibold">{t.endTime}</Label>
+                                        <Label className="text-xs font-semibold">
+                                            {t.endTime}
+                                        </Label>
                                         <Input
                                             type="time"
                                             value={editData.end_time}
                                             onChange={(e) =>
-                                                setEditData((prev) => ({ ...prev, end_time: e.target.value }))
+                                                setEditData((prev) => ({
+                                                    ...prev,
+                                                    end_time: e.target.value,
+                                                }))
                                             }
                                             className="mt-1"
                                         />
                                     </div>
                                 </div>
-
-
 
                                 <div className="mt-6 flex justify-end gap-2 border-t pt-4">
                                     <Button
@@ -1648,7 +1883,10 @@ export default function Availability({
                                     >
                                         {t.cancel}
                                     </Button>
-                                    <Button type="submit" className="rounded-lg">
+                                    <Button
+                                        type="submit"
+                                        className="rounded-lg"
+                                    >
                                         {t.updateAvailability}
                                     </Button>
                                 </div>
@@ -1678,14 +1916,16 @@ export default function Availability({
                                                     {t.dateDay}
                                                 </span>
                                                 <span className="capitalize">
-                                                    {selectedEvent.type === 'recurring'
+                                                    {selectedEvent.type ===
+                                                    'recurring'
                                                         ? `${t.every} ${daysMap[lang][selectedEvent.day_of_week as keyof (typeof daysMap)['en']] || selectedEvent.day_of_week}`
                                                         : parseUtcDate(
                                                               selectedEvent.start_at,
                                                           ).toLocaleDateString(
                                                               localeMap[lang],
                                                               {
-                                                                  weekday: 'long',
+                                                                  weekday:
+                                                                      'long',
                                                                   month: 'long',
                                                                   day: 'numeric',
                                                                   year: 'numeric',
@@ -1698,7 +1938,9 @@ export default function Availability({
                                                     {t.timeRange}
                                                 </span>
                                                 <span>
-                                                    {getEventTimeLabel(selectedEvent)}
+                                                    {getEventTimeLabel(
+                                                        selectedEvent,
+                                                    )}
                                                 </span>
                                             </p>
                                             <p className="flex items-center gap-2">
@@ -1706,7 +1948,8 @@ export default function Availability({
                                                     {t.slotDurationLabel}
                                                 </span>
                                                 <span>
-                                                    {selectedEvent.slot_duration === 0
+                                                    {selectedEvent.slot_duration ===
+                                                    0
                                                         ? t.slotDurationAll
                                                         : `${selectedEvent.slot_duration} ${t.minutesPerSession}`}
                                                 </span>
@@ -1731,7 +1974,9 @@ export default function Availability({
                                                 type="time"
                                                 value={rangeStartVal}
                                                 onChange={(e) =>
-                                                    setRangeStartVal(e.target.value)
+                                                    setRangeStartVal(
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 className="h-8 px-2 text-xs"
                                             />
@@ -1744,7 +1989,9 @@ export default function Availability({
                                                 type="time"
                                                 value={rangeEndVal}
                                                 onChange={(e) =>
-                                                    setRangeEndVal(e.target.value)
+                                                    setRangeEndVal(
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 className="h-8 px-2 text-xs"
                                             />
@@ -1771,7 +2018,9 @@ export default function Availability({
                                     </Button>
                                     <Button
                                         variant="destructive"
-                                        onClick={() => handleDelete(selectedEvent.id)}
+                                        onClick={() =>
+                                            handleDelete(selectedEvent.id)
+                                        }
                                         className="flex items-center gap-2 rounded-lg"
                                     >
                                         <Trash2 className="h-4 w-4" />{' '}
@@ -1901,8 +2150,6 @@ export default function Availability({
                                     )}
                                 </div>
                             </div>
-
-
                         </div>
 
                         <div className="mt-6 flex justify-end gap-3 border-t pt-4">
@@ -1917,7 +2164,7 @@ export default function Availability({
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                className="rounded-lg bg-brand-button hover:bg-brand-button-hover font-semibold text-brand-brown"
+                                className="rounded-lg bg-brand-button font-semibold text-brand-brown hover:bg-brand-button-hover"
                             >
                                 {processing ? t.saving : t.save}
                             </Button>
@@ -1928,9 +2175,9 @@ export default function Availability({
 
             {/* Selected Slot Detail Modal */}
             {selectedSlotDetail && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
-                        <div className="flex items-center justify-between border-b pb-3 mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-md animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-xl duration-150 zoom-in-95 fade-in">
+                        <div className="mb-4 flex items-center justify-between border-b pb-3">
                             <div className="flex items-center gap-2">
                                 <CalendarIcon className="h-5 w-5 text-[#1E2A5A]" />
                                 <h3 className="text-base font-bold text-[#1E2A5A]">
@@ -1946,52 +2193,80 @@ export default function Availability({
                         </div>
 
                         <div className="space-y-3 text-sm text-gray-700">
-                            <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
-                                <span className="font-medium text-gray-500">Time Range:</span>
-                                <span className="font-bold text-gray-900">{selectedSlotDetail.timeLabel}</span>
+                            <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
+                                <span className="font-medium text-gray-500">
+                                    Time Range:
+                                </span>
+                                <span className="font-bold text-gray-900">
+                                    {selectedSlotDetail.timeLabel}
+                                </span>
                             </div>
 
-                            <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
-                                <span className="font-medium text-gray-500">Status:</span>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider ${
-                                    selectedSlotDetail.status === 'awaiting_payment'
-                                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                        : selectedSlotDetail.status === 'booked'
-                                        ? 'bg-indigo-950 text-white border border-indigo-700'
-                                        : selectedSlotDetail.status === 'completed'
-                                        ? 'bg-rose-100 text-rose-900 border border-rose-300'
-                                        : selectedSlotDetail.status === 'expired'
-                                        ? 'bg-rose-50 text-rose-800 border border-rose-200'
-                                        : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                }`}>
-                                    {selectedSlotDetail.status === 'awaiting_payment'
+                            <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
+                                <span className="font-medium text-gray-500">
+                                    Status:
+                                </span>
+                                <span
+                                    className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold tracking-wider uppercase ${
+                                        selectedSlotDetail.status ===
+                                        'awaiting_payment'
+                                            ? 'border border-amber-300 bg-amber-100 text-amber-900'
+                                            : selectedSlotDetail.status ===
+                                                'booked'
+                                              ? 'border border-indigo-700 bg-indigo-950 text-white'
+                                              : selectedSlotDetail.status ===
+                                                  'completed'
+                                                ? 'border border-rose-300 bg-rose-100 text-rose-900'
+                                                : selectedSlotDetail.status ===
+                                                    'expired'
+                                                  ? 'border border-rose-200 bg-rose-50 text-rose-800'
+                                                  : 'border border-emerald-300 bg-emerald-100 text-emerald-900'
+                                    }`}
+                                >
+                                    {selectedSlotDetail.status ===
+                                    'awaiting_payment'
                                         ? 'Awaiting for payment'
                                         : selectedSlotDetail.status === 'booked'
-                                        ? 'Booked'
-                                        : selectedSlotDetail.status === 'completed'
-                                        ? 'Completed'
-                                        : selectedSlotDetail.status === 'expired'
-                                        ? 'Expired'
-                                        : 'Available'}
+                                          ? 'Booked'
+                                          : selectedSlotDetail.status ===
+                                              'completed'
+                                            ? 'Completed'
+                                            : selectedSlotDetail.status ===
+                                                'expired'
+                                              ? 'Expired'
+                                              : 'Available'}
                                 </span>
                             </div>
 
                             {selectedSlotDetail.appointment?.pupil && (
-                                <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
-                                    <span className="font-medium text-gray-500">Student:</span>
-                                    <span className="font-bold text-gray-900 flex items-center gap-1.5">
+                                <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
+                                    <span className="font-medium text-gray-500">
+                                        Student:
+                                    </span>
+                                    <span className="flex items-center gap-1.5 font-bold text-gray-900">
                                         <User className="h-4 w-4 text-brand-brown" />
-                                        {selectedSlotDetail.appointment.pupil.full_name}
+                                        {
+                                            selectedSlotDetail.appointment.pupil
+                                                .full_name
+                                        }
                                     </span>
                                 </div>
                             )}
 
-                            {selectedSlotDetail.appointment?.topics && selectedSlotDetail.appointment.topics.length > 0 && (
-                                <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border">
-                                    <span className="font-medium text-gray-500">Topics:</span>
-                                    <span className="font-bold text-gray-900">{selectedSlotDetail.appointment.topics.join(', ')}</span>
-                                </div>
-                            )}
+                            {selectedSlotDetail.appointment?.topics &&
+                                selectedSlotDetail.appointment.topics.length >
+                                    0 && (
+                                    <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
+                                        <span className="font-medium text-gray-500">
+                                            Topics:
+                                        </span>
+                                        <span className="font-bold text-gray-900">
+                                            {selectedSlotDetail.appointment.topics.join(
+                                                ', ',
+                                            )}
+                                        </span>
+                                    </div>
+                                )}
                         </div>
 
                         <div className="mt-6 flex justify-end">

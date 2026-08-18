@@ -12,7 +12,7 @@ class GoogleOAuthService
      */
     public function getValidAccessToken(User $user): string
     {
-        if (!$user->google_connected || !$user->google_refresh_token) {
+        if (! $user->google_connected || ! $user->google_refresh_token) {
             throw new \Exception('Google account not connected.');
         }
 
@@ -29,8 +29,8 @@ class GoogleOAuthService
             'grant_type' => 'refresh_token',
         ]);
 
-        if (!$response->successful()) {
-            throw new \Exception('Failed to refresh Google access token: ' . $response->body());
+        if (! $response->successful()) {
+            throw new \Exception('Failed to refresh Google access token: '.$response->body());
         }
 
         $data = $response->json();

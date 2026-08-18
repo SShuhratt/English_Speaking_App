@@ -181,7 +181,7 @@ class RegistrationTest extends TestCase
             'speaking_band' => 8.0,
             'ielts_certificates' => [
                 UploadedFile::fake()->create('cert1.jpg', 100, 'image/jpeg'),
-                UploadedFile::fake()->create('doc2.pdf', 100, 'application/pdf')
+                UploadedFile::fake()->create('doc2.pdf', 100, 'application/pdf'),
             ],
         ]);
 

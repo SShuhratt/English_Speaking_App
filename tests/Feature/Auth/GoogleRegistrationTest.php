@@ -77,7 +77,7 @@ class GoogleRegistrationTest extends TestCase
                 'google_token' => 'mock-access-token',
                 'google_refresh_token' => 'mock-refresh-token',
                 'google_expires_in' => 3600,
-            ]
+            ],
         ]);
 
         $response = $this->post(route('register.store'), [
@@ -94,6 +94,7 @@ class GoogleRegistrationTest extends TestCase
         $this->assertNotNull($user);
         $this->assertNotNull($user->email_verified_at);
         $this->assertTrue($user->google_connected);
+        $this->assertFalse($user->has_password);
         $this->assertEquals('Google Pupil', $user->full_name);
     }
 }

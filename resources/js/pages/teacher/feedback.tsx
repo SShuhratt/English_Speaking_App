@@ -29,9 +29,9 @@ export default function Feedback({ feedbacks }: Props) {
                 <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
-                    
+
                     <div className="relative z-10 space-y-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                        <span className="text-[10px] font-black tracking-widest text-brand-yellow uppercase">
                             FEEDBACK MANAGEMENT
                         </span>
                         <h1 className="text-3xl font-black tracking-tight text-white">

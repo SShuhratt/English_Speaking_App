@@ -14,7 +14,7 @@ class ProfileViewTest extends TestCase
     {
         $viewer = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
-        
+
         $teacher->teacherProfile()->create([
             'age' => 30,
             'price' => 50000,
@@ -38,7 +38,7 @@ class ProfileViewTest extends TestCase
     {
         $viewer = User::factory()->create(['role' => 'teacher']);
         $pupil = User::factory()->create(['role' => 'pupil']);
-        
+
         $pupil->pupilProfile()->create([
             'age' => 20,
             'level' => 'pre-intermediate',
@@ -79,7 +79,7 @@ class ProfileViewTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         $teacher->refresh();
         $this->assertEquals(0, $teacher->teacherProfile->price);
     }
@@ -102,7 +102,7 @@ class ProfileViewTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         $teacher->refresh();
         $this->assertNull($teacher->teacherProfile->price);
     }

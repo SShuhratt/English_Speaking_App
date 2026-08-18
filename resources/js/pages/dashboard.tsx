@@ -143,7 +143,10 @@ function PupilDashboard({
             router.reload();
         });
         channel.listen('.ConversationApproved', (e: any) => {
-            toast.info(t('dashboard.booking_approved_toast') || `Your session has been approved!`);
+            toast.info(
+                t('dashboard.booking_approved_toast') ||
+                    `Your session has been approved!`,
+            );
             router.reload();
         });
 
@@ -154,18 +157,24 @@ function PupilDashboard({
     }, [user.id]);
 
     const handleCancel = async (id: string) => {
-        const reason = prompt(t('dashboard.cancel_reason_prompt') || "Please enter the reason for cancellation (minimum 3 characters):");
+        const reason = prompt(
+            t('dashboard.cancel_reason_prompt') ||
+                'Please enter the reason for cancellation (minimum 3 characters):',
+        );
         if (reason === null) {
             return;
         }
         const trimmedReason = reason.trim();
         if (trimmedReason.length < 3) {
-            toast.error(t('dashboard.cancel_reason_min_length') || "Cancellation reason must be at least 3 characters.");
+            toast.error(
+                t('dashboard.cancel_reason_min_length') ||
+                    'Cancellation reason must be at least 3 characters.',
+            );
             return;
         }
         try {
             await axios.delete(`/bookings/${id}`, {
-                data: { reason: trimmedReason }
+                data: { reason: trimmedReason },
             });
             toast.success(t('dashboard.cancel_success'));
             router.reload();
@@ -198,9 +207,13 @@ function PupilDashboard({
 
                 <div className="z-10 flex items-center space-x-4 md:space-x-6">
                     <div className="relative">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl font-bold shadow-inner backdrop-blur-md md:h-20 md:w-20 overflow-hidden">
+                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/40 bg-white/20 text-3xl font-bold shadow-inner backdrop-blur-md md:h-20 md:w-20">
                             {user.avatar ? (
-                                <img src={user.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                <img
+                                    src={user.avatar}
+                                    className="h-full w-full object-cover"
+                                    alt="avatar"
+                                />
                             ) : (
                                 <span>👤</span>
                             )}
@@ -214,7 +227,11 @@ function PupilDashboard({
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="flex animate-pulse items-center space-x-1.5 rounded-full border border-orange-500/30 bg-orange-500/20 px-3 py-1 text-xs font-bold text-orange-200 shadow-sm">
                                     <span>
-                                        {t('dashboard.streak', { count: (user.streak_count as number) ?? 0 })}
+                                        {t('dashboard.streak', {
+                                            count:
+                                                (user.streak_count as number) ??
+                                                0,
+                                        })}
                                     </span>
                                 </div>
                             </div>
@@ -243,12 +260,13 @@ function PupilDashboard({
             {/* Stats Cards Grid */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {/* Jami gapirish vaqti */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-ambient transition duration-200 hover:shadow-ambient-md">
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-white p-6 transition duration-200">
                     <div className="absolute top-0 left-0 h-full w-2 bg-emerald-500"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
                             <p className="text-sm font-semibold tracking-wider text-[#45464f] uppercase">
-                                {t('dashboard.speaking_sessions') || 'TOTAL SPEAKING SESSIONS'}
+                                {t('dashboard.speaking_sessions') ||
+                                    'TOTAL SPEAKING SESSIONS'}
                             </p>
                             <div className="flex items-baseline space-x-2">
                                 <span className="text-4xl font-extrabold tracking-tight text-[#1b1b1f]">
@@ -270,7 +288,7 @@ function PupilDashboard({
                 </div>
 
                 {/* Kelgusi darslar */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-ambient transition duration-200 hover:shadow-ambient-md">
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-white p-6 transition duration-200">
                     <div className="absolute top-0 left-0 h-full w-2 bg-[#061445]"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
@@ -296,7 +314,7 @@ function PupilDashboard({
                 </div>
 
                 {/* O'rtacha baho */}
-                <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 shadow-ambient transition duration-200 hover:shadow-ambient-md">
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 transition duration-200">
                     <div className="absolute top-0 left-0 h-full w-2 bg-amber-500"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
@@ -324,7 +342,7 @@ function PupilDashboard({
             </div>
 
             {/* Upcoming Sessions List */}
-            <div className="rounded-3xl bg-white p-6 shadow-ambient md:p-10">
+            <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-10">
                 <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f]">
                     <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445]"></span>
                     <span>{t('dashboard.upcoming_sessions')}</span>
@@ -335,15 +353,25 @@ function PupilDashboard({
                         {appointments.map((apt) => (
                             <div
                                 key={apt.id}
-                                className="group overflow-hidden rounded-3xl border border-[#c6c5d0]/35 bg-white shadow-sm transition-all duration-300 hover:border-[#061445]/20 hover:shadow-ambient-md"
+                                className="group hover:shadow-ambient-md overflow-hidden rounded-3xl border border-[#c6c5d0]/35 bg-white shadow-sm transition-all duration-300 hover:border-[#061445]/20"
                             >
                                 <div className="flex flex-col justify-between gap-4 border-b border-[#c6c5d0]/35 p-6 sm:flex-row sm:items-center">
                                     <div className="flex items-center gap-4">
                                         {apt.teacher ? (
-                                            <Link href={`/profile/${apt.teacher.id}`} className="shrink-0">
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105 overflow-hidden">
+                                            <Link
+                                                href={`/profile/${apt.teacher.id}`}
+                                                className="shrink-0"
+                                            >
+                                                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105">
                                                     {apt.teacher?.avatar ? (
-                                                        <img src={apt.teacher.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                        <img
+                                                            src={
+                                                                apt.teacher
+                                                                    .avatar
+                                                            }
+                                                            className="h-full w-full object-cover"
+                                                            alt="avatar"
+                                                        />
                                                     ) : (
                                                         <Mic className="h-6 w-6" />
                                                     )}
@@ -362,13 +390,15 @@ function PupilDashboard({
                                                     )}
                                                 </h4>
                                                 {apt.status === 'accepted' && (
-                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-800 tracking-wider">
+                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-amber-800 uppercase">
                                                         STATUS ACCEPTED
                                                     </span>
                                                 )}
                                             </div>
                                             <p className="text-sm font-medium text-[#45464f]">
-                                                {t('dashboard.with_teacher', { name: '' })}
+                                                {t('dashboard.with_teacher', {
+                                                    name: '',
+                                                })}
                                                 {apt.teacher ? (
                                                     <Link
                                                         href={`/profile/${apt.teacher.id}`}
@@ -413,16 +443,23 @@ function PupilDashboard({
                                     {apt.status === 'accepted' ? (
                                         <>
                                             <span className="mr-auto text-xs font-bold text-amber-800">
-                                                Awaiting payment & admin confirmation
+                                                Awaiting payment & admin
+                                                confirmation
                                             </span>
                                             <button
-                                                onClick={() => setPaymentBooking(apt)}
-                                                className="flex cursor-pointer items-center gap-2 rounded-full bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all hover:-translate-y-0.5 animate-pulse"
+                                                onClick={() =>
+                                                    setPaymentBooking(apt)
+                                                }
+                                                className="flex animate-pulse cursor-pointer items-center gap-2 rounded-full bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all hover:-translate-y-0.5 hover:bg-brand-button-hover"
                                             >
-                                                💳 {t('booking.pay_now') || 'Pay Now'}
+                                                💳{' '}
+                                                {t('booking.pay_now') ||
+                                                    'Pay Now'}
                                             </button>
                                             <button
-                                                onClick={() => handleCancel(apt.id)}
+                                                onClick={() =>
+                                                    handleCancel(apt.id)
+                                                }
                                                 className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
                                             >
                                                 {t('dashboard.cancel_button')}
@@ -431,7 +468,9 @@ function PupilDashboard({
                                     ) : (
                                         <>
                                             <button
-                                                onClick={() => handleCancel(apt.id)}
+                                                onClick={() =>
+                                                    handleCancel(apt.id)
+                                                }
                                                 className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
                                             >
                                                 {t('dashboard.cancel_button')}
@@ -466,7 +505,7 @@ function PupilDashboard({
 
                         <Link
                             href="/pupil/teachers"
-                            className="block rounded-full bg-[#061445] hover:bg-[#061445]/90 px-6 py-3 text-center font-bold text-white shadow-md shadow-[#061445]/10 transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
+                            className="block rounded-full bg-[#061445] px-6 py-3 text-center font-bold text-white shadow-md shadow-[#061445]/10 transition-all duration-150 hover:scale-[1.01] hover:bg-[#061445]/90 active:scale-[0.99]"
                         >
                             {t('dashboard.book_now')}
                         </Link>
@@ -476,11 +515,11 @@ function PupilDashboard({
 
             {/* Payment Modal (Pop-up on Dashboard) */}
             {paymentBooking && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 text-left">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 text-left backdrop-blur-sm">
                     <div className="relative flex w-full max-w-lg animate-in flex-col rounded-3xl border border-border bg-white p-6 shadow-2xl duration-150 zoom-in-95">
                         <button
                             onClick={() => setPaymentBooking(null)}
-                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+                            className="absolute top-4 right-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -491,66 +530,88 @@ function PupilDashboard({
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-foreground">
-                                    {t('payment.modal_title') || 'Payment & Verification'}
+                                    {t('payment.modal_title') ||
+                                        'Payment & Verification'}
                                 </h3>
                                 <p className="text-xs text-muted-foreground">
-                                    {t('payment.modal_desc') || 'Transfer the session fee to the card below and send your receipt in Telegram.'}
+                                    {t('payment.modal_desc') ||
+                                        'Transfer the session fee to the card below and send your receipt in Telegram.'}
                                 </p>
                             </div>
                         </div>
 
                         {/* Styled Credit Card Component */}
-                        <div className="mt-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#061445] via-[#1E2A5A] to-[#0D226B] p-6 text-white shadow-xl border border-brand-yellow/20">
-                            <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-brand-yellow/10 blur-2xl" />
-                            <div className="pointer-events-none absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-brand-lightblue/10 blur-2xl" />
+                        <div className="relative mt-5 overflow-hidden rounded-3xl border border-brand-yellow/20 bg-gradient-to-br from-[#061445] via-[#1E2A5A] to-[#0D226B] p-6 text-white shadow-xl">
+                            <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-brand-yellow/10 blur-2xl" />
+                            <div className="pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-brand-lightblue/10 blur-2xl" />
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-7 w-10 rounded-md bg-amber-300/80 border border-amber-200 flex items-center justify-center shadow-inner">
-                                        <div className="h-4 w-6 border-y border-amber-500/50 flex items-center justify-center">
+                                    <div className="flex h-7 w-10 items-center justify-center rounded-md border border-amber-200 bg-amber-300/80 shadow-inner">
+                                        <div className="flex h-4 w-6 items-center justify-center border-y border-amber-500/50">
                                             <div className="h-2 w-2 rounded-full border border-amber-600/50" />
                                         </div>
                                     </div>
-                                    <span className="text-[10px] font-bold tracking-widest text-brand-yellow uppercase">HUMO / UZCARD</span>
+                                    <span className="text-[10px] font-bold tracking-widest text-brand-yellow uppercase">
+                                        HUMO / UZCARD
+                                    </span>
                                 </div>
-                                <span className="font-extrabold text-sm tracking-wider text-brand-yellow">
-                                    Convo<span className="text-white">Mate</span>
+                                <span className="text-sm font-extrabold tracking-wider text-brand-yellow">
+                                    Convo
+                                    <span className="text-white">Mate</span>
                                 </span>
                             </div>
 
                             <div className="mt-6">
-                                <span className="text-[10px] font-semibold text-brand-lightblue/70 uppercase tracking-wider block mb-1">
+                                <span className="mb-1 block text-[10px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
                                     Card Number
                                 </span>
-                                <div className="flex items-center justify-between rounded-xl bg-white/10 px-3.5 py-2.5 backdrop-blur-md border border-white/15">
+                                <div className="flex items-center justify-between rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 backdrop-blur-md">
                                     <span className="font-mono text-lg font-black tracking-widest text-white">
                                         9860 1966 1940 4458
                                     </span>
                                     <button
-                                        onClick={() => handleCopyCardNumber('9860196619404458')}
-                                        className="flex items-center gap-1.5 rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-bold text-brand-brown shadow transition-all hover:bg-brand-yellow-hover hover:scale-105 cursor-pointer"
+                                        onClick={() =>
+                                            handleCopyCardNumber(
+                                                '9860196619404458',
+                                            )
+                                        }
+                                        className="hover:bg-brand-yellow-hover flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-bold text-brand-brown shadow transition-all hover:scale-105"
                                     >
-                                        {copiedCard ? <Check className="h-3.5 w-3.5 text-emerald-700" /> : <Copy className="h-3.5 w-3.5" />}
-                                        <span>{copiedCard ? 'Copied' : t('payment.copy_card') || 'Copy Card'}</span>
+                                        {copiedCard ? (
+                                            <Check className="h-3.5 w-3.5 text-emerald-700" />
+                                        ) : (
+                                            <Copy className="h-3.5 w-3.5" />
+                                        )}
+                                        <span>
+                                            {copiedCard
+                                                ? 'Copied'
+                                                : t('payment.copy_card') ||
+                                                  'Copy Card'}
+                                        </span>
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="mt-5 grid grid-cols-2 gap-4 pt-2 border-t border-white/10">
+                            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/10 pt-2">
                                 <div>
-                                    <span className="text-[9px] font-semibold text-brand-lightblue/70 uppercase tracking-wider block">
-                                        {t('payment.card_holder') || 'Student Name'}
+                                    <span className="block text-[9px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
+                                        {t('payment.card_holder') ||
+                                            'Student Name'}
                                     </span>
-                                    <span className="text-xs font-bold text-white uppercase truncate block mt-0.5">
+                                    <span className="mt-0.5 block truncate text-xs font-bold text-white uppercase">
                                         {user.full_name}
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="text-[9px] font-semibold text-brand-lightblue/70 uppercase tracking-wider block">
+                                    <span className="block text-[9px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
                                         {t('payment.pupil_id') || 'Pupil ID'}
                                     </span>
-                                    <span className="text-xs font-mono font-black text-brand-yellow block mt-0.5">
-                                        {user.short_id || user.id.substring(0, 8).toUpperCase()}
+                                    <span className="mt-0.5 block font-mono text-xs font-black text-brand-yellow">
+                                        {user.short_id ||
+                                            user.id
+                                                .substring(0, 8)
+                                                .toUpperCase()}
                                     </span>
                                 </div>
                             </div>
@@ -558,13 +619,24 @@ function PupilDashboard({
 
                         <div className="mt-4 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4">
                             <div className="flex gap-3">
-                                <ShieldAlert className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+                                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                                 <div className="space-y-1">
-                                    <p className="text-xs font-extrabold text-amber-900 leading-snug">
-                                        {t('payment.warning_notice') || 'Must send proof with your Pupil ID to Telegram for verification!'}
+                                    <p className="text-xs leading-snug font-extrabold text-amber-900">
+                                        {t('payment.warning_notice') ||
+                                            'Must send proof with your Pupil ID to Telegram for verification!'}
                                     </p>
                                     <p className="text-[11px] font-medium text-amber-800">
-                                        Name: <strong className="font-bold">{user.full_name}</strong> | ID: <strong className="font-mono font-bold text-amber-950">{user.short_id || user.id.substring(0, 8).toUpperCase()}</strong>
+                                        Name:{' '}
+                                        <strong className="font-bold">
+                                            {user.full_name}
+                                        </strong>{' '}
+                                        | ID:{' '}
+                                        <strong className="font-mono font-bold text-amber-950">
+                                            {user.short_id ||
+                                                user.id
+                                                    .substring(0, 8)
+                                                    .toUpperCase()}
+                                        </strong>
                                     </p>
                                 </div>
                             </div>
@@ -575,14 +647,15 @@ function PupilDashboard({
                                 href="https://t.me/+Z9Gr0FnDDAFhOTky"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#24A1DE] hover:bg-[#1D8AC0] py-3 text-xs font-bold text-white shadow-md transition-all hover:scale-[1.01]"
+                                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#24A1DE] py-3 text-xs font-bold text-white shadow-md transition-all hover:scale-[1.01] hover:bg-[#1D8AC0]"
                             >
                                 <ExternalLink className="h-4 w-4" />
-                                {t('payment.open_telegram') || 'Open Telegram Verification Group'}
+                                {t('payment.open_telegram') ||
+                                    'Open Telegram Verification Group'}
                             </a>
                             <button
                                 onClick={() => setPaymentBooking(null)}
-                                className="cursor-pointer rounded-xl border py-2 text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                                className="cursor-pointer rounded-xl border py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted"
                             >
                                 {t('bookings.close_btn') || 'Close'}
                             </button>
@@ -617,7 +690,10 @@ function TeacherDashboard({
             router.reload();
         });
         channel.listen('.ConversationBooked', (e: any) => {
-            toast.info(t('dashboard.new_booking_toast') || `A new session has been booked!`);
+            toast.info(
+                t('dashboard.new_booking_toast') ||
+                    `A new session has been booked!`,
+            );
             router.reload();
         });
 
@@ -628,18 +704,24 @@ function TeacherDashboard({
     }, [user.id]);
 
     const handleCancel = async (id: string) => {
-        const reason = prompt(t('dashboard.cancel_reason_prompt') || "Please enter the reason for cancellation (minimum 3 characters):");
+        const reason = prompt(
+            t('dashboard.cancel_reason_prompt') ||
+                'Please enter the reason for cancellation (minimum 3 characters):',
+        );
         if (reason === null) {
             return;
         }
         const trimmedReason = reason.trim();
         if (trimmedReason.length < 3) {
-            toast.error(t('dashboard.cancel_reason_min_length') || "Cancellation reason must be at least 3 characters.");
+            toast.error(
+                t('dashboard.cancel_reason_min_length') ||
+                    'Cancellation reason must be at least 3 characters.',
+            );
             return;
         }
         try {
             await axios.delete(`/bookings/${id}`, {
-                data: { reason: trimmedReason }
+                data: { reason: trimmedReason },
             });
             toast.success(t('dashboard.cancel_conversation_success'));
             router.reload();
@@ -681,9 +763,13 @@ function TeacherDashboard({
 
                 <div className="z-10 flex items-center space-x-4 md:space-x-6">
                     <div className="relative">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/20 text-3xl shadow-inner backdrop-blur-md md:h-20 md:w-20 overflow-hidden">
+                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/40 bg-white/20 text-3xl shadow-inner backdrop-blur-md md:h-20 md:w-20">
                             {user.avatar ? (
-                                <img src={user.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                <img
+                                    src={user.avatar}
+                                    className="h-full w-full object-cover"
+                                    alt="avatar"
+                                />
                             ) : (
                                 <span>👨‍🏫</span>
                             )}
@@ -757,7 +843,7 @@ function TeacherDashboard({
             {/* Stats grid */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {/* Bugungi darslar */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-ambient transition duration-200 hover:shadow-ambient-md">
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-white p-6 transition duration-200">
                     <div className="absolute top-0 left-0 h-full w-2 bg-[#061445]"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
@@ -783,7 +869,7 @@ function TeacherDashboard({
                 </div>
 
                 {/* Jami o'quvchilar */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-ambient transition duration-200 hover:shadow-ambient-md">
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-white p-6 transition duration-200">
                     <div className="absolute top-0 left-0 h-full w-2 bg-emerald-500"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
@@ -809,7 +895,7 @@ function TeacherDashboard({
                 </div>
 
                 {/* Sizning bahoingiz */}
-                <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 shadow-ambient transition duration-200 hover:shadow-ambient-md">
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 transition duration-200">
                     <div className="absolute top-0 left-0 h-full w-2 bg-amber-500"></div>
                     <div className="flex items-start justify-between">
                         <div className="space-y-2">
@@ -839,7 +925,7 @@ function TeacherDashboard({
             {/* Schedule and feedback sections */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Schedule column */}
-                <div className="flex flex-col justify-between rounded-3xl bg-white p-6 shadow-ambient md:p-8">
+                <div className="shadow-ambient flex flex-col justify-between rounded-3xl bg-white p-6 md:p-8">
                     <div>
                         <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f]">
                             <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445]"></span>
@@ -859,7 +945,7 @@ function TeacherDashboard({
                                     return (
                                         <div
                                             key={apt.id}
-                                            className="flex items-center gap-4 rounded-3xl border border-[#d0e4ff] bg-[#d0e4ff]/5 p-4 transition-all hover:shadow-ambient-md"
+                                            className="hover:shadow-ambient-md flex items-center gap-4 rounded-3xl border border-[#d0e4ff] bg-[#d0e4ff]/5 p-4 transition-all"
                                         >
                                             <div className="flex flex-col items-center justify-center rounded-2xl border border-[#c6c5d0]/60 bg-white px-3 py-2.5 text-center shadow-sm">
                                                 <span className="text-xs font-bold text-[#061445] uppercase">
@@ -882,13 +968,18 @@ function TeacherDashboard({
                                                     )}
                                                 </h4>
                                                 <p className="text-xs font-semibold text-[#45464f]">
-                                                    {t('dashboard.with_pupil', { name: '' })}
+                                                    {t('dashboard.with_pupil', {
+                                                        name: '',
+                                                    })}
                                                     {apt.pupil ? (
                                                         <Link
                                                             href={`/profile/${apt.pupil.id}`}
                                                             className="font-bold text-[#061445] hover:underline"
                                                         >
-                                                            {apt.pupil.full_name}
+                                                            {
+                                                                apt.pupil
+                                                                    .full_name
+                                                            }
                                                         </Link>
                                                     ) : (
                                                         'Pupil'
@@ -897,13 +988,16 @@ function TeacherDashboard({
                                             </div>
                                             <div className="flex flex-wrap items-center gap-2">
                                                 {apt.status === 'accepted' ? (
-                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[10px] font-black uppercase text-amber-800 tracking-wider">
-                                                        STATUS ACCEPTED · AWAITING PAYMENT
+                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[10px] font-black tracking-wider text-amber-800 uppercase">
+                                                        STATUS ACCEPTED ·
+                                                        AWAITING PAYMENT
                                                     </span>
                                                 ) : (
                                                     <TeacherMeetingButton
                                                         apt={apt}
-                                                        handleStart={handleStart}
+                                                        handleStart={
+                                                            handleStart
+                                                        }
                                                         startingAptId={
                                                             startingAptId
                                                         }
@@ -934,7 +1028,9 @@ function TeacherDashboard({
                                         {t('dashboard.no_appointments_today')}
                                     </h4>
                                     <p className="mx-auto max-w-xs text-sm text-[#45464f]">
-                                        {t('dashboard.no_appointments_today_desc')}
+                                        {t(
+                                            'dashboard.no_appointments_today_desc',
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -950,7 +1046,7 @@ function TeacherDashboard({
                 </div>
 
                 {/* Feedback column */}
-                <div className="flex flex-col justify-between rounded-3xl bg-white p-6 shadow-ambient md:p-8">
+                <div className="shadow-ambient flex flex-col justify-between rounded-3xl bg-white p-6 md:p-8">
                     <div>
                         <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f]">
                             <span className="inline-block h-5 w-2.5 rounded-sm bg-emerald-500"></span>

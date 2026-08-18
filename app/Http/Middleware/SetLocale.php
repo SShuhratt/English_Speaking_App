@@ -16,7 +16,7 @@ class SetLocale
     public function handle(Request $request, Closure $next): Response
     {
         $locale = $request->cookie('locale');
-        \Log::info("SetLocale Middleware: Cookie locale is: " . var_export($locale, true));
+        \Log::info('SetLocale Middleware: Cookie locale is: '.var_export($locale, true));
 
         if (! in_array($locale, ['en', 'uz', 'ru'])) {
             $locale = 'en';

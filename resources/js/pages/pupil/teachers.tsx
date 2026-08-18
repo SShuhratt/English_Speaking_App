@@ -1,7 +1,9 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import TeacherCard from '@/components/teachers/TeacherCard';
-import TeacherFilterBar, { FilterState } from '@/components/teachers/TeacherFilterBar';
+import TeacherFilterBar, {
+    FilterState,
+} from '@/components/teachers/TeacherFilterBar';
 import { Head } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
 
@@ -13,10 +15,16 @@ interface Props {
     currentFilter?: string;
 }
 
-export default function Teachers({ teachers, currentFilters, currentFilter = 'all' }: Props) {
+export default function Teachers({
+    teachers,
+    currentFilters,
+    currentFilter = 'all',
+}: Props) {
     const { t } = useTranslation();
 
-    const activeFilters: FilterState = currentFilters || { status: currentFilter };
+    const activeFilters: FilterState = currentFilters || {
+        status: currentFilter,
+    };
 
     return (
         <>
@@ -29,16 +37,21 @@ export default function Teachers({ teachers, currentFilters, currentFilter = 'al
 
                     <div className="relative z-10 space-y-1.5">
                         <h1 className="text-2xl font-black tracking-tight md:text-3xl">
-                            {t('teachers_directory.title') || 'Find Your Ideal Teacher'}
+                            {t('teachers_directory.title') ||
+                                'Find Your Ideal Teacher'}
                         </h1>
                         <p className="max-w-2xl text-xs font-medium text-white/80 md:text-sm">
-                            {t('teachers_directory.subtitle') || 'Browse verified English tutors, filter by availability, level, and price to book your live 1-on-1 session.'}
+                            {t('teachers_directory.subtitle') ||
+                                'Browse verified English tutors, filter by availability, level, and price to book your live 1-on-1 session.'}
                         </p>
                     </div>
                 </div>
 
                 {/* Filter Bar */}
-                <TeacherFilterBar baseUrl="/pupil/teachers" currentFilters={activeFilters} />
+                <TeacherFilterBar
+                    baseUrl="/pupil/teachers"
+                    currentFilters={activeFilters}
+                />
 
                 {/* Teachers Grid */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -50,7 +63,8 @@ export default function Teachers({ teachers, currentFilters, currentFilter = 'al
                 {teachers.data.length === 0 && (
                     <div className="rounded-3xl border border-dashed bg-card py-20 text-center">
                         <p className="text-sm font-medium text-muted-foreground">
-                            {t('teachers_directory.no_teachers') || 'No teachers match the selected filter criteria.'}
+                            {t('teachers_directory.no_teachers') ||
+                                'No teachers match the selected filter criteria.'}
                         </p>
                     </div>
                 )}

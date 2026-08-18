@@ -52,7 +52,7 @@ function TeacherMeetingButton({
         <button
             disabled={startingAptId === apt.id}
             onClick={() => handleStart(apt)}
-            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button hover:bg-brand-button-hover px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
+            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg disabled:opacity-50"
         >
             <Video className="h-3.5 w-3.5" />
             {startingAptId === apt.id
@@ -66,22 +66,30 @@ export default function Schedule({ appointments }: Props) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
     const { t } = useTranslation();
 
-    const [cancellingBooking, setCancellingBooking] = useState<any | null>(null);
+    const [cancellingBooking, setCancellingBooking] = useState<any | null>(
+        null,
+    );
     const [cancelReason, setCancelReason] = useState('');
     const [submittingCancel, setSubmittingCancel] = useState(false);
 
     const handleCancelSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!cancellingBooking) return;
-        if (cancelReason.trim().length < 3 || cancelReason.trim().length > 1000) {
-            toast.error(t('teacher.reason_length_validation') || 'Reason must be between 3 and 1000 characters');
+        if (
+            cancelReason.trim().length < 3 ||
+            cancelReason.trim().length > 1000
+        ) {
+            toast.error(
+                t('teacher.reason_length_validation') ||
+                    'Reason must be between 3 and 1000 characters',
+            );
             return;
         }
 
         setSubmittingCancel(true);
         try {
             await axios.delete(`/bookings/${cancellingBooking.id}`, {
-                data: { reason: cancelReason.trim() }
+                data: { reason: cancelReason.trim() },
             });
             toast.success(t('schedule.cancel_success'));
             setCancellingBooking(null);
@@ -124,9 +132,9 @@ export default function Schedule({ appointments }: Props) {
                 <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
-                    
+
                     <div className="relative z-10 space-y-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">
+                        <span className="text-[10px] font-black tracking-widest text-brand-yellow uppercase">
                             TEACHER SCHEDULING
                         </span>
                         <h1 className="text-3xl font-black tracking-tight text-white">
@@ -185,18 +193,21 @@ export default function Schedule({ appointments }: Props) {
                                         </div>
 
                                         {/* Topics Display */}
-                                        {apt.topics && apt.topics.length > 0 && (
-                                            <div className="mt-2.5 flex flex-wrap gap-1.5">
-                                                {apt.topics.map((topic: string) => (
-                                                    <span
-                                                        key={topic}
-                                                        className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown"
-                                                    >
-                                                        #{topic}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                        {apt.topics &&
+                                            apt.topics.length > 0 && (
+                                                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                                    {apt.topics.map(
+                                                        (topic: string) => (
+                                                            <span
+                                                                key={topic}
+                                                                className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown"
+                                                            >
+                                                                #{topic}
+                                                            </span>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
                                     </div>
                                 </div>
 
@@ -208,7 +219,9 @@ export default function Schedule({ appointments }: Props) {
                                     />
 
                                     <button
-                                        onClick={() => setCancellingBooking(apt)}
+                                        onClick={() =>
+                                            setCancellingBooking(apt)
+                                        }
                                         className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/25 px-3.5 py-2.5 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
                                     >
                                         <XCircle className="h-3.5 w-3.5" />{' '}
@@ -238,20 +251,29 @@ export default function Schedule({ appointments }: Props) {
                             {t('teacher.cancel_title') || 'Cancel Appointment'}
                         </h3>
                         <p className="mt-2 text-sm text-muted-foreground">
-                            {t('teacher.cancel_desc') || 'Please state the reason for cancelling this appointment. This will be visible to the student.'}
+                            {t('teacher.cancel_desc') ||
+                                'Please state the reason for cancelling this appointment. This will be visible to the student.'}
                         </p>
-                        <form onSubmit={handleCancelSubmit} className="mt-4 space-y-4">
+                        <form
+                            onSubmit={handleCancelSubmit}
+                            className="mt-4 space-y-4"
+                        >
                             <div>
                                 <textarea
-                                    className="w-full min-h-[100px] rounded-xl border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-brand-button/20 focus:outline-none"
-                                    placeholder={t('teacher.reason_placeholder') || 'Enter your reason here...'}
+                                    className="min-h-[100px] w-full rounded-xl border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-brand-button/20 focus:outline-none"
+                                    placeholder={
+                                        t('teacher.reason_placeholder') ||
+                                        'Enter your reason here...'
+                                    }
                                     value={cancelReason}
-                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    onChange={(e) =>
+                                        setCancelReason(e.target.value)
+                                    }
                                     minLength={3}
                                     maxLength={1000}
                                     required
                                 />
-                                <div className="mt-1 text-right text-[10px] text-muted-foreground font-semibold">
+                                <div className="mt-1 text-right text-[10px] font-semibold text-muted-foreground">
                                     {cancelReason.length} / 1000
                                 </div>
                             </div>
@@ -268,13 +290,17 @@ export default function Schedule({ appointments }: Props) {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={submittingCancel || cancelReason.trim().length < 3}
+                                    disabled={
+                                        submittingCancel ||
+                                        cancelReason.trim().length < 3
+                                    }
                                     className="cursor-pointer rounded-xl bg-destructive px-5 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-destructive/90 disabled:opacity-50"
                                 >
                                     {submittingCancel
-                                        ? (t('bookings.cancelling') || 'Cancelling...')
-                                        : (t('bookings.confirm_cancel') || 'Confirm Cancel')
-                                    }
+                                        ? t('bookings.cancelling') ||
+                                          'Cancelling...'
+                                        : t('bookings.confirm_cancel') ||
+                                          'Confirm Cancel'}
                                 </button>
                             </div>
                         </form>

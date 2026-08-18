@@ -98,21 +98,51 @@ class SecurityTest extends TestCase
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
     }
 
-    public function test_correct_password_must_be_provided_to_update_password()
+    public function test_user_without_password_can_access_security_page_without_confirmation()
     {
-        $user = User::factory()->create();
+        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+
+        $user = User::factory()->create([
+            'has_password' => false,
+            'google_connected' => true,
+        ]);
+
+        Features::twoFactorAuthentication([
+            'confirm' => true,
+            'confirmPassword' => true,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('security.edit'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('settings/security')
+                ->where('hasPassword', false)
+            );
+    }
+
+    public function test_user_without_password_can_set_password_without_current_password()
+    {
+        $user = User::factory()->create([
+            'has_password' => false,
+            'google_connected' => true,
+        ]);
 
         $response = $this
             ->actingAs($user)
             ->from(route('security.edit'))
             ->put(route('user-password.update'), [
-                'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewSecurePassword123!',
+                'password_confirmation' => 'NewSecurePassword123!',
             ]);
 
         $response
-            ->assertSessionHasErrors('current_password')
+            ->assertSessionHasNoErrors()
             ->assertRedirect(route('security.edit'));
+
+        $user->refresh();
+        $this->assertTrue($user->has_password);
+        $this->assertTrue(Hash::check('NewSecurePassword123!', $user->password));
     }
 }

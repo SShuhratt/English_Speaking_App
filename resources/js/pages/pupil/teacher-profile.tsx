@@ -21,7 +21,7 @@ import {
     ExternalLink,
     Trash2,
     ShieldCheck,
-    ShieldAlert
+    ShieldAlert,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -68,19 +68,29 @@ interface Props {
     trialPrice?: number;
 }
 
-export default function TeacherProfile({ teacher, hasEligibleTrial = true, trialPrice }: Props) {
+export default function TeacherProfile({
+    teacher,
+    hasEligibleTrial = true,
+    trialPrice,
+}: Props) {
     const { auth } = usePage<any>().props;
     const { t } = useTranslation();
 
-    const [lessonType, setLessonType] = React.useState<'trial' | 'full'>(hasEligibleTrial ? 'trial' : 'full');
-    const [deletingUser, setDeletingUser] = React.useState<{ id: string; name: string } | null>(null);
+    const [lessonType, setLessonType] = React.useState<'trial' | 'full'>(
+        hasEligibleTrial ? 'trial' : 'full',
+    );
+    const [deletingUser, setDeletingUser] = React.useState<{
+        id: string;
+        name: string;
+    } | null>(null);
     const [selectedDuration, setSelectedDuration] = React.useState<number>(60);
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
     const normalizedCerts = React.useMemo(() => {
         if (!rawCerts) return [];
-        const certsArray = typeof rawCerts === 'string' ? JSON.parse(rawCerts) : rawCerts;
+        const certsArray =
+            typeof rawCerts === 'string' ? JSON.parse(rawCerts) : rawCerts;
         return (Array.isArray(certsArray) ? certsArray : []).map((c: any) => {
             if (typeof c === 'string') {
                 const isUrl = c.startsWith('http') || c.startsWith('/storage');
@@ -100,15 +110,23 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             }
             const certType = c.type ?? 'ielts';
             const customName = c.custom_type_name ?? '';
-            
+
             const isFileName = (str: string) => {
                 if (!str) return true;
-                return /\.(jpg|jpeg|png|pdf|webp|svg|gif)$/i.test(str) || /^IMG_/i.test(str) || str.includes('/');
+                return (
+                    /\.(jpg|jpeg|png|pdf|webp|svg|gif)$/i.test(str) ||
+                    /^IMG_/i.test(str) ||
+                    str.includes('/')
+                );
             };
 
             let displayTitle = c.title || '';
             if (!displayTitle || isFileName(displayTitle)) {
-                if (certType === 'other' && customName && !isFileName(customName)) {
+                if (
+                    certType === 'other' &&
+                    customName &&
+                    !isFileName(customName)
+                ) {
                     displayTitle = customName;
                 } else if (certType === 'ielts') {
                     displayTitle = 'IELTS (Academic / General)';
@@ -173,7 +191,9 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
     const [slots, setSlots] = React.useState<any[]>([]);
     const [loadingSlots, setLoadingSlots] = React.useState(false);
     const [pickedSlot, setPickedSlot] = React.useState<any | null>(null);
-    const [confirmingSlot, setConfirmingSlot] = React.useState<any | null>(null);
+    const [confirmingSlot, setConfirmingSlot] = React.useState<any | null>(
+        null,
+    );
     const [booking, setBooking] = React.useState(false);
 
     // Custom time slot inputs
@@ -210,7 +230,7 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             );
             const fetchedSlots = Array.isArray(response.data)
                 ? response.data
-                : (response.data.slots || []);
+                : response.data.slots || [];
             setSlots(fetchedSlots);
             setPickedSlot(null);
         } catch (error) {
@@ -311,7 +331,10 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
 
         const finalTopics = getFinalTopics();
         if (finalTopics.length === 0) {
-            toast.error(t('booking.topics_required') || 'Please select at least one topic');
+            toast.error(
+                t('booking.topics_required') ||
+                    'Please select at least one topic',
+            );
             return;
         }
 
@@ -321,7 +344,9 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
         if (confirmingSlot.is_all_time) {
             const dates = getSelectedStartAndEnd();
             if (!dates || !validateSelectedRange()) {
-                toast.error(t('booking.invalid_range') || 'Selected range is invalid');
+                toast.error(
+                    t('booking.invalid_range') || 'Selected range is invalid',
+                );
                 return;
             }
             startAt = dates.start.toISOString();
@@ -329,7 +354,9 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
         } else {
             const durMins = lessonType === 'trial' ? 20 : selectedDuration;
             const startDateObj = new Date(confirmingSlot.start_at);
-            const endDateObj = new Date(startDateObj.getTime() + durMins * 60000);
+            const endDateObj = new Date(
+                startDateObj.getTime() + durMins * 60000,
+            );
             startAt = startDateObj.toISOString();
             endAt = endDateObj.toISOString();
         }
@@ -343,30 +370,61 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                 end_at: endAt,
                 topics: finalTopics,
                 is_trial: lessonType === 'trial',
-                duration_minutes: lessonType === 'trial' ? 20 : selectedDuration,
+                duration_minutes:
+                    lessonType === 'trial' ? 20 : selectedDuration,
             });
-            toast.success(t('booking.success') || 'Appointment booked successfully!');
+            toast.success(
+                t('booking.success') || 'Appointment booked successfully!',
+            );
             setConfirmingSlot(null);
             fetchSlots();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || t('booking.failed') || 'Booking failed');
+            toast.error(
+                error.response?.data?.message ||
+                    t('booking.failed') ||
+                    'Booking failed',
+            );
         } finally {
             setBooking(false);
         }
     };
 
     const hourlyPrice = Number(teacher.teacher_profile?.price ?? 0);
-    const formattedHourlyPrice = hourlyPrice > 0 ? `${hourlyPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+    const formattedHourlyPrice =
+        hourlyPrice > 0
+            ? `${hourlyPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
+            : "0 so'm";
 
-    const calculatedTrialPrice = (trialPrice && trialPrice > 0) ? trialPrice : (hourlyPrice > 0 ? Math.round((hourlyPrice / 3) / 1000) * 1000 : 0);
-    const formattedTrialPrice = calculatedTrialPrice > 0 ? `${calculatedTrialPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+    const calculatedTrialPrice =
+        trialPrice && trialPrice > 0
+            ? trialPrice
+            : hourlyPrice > 0
+              ? Math.round(hourlyPrice / 3 / 1000) * 1000
+              : 0;
+    const formattedTrialPrice =
+        calculatedTrialPrice > 0
+            ? `${calculatedTrialPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
+            : "0 so'm";
 
-    const calculatedFullPrice = hourlyPrice > 0 ? Math.round((hourlyPrice * selectedDuration) / 60) : 0;
-    const formattedFullPrice = calculatedFullPrice > 0 ? `${calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
+    const calculatedFullPrice =
+        hourlyPrice > 0 ? Math.round((hourlyPrice * selectedDuration) / 60) : 0;
+    const formattedFullPrice =
+        calculatedFullPrice > 0
+            ? `${calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
+            : "0 so'm";
 
-    const activePrice = lessonType === 'trial' ? calculatedTrialPrice : calculatedFullPrice;
-    const formattedActivePrice = activePrice > 0 ? `${activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm` : "0 so'm";
-    const genderPronoun = teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their';
+    const activePrice =
+        lessonType === 'trial' ? calculatedTrialPrice : calculatedFullPrice;
+    const formattedActivePrice =
+        activePrice > 0
+            ? `${activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
+            : "0 so'm";
+    const genderPronoun =
+        teacher.gender === 'male'
+            ? 'his'
+            : teacher.gender === 'female'
+              ? 'her'
+              : 'their';
 
     return (
         <>
@@ -375,8 +433,9 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
             {/* Mockup custom styles */}
 
             <div className="teacher-profile-pupil-container min-h-screen px-4 py-8 md:px-8">
-                <style dangerouslySetInnerHTML={{
-                    __html: `
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                     .teacher-profile-pupil-container {
                         --butter: #F7DE8B;
                         --butter-deep: #F0CE5F;
@@ -567,27 +626,38 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                     .teacher-profile-pupil-container .assure{margin-top:14px;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
                     .teacher-profile-pupil-container .assure b{color:var(--navy)}
                     .teacher-profile-pupil-container .tz{font-size:11.5px;color:var(--muted);margin-top:10px}
-                ` }} />
+                `,
+                    }}
+                />
 
                 {/* Breadcrumbs */}
                 <div className="crumb">
-                    <Link href="/pupil/teachers">Find Teachers</Link> / {teacher.full_name}
+                    <Link href="/pupil/teachers">Find Teachers</Link> /{' '}
+                    {teacher.full_name}
                 </div>
 
                 {/* 1. Header Card */}
                 <div className="head-card shadow-sm">
-                    <svg className="naqsh" viewBox="0 0 80 80" fill="none" stroke="#A9C6E8" stroke-width="1.1">
+                    <svg
+                        className="naqsh"
+                        viewBox="0 0 80 80"
+                        fill="none"
+                        stroke="#A9C6E8"
+                        stroke-width="1.1"
+                    >
                         <path d="M40 6 L52 28 L74 40 L52 52 L40 74 L28 52 L6 40 L28 28 Z" />
                         <path d="M40 20 L47 33 L60 40 L47 47 L40 60 L33 47 L20 40 L33 33 Z" />
                         <circle cx="40" cy="40" r="5" />
                     </svg>
 
                     {teacher.avatar ? (
-                        <img src={teacher.avatar} alt={teacher.full_name} className="avatar-img shadow" />
+                        <img
+                            src={teacher.avatar}
+                            alt={teacher.full_name}
+                            className="avatar-img shadow"
+                        />
                     ) : (
-                        <div className="avatar shadow-lg">
-                            {initials}
-                        </div>
+                        <div className="avatar shadow-lg">{initials}</div>
                     )}
 
                     <div className="head-main">
@@ -595,67 +665,121 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                             <h1 className="name">{teacher.full_name}</h1>
                             {teacher.teacher_profile?.is_verified && (
                                 <span className="verified">
-                                    <Check className="h-3 w-3 stroke-[3]" /> Verified by ConvoMate
+                                    <Check className="h-3 w-3 stroke-[3]" />{' '}
+                                    Verified by ConvoMate
                                 </span>
                             )}
                         </div>
 
                         {auth?.user?.role === 'admin' && (
                             <div className="my-3 flex flex-wrap items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/80 p-2.5 shadow-sm dark:border-indigo-800 dark:bg-indigo-950/60">
-                                <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1">
-                                    <ShieldCheck className="h-4 w-4 text-indigo-600" /> Admin Controls:
+                                <span className="flex items-center gap-1 text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                                    <ShieldCheck className="h-4 w-4 text-indigo-600" />{' '}
+                                    Admin Controls:
                                 </span>
                                 <Button
                                     size="sm"
-                                    variant={teacher.teacher_profile?.is_verified ? 'outline' : 'default'}
+                                    variant={
+                                        teacher.teacher_profile?.is_verified
+                                            ? 'outline'
+                                            : 'default'
+                                    }
                                     onClick={() => {
-                                        router.post(`/admin/teachers/${teacher.id}/verify`, {
-                                            verified: !teacher.teacher_profile?.is_verified,
-                                        });
+                                        router.post(
+                                            `/admin/teachers/${teacher.id}/verify`,
+                                            {
+                                                verified:
+                                                    !teacher.teacher_profile
+                                                        ?.is_verified,
+                                            },
+                                        );
                                     }}
-                                    className={!teacher.teacher_profile?.is_verified ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-7 text-xs' : 'font-bold h-7 text-xs'}
+                                    className={
+                                        !teacher.teacher_profile?.is_verified
+                                            ? 'h-7 bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700'
+                                            : 'h-7 text-xs font-bold'
+                                    }
                                 >
-                                    {teacher.teacher_profile?.is_verified ? t('admin.unverify_teacher') : t('admin.verify_teacher')}
+                                    {teacher.teacher_profile?.is_verified
+                                        ? t('admin.unverify_teacher')
+                                        : t('admin.verify_teacher')}
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant="destructive"
-                                    onClick={() => setDeletingUser({ id: teacher.id, name: teacher.full_name })}
-                                    className="bg-red-600 hover:bg-red-700 text-white font-bold h-7 text-xs"
+                                    onClick={() =>
+                                        setDeletingUser({
+                                            id: teacher.id,
+                                            name: teacher.full_name,
+                                        })
+                                    }
+                                    className="h-7 bg-red-600 text-xs font-bold text-white hover:bg-red-700"
                                 >
-                                    <Trash2 className="h-3.5 w-3.5 mr-1" /> {t('admin.delete_teacher')}
+                                    <Trash2 className="mr-1 h-3.5 w-3.5" />{' '}
+                                    {t('admin.delete_teacher')}
                                 </Button>
                             </div>
                         )}
                         <p className="headline">
-                            {teacher.teacher_profile?.headline || 'Professional English Speaking Tutor'}
+                            {teacher.teacher_profile?.headline ||
+                                'Professional English Speaking Tutor'}
                         </p>
                         <div className="head-meta">
-                            {normalizedCerts.length > 0 && (normalizedCerts[0]?.speaking || teacher.teacher_profile?.speaking_band) && (
-                                <div className="score-chip hero">
-                                    <span className="sv">{normalizedCerts[0]?.speaking || teacher.teacher_profile?.speaking_band}</span>
-                                    <span className="sl">Speaking band</span>
-                                </div>
-                            )}
-                            {normalizedCerts.length > 0 && (normalizedCerts[0]?.overall || teacher.teacher_profile?.overall_level) && (
-                                <div className="score-chip">
-                                    <span className="sv">
-                                        {normalizedCerts[0]?.overall || (teacher.teacher_profile?.overall_level ? teacher.teacher_profile.overall_level.replace(/IELTS\s*,?\s*/i, '').trim() : '')}
-                                    </span>
-                                    <span className="sl">
-                                        Overall {normalizedCerts[0]?.type === 'other' && normalizedCerts[0]?.custom_type_name ? normalizedCerts[0].custom_type_name : (normalizedCerts[0]?.type ? String(normalizedCerts[0].type).toUpperCase() : 'IELTS')}
-                                    </span>
-                                </div>
-                            )}
+                            {normalizedCerts.length > 0 &&
+                                (normalizedCerts[0]?.speaking ||
+                                    teacher.teacher_profile?.speaking_band) && (
+                                    <div className="score-chip hero">
+                                        <span className="sv">
+                                            {normalizedCerts[0]?.speaking ||
+                                                teacher.teacher_profile
+                                                    ?.speaking_band}
+                                        </span>
+                                        <span className="sl">
+                                            Speaking band
+                                        </span>
+                                    </div>
+                                )}
+                            {normalizedCerts.length > 0 &&
+                                (normalizedCerts[0]?.overall ||
+                                    teacher.teacher_profile?.overall_level) && (
+                                    <div className="score-chip">
+                                        <span className="sv">
+                                            {normalizedCerts[0]?.overall ||
+                                                (teacher.teacher_profile
+                                                    ?.overall_level
+                                                    ? teacher.teacher_profile.overall_level
+                                                          .replace(
+                                                              /IELTS\s*,?\s*/i,
+                                                              '',
+                                                          )
+                                                          .trim()
+                                                    : '')}
+                                        </span>
+                                        <span className="sl">
+                                            Overall{' '}
+                                            {normalizedCerts[0]?.type ===
+                                                'other' &&
+                                            normalizedCerts[0]?.custom_type_name
+                                                ? normalizedCerts[0]
+                                                      .custom_type_name
+                                                : normalizedCerts[0]?.type
+                                                  ? String(
+                                                        normalizedCerts[0].type,
+                                                    ).toUpperCase()
+                                                  : 'IELTS'}
+                                        </span>
+                                    </div>
+                                )}
                             <span className="new-badge">
                                 <Sparkles className="spark h-3.5 w-3.5 fill-amber-400 text-amber-500" />
-                                {t(`teacher.taking_first_students_${teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their'}`) || (
-                                    teacher.gender === 'male'
+                                {t(
+                                    `teacher.taking_first_students_${teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their'}`,
+                                ) ||
+                                    (teacher.gender === 'male'
                                         ? 'New on ConvoMate — taking his first students'
                                         : teacher.gender === 'female'
-                                            ? 'New on ConvoMate — taking her first students'
-                                            : 'New on ConvoMate — taking their first students'
-                                )}
+                                          ? 'New on ConvoMate — taking her first students'
+                                          : 'New on ConvoMate — taking their first students')}
                             </span>
                         </div>
                     </div>
@@ -663,24 +787,27 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
 
                 {/* 2. Grid Body */}
                 <div className="body-grid">
-
                     {/* Main Content card */}
                     <div className="main-card shadow-sm">
-
                         {/* Section 1: Intro Video */}
                         {teacher.teacher_profile?.intro_video_url && (
                             <div className="section">
                                 <div className="sec-title">
-                                    <span className="n"><Video className="h-3.5 w-3.5" /></span>
+                                    <span className="n">
+                                        <Video className="h-3.5 w-3.5" />
+                                    </span>
                                     Hear her speak first
                                 </div>
                                 {isPlayingVideo ? (
-                                    <div className="rounded-2xl overflow-hidden border bg-black aspect-video w-full">
+                                    <div className="aspect-video w-full overflow-hidden rounded-2xl border bg-black">
                                         <video
-                                            src={teacher.teacher_profile.intro_video_url}
+                                            src={
+                                                teacher.teacher_profile
+                                                    .intro_video_url
+                                            }
                                             controls
                                             autoPlay
-                                            className="w-full h-full object-cover"
+                                            className="h-full w-full object-cover"
                                         />
                                     </div>
                                 ) : (
@@ -691,19 +818,26 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                         aria-label="Play intro video"
                                         onClick={() => setIsPlayingVideo(true)}
                                         onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
+                                            if (
+                                                e.key === 'Enter' ||
+                                                e.key === ' '
+                                            ) {
                                                 setIsPlayingVideo(true);
                                             }
                                         }}
                                     >
                                         <div className="glow"></div>
                                         <div className="play">
-                                            <svg viewBox="0 0 20 20" className="h-4.5 w-4.5 fill-navy">
+                                            <svg
+                                                viewBox="0 0 20 20"
+                                                className="fill-navy h-4.5 w-4.5"
+                                            >
                                                 <path d="M4 2 L18 10 L4 18 Z" />
                                             </svg>
                                         </div>
                                         <div className="tag">
-                                            <span className="rec"></span> Unscripted — a real hello
+                                            <span className="rec"></span>{' '}
+                                            Unscripted — a real hello
                                         </div>
                                         <div className="dur">100MB max</div>
                                     </div>
@@ -714,33 +848,47 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                         {/* Section 2: About Bio & Focus */}
                         <div className="section">
                             <div className="sec-title">
-                                <span className="n"><User className="h-3.5 w-3.5" /></span>
+                                <span className="n">
+                                    <User className="h-3.5 w-3.5" />
+                                </span>
                                 About {teacher.full_name.split(' ')[0]}
                             </div>
                             <div className="bio">
-                                {teacher.teacher_profile?.bio || 'No bio description provided yet.'}
+                                {teacher.teacher_profile?.bio ||
+                                    'No bio description provided yet.'}
                             </div>
-                            {teacher.teacher_profile?.labels && teacher.teacher_profile.labels.length > 0 && (
-                                <div className="chips">
-                                    {teacher.teacher_profile.labels.map((lbl) => (
-                                        <span key={lbl} className="chip">
-                                            {t(`labels.${lbl}`) || lbl}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
+                            {teacher.teacher_profile?.labels &&
+                                teacher.teacher_profile.labels.length > 0 && (
+                                    <div className="chips">
+                                        {teacher.teacher_profile.labels.map(
+                                            (lbl) => (
+                                                <span
+                                                    key={lbl}
+                                                    className="chip"
+                                                >
+                                                    {t(`labels.${lbl}`) || lbl}
+                                                </span>
+                                            ),
+                                        )}
+                                    </div>
+                                )}
                         </div>
 
                         {/* Section 3: Certificates */}
                         <div className="section">
                             <div className="sec-title">
-                                <span className="n"><Award className="h-3.5 w-3.5" /></span>
+                                <span className="n">
+                                    <Award className="h-3.5 w-3.5" />
+                                </span>
                                 Certificates
                             </div>
                             {normalizedCerts.length > 0 ? (
                                 <div className="space-y-4">
                                     {normalizedCerts.map((cert, idx) => (
-                                        <div key={idx} className="rounded-2xl border border-[#E6E9F2] bg-white p-4 space-y-3 shadow-sm">
+                                        <div
+                                            key={idx}
+                                            className="space-y-3 rounded-2xl border border-[#E6E9F2] bg-white p-4 shadow-sm"
+                                        >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A]">
@@ -748,12 +896,18 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                                     </div>
                                                     <div>
                                                         <h4 className="text-sm font-bold text-[#1E2A5A]">
-                                                            {cert.title || (cert.type === 'other' ? cert.custom_type_name : cert.type?.toUpperCase()) || 'Language Certificate'}
+                                                            {cert.title ||
+                                                                (cert.type ===
+                                                                'other'
+                                                                    ? cert.custom_type_name
+                                                                    : cert.type?.toUpperCase()) ||
+                                                                'Language Certificate'}
                                                         </h4>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    {cert.status === 'verified' ? (
+                                                    {cert.status ===
+                                                    'verified' ? (
                                                         <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A]">
                                                             ✓ Verified
                                                         </span>
@@ -763,70 +917,145 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                                         </span>
                                                     )}
 
-                                                    {auth?.user?.role === 'admin' && (
+                                                    {auth?.user?.role ===
+                                                        'admin' && (
                                                         <Button
                                                             size="sm"
-                                                            variant={cert.status === 'verified' ? 'outline' : 'default'}
+                                                            variant={
+                                                                cert.status ===
+                                                                'verified'
+                                                                    ? 'outline'
+                                                                    : 'default'
+                                                            }
                                                             onClick={() => {
-                                                                router.post(`/admin/teachers/${teacher.id}/certificates/${idx}/verify`, {
-                                                                    status: cert.status === 'verified' ? 'under_review' : 'verified',
-                                                                });
+                                                                router.post(
+                                                                    `/admin/teachers/${teacher.id}/certificates/${idx}/verify`,
+                                                                    {
+                                                                        status:
+                                                                            cert.status ===
+                                                                            'verified'
+                                                                                ? 'under_review'
+                                                                                : 'verified',
+                                                                    },
+                                                                );
                                                             }}
-                                                            className={cert.status !== 'verified' ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-6 text-[11px] px-2' : 'font-bold h-6 text-[11px] px-2'}
+                                                            className={
+                                                                cert.status !==
+                                                                'verified'
+                                                                    ? 'h-6 bg-emerald-600 px-2 text-[11px] font-bold text-white hover:bg-emerald-700'
+                                                                    : 'h-6 px-2 text-[11px] font-bold'
+                                                            }
                                                         >
-                                                            {cert.status === 'verified' ? t('admin.unverify_certificate') : t('admin.verify_certificate')}
+                                                            {cert.status ===
+                                                            'verified'
+                                                                ? t(
+                                                                      'admin.unverify_certificate',
+                                                                  )
+                                                                : t(
+                                                                      'admin.verify_certificate',
+                                                                  )}
                                                         </Button>
                                                     )}
                                                 </div>
                                             </div>
 
                                             {/* Sub-scores layout */}
-                                            <div className="rounded-xl bg-[#FAFBFD] border border-[#E6E9F2]/60 p-3">
+                                            <div className="rounded-xl border border-[#E6E9F2]/60 bg-[#FAFBFD] p-3">
                                                 {/* Mobile layout (< sm): vertical stacked key-value list */}
-                                                <div className="flex flex-col gap-2 sm:hidden text-xs">
+                                                <div className="flex flex-col gap-2 text-xs sm:hidden">
                                                     <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">Overall:</span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.overall || '—'}</span>
+                                                        <span className="font-bold text-[#6B7394]">
+                                                            Overall:
+                                                        </span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">
+                                                            {cert.overall ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">Listening:</span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.listening || '—'}</span>
+                                                        <span className="font-bold text-[#6B7394]">
+                                                            Listening:
+                                                        </span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">
+                                                            {cert.listening ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">Reading:</span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.reading || '—'}</span>
+                                                        <span className="font-bold text-[#6B7394]">
+                                                            Reading:
+                                                        </span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">
+                                                            {cert.reading ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">Writing:</span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.writing || '—'}</span>
+                                                        <span className="font-bold text-[#6B7394]">
+                                                            Writing:
+                                                        </span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">
+                                                            {cert.writing ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between">
-                                                        <span className="font-bold text-[#6B7394]">Speaking:</span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">{cert.speaking || '—'}</span>
+                                                        <span className="font-bold text-[#6B7394]">
+                                                            Speaking:
+                                                        </span>
+                                                        <span className="font-extrabold text-[#1E2A5A]">
+                                                            {cert.speaking ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                 </div>
 
                                                 {/* Desktop layout (>= sm): 5 horizontal columns */}
-                                                <div className="hidden sm:grid sm:grid-cols-5 gap-1.5 text-center">
+                                                <div className="hidden gap-1.5 text-center sm:grid sm:grid-cols-5">
                                                     <div>
-                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Overall</span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.overall || '—'}</span>
+                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
+                                                            Overall
+                                                        </span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
+                                                            {cert.overall ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div>
-                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Listening</span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.listening || '—'}</span>
+                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
+                                                            Listening
+                                                        </span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
+                                                            {cert.listening ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div>
-                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Reading</span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.reading || '—'}</span>
+                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
+                                                            Reading
+                                                        </span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
+                                                            {cert.reading ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div>
-                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Writing</span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.writing || '—'}</span>
+                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
+                                                            Writing
+                                                        </span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
+                                                            {cert.writing ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                     <div>
-                                                        <span className="block text-[10px] font-bold uppercase text-[#6B7394]">Speaking</span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">{cert.speaking || '—'}</span>
+                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
+                                                            Speaking
+                                                        </span>
+                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
+                                                            {cert.speaking ||
+                                                                '—'}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -843,37 +1072,64 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                         {/* Section 4: Pupil feedback */}
                         <div className="section">
                             <div className="sec-title">
-                                <span className="n"><MessageCircle className="h-3.5 w-3.5" /></span>
+                                <span className="n">
+                                    <MessageCircle className="h-3.5 w-3.5" />
+                                </span>
                                 Pupil feedback
                             </div>
-                            {teacher.feedbacks && teacher.feedbacks.length > 0 ? (
+                            {teacher.feedbacks &&
+                            teacher.feedbacks.length > 0 ? (
                                 <div className="space-y-4">
                                     {teacher.feedbacks.map((fb) => (
-                                        <div key={fb.id} className="rounded-2xl border border-muted/50 bg-[#FAFBFD] p-5 shadow-sm">
+                                        <div
+                                            key={fb.id}
+                                            className="rounded-2xl border border-muted/50 bg-[#FAFBFD] p-5 shadow-sm"
+                                        >
                                             <div className="mb-3 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF4FB] text-xs font-bold text-[#1E2A5A] overflow-hidden">
+                                                    <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-[#EEF4FB] text-xs font-bold text-[#1E2A5A]">
                                                         {fb.author?.avatar ? (
-                                                            <img src={fb.author.avatar} className="h-full w-full object-cover" alt="avatar" />
+                                                            <img
+                                                                src={
+                                                                    fb.author
+                                                                        .avatar
+                                                                }
+                                                                className="h-full w-full object-cover"
+                                                                alt="avatar"
+                                                            />
                                                         ) : (
-                                                            fb.author?.full_name?.substring(0, 2).toUpperCase() || 'P'
+                                                            fb.author?.full_name
+                                                                ?.substring(
+                                                                    0,
+                                                                    2,
+                                                                )
+                                                                .toUpperCase() ||
+                                                            'P'
                                                         )}
                                                     </div>
                                                     <div>
                                                         <h4 className="text-sm font-bold text-[#1E2A5A]">
-                                                            {fb.author?.full_name || 'Pupil'}
+                                                            {fb.author
+                                                                ?.full_name ||
+                                                                'Pupil'}
                                                         </h4>
                                                         <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-                                                            {new Date(fb.created_at).toLocaleDateString([], {
-                                                                month: 'short',
-                                                                day: 'numeric',
-                                                                year: 'numeric',
-                                                            })}
+                                                            {new Date(
+                                                                fb.created_at,
+                                                            ).toLocaleDateString(
+                                                                [],
+                                                                {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    year: 'numeric',
+                                                                },
+                                                            )}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1 rounded-lg border border-amber-500/10 bg-amber-500/5 px-2.5 py-1 text-xs font-bold text-amber-600">
-                                                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {fb.rating}/10
+                                                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" />{' '}
+                                                    {fb.rating}/10
                                                 </div>
                                             </div>
                                             <p className="text-sm leading-relaxed text-[#6B7394] italic">
@@ -885,31 +1141,43 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                             ) : (
                                 <div className="fb-empty">
                                     <div className="big">
-                                        {t(`teacher.no_reviews_be_${teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their'}`) || (
-                                            teacher.gender === 'male'
+                                        {t(
+                                            `teacher.no_reviews_be_${teacher.gender === 'male' ? 'his' : teacher.gender === 'female' ? 'her' : 'their'}`,
+                                        ) ||
+                                            (teacher.gender === 'male'
                                                 ? 'No reviews yet — be his first'
                                                 : teacher.gender === 'female'
-                                                    ? 'No reviews yet — be her first'
-                                                    : 'No reviews yet — be their first'
-                                        )}
+                                                  ? 'No reviews yet — be her first'
+                                                  : 'No reviews yet — be their first')}
                                     </div>
-                                    <p>{teacher.full_name} is new here. Book a first session at half price and help other students decide.</p>
+                                    <p>
+                                        {teacher.full_name} is new here. Book a
+                                        first session at half price and help
+                                        other students decide.
+                                    </p>
                                 </div>
                             )}
                         </div>
-
                     </div>
 
                     {/* Booking sidebar rail */}
                     <aside>
                         <div className="book shadow-sm">
-                            <svg className="corner" viewBox="0 0 64 64" fill="none" stroke="#F0CE5F" strokeWidth="1.2">
+                            <svg
+                                className="corner"
+                                viewBox="0 0 64 64"
+                                fill="none"
+                                stroke="#F0CE5F"
+                                strokeWidth="1.2"
+                            >
                                 <path d="M64 0 v40 M64 0 h-40" />
                                 <path d="M52 0 v12 h12 M40 0 v24 h24" />
                                 <circle cx="52" cy="12" r="3" />
                             </svg>
                             <div className="price-row">
-                                <span className="price">{formattedHourlyPrice}</span>
+                                <span className="price">
+                                    {formattedHourlyPrice}
+                                </span>
                                 <span className="per">/ hour</span>
                             </div>
 
@@ -921,20 +1189,36 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                     onClick={() => setLessonType('trial')}
                                 >
                                     <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                            <span className="font-bold text-[15px] text-[#22284A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                            <span
+                                                className="text-[15px] font-bold text-[#22284A]"
+                                                style={{
+                                                    fontFamily:
+                                                        "'Bricolage Grotesque', sans-serif",
+                                                }}
+                                            >
                                                 Trial lesson
                                             </span>
-                                            <span className="text-[9.5px] font-extrabold tracking-wider uppercase bg-[#1E2A5A] text-[#F7DE8B] rounded-full px-2.5 py-0.5 whitespace-nowrap">
+                                            <span className="rounded-full bg-[#1E2A5A] px-2.5 py-0.5 text-[9.5px] font-extrabold tracking-wider whitespace-nowrap text-[#F7DE8B] uppercase">
                                                 First time only
                                             </span>
                                         </div>
-                                        <span className="font-bold text-[15px] text-[#1E2A5A] whitespace-nowrap" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                        <span
+                                            className="text-[15px] font-bold whitespace-nowrap text-[#1E2A5A]"
+                                            style={{
+                                                fontFamily:
+                                                    "'Bricolage Grotesque', sans-serif",
+                                            }}
+                                        >
                                             {formattedTrialPrice}
                                         </span>
                                     </div>
-                                    <div className="text-[12.5px] text-[#6B7394] mt-1.5 leading-snug">
-                                        20 minutes to meet {teacher.full_name?.split(' ')[0] || 'teacher'} — ⅓ of {genderPronoun} lesson price. One per teacher.
+                                    <div className="mt-1.5 text-[12.5px] leading-snug text-[#6B7394]">
+                                        20 minutes to meet{' '}
+                                        {teacher.full_name?.split(' ')[0] ||
+                                            'teacher'}{' '}
+                                        — ⅓ of {genderPronoun} lesson price. One
+                                        per teacher.
                                     </div>
                                 </div>
                             )}
@@ -944,21 +1228,40 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                 onClick={() => setLessonType('full')}
                             >
                                 <div className="flex items-center justify-between gap-2">
-                                    <span className="font-bold text-[15px] text-[#22284A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                    <span
+                                        className="text-[15px] font-bold text-[#22284A]"
+                                        style={{
+                                            fontFamily:
+                                                "'Bricolage Grotesque', sans-serif",
+                                        }}
+                                    >
                                         Full lesson
                                     </span>
-                                    <span className="font-bold text-[15px] text-[#1E2A5A] whitespace-nowrap" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                    <span
+                                        className="text-[15px] font-bold whitespace-nowrap text-[#1E2A5A]"
+                                        style={{
+                                            fontFamily:
+                                                "'Bricolage Grotesque', sans-serif",
+                                        }}
+                                    >
                                         {formattedFullPrice}
                                     </span>
                                 </div>
-                                <div className="text-[12.5px] text-[#6B7394] mt-1.5 leading-snug">
-                                    Regular session at {genderPronoun} standard rate. Pick your length below.
+                                <div className="mt-1.5 text-[12.5px] leading-snug text-[#6B7394]">
+                                    Regular session at {genderPronoun} standard
+                                    rate. Pick your length below.
                                 </div>
                             </div>
 
                             <div className="mt-3.5 mb-2">
-                                <div className="rail-label" style={{ marginTop: '12px' }}>
-                                    Duration {lessonType === 'full' ? '' : '(Full lesson)'}
+                                <div
+                                    className="rail-label"
+                                    style={{ marginTop: '12px' }}
+                                >
+                                    Duration{' '}
+                                    {lessonType === 'full'
+                                        ? ''
+                                        : '(Full lesson)'}
                                 </div>
                                 <div className="durs">
                                     {[
@@ -985,8 +1288,13 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                             <div className="rail-label">Pick a day</div>
                             <div className="day-tabs">
                                 {next7Days.map((day, idx) => {
-                                    const isActive = formatDateString(day) === formatDateString(selectedDate);
-                                    const dayName = day.toLocaleDateString('en-US', { weekday: 'short' });
+                                    const isActive =
+                                        formatDateString(day) ===
+                                        formatDateString(selectedDate);
+                                    const dayName = day.toLocaleDateString(
+                                        'en-US',
+                                        { weekday: 'short' },
+                                    );
                                     const dateNum = day.getDate();
                                     return (
                                         <div
@@ -998,7 +1306,10 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                                 setPickedSlot(null);
                                             }}
                                             onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                if (
+                                                    e.key === 'Enter' ||
+                                                    e.key === ' '
+                                                ) {
                                                     setSelectedDate(day);
                                                     setPickedSlot(null);
                                                 }
@@ -1014,106 +1325,195 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                             {/* Pick a time */}
                             <div className="rail-label">Pick a time</div>
                             {loadingSlots ? (
-                                <div className="flex py-6 justify-center items-center">
+                                <div className="flex items-center justify-center py-6">
                                     <Loader2 className="h-6 w-6 animate-spin text-[#1E2A5A]" />
                                 </div>
-                            ) : (() => {
-                                const requiredSlotsCount = lessonType === 'trial' ? 1 : Math.ceil(selectedDuration / 30);
-                                const validStartingSlots = slots.filter((slot) => {
-                                    if (slot.is_all_time) return true;
-                                    const slotStartMs = new Date(slot.start_at).getTime();
-                                    for (let i = 1; i < requiredSlotsCount; i++) {
-                                        const expectedStartMs = slotStartMs + i * 30 * 60 * 1000;
-                                        const hasNextSlot = slots.some(
-                                            (s) => Math.abs(new Date(s.start_at).getTime() - expectedStartMs) < 60000
-                                        );
-                                        if (!hasNextSlot) return false;
-                                    }
-                                    return true;
-                                });
+                            ) : (
+                                (() => {
+                                    const requiredSlotsCount =
+                                        lessonType === 'trial'
+                                            ? 1
+                                            : Math.ceil(selectedDuration / 30);
+                                    const validStartingSlots = slots.filter(
+                                        (slot) => {
+                                            if (slot.is_all_time) return true;
+                                            const slotStartMs = new Date(
+                                                slot.start_at,
+                                            ).getTime();
+                                            for (
+                                                let i = 1;
+                                                i < requiredSlotsCount;
+                                                i++
+                                            ) {
+                                                const expectedStartMs =
+                                                    slotStartMs +
+                                                    i * 30 * 60 * 1000;
+                                                const hasNextSlot = slots.some(
+                                                    (s) =>
+                                                        Math.abs(
+                                                            new Date(
+                                                                s.start_at,
+                                                            ).getTime() -
+                                                                expectedStartMs,
+                                                        ) < 60000,
+                                                );
+                                                if (!hasNextSlot) return false;
+                                            }
+                                            return true;
+                                        },
+                                    );
 
-                                return validStartingSlots.length > 0 ? (
-                                    <div className="slots">
-                                        {validStartingSlots.map((slot, idx) => {
-                                            const isPicked = pickedSlot === slot;
-                                            const formattedTime = new Date(slot.start_at).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                hour12: false
-                                            });
-                                            return (
-                                                <button
-                                                    key={idx}
-                                                    className={`slot ${isPicked ? 'picked' : ''}`}
-                                                    onClick={() => setPickedSlot(slot)}
-                                                >
-                                                    {slot.is_all_time ? 'Custom Slot' : formattedTime}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <p className="text-xs text-muted-foreground italic py-2">
-                                        No available slots for this day for the selected duration ({selectedDuration >= 60 ? selectedDuration / 60 + ' h' : selectedDuration + ' min'}).
-                                    </p>
-                                );
-                            })()}
+                                    return validStartingSlots.length > 0 ? (
+                                        <div className="slots">
+                                            {validStartingSlots.map(
+                                                (slot, idx) => {
+                                                    const isPicked =
+                                                        pickedSlot === slot;
+                                                    const formattedTime =
+                                                        new Date(
+                                                            slot.start_at,
+                                                        ).toLocaleTimeString(
+                                                            [],
+                                                            {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                                hour12: false,
+                                                            },
+                                                        );
+                                                    return (
+                                                        <button
+                                                            key={idx}
+                                                            className={`slot ${isPicked ? 'picked' : ''}`}
+                                                            onClick={() =>
+                                                                setPickedSlot(
+                                                                    slot,
+                                                                )
+                                                            }
+                                                        >
+                                                            {slot.is_all_time
+                                                                ? 'Custom Slot'
+                                                                : formattedTime}
+                                                        </button>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="py-2 text-xs text-muted-foreground italic">
+                                            No available slots for this day for
+                                            the selected duration (
+                                            {selectedDuration >= 60
+                                                ? selectedDuration / 60 + ' h'
+                                                : selectedDuration + ' min'}
+                                            ).
+                                        </p>
+                                    );
+                                })()
+                            )}
 
-                            <p className="tz">Times in your timezone — Tashkent (UTC+5)</p>
+                            <p className="tz">
+                                Times in your timezone — Tashkent (UTC+5)
+                            </p>
 
                             {pickedSlot && (
-                                <div className="mt-3.5 bg-[#F7F6F2] border border-[#E8E6DE] rounded-xl p-3 text-[13px] text-[#6B7394] leading-relaxed">
+                                <div className="mt-3.5 rounded-xl border border-[#E8E6DE] bg-[#F7F6F2] p-3 text-[13px] leading-relaxed text-[#6B7394]">
                                     <b className="text-[#22284A]">
-                                        {lessonType === 'trial' ? 'Trial · 20 min' : `Full lesson · ${selectedDuration >= 60 ? selectedDuration / 60 + ' h' : selectedDuration + ' min'}`}
-                                    </b> with {teacher.full_name?.split(' ')[0] || 'teacher'}<br />
-                                    {selectedDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}, {new Date(pickedSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} – {(() => {
+                                        {lessonType === 'trial'
+                                            ? 'Trial · 20 min'
+                                            : `Full lesson · ${selectedDuration >= 60 ? selectedDuration / 60 + ' h' : selectedDuration + ' min'}`}
+                                    </b>{' '}
+                                    with{' '}
+                                    {teacher.full_name?.split(' ')[0] ||
+                                        'teacher'}
+                                    <br />
+                                    {selectedDate.toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        day: 'numeric',
+                                        month: 'short',
+                                    })}
+                                    ,{' '}
+                                    {new Date(
+                                        pickedSlot.start_at,
+                                    ).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: false,
+                                    })}{' '}
+                                    –{' '}
+                                    {(() => {
                                         const p = new Date(pickedSlot.start_at);
-                                        const durMins = lessonType === 'trial' ? 20 : selectedDuration;
-                                        const endD = new Date(p.getTime() + durMins * 60000);
-                                        return endD.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-                                    })()} · <b className="text-[#1E2A5A]">{formattedActivePrice}</b>
+                                        const durMins =
+                                            lessonType === 'trial'
+                                                ? 20
+                                                : selectedDuration;
+                                        const endD = new Date(
+                                            p.getTime() + durMins * 60000,
+                                        );
+                                        return endD.toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false,
+                                        });
+                                    })()}{' '}
+                                    ·{' '}
+                                    <b className="text-[#1E2A5A]">
+                                        {formattedActivePrice}
+                                    </b>
                                 </div>
                             )}
 
                             <button
                                 className="cta"
-                                disabled={auth?.user?.role === 'teacher' || !pickedSlot || booking}
+                                disabled={
+                                    auth?.user?.role === 'teacher' ||
+                                    !pickedSlot ||
+                                    booking
+                                }
                                 onClick={() => setConfirmingSlot(pickedSlot)}
                             >
                                 {auth?.user?.role === 'teacher'
                                     ? 'Viewing Teacher Profile'
                                     : pickedSlot
-                                    ? `Pay ${formattedActivePrice} & book`
-                                    : 'Select a slot first'}
+                                      ? `Pay ${formattedActivePrice} & book`
+                                      : 'Select a slot first'}
                             </button>
 
                             <div className="book-meta">
                                 <div className="bm-row">
                                     <span className="k">Where</span>
-                                    <span className="v">Video call on ConvoMate</span>
+                                    <span className="v">
+                                        Video call on ConvoMate
+                                    </span>
                                 </div>
                                 <div className="bm-row">
                                     <span className="k">Cancellation</span>
-                                    <span className="v">Free up to 12 hrs before</span>
+                                    <span className="v">
+                                        Free up to 12 hrs before
+                                    </span>
                                 </div>
                             </div>
                             <p className="assure">
-                                A <b>real conversation</b> with a real teacher.<br />
+                                A <b>real conversation</b> with a real teacher.
+                                <br />
                                 No bots. No scripts. That's the point.
                             </p>
                         </div>
                     </aside>
-
                 </div>
             </div>
 
             {/* Confirmation Modal */}
             {confirmingSlot && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#22284A]/40 backdrop-blur-sm">
-                    <div className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95" style={{ fontFamily: "'Schibsted Grotesk', sans-serif" }}>
+                    <div
+                        className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95"
+                        style={{
+                            fontFamily: "'Schibsted Grotesk', sans-serif",
+                        }}
+                    >
                         <button
                             onClick={() => setConfirmingSlot(null)}
-                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] hover:bg-[#A9C6E8] hover:text-[#1E2A5A] transition-colors"
+                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] transition-colors hover:bg-[#A9C6E8] hover:text-[#1E2A5A]"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -1123,50 +1523,91 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                 <Info className="h-5 w-5" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-bold text-[#1E2A5A]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+                                <h3
+                                    className="text-lg font-bold text-[#1E2A5A]"
+                                    style={{
+                                        fontFamily:
+                                            "'Bricolage Grotesque', sans-serif",
+                                    }}
+                                >
                                     {confirmingSlot.is_all_time
-                                        ? t('booking.all_time_title') || 'Select Custom Slot Time'
-                                        : t('booking.confirm_title') || 'Confirm Booking'}
+                                        ? t('booking.all_time_title') ||
+                                          'Select Custom Slot Time'
+                                        : t('booking.confirm_title') ||
+                                          'Confirm Booking'}
                                 </h3>
 
                                 {confirmingSlot.is_all_time ? (
                                     <div className="mt-3 space-y-4">
                                         <p className="text-sm leading-relaxed text-[#6B7394]">
-                                            {t('booking.all_time_desc') || 'Choose a specific start and end time for your custom session.'}
+                                            {t('booking.all_time_desc') ||
+                                                'Choose a specific start and end time for your custom session.'}
                                         </p>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="grid gap-1">
                                                 <label className="text-xs font-semibold text-[#22284A]">
-                                                    {t('booking.all_time_start') || 'Start Time'}
+                                                    {t(
+                                                        'booking.all_time_start',
+                                                    ) || 'Start Time'}
                                                 </label>
                                                 <input
                                                     type="time"
                                                     value={selectedStartStr}
-                                                    onChange={(e) => setSelectedStartStr(e.target.value)}
-                                                    min={formatTimeToHHMM(new Date(confirmingSlot.start_at))}
-                                                    max={formatTimeToHHMM(new Date(confirmingSlot.end_at))}
-                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:outline-none focus:border-[#1E2A5A]"
+                                                    onChange={(e) =>
+                                                        setSelectedStartStr(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    min={formatTimeToHHMM(
+                                                        new Date(
+                                                            confirmingSlot.start_at,
+                                                        ),
+                                                    )}
+                                                    max={formatTimeToHHMM(
+                                                        new Date(
+                                                            confirmingSlot.end_at,
+                                                        ),
+                                                    )}
+                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
                                                 />
                                             </div>
                                             <div className="grid gap-1">
                                                 <label className="text-xs font-semibold text-[#22284A]">
-                                                    {t('booking.all_time_end') || 'End Time'}
+                                                    {t(
+                                                        'booking.all_time_end',
+                                                    ) || 'End Time'}
                                                 </label>
                                                 <input
                                                     type="time"
                                                     value={selectedEndStr}
-                                                    onChange={(e) => setSelectedEndStr(e.target.value)}
-                                                    min={selectedStartStr || formatTimeToHHMM(new Date(confirmingSlot.start_at))}
-                                                    max={formatTimeToHHMM(new Date(confirmingSlot.end_at))}
-                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:outline-none focus:border-[#1E2A5A]"
+                                                    onChange={(e) =>
+                                                        setSelectedEndStr(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    min={
+                                                        selectedStartStr ||
+                                                        formatTimeToHHMM(
+                                                            new Date(
+                                                                confirmingSlot.start_at,
+                                                            ),
+                                                        )
+                                                    }
+                                                    max={formatTimeToHHMM(
+                                                        new Date(
+                                                            confirmingSlot.end_at,
+                                                        ),
+                                                    )}
+                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
                                                 />
                                             </div>
                                         </div>
 
                                         {!validateSelectedRange() && (
-                                            <p className="text-xs text-red-500 font-bold">
-                                                {t('booking.invalid_range') || 'Selected range is invalid.'}
+                                            <p className="text-xs font-bold text-red-500">
+                                                {t('booking.invalid_range') ||
+                                                    'Selected range is invalid.'}
                                             </p>
                                         )}
                                     </div>
@@ -1174,55 +1615,84 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                     <p className="mt-3 text-sm leading-relaxed text-[#6B7394]">
                                         {t('booking.confirm_message', {
                                             teacher: teacher.full_name,
-                                            start: new Date(confirmingSlot.start_at).toLocaleTimeString([], {
+                                            start: new Date(
+                                                confirmingSlot.start_at,
+                                            ).toLocaleTimeString([], {
                                                 hour: '2-digit',
                                                 minute: '2-digit',
                                             }),
-                                            end: new Date(confirmingSlot.end_at).toLocaleTimeString([], {
+                                            end: new Date(
+                                                confirmingSlot.end_at,
+                                            ).toLocaleTimeString([], {
                                                 hour: '2-digit',
                                                 minute: '2-digit',
                                             }),
-                                        }) || `Book a session with ${teacher.full_name} from ${new Date(confirmingSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${new Date(confirmingSlot.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}?`}
+                                        }) ||
+                                            `Book a session with ${teacher.full_name} from ${new Date(confirmingSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${new Date(confirmingSlot.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}?`}
                                     </p>
                                 )}
 
                                 {/* Topic selection */}
-                                <div className="space-y-2 mt-4 border-t border-[#E6E9F2] pt-3">
+                                <div className="mt-4 space-y-2 border-t border-[#E6E9F2] pt-3">
                                     <label className="text-xs font-semibold text-[#22284A]">
-                                        {t('booking.select_topics') || 'Select Speaking Topics'} <span className="text-red-500">*</span>
+                                        {t('booking.select_topics') ||
+                                            'Select Speaking Topics'}{' '}
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <div className="flex flex-wrap gap-2">
-                                        {teacher.teacher_profile?.labels?.map((lbl: string) => {
-                                            const isChecked = selectedTopics.includes(lbl);
-                                            return (
-                                                <button
-                                                    key={lbl}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (isChecked) {
-                                                            setSelectedTopics(selectedTopics.filter((t) => t !== lbl));
-                                                        } else {
-                                                            setSelectedTopics([...selectedTopics, lbl]);
-                                                        }
-                                                    }}
-                                                    className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${isChecked
-                                                            ? 'bg-[#1E2A5A] border-[#1E2A5A] text-white'
-                                                            : 'bg-[#EEF4FB] border-[#D8E5F5] text-[#1E2A5A] hover:bg-[#A9C6E8]'
+                                        {teacher.teacher_profile?.labels?.map(
+                                            (lbl: string) => {
+                                                const isChecked =
+                                                    selectedTopics.includes(
+                                                        lbl,
+                                                    );
+                                                return (
+                                                    <button
+                                                        key={lbl}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (isChecked) {
+                                                                setSelectedTopics(
+                                                                    selectedTopics.filter(
+                                                                        (t) =>
+                                                                            t !==
+                                                                            lbl,
+                                                                    ),
+                                                                );
+                                                            } else {
+                                                                setSelectedTopics(
+                                                                    [
+                                                                        ...selectedTopics,
+                                                                        lbl,
+                                                                    ],
+                                                                );
+                                                            }
+                                                        }}
+                                                        className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
+                                                            isChecked
+                                                                ? 'border-[#1E2A5A] bg-[#1E2A5A] text-white'
+                                                                : 'border-[#D8E5F5] bg-[#EEF4FB] text-[#1E2A5A] hover:bg-[#A9C6E8]'
                                                         }`}
-                                                >
-                                                    {t(`labels.${lbl}`) || lbl}
-                                                </button>
-                                            );
-                                        })}
+                                                    >
+                                                        {t(`labels.${lbl}`) ||
+                                                            lbl}
+                                                    </button>
+                                                );
+                                            },
+                                        )}
                                         <button
                                             type="button"
-                                            onClick={() => setOtherChecked(!otherChecked)}
-                                            className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${otherChecked
-                                                    ? 'bg-[#1E2A5A] border-[#1E2A5A] text-white'
-                                                    : 'bg-[#EEF4FB] border-[#D8E5F5] text-[#1E2A5A] hover:bg-[#A9C6E8]'
-                                                }`}
+                                            onClick={() =>
+                                                setOtherChecked(!otherChecked)
+                                            }
+                                            className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
+                                                otherChecked
+                                                    ? 'border-[#1E2A5A] bg-[#1E2A5A] text-white'
+                                                    : 'border-[#D8E5F5] bg-[#EEF4FB] text-[#1E2A5A] hover:bg-[#A9C6E8]'
+                                            }`}
                                         >
-                                            {t('booking.topic_other') || 'Other...'}
+                                            {t('booking.topic_other') ||
+                                                'Other...'}
                                         </button>
                                     </div>
 
@@ -1230,10 +1700,18 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                         <div className="mt-2.5">
                                             <input
                                                 type="text"
-                                                placeholder={t('booking.topic_other_placeholder') || 'Enter custom topic...'}
+                                                placeholder={
+                                                    t(
+                                                        'booking.topic_other_placeholder',
+                                                    ) || 'Enter custom topic...'
+                                                }
                                                 value={customTopic}
-                                                onChange={(e) => setCustomTopic(e.target.value)}
-                                                className="w-full rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:outline-none focus:border-[#1E2A5A]"
+                                                onChange={(e) =>
+                                                    setCustomTopic(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="w-full rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
                                                 maxLength={100}
                                             />
                                         </div>
@@ -1249,12 +1727,16 @@ export default function TeacherProfile({ teacher, hasEligibleTrial = true, trial
                                     </button>
                                     <button
                                         onClick={handleConfirmSubmit}
-                                        disabled={booking || !validateSelectedRange()}
-                                        className="cursor-pointer rounded-xl bg-[#F7DE8B] hover:bg-[#F0CE5F] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors disabled:opacity-50"
+                                        disabled={
+                                            booking || !validateSelectedRange()
+                                        }
+                                        className="cursor-pointer rounded-xl bg-[#F7DE8B] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors hover:bg-[#F0CE5F] disabled:opacity-50"
                                     >
                                         {booking
-                                            ? t('booking.requesting') || 'Requesting...'
-                                            : t('booking.confirm_btn') || 'Confirm Booking'}
+                                            ? t('booking.requesting') ||
+                                              'Requesting...'
+                                            : t('booking.confirm_btn') ||
+                                              'Confirm Booking'}
                                     </button>
                                 </div>
                             </div>

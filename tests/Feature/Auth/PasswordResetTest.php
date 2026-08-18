@@ -75,6 +75,8 @@ class PasswordResetTest extends TestCase
                 ->assertSessionHasNoErrors()
                 ->assertRedirect(route('login'));
 
+            $this->assertTrue($user->fresh()->has_password);
+
             return true;
         });
     }
