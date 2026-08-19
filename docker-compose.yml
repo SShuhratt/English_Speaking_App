@@ -72,10 +72,6 @@ services:
       - edtech
 
   horizon:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    # Reuses the exact same built container image from the api layer instantly
     image: edtech-backend-engine-api:latest
     container_name: edtech-horizon
     restart: unless-stopped
@@ -100,9 +96,6 @@ services:
       - edtech
 
   reverb:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: edtech-backend-engine-api:latest
     container_name: edtech-reverb
     restart: unless-stopped
