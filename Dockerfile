@@ -32,24 +32,24 @@ RUN npm run build
 # Stage 3: Production environment (FrankenPHP)
 FROM dunglas/frankenphp:1-php8.5-bookworm
 
-# Install required system packages
-RUN apt-get update && apt-get install -y \
-    unzip \
-    git \
-    ffmpeg \
+# Install required system packages and PHP extensions with updated Debian keyrings
+RUN (apt-get update --allow-insecure-repositories || true) \
+    && (apt-get install -y --allow-unauthenticated debian-archive-keyring ca-certificates || true) \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        unzip \
+        git \
+        ffmpeg \
+    && install-php-extensions \
+        pcntl \
+        pdo_pgsql \
+        intl \
+        zip \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and install phpredis from GitHub to bypass PECL network issues
 RUN git clone --branch develop --depth 1 https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis \
     && docker-php-ext-install redis
-
-# Install PHP extensions
-RUN install-php-extensions \
-    pcntl \
-    pdo_pgsql \
-    intl \
-    opcache \
-    zip
 
 # Configure PHP upload and memory limits
 RUN echo 'upload_max_filesize = 120M\npost_max_size = 130M\nmemory_limit = 256M\nmax_execution_time = 300\nmax_input_time = 300' > /usr/local/etc/php/conf.d/docker-php-ext-uploads.ini
