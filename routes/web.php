@@ -20,6 +20,8 @@ use App\Http\Controllers\TeacherFeedbackController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
+Route::inertia('/privacy', 'privacy')->name('privacy');
+Route::inertia('/terms', 'terms')->name('terms');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

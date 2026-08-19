@@ -145,6 +145,22 @@ export default function Login({ status, canResetPassword }: Props) {
                                 {t('auth.sign_up')}
                             </TextLink>
                         </div>
+
+                        <p className="mt-2 text-center text-xs text-muted-foreground">
+                            <a
+                                href="/terms"
+                                className="underline hover:text-foreground"
+                            >
+                                Terms of Service
+                            </a>{' '}
+                            ·{' '}
+                            <a
+                                href="/privacy"
+                                className="underline hover:text-foreground"
+                            >
+                                Privacy Policy
+                            </a>
+                        </p>
                     </>
                 )}
             </Form>

@@ -378,12 +378,39 @@ export default function Profile({
         auth.user.teacher_profile?.intro_video_url || '',
     );
     const [videoFileName, setVideoFileName] = React.useState('');
+    const [videoError, setVideoError] = React.useState<string | null>(null);
+    const [deleteIntroVideo, setDeleteIntroVideo] = React.useState(false);
+    const videoInputRef = React.useRef<HTMLInputElement>(null);
 
     const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        setVideoError(null);
         if (file) {
-            setVideoFileName(file.name);
+            // Check file size (100MB limit = 104,857,600 bytes)
+            if (file.size > 100 * 1024 * 1024) {
+                setVideoError(
+                    `The selected video is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). The maximum allowed size is 100 MB.`,
+                );
+                if (videoInputRef.current) {
+                    videoInputRef.current.value = '';
+                }
+                return;
+            }
+
+            const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+            setVideoFileName(`${file.name} (${sizeMb} MB)`);
             setVideoPreview(URL.createObjectURL(file));
+            setDeleteIntroVideo(false);
+        }
+    };
+
+    const handleRemoveVideo = () => {
+        setVideoPreview('');
+        setVideoFileName('');
+        setVideoError(null);
+        setDeleteIntroVideo(true);
+        if (videoInputRef.current) {
+            videoInputRef.current.value = '';
         }
     };
 
@@ -1395,8 +1422,16 @@ export default function Profile({
                                         <div>
                                             <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#1E2A5A]">
                                                 Intro video
-                                                <span className="inline-block rounded-full bg-[#F7DE8B] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A]">
-                                                    Required
+                                                <span
+                                                    className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                                                        videoPreview
+                                                            ? 'bg-emerald-50 text-emerald-700'
+                                                            : 'bg-[#F7DE8B] text-[#1E2A5A]'
+                                                    }`}
+                                                >
+                                                    {videoPreview
+                                                        ? 'Active'
+                                                        : 'Optional / Pending'}
                                                 </span>
                                             </h2>
                                             <p className="text-[13.5px] text-[#6B7394]">
@@ -1417,7 +1452,7 @@ export default function Profile({
                                                     Upload or record your intro
                                                 </b>
                                                 <span className="mx-auto mt-1 block max-w-[44ch] text-[13px] text-[#6B7394]">
-                                                    MP4 or WebM, up to 100 MB.
+                                                    MP4 or WebM (H.264 video codec recommended for full browser compatibility), up to 100 MB.
                                                     Phone camera is perfect —
                                                     students trust real over
                                                     polished.
@@ -1427,23 +1462,40 @@ export default function Profile({
                                                 type="file"
                                                 name="intro_video"
                                                 id="video-file"
-                                                accept="video/mp4,video/webm,video/quicktime"
+                                                ref={videoInputRef}
+                                                accept="video/mp4,video/webm,video/quicktime,.mov,video/mov"
                                                 hidden
                                                 onChange={handleVideoSelect}
                                             />
-                                            {videoFileName && (
-                                                <div className="text-xs font-bold text-[#1E2A5A]">
-                                                    Selected file:{' '}
-                                                    {videoFileName}
-                                                </div>
-                                            )}
+                                            <input
+                                                type="hidden"
+                                                name="delete_intro_video"
+                                                value={deleteIntroVideo ? '1' : '0'}
+                                            />
                                             {videoPreview && (
-                                                <div className="relative mt-2 aspect-video max-w-sm overflow-hidden rounded-xl border border-[#E6E9F2] bg-neutral-900">
-                                                    <video
-                                                        src={videoPreview}
-                                                        controls
-                                                        className="h-full w-full object-cover"
-                                                    />
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xs font-bold text-[#1E2A5A]">
+                                                            {videoFileName
+                                                                ? `Selected: ${videoFileName}`
+                                                                : 'Current Intro Video'}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleRemoveVideo}
+                                                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 hover:text-red-700"
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                            Remove video
+                                                        </button>
+                                                    </div>
+                                                    <div className="relative mt-1 aspect-video max-w-sm overflow-hidden rounded-xl border border-[#E6E9F2] bg-neutral-900 shadow-sm">
+                                                        <video
+                                                            src={videoPreview}
+                                                            controls
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    </div>
                                                 </div>
                                             )}
                                             <div className="text-[13px] text-[#6B7394]">
@@ -1455,7 +1507,7 @@ export default function Profile({
                                                 already on your profile.
                                             </div>
                                             <InputError
-                                                message={errors.intro_video}
+                                                message={videoError || errors.intro_video}
                                             />
                                         </div>
                                     </div>
@@ -2247,22 +2299,45 @@ export default function Profile({
                                             </div>
                                         )}
                                 </div>
-                                <div className="flex items-center justify-end gap-4 lg:col-span-8">
-                                    <button
-                                        type="button"
-                                        onClick={() => window.location.reload()}
-                                        className="cursor-pointer rounded-full border-0 bg-transparent px-8 py-3.5 text-sm font-bold text-[#1E2A5A] transition-all hover:bg-neutral-100"
-                                    >
-                                        Discard Changes
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="cursor-pointer rounded-full border-0 bg-[#F7DE8B] px-12 py-4 text-sm font-bold text-[#1E2A5A] shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-50"
-                                        data-test="update-profile-button"
-                                    >
-                                        {t('profile.save')}
-                                    </button>
+                                <div className="flex flex-col items-end gap-3 lg:col-span-8">
+                                    {processing && (
+                                        <div className="flex w-full items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/90 p-4 text-blue-900 shadow-sm animate-pulse">
+                                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1E2A5A] border-t-transparent flex-shrink-0" />
+                                            <div className="text-left">
+                                                <p className="text-sm font-bold text-[#1E2A5A]">
+                                                    Uploading media & saving profile...
+                                                </p>
+                                                <p className="text-xs text-[#6B7394]">
+                                                    Please wait while your files are being uploaded and processed. Do not close or refresh this page.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-end gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => window.location.reload()}
+                                            disabled={processing}
+                                            className="cursor-pointer rounded-full border-0 bg-transparent px-8 py-3.5 text-sm font-bold text-[#1E2A5A] transition-all hover:bg-neutral-100 disabled:opacity-50"
+                                        >
+                                            Discard Changes
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={processing}
+                                            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 bg-[#F7DE8B] px-12 py-4 text-sm font-bold text-[#1E2A5A] shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                                            data-test="update-profile-button"
+                                        >
+                                            {processing ? (
+                                                <>
+                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1E2A5A] border-t-transparent" />
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                t('profile.save')
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </>

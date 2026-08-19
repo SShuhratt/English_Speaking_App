@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-// use App\Models\Feedback;
-// use App\Observers\FeedbackObserver;
+use App\Models\User;
+use App\Observers\UserObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
-        // \App\Models\Feedback::observe(\App\Observers\FeedbackObserver::class);
+        User::observe(UserObserver::class);
     }
 
     /**

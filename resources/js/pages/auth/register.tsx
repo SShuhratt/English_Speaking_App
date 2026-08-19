@@ -769,6 +769,23 @@ export default function Register({ passwordRules }: Props) {
                                 {processing && <Spinner />}
                                 {t('auth.register_button')}
                             </Button>
+
+                            <p className="text-center text-xs text-muted-foreground">
+                                By continuing, you agree to ConvoMate's{' '}
+                                <a
+                                    href="/terms"
+                                    className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                >
+                                    Terms of Service
+                                </a>{' '}
+                                and{' '}
+                                <a
+                                    href="/privacy"
+                                    className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                >
+                                    Privacy Policy
+                                </a>.
+                            </p>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">

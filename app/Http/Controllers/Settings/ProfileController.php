@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Jobs\TranscodeIntroVideoJob;
+use App\Services\FileStorageService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,6 +44,16 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        // Check for server-level payload drop when CONTENT_LENGTH is set but inputs are empty
+        if ($request->server('CONTENT_LENGTH') > 0 && empty($request->all()) && empty($request->allFiles())) {
+            throw ValidationException::withMessages([
+                'intro_video' => ['The uploaded payload exceeds the maximum server limit. Please upload a smaller video (under 100 MB).'],
+            ]);
+        }
+
+        // Validate avatar upload health
+        $this->validateUploadSuccess($request, 'avatar', 'profile photo');
+
         // Update user basics
         $user->fill($request->only(['name', 'email', 'gender']));
 
@@ -52,7 +66,10 @@ class ProfileController extends Controller
             $request->validate([
                 'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'], // 5MB max
             ]);
-            $disk = env('FILESYSTEM_DISK', 'public');
+            if ($user->avatar) {
+                FileStorageService::deleteFromUrl($user->avatar);
+            }
+            $disk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
             $path = $request->file('avatar')->store('avatars', $disk);
             $user->avatar = Storage::disk($disk)->url($path);
         }
@@ -60,6 +77,15 @@ class ProfileController extends Controller
         $user->save();
 
         if ($user->role === 'teacher') {
+            $teacherProfile = $user->teacherProfile ?? $user->teacherProfile()->first();
+            $uploadedVideoPath = null;
+            $uploadedVideoDisk = null;
+
+            // Validate upload health for intro video and certificates
+            $this->validateUploadSuccess($request, 'intro_video', 'intro video');
+            $this->validateArrayUploadSuccess($request, 'certificate_files', 'certificate file');
+            $this->validateArrayUploadSuccess($request, 'ielts_certificates', 'certificate file');
+
             if ($request->has('price') && $request->input('price') === '') {
                 $request->merge(['price' => null]);
             }
@@ -78,16 +104,29 @@ class ProfileController extends Controller
                 'bio' => ['nullable', 'string', 'max:600'],
                 'price' => ['nullable', 'integer', 'min:0'],
                 'intro_video_url' => ['nullable', 'string'],
+                'delete_intro_video' => ['nullable', 'boolean'],
             ]);
+
+            // Handle intro video deletion
+            if ($request->boolean('delete_intro_video')) {
+                if ($teacherProfile?->intro_video_url) {
+                    FileStorageService::deleteFromUrl($teacherProfile->intro_video_url);
+                }
+                $profileData['intro_video_url'] = null;
+            }
 
             // Handle intro video file upload
             if ($request->hasFile('intro_video')) {
                 $request->validate([
-                    'intro_video' => ['nullable', 'file', 'mimes:mp4,webm,quicktime', 'max:102400'], // 100MB max
+                    'intro_video' => ['nullable', 'file', 'mimes:mp4,webm,quicktime,mov', 'max:102400'], // 100MB max
                 ]);
-                $disk = env('FILESYSTEM_DISK', 'public');
-                $path = $request->file('intro_video')->store('videos', $disk);
-                $profileData['intro_video_url'] = Storage::disk($disk)->url($path);
+                if ($teacherProfile?->intro_video_url) {
+                    FileStorageService::deleteFromUrl($teacherProfile->intro_video_url);
+                }
+                $disk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
+                $uploadedVideoPath = $request->file('intro_video')->store('videos', $disk);
+                $uploadedVideoDisk = $disk;
+                $profileData['intro_video_url'] = Storage::disk($disk)->url($uploadedVideoPath);
             }
 
             // Validate certificate uploads if present
@@ -271,6 +310,14 @@ class ProfileController extends Controller
 
             $profileData['certificates'] = $finalCertificates;
 
+            // Clean up removed certificates from storage
+            $newFileUrls = array_filter(array_column($finalCertificates, 'file_url'));
+            foreach ($existingCerts as $oldCert) {
+                if (is_array($oldCert) && ! empty($oldCert['file_url']) && ! in_array($oldCert['file_url'], $newFileUrls, true)) {
+                    FileStorageService::deleteFromUrl($oldCert['file_url']);
+                }
+            }
+
             if (! empty($finalCertificates)) {
                 $primaryCert = $finalCertificates[0];
                 $primarySpeaking = ! empty($primaryCert['speaking']) ? (float) $primaryCert['speaking'] : (! empty($primaryCert['overall']) ? (float) $primaryCert['overall'] : null);
@@ -288,11 +335,27 @@ class ProfileController extends Controller
                 $profileData['overall_level'] = null;
             }
 
-            $user->teacherProfile()->updateOrCreate(
+            $savedTeacherProfile = $user->teacherProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData
             );
+
+            if ($uploadedVideoPath) {
+                TranscodeIntroVideoJob::dispatch($savedTeacherProfile->id, $uploadedVideoPath, $uploadedVideoDisk);
+            }
         } elseif ($user->role === 'pupil') {
+            $pupilProfile = $user->pupilProfile ?? $user->pupilProfile()->first();
+            $existingCerts = $pupilProfile->certificates ?? [];
+            if (is_string($existingCerts)) {
+                $existingCerts = json_decode($existingCerts, true) ?? [];
+            }
+            if (! is_array($existingCerts)) {
+                $existingCerts = [];
+            }
+
+            // Validate upload health for pupil certificates
+            $this->validateArrayUploadSuccess($request, 'ielts_certificates', 'certificate file');
+
             $profileData = $request->validate([
                 'age' => ['nullable', 'integer', 'min:1', 'max:120'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
@@ -327,7 +390,7 @@ class ProfileController extends Controller
                     ];
                 }
                 foreach ($uploadedFiles as $file) {
-                    $disk = env('FILESYSTEM_DISK', 'public');
+                    $disk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
                     $path = $file->store('certificates', $disk);
                     $finalCertificates[] = [
                         'title' => $file->getClientOriginalName(),
@@ -354,7 +417,7 @@ class ProfileController extends Controller
 
                         if (isset($uploadedFiles[$index])) {
                             $file = $uploadedFiles[$index];
-                            $disk = env('FILESYSTEM_DISK', 'public');
+                            $disk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
                             $path = $file->store('certificates', $disk);
                             $fileUrl = Storage::disk($disk)->url($path);
                             $fileName = $file->getClientOriginalName();
@@ -375,7 +438,7 @@ class ProfileController extends Controller
 
             if (empty($certsInput) && ! empty($uploadedFiles)) {
                 foreach ($uploadedFiles as $file) {
-                    $disk = env('FILESYSTEM_DISK', 'public');
+                    $disk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
                     $path = $file->store('certificates', $disk);
                     $finalCertificates[] = [
                         'title' => $file->getClientOriginalName(),
@@ -387,6 +450,14 @@ class ProfileController extends Controller
             }
 
             $profileData['certificates'] = $finalCertificates;
+
+            // Clean up removed pupil certificates from storage
+            $newFileUrls = array_filter(array_column($finalCertificates, 'file_url'));
+            foreach ($existingCerts as $oldCert) {
+                if (is_array($oldCert) && ! empty($oldCert['file_url']) && ! in_array($oldCert['file_url'], $newFileUrls, true)) {
+                    FileStorageService::deleteFromUrl($oldCert['file_url']);
+                }
+            }
 
             $user->pupilProfile()->updateOrCreate(
                 ['user_id' => $user->id],
@@ -414,5 +485,51 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Validate that an uploaded file has no PHP/server upload errors before processing.
+     *
+     * @throws ValidationException
+     */
+    protected function validateUploadSuccess(Request $request, string $field, string $friendlyName = 'file'): void
+    {
+        $file = $request->file($field);
+        if ($file instanceof UploadedFile && ! $file->isValid()) {
+            $errorMessage = match ($file->getError()) {
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => "The {$friendlyName} exceeds the maximum allowed file size. Please choose a file under 100 MB.",
+                UPLOAD_ERR_PARTIAL => "The {$friendlyName} upload was interrupted or timed out. Please check your connection and try again.",
+                default => "The {$friendlyName} failed to upload. Please try again.",
+            };
+
+            throw ValidationException::withMessages([
+                $field => [$errorMessage],
+            ]);
+        }
+    }
+
+    /**
+     * Validate that uploaded files in an array have no upload errors.
+     *
+     * @throws ValidationException
+     */
+    protected function validateArrayUploadSuccess(Request $request, string $field, string $friendlyName = 'certificate'): void
+    {
+        $files = $request->file($field);
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                if ($file instanceof UploadedFile && ! $file->isValid()) {
+                    $errorMessage = match ($file->getError()) {
+                        UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => "One or more {$friendlyName}s exceed the maximum allowed file size (10 MB).",
+                        UPLOAD_ERR_PARTIAL => "A {$friendlyName} upload was interrupted or timed out. Please check your connection and try again.",
+                        default => "A {$friendlyName} failed to upload. Please try again.",
+                    };
+
+                    throw ValidationException::withMessages([
+                        $field => [$errorMessage],
+                    ]);
+                }
+            }
+        }
     }
 }

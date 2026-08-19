@@ -36,6 +36,7 @@ FROM dunglas/frankenphp:1-php8.5-bookworm
 RUN apt-get update && apt-get install -y \
     unzip \
     git \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and install phpredis from GitHub to bypass PECL network issues

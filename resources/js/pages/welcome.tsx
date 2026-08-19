@@ -816,7 +816,7 @@ export default function Welcome() {
                             © {new Date().getFullYear()} ConvoMate. All rights
                             reserved. Real humans, real results.
                         </p>
-                        <div className="flex gap-6">
+                        <div className="flex flex-wrap items-center justify-center gap-6">
                             <a href="#why" className="hover:text-[#1E2A5A]">
                                 Why humans
                             </a>
@@ -829,6 +829,18 @@ export default function Welcome() {
                             >
                                 Teachers
                             </a>
+                            <Link
+                                href="/privacy"
+                                className="hover:text-[#1E2A5A]"
+                            >
+                                Privacy Policy
+                            </Link>
+                            <Link
+                                href="/terms"
+                                className="hover:text-[#1E2A5A]"
+                            >
+                                Terms of Service
+                            </Link>
                         </div>
                     </div>
                 </footer>
