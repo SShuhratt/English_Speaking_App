@@ -16,7 +16,7 @@
 
 {$CADDY_EXTRA_CONFIG}
 
-{$CADDY_SERVER_SERVER_NAME} {
+:8000, convomate.uz, https://convomate.uz {
 	log {
 		level {$CADDY_SERVER_LOG_LEVEL}
 
