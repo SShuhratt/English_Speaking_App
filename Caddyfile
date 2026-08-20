@@ -31,7 +31,7 @@
 		}
 	}
 
-	{$CADDY_TLS_DIRECTIVE}
+	tls /data/caddy/certs/cert.pem /data/caddy/certs/key.pem
 
 	route {
 		root * "{$APP_PUBLIC_PATH}"
