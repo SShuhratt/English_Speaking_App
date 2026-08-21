@@ -69,10 +69,10 @@ export default function Welcome() {
     return (
         <>
             <Head>
-                <title>ConvoMate — Speak with humans, not bots</title>
+                <title>ConvoMate — 1-on-1 English Speaking Practice Platform</title>
                 <meta
                     name="description"
-                    content="Live 1-on-1 English speaking practice with IELTS-verified teachers. Real humans, real conversations — book your lesson on ConvoMate."
+                    content="ConvoMate is a live 1-on-1 English speaking practice platform connecting students with IELTS-verified teachers for real-time conversation simulations, fluency coaching, and exam preparation."
                 />
             </Head>
 
@@ -391,17 +391,15 @@ export default function Welcome() {
                     <div className="wrap grid items-center gap-12 lg:grid-cols-2">
                         <div>
                             <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#1E2A5A] shadow-sm">
-                                ✦ Early access — lessons are free during beta
+                                ✦ ConvoMate English Speaking Platform — Live 1-on-1 Practice
                             </span>
                             <h1 className="mb-5 text-4xl font-extrabold md:text-5xl lg:text-7xl">
                                 Speak with{' '}
                                 <span className="hero-hum">humans</span>,<br />
                                 not <span className="hero-strike">bots</span>.
                             </h1>
-                            <p className="mb-8 max-w-[470px] text-lg text-[#5C6480] md:text-xl">
-                                An app can't hear your confidence shake. A real
-                                teacher can — and fixes it live. 1-on-1 speaking
-                                sessions with IELTS-verified teachers.
+                            <p className="mb-8 max-w-[500px] text-lg text-[#5C6480] md:text-xl">
+                                <b>ConvoMate</b> is an interactive English speaking platform where learners book live 1-on-1 sessions with IELTS-verified teachers for real-time conversation practice, fluency coaching, and personalized feedback.
                             </p>
                             <div className="mb-6 flex flex-wrap gap-4">
                                 <Link
