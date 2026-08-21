@@ -382,6 +382,13 @@ export default function Profile({
     const [deleteIntroVideo, setDeleteIntroVideo] = React.useState(false);
     const videoInputRef = React.useRef<HTMLInputElement>(null);
 
+    React.useEffect(() => {
+        if (!videoFileName) {
+            setVideoPreview(auth.user.teacher_profile?.intro_video_url || '');
+            setDeleteIntroVideo(false);
+        }
+    }, [auth.user.teacher_profile?.intro_video_url]);
+
     const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         setVideoError(null);
@@ -630,7 +637,7 @@ export default function Profile({
                     }}
                     className="mx-auto max-w-[760px] space-y-12 px-4 py-8"
                 >
-                    {({ processing, errors }) => (
+                    {({ processing, errors, progress }) => (
                         <>
                             <input type="hidden" name="_method" value="PATCH" />
 
@@ -1472,6 +1479,34 @@ export default function Profile({
                                                 name="delete_intro_video"
                                                 value={deleteIntroVideo ? '1' : '0'}
                                             />
+                                            {deleteIntroVideo && !videoPreview && (
+                                                <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs font-semibold text-amber-800">
+                                                    Video is marked for removal and will be deleted when you click Save.
+                                                </div>
+                                            )}
+                                            {progress && typeof progress.percentage === 'number' && (
+                                                <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/80 p-4">
+                                                    <div className="flex items-center justify-between text-xs font-bold text-[#1E2A5A]">
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="relative flex h-2 w-2">
+                                                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+                                                                <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-600"></span>
+                                                            </span>
+                                                            Uploading Video
+                                                        </span>
+                                                        <span className="tabular-nums font-extrabold text-blue-700">{progress.percentage}%</span>
+                                                    </div>
+                                                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-blue-100">
+                                                        <div
+                                                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300 ease-out"
+                                                            style={{ width: `${progress.percentage}%` }}
+                                                        />
+                                                    </div>
+                                                    <p className="text-[11.5px] text-[#4A5568]">
+                                                        Please stay on this page while your video is transferring.
+                                                    </p>
+                                                </div>
+                                            )}
                                             {videoPreview && (
                                                 <div className="space-y-2">
                                                     <div className="flex items-center justify-between">
@@ -2331,7 +2366,9 @@ export default function Profile({
                                             {processing ? (
                                                 <>
                                                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1E2A5A] border-t-transparent" />
-                                                    Saving...
+                                                    {progress && typeof progress.percentage === 'number' && progress.percentage > 0
+                                                        ? `Uploading (${progress.percentage}%)...`
+                                                        : 'Saving...'}
                                                 </>
                                             ) : (
                                                 t('profile.save')

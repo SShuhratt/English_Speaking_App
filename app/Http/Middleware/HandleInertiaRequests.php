@@ -43,9 +43,9 @@ class HandleInertiaRequests extends Middleware
 
         if ($user) {
             if ($user->role === 'teacher') {
-                $user->loadMissing('teacherProfile');
+                $user->load('teacherProfile');
             } elseif ($user->role === 'pupil') {
-                $user->loadMissing('pupilProfile');
+                $user->load('pupilProfile');
             }
             $userArray = $user->toArray();
             if ($user->role !== 'admin') {

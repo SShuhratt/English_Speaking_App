@@ -127,6 +127,8 @@ class ProfileController extends Controller
                 $oldVideoUrl = $teacherProfile?->intro_video_url;
                 $localTmpVideoPath = $request->file('intro_video')->store('tmp_videos', 'local');
                 $targetVideoDisk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
+                // Clear old video URL immediately from database while the new one is being transcoded
+                $profileData['intro_video_url'] = null;
             }
 
             // Validate certificate uploads if present
@@ -469,6 +471,9 @@ class ProfileController extends Controller
                 $profileData
             );
         }
+
+        $user->unsetRelation('teacherProfile');
+        $user->unsetRelation('pupilProfile');
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
