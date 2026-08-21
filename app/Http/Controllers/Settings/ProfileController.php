@@ -115,18 +115,18 @@ class ProfileController extends Controller
                 $profileData['intro_video_url'] = null;
             }
 
-            // Handle intro video file upload
+            // Handle intro video file upload via instant local buffering
+            $localTmpVideoPath = null;
+            $targetVideoDisk = null;
+            $oldVideoUrl = null;
+
             if ($request->hasFile('intro_video')) {
                 $request->validate([
                     'intro_video' => ['nullable', 'file', 'mimes:mp4,webm,quicktime,mov', 'max:102400'], // 100MB max
                 ]);
-                if ($teacherProfile?->intro_video_url) {
-                    FileStorageService::deleteFromUrl($teacherProfile->intro_video_url);
-                }
-                $disk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
-                $uploadedVideoPath = $request->file('intro_video')->store('videos', $disk);
-                $uploadedVideoDisk = $disk;
-                $profileData['intro_video_url'] = Storage::disk($disk)->url($uploadedVideoPath);
+                $oldVideoUrl = $teacherProfile?->intro_video_url;
+                $localTmpVideoPath = $request->file('intro_video')->store('tmp_videos', 'local');
+                $targetVideoDisk = config('filesystems.default', env('FILESYSTEM_DISK', 'public'));
             }
 
             // Validate certificate uploads if present
@@ -340,8 +340,13 @@ class ProfileController extends Controller
                 $profileData
             );
 
-            if ($uploadedVideoPath) {
-                TranscodeIntroVideoJob::dispatch($savedTeacherProfile->id, $uploadedVideoPath, $uploadedVideoDisk);
+            if ($localTmpVideoPath) {
+                TranscodeIntroVideoJob::dispatch(
+                    $savedTeacherProfile->id,
+                    $localTmpVideoPath,
+                    $targetVideoDisk,
+                    $oldVideoUrl
+                );
             }
         } elseif ($user->role === 'pupil') {
             $pupilProfile = $user->pupilProfile ?? $user->pupilProfile()->first();

@@ -44,6 +44,7 @@ class MediaStorageCleanupTest extends TestCase
 
     public function test_uploading_new_intro_video_deletes_old_video_from_storage(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
 
         $oldVideoPath = 'videos/old-intro.mp4';
@@ -65,6 +66,8 @@ class MediaStorageCleanupTest extends TestCase
         ]);
 
         $response->assertSessionHasNoErrors();
+
+        // In sync testing, the background job runs and removes the old video from target storage
         Storage::disk('public')->assertMissing($oldVideoPath);
 
         $updatedProfile = $user->fresh()->teacherProfile;

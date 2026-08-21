@@ -3,11 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\TeacherProfile;
+use App\Services\FileStorageService;
 use App\Services\VideoTranscodingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 class TranscodeIntroVideoJob implements ShouldQueue
@@ -22,17 +24,18 @@ class TranscodeIntroVideoJob implements ShouldQueue
     /**
      * The number of seconds the job can run before timing out.
      */
-    public int $timeout = 240;
+    public int $timeout = 300;
 
     /**
      * Create a new job instance.
      */
     public function __construct(
         public int|string $teacherProfileId,
-        public string $rawStoragePath,
-        public ?string $disk = null
+        public string $localTmpPath,
+        public ?string $targetDisk = null,
+        public ?string $oldVideoUrl = null
     ) {
-        $this->disk = $disk ?: config('filesystems.default', 'public');
+        $this->targetDisk = $targetDisk ?: config('filesystems.default', 'public');
     }
 
     /**
@@ -45,73 +48,76 @@ class TranscodeIntroVideoJob implements ShouldQueue
             return;
         }
 
-        $disk = $this->disk ?: config('filesystems.default', 'public');
+        $targetDisk = $this->targetDisk ?: config('filesystems.default', 'public');
 
-        if (! Storage::disk($disk)->exists($this->rawStoragePath)) {
-            Log::warning('TranscodeIntroVideoJob: Raw video file not found in storage: '.$this->rawStoragePath);
-
-            return;
-        }
-
-        // If FFmpeg is not installed on the system, gracefully keep the raw video
-        if (! VideoTranscodingService::isFFmpegAvailable()) {
-            Log::info('FFmpeg binary not available on system, keeping raw video: '.$this->rawStoragePath);
+        if (! Storage::disk('local')->exists($this->localTmpPath)) {
+            Log::warning('TranscodeIntroVideoJob: Local temporary video not found: '.$this->localTmpPath);
 
             return;
         }
 
-        $tempInput = tempnam(sys_get_temp_dir(), 'in_vid_');
-        $tempOutput = tempnam(sys_get_temp_dir(), 'out_vid_').'.mp4';
+        $fullLocalPath = Storage::disk('local')->path($this->localTmpPath);
+        $tempOutput = tempnam(sys_get_temp_dir(), 'opt_vid_').'.mp4';
+        $uploadedCloudPath = null;
 
         try {
-            // Stream raw video from storage to local temp file
-            $inputStream = Storage::disk($disk)->readStream($this->rawStoragePath);
-            if ($inputStream) {
-                file_put_contents($tempInput, stream_get_contents($inputStream));
+            $newUrl = null;
+
+            // If FFmpeg is available, transcode to universal H.264 MP4 with web streaming flags
+            if (VideoTranscodingService::isFFmpegAvailable()) {
+                $success = VideoTranscodingService::transcodeToH264($fullLocalPath, $tempOutput);
+
+                if ($success && file_exists($tempOutput) && filesize($tempOutput) > 0) {
+                    $cloudFileName = 'videos/'.Str::random(40).'.mp4';
+                    $outputStream = fopen($tempOutput, 'r');
+                    Storage::disk($targetDisk)->put($cloudFileName, $outputStream);
+                    if (is_resource($outputStream)) {
+                        fclose($outputStream);
+                    }
+
+                    $uploadedCloudPath = $cloudFileName;
+                    $newUrl = Storage::disk($targetDisk)->url($cloudFileName);
+                }
+            }
+
+            // Fallback: upload raw local video if FFmpeg is unavailable or transcode failed
+            if (! $newUrl) {
+                $ext = pathinfo($this->localTmpPath, PATHINFO_EXTENSION) ?: 'mp4';
+                $cloudFileName = 'videos/'.Str::random(40).'.'.$ext;
+                $inputStream = fopen($fullLocalPath, 'r');
+                Storage::disk($targetDisk)->put($cloudFileName, $inputStream);
                 if (is_resource($inputStream)) {
                     fclose($inputStream);
                 }
-            } else {
-                $content = Storage::disk($disk)->get($this->rawStoragePath);
-                file_put_contents($tempInput, $content);
+
+                $uploadedCloudPath = $cloudFileName;
+                $newUrl = Storage::disk($targetDisk)->url($cloudFileName);
             }
 
-            $success = VideoTranscodingService::transcodeToH264($tempInput, $tempOutput);
-
-            if ($success && file_exists($tempOutput) && filesize($tempOutput) > 0) {
-                $optimizedPath = 'videos/'.pathinfo($this->rawStoragePath, PATHINFO_FILENAME).'-h264.mp4';
-
-                // Save optimized MP4 to storage
-                $outputStream = fopen($tempOutput, 'r');
-                Storage::disk($disk)->put($optimizedPath, $outputStream);
-                if (is_resource($outputStream)) {
-                    fclose($outputStream);
+            if ($newUrl) {
+                // Delete previous video from cloud storage now that the new one is ready
+                if ($this->oldVideoUrl) {
+                    FileStorageService::deleteFromUrl($this->oldVideoUrl);
                 }
 
-                $newUrl = Storage::disk($disk)->url($optimizedPath);
-
-                // If optimized file path is different, remove the raw temporary file
-                if ($optimizedPath !== $this->rawStoragePath) {
-                    Storage::disk($disk)->delete($this->rawStoragePath);
-                }
-
-                // Check if the teacher profile is still pointing to the raw video before updating
-                $currentUrl = $profile->fresh()?->intro_video_url;
-                $rawUrl = Storage::disk($disk)->url($this->rawStoragePath);
-
-                if (! $currentUrl || $currentUrl === $rawUrl || str_contains($currentUrl, pathinfo($this->rawStoragePath, PATHINFO_FILENAME))) {
-                    $profile->update([
-                        'intro_video_url' => $newUrl,
-                    ]);
-                }
+                // Update teacher profile with the new cloud URL
+                $profile->update([
+                    'intro_video_url' => $newUrl,
+                ]);
             }
         } catch (Throwable $e) {
-            Log::warning('TranscodeIntroVideoJob failed to transcode video: '.$this->rawStoragePath, [
+            Log::error('TranscodeIntroVideoJob encountered an error while processing video: '.$this->localTmpPath, [
                 'error' => $e->getMessage(),
             ]);
+
+            // Clean up cloud file if database update failed
+            if ($uploadedCloudPath && Storage::disk($targetDisk)->exists($uploadedCloudPath)) {
+                Storage::disk($targetDisk)->delete($uploadedCloudPath);
+            }
         } finally {
-            if (file_exists($tempInput)) {
-                @unlink($tempInput);
+            // Always clean up local temporary files from VPS disk
+            if (Storage::disk('local')->exists($this->localTmpPath)) {
+                Storage::disk('local')->delete($this->localTmpPath);
             }
             if (file_exists($tempOutput)) {
                 @unlink($tempOutput);
