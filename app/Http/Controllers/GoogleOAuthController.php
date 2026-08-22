@@ -95,4 +95,23 @@ class GoogleOAuthController extends Controller
             return redirect()->route($redirectRoute)->with('error', 'Google authentication failed: '.$e->getMessage());
         }
     }
+
+    /**
+     * Disconnect Google Calendar for the authenticated user.
+     */
+    public function disconnect(Request $request)
+    {
+        $user = Auth::user();
+        if ($user) {
+            $user->update([
+                'google_connected' => false,
+                'google_access_token' => null,
+                'google_refresh_token' => null,
+                'google_token_expires_at' => null,
+                'google_scopes' => null,
+            ]);
+        }
+
+        return back()->with('success', 'Google Calendar disconnected successfully.');
+    }
 }

@@ -30,6 +30,16 @@ class GoogleOAuthService
         ]);
 
         if (! $response->successful()) {
+            $body = $response->json() ?? [];
+            if (($body['error'] ?? '') === 'invalid_grant' || in_array($response->status(), [400, 401])) {
+                $user->update([
+                    'google_connected' => false,
+                    'google_access_token' => null,
+                    'google_refresh_token' => null,
+                    'google_token_expires_at' => null,
+                ]);
+            }
+
             throw new \Exception('Failed to refresh Google access token: '.$response->body());
         }
 

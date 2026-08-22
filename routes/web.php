@@ -102,6 +102,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/bookings/{id}', [BookingController::class, 'cancel']);
     Route::delete('/appointments/{id}', [BookingController::class, 'destroy']);
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+    Route::post('/auth/google/disconnect', [GoogleOAuthController::class, 'disconnect'])->name('google.disconnect');
 });
 
 Route::get('/auth/google', [GoogleOAuthController::class, 'redirect']);

@@ -3,7 +3,9 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Services\GoogleOAuthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
@@ -96,5 +98,51 @@ class GoogleRegistrationTest extends TestCase
         $this->assertFalse($user->google_connected);
         $this->assertFalse($user->has_password);
         $this->assertEquals('Google Pupil', $user->full_name);
+    }
+
+    public function test_user_can_disconnect_google_calendar(): void
+    {
+        $user = User::factory()->create([
+            'google_connected' => true,
+            'google_access_token' => 'access-token',
+            'google_refresh_token' => 'refresh-token',
+        ]);
+
+        $response = $this->actingAs($user)->post('/auth/google/disconnect');
+
+        $response->assertRedirect();
+        $freshUser = $user->fresh();
+        $this->assertFalse($freshUser->google_connected);
+        $this->assertNull($freshUser->google_access_token);
+        $this->assertNull($freshUser->google_refresh_token);
+    }
+
+    public function test_revoked_token_resets_google_connected_status(): void
+    {
+        $user = User::factory()->create([
+            'google_connected' => true,
+            'google_access_token' => 'expired-token',
+            'google_refresh_token' => 'revoked-token',
+            'google_token_expires_at' => now()->subHour(),
+        ]);
+
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response([
+                'error' => 'invalid_grant',
+                'error_description' => 'Token has been expired or revoked.',
+            ], 400),
+        ]);
+
+        $oauthService = app(GoogleOAuthService::class);
+
+        try {
+            $oauthService->getValidAccessToken($user);
+        } catch (\Exception $e) {
+            // expected
+        }
+
+        $freshUser = $user->fresh();
+        $this->assertFalse($freshUser->google_connected);
+        $this->assertNull($freshUser->google_refresh_token);
     }
 }
