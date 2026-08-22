@@ -832,7 +832,7 @@ function TeacherDashboard({
                         </p>
                     </div>
                     <a
-                        href="/auth/google"
+                        href="/auth/google?calendar=1"
                         className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-xs font-bold whitespace-nowrap text-white shadow-sm transition-colors hover:bg-red-700"
                     >
                         {t('dashboard.connect_google')}

@@ -12,15 +12,19 @@ class GoogleOAuthController extends Controller
     /**
      * Redirect the user to the Google authentication page.
      */
-    public function redirect()
+    public function redirect(Request $request)
     {
+        $scopes = ['openid', 'profile', 'email'];
+
+        if ($request->boolean('calendar') || $request->has('connect_calendar')) {
+            $scopes[] = 'https://www.googleapis.com/auth/calendar.events';
+        }
+
         return Socialite::driver('google')
-            ->scopes([
-                'https://www.googleapis.com/auth/calendar.events',
-            ])
+            ->scopes($scopes)
             ->with([
                 'access_type' => 'offline',
-                'prompt' => 'consent select_account',
+                'prompt' => 'select_account',
             ])
             ->redirect();
     }

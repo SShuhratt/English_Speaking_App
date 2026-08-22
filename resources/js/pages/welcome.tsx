@@ -493,7 +493,27 @@ export default function Welcome() {
                     </div>
                 </section>
 
-                {/* ── Why Humans Section ── */}
+                {/* ── About ConvoMate Platform Purpose & Integration ── */}
+                <section className="border-y border-[#EAE4D2] bg-white py-10 md:py-14">
+                    <div className="wrap">
+                        <div className="rounded-3xl border border-[#EAE4D2] bg-[#FDFBF7] p-7 md:p-10 shadow-xs">
+                            <div className="max-w-3xl">
+                                <span className="mb-3 inline-block rounded-full bg-[#1E2A5A]/10 px-3.5 py-1 text-xs font-extrabold tracking-wider text-[#1E2A5A] uppercase">
+                                    About ConvoMate Platform
+                                </span>
+                                <h2 className="mb-4 text-2xl font-extrabold text-[#1E2A5A] md:text-3xl">
+                                    1-on-1 English Speaking Platform & Automated Scheduling
+                                </h2>
+                                <p className="mb-4 text-base leading-relaxed text-[#5C6480] md:text-lg">
+                                    <strong>ConvoMate</strong> is an interactive online platform designed to connect English learners with IELTS-verified teachers for real-time 1-on-1 video lessons, conversation practice, and fluency coaching.
+                                </p>
+                                <p className="text-sm leading-relaxed text-[#5C6480] md:text-base">
+                                    ConvoMate uses <strong>Google Sign-In</strong> for secure, fast user authentication and integrates with <strong>Google Calendar</strong> to automatically schedule speaking lessons and generate <strong>Google Meet</strong> video conference links for confirmed student-teacher sessions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
                 <section className="py-20 md:py-28" id="why">
                     <div className="wrap">
                         <div className="mb-14 text-center">
