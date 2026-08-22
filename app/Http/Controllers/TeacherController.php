@@ -61,6 +61,21 @@ class TeacherController extends Controller
         $teacher->is_new = $teacher->created_at >= now()->subDays(7);
 
         $currentUser = auth()->user();
+        $isPrivileged = $currentUser && ($currentUser->role === 'admin' || $currentUser->id === $teacher->id);
+
+        if (! $isPrivileged && $teacher->teacherProfile && is_array($teacher->teacherProfile->certificates)) {
+            $sanitizedCerts = array_map(function ($cert) {
+                if (is_array($cert)) {
+                    $cert['file_url'] = null;
+                    $cert['file_name'] = null;
+                }
+
+                return $cert;
+            }, $teacher->teacherProfile->certificates);
+
+            $teacher->teacherProfile->certificates = $sanitizedCerts;
+        }
+
         $hasEligibleTrial = ! $currentUser || ! $currentUser->hasBookedWithTeacher($teacher->id);
         $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 0);
         $trialPrice = $hourlyRate > 0 ? (int) (round(($hourlyRate / 3) / 1000) * 1000) : 0;
@@ -121,15 +136,16 @@ class TeacherController extends Controller
     }
 
     /**
-     * Build combinable teacher query supporting status filters, IELTS band sorting, and price sorting
+     * Build combinable teacher query supporting search by name, status filters, IELTS band sorting, and price sorting
      *
-     * @return array{0: Builder, 1: array{status: string, ielts_sort: ?string, price_sort: ?string}}
+     * @return array{0: Builder, 1: array{status: string, ielts_sort: ?string, price_sort: ?string, search: ?string}}
      */
     private function buildTeachersQuery(Request $request): array
     {
         $status = $request->query('status', $request->query('filter', 'all'));
         $ieltsSort = $request->query('ielts_sort');
         $priceSort = $request->query('price_sort');
+        $search = trim((string) $request->query('search', ''));
 
         // Normalize legacy filter parameters if passed in 'filter' query string
         if ($status === 'ielts_speaking_asc') {
@@ -147,6 +163,13 @@ class TeacherController extends Controller
         }
 
         $query = User::where('role', 'teacher')->with('teacherProfile');
+
+        // Name Search Filter (case-insensitive)
+        if ($search !== '') {
+            $driver = $query->getConnection()->getDriverName();
+            $likeOp = $driver === 'pgsql' ? 'ilike' : 'like';
+            $query->where('users.full_name', $likeOp, "%{$search}%");
+        }
 
         // Status Filter
         if ($status === 'verified') {
@@ -181,6 +204,7 @@ class TeacherController extends Controller
                 'status' => $status,
                 'ielts_sort' => $ieltsSort,
                 'price_sort' => $priceSort,
+                'search' => $search !== '' ? $search : null,
             ],
         ];
     }

@@ -133,4 +133,96 @@ class AdminUserManagementTest extends TestCase
         $response->assertStatus(403);
         $this->assertDatabaseHas('users', ['id' => $teacher->id]);
     }
+
+    public function test_admin_can_view_teacher_certificate_file_urls(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'title' => 'IELTS Certificate',
+                    'overall' => '8.0',
+                    'file_url' => '/storage/certificates/ielts_trf.pdf',
+                    'file_name' => 'ielts_trf.pdf',
+                    'status' => 'pending',
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($admin)->get("/admin/teachers/{$teacher->id}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('pupil/teacher-profile')
+            ->where('teacher.teacher_profile.certificates.0.file_url', '/storage/certificates/ielts_trf.pdf')
+            ->where('teacher.teacher_profile.certificates.0.file_name', 'ielts_trf.pdf')
+        );
+    }
+
+    public function test_teacher_can_view_own_certificate_file_urls(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'title' => 'IELTS Certificate',
+                    'overall' => '8.0',
+                    'file_url' => '/storage/certificates/my_ielts.pdf',
+                    'file_name' => 'my_ielts.pdf',
+                    'status' => 'pending',
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($teacher)->get("/teacher/teachers/{$teacher->id}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('pupil/teacher-profile')
+            ->where('teacher.teacher_profile.certificates.0.file_url', '/storage/certificates/my_ielts.pdf')
+        );
+    }
+
+    public function test_pupil_and_other_teachers_cannot_see_raw_certificate_file_urls(): void
+    {
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $otherTeacher = User::factory()->create(['role' => 'teacher']);
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'title' => 'IELTS Certificate',
+                    'overall' => '8.0',
+                    'file_url' => '/storage/certificates/secret_trf.pdf',
+                    'file_name' => 'secret_trf.pdf',
+                    'status' => 'verified',
+                ],
+            ],
+        ]);
+
+        // 1. Pupil viewing teacher profile
+        $responsePupil = $this->actingAs($pupil)->get("/pupil/teachers/{$teacher->id}");
+        $responsePupil->assertStatus(200);
+        $responsePupil->assertInertia(fn ($page) => $page
+            ->component('pupil/teacher-profile')
+            ->where('teacher.teacher_profile.certificates.0.overall', '8.0')
+            ->where('teacher.teacher_profile.certificates.0.file_url', null)
+        );
+
+        // 2. Other teacher viewing teacher profile
+        $responseOther = $this->actingAs($otherTeacher)->get("/teacher/teachers/{$teacher->id}");
+        $responseOther->assertStatus(200);
+        $responseOther->assertInertia(fn ($page) => $page
+            ->component('pupil/teacher-profile')
+            ->where('teacher.teacher_profile.certificates.0.overall', '8.0')
+            ->where('teacher.teacher_profile.certificates.0.file_url', null)
+        );
+    }
 }

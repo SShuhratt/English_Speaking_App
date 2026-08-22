@@ -127,4 +127,9 @@ class User extends Authenticatable implements PasskeyUser
             ->whereIn('status', ['pending_teacher_approval', 'awaiting_payment', 'payment_submitted', 'confirmed'])
             ->exists();
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
 }

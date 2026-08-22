@@ -30,11 +30,14 @@ interface TeacherProps {
 export default function TeacherCard({ teacher }: TeacherProps) {
     const { t } = useTranslation();
     const { auth } = usePage<any>().props;
+    const isAdmin = auth?.user?.role === 'admin';
     const isTeacher = auth?.user?.role === 'teacher';
 
-    const cardHref = isTeacher
-        ? `/teacher/teachers/${teacher.id}`
-        : `/pupil/teachers/${teacher.id}`;
+    const cardHref = isAdmin
+        ? `/admin/teachers/${teacher.id}`
+        : isTeacher
+            ? `/teacher/teachers/${teacher.id}`
+            : `/pupil/teachers/${teacher.id}`;
 
     const initials = teacher.full_name
         .split(' ')

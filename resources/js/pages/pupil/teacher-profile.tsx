@@ -1059,6 +1059,55 @@ export default function TeacherProfile({
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {/* Document Inspection (Admin & Owner Teacher Only) */}
+                                            {(auth?.user?.role === 'admin' ||
+                                                auth?.user?.id ===
+                                                    teacher.id) && (
+                                                <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] px-3.5 py-2.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-[#6B7394]">
+                                                            Certificate Document:
+                                                        </span>
+                                                        {cert.file_url ? (
+                                                            <a
+                                                                href={
+                                                                    cert.file_url
+                                                                }
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-100 hover:text-indigo-900"
+                                                            >
+                                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                                <span>
+                                                                    View Document
+                                                                    {cert.file_name
+                                                                        ? ` (${cert.file_name})`
+                                                                        : ''}
+                                                                </span>
+                                                            </a>
+                                                        ) : (
+                                                            <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                                                                No document attached
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {cert.file_url && (
+                                                        <a
+                                                            href={cert.file_url}
+                                                            download={
+                                                                cert.file_name ||
+                                                                'certificate'
+                                                            }
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs font-bold text-[#1E2A5A] hover:underline"
+                                                        >
+                                                            Download
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

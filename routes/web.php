@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/appointments/{id}/reject-payment', [AdminDashboardController::class, 'rejectPayment'])->name('appointments.reject-payment');
 
         Route::get('/teachers', [AdminUserController::class, 'teachers'])->name('teachers');
+        Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
         Route::post('/teachers/{id}/verify', [AdminUserController::class, 'verifyTeacher'])->name('teachers.verify');
         Route::post('/teachers/{id}/certificates', [AdminUserController::class, 'updateCertificates'])->name('teachers.certificates.update');
         Route::post('/teachers/{id}/certificates/{index}/verify', [AdminUserController::class, 'verifySingleCertificate'])->name('teachers.certificates.verify-single');

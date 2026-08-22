@@ -4,12 +4,20 @@ import TeacherCard from '@/components/teachers/TeacherCard';
 import TeacherFilterBar, {
     FilterState,
 } from '@/components/teachers/TeacherFilterBar';
+import Pagination from '@/components/teachers/Pagination';
 import { Head } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
+import { SearchX } from 'lucide-react';
 
 interface Props {
     teachers: {
         data: any[];
+        links?: any[];
+        current_page?: number;
+        last_page?: number;
+        from?: number | null;
+        to?: number | null;
+        total?: number;
     };
     currentFilters?: FilterState;
     currentFilter?: string;
@@ -28,7 +36,7 @@ export default function Teachers({
 
     return (
         <>
-            <Head title={t('teachers.browse')} />
+            <Head title={t('teachers.browse') || 'Find Teachers'} />
             <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
                 <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
@@ -47,7 +55,7 @@ export default function Teachers({
                     </div>
                 </div>
 
-                {/* Filter Bar */}
+                {/* Filter Bar with Search Input */}
                 <TeacherFilterBar
                     baseUrl="/pupil/teachers"
                     currentFilters={activeFilters}
@@ -60,13 +68,32 @@ export default function Teachers({
                     ))}
                 </div>
 
+                {/* Empty Search / Filter State */}
                 {teachers.data.length === 0 && (
-                    <div className="rounded-3xl border border-dashed bg-card py-20 text-center">
-                        <p className="text-sm font-medium text-muted-foreground">
-                            {t('teachers_directory.no_teachers') ||
-                                'No teachers match the selected filter criteria.'}
+                    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#EAE4D2] bg-white py-16 text-center shadow-xs">
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FDF7E4] text-[#1E2A5A]">
+                            <SearchX className="h-7 w-7 text-[#1E2A5A]" />
+                        </div>
+                        <h3 className="text-lg font-bold text-[#1E2A5A]">
+                            No teachers found
+                        </h3>
+                        <p className="mt-1 max-w-md text-xs font-medium text-[#5C6480]">
+                            {activeFilters.search
+                                ? `We couldn't find any teachers matching "${activeFilters.search}". Try checking for spelling or clear search.`
+                                : t('teachers_directory.no_teachers') ||
+                                  'No teachers match the selected filter criteria.'}
                         </p>
                     </div>
+                )}
+
+                {/* Pagination Controls */}
+                {teachers.links && (
+                    <Pagination
+                        links={teachers.links}
+                        from={teachers.from}
+                        to={teachers.to}
+                        total={teachers.total}
+                    />
                 )}
             </div>
         </>
