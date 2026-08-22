@@ -42,12 +42,21 @@ class GoogleOAuthController extends Controller
                 // Try to find existing user by email
                 $existingUser = User::where('email', $googleUser->getEmail())->first();
                 if ($existingUser) {
+                    $approvedScopes = $googleUser->approvedScopes ?? [];
+                    $hasCalendarScope = false;
+                    foreach ($approvedScopes as $scope) {
+                        if (str_contains($scope, 'calendar')) {
+                            $hasCalendarScope = true;
+                            break;
+                        }
+                    }
+
                     $existingUser->update([
-                        'google_connected' => true,
+                        'google_connected' => $existingUser->google_connected || $hasCalendarScope,
                         'google_access_token' => $googleUser->token,
                         'google_refresh_token' => $googleUser->refreshToken ?? $existingUser->google_refresh_token,
                         'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
-                        'google_scopes' => $googleUser->approvedScopes ?? [],
+                        'google_scopes' => ! empty($approvedScopes) ? $approvedScopes : $existingUser->google_scopes,
                     ]);
 
                     Auth::login($existingUser);

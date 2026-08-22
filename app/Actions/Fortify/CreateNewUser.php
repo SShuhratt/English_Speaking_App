@@ -77,7 +77,7 @@ class CreateNewUser implements CreatesNewUsers
             if (session()->has('google_register')) {
                 $googleData = session()->get('google_register');
                 $user->has_password = false;
-                $user->google_connected = true;
+                $user->google_connected = false; // Basic login scopes granted; calendar connection is managed from dashboard
                 $user->google_access_token = $googleData['access_token'] ?? null;
                 $user->google_refresh_token = $googleData['refresh_token'] ?? null;
                 $user->google_token_expires_at = isset($googleData['expires_in']) ? now()->addSeconds($googleData['expires_in']) : null;

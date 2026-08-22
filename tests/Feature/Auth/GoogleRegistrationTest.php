@@ -93,7 +93,7 @@ class GoogleRegistrationTest extends TestCase
         $user = User::where('email', 'googlepupil@example.com')->first();
         $this->assertNotNull($user);
         $this->assertNotNull($user->email_verified_at);
-        $this->assertTrue($user->google_connected);
+        $this->assertFalse($user->google_connected);
         $this->assertFalse($user->has_password);
         $this->assertEquals('Google Pupil', $user->full_name);
     }
