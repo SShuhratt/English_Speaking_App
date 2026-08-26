@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
+import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 
 interface Props {
     availabilities: any[];
@@ -1008,6 +1009,7 @@ export default function Availability({
         <>
             <Head title="Teacher Availability Scheduler" />
             <div className="flex h-[calc(100vh-4rem)] animate-in flex-col overflow-hidden bg-background duration-300 select-none fade-in">
+                <GoogleCalendarWarningBanner className="m-4 shrink-0" />
                 {/* Header (Google Calendar Style Toolbar) */}
                 <div className="flex items-center justify-between border-b bg-card px-6 py-3.5">
                     <div className="flex items-center gap-6">

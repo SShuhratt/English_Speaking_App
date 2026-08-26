@@ -6,6 +6,7 @@ use App\Events\BookingUpdated;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\Services\SlotService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -108,7 +109,11 @@ class BookingWorkflowTest extends TestCase
 
     public function test_teacher_can_start_conversation_and_generate_link()
     {
-        $teacher = User::factory()->create(['role' => 'teacher', 'google_connected' => false]);
+        $teacher = User::factory()->create([
+            'role' => 'teacher',
+            'google_connected' => true,
+            'google_refresh_token' => 'mock-refresh-token',
+        ]);
         $pupil = User::factory()->create(['role' => 'pupil']);
 
         $appointment = Appointment::create([
@@ -120,11 +125,20 @@ class BookingWorkflowTest extends TestCase
             'topics' => ['freestyle'],
         ]);
 
+        $mockCalendar = \Mockery::mock(GoogleCalendarService::class);
+        $mockCalendar->shouldReceive('createEvent')
+            ->once()
+            ->andReturn([
+                'event_id' => 'google-event-test-123',
+                'meet_link' => 'https://meet.google.com/test-meet-link',
+            ]);
+        $this->app->instance(GoogleCalendarService::class, $mockCalendar);
+
         $response = $this->actingAs($teacher)->postJson("/teacher/appointments/{$appointment->id}/start");
 
         $response->assertStatus(200);
         $response->assertJsonStructure(['google_meet_link']);
-        $this->assertNotNull($appointment->fresh()->google_meet_link);
+        $this->assertEquals('https://meet.google.com/test-meet-link', $appointment->fresh()->google_meet_link);
     }
 
     public function test_booking_conflict_returns_422_status()

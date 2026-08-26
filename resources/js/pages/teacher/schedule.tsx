@@ -12,6 +12,7 @@ import {
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
+import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 
 interface Props {
     appointments: any[];
@@ -116,9 +117,25 @@ export default function Schedule({ appointments }: Props) {
             }
             router.reload();
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message || t('schedule.start_failed'),
-            );
+            if (error.response?.data?.requires_google_calendar) {
+                toast.error(
+                    error.response.data.message ||
+                        'Google Calendar connection required to generate Google Meet links.',
+                    {
+                        action: {
+                            label: t('dashboard.connect_google') || 'Connect Google',
+                            onClick: () => {
+                                window.location.href = '/auth/google?calendar=1';
+                            },
+                        },
+                        duration: 10000,
+                    },
+                );
+            } else {
+                toast.error(
+                    error.response?.data?.message || t('schedule.start_failed'),
+                );
+            }
         } finally {
             setStartingAptId(null);
         }
@@ -145,6 +162,9 @@ export default function Schedule({ appointments }: Props) {
                         </p>
                     </div>
                 </div>
+
+                {/* Google Calendar Reminder Banner */}
+                <GoogleCalendarWarningBanner />
 
                 {/* Main Schedule List */}
                 <div className="grid gap-5">

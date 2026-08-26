@@ -15,6 +15,7 @@ import {
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
+import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 
 type TabType = 'pending' | 'upcoming' | 'completed' | 'all';
 
@@ -175,6 +176,9 @@ export default function Appointments() {
                         {t('teacher.booking_requests_desc')}
                     </p>
                 </div>
+
+                {/* Google Calendar Reminder Banner */}
+                <GoogleCalendarWarningBanner className="mb-6" />
 
                 <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
                     {/* Main content */}

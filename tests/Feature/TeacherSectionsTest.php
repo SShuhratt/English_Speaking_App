@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -222,5 +224,74 @@ class TeacherSectionsTest extends TestCase
             'start_at' => '2026-08-10 12:00:00',
             'end_at' => '2026-08-10 17:00:00',
         ]);
+    }
+
+    public function test_teacher_cannot_start_meeting_if_google_calendar_not_connected(): void
+    {
+        $teacher = User::factory()->create([
+            'role' => 'teacher',
+            'google_connected' => false,
+            'google_refresh_token' => null,
+        ]);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        $appointment = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => now()->addMinutes(10),
+            'end_at' => now()->addMinutes(40),
+            'status' => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($teacher)
+            ->postJson("/teacher/appointments/{$appointment->id}/start");
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'requires_google_calendar' => true,
+        ]);
+
+        $this->assertNull($appointment->fresh()->google_meet_link);
+    }
+
+    public function test_teacher_starts_meeting_with_google_calendar_connected(): void
+    {
+        $teacher = User::factory()->create([
+            'role' => 'teacher',
+            'google_connected' => true,
+            'google_refresh_token' => 'mock-refresh-token',
+        ]);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        $appointment = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => now()->addMinutes(10),
+            'end_at' => now()->addMinutes(40),
+            'status' => 'confirmed',
+        ]);
+
+        $mockCalendar = \Mockery::mock(GoogleCalendarService::class);
+        $mockCalendar->shouldReceive('createEvent')
+            ->once()
+            ->andReturn([
+                'event_id' => 'google-event-123',
+                'meet_link' => 'https://meet.google.com/real-meet-link',
+            ]);
+        $this->app->instance(GoogleCalendarService::class, $mockCalendar);
+
+        $response = $this->actingAs($teacher)
+            ->postJson("/teacher/appointments/{$appointment->id}/start");
+
+        $response->assertOk();
+        $response->assertJson([
+            'message' => 'Conversation started',
+            'google_meet_link' => 'https://meet.google.com/real-meet-link',
+        ]);
+
+        $fresh = $appointment->fresh();
+        $this->assertEquals('https://meet.google.com/real-meet-link', $fresh->google_meet_link);
+        $this->assertEquals('google-event-123', $fresh->google_event_id);
+        $this->assertTrue($fresh->meeting_started);
     }
 }

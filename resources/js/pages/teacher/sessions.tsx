@@ -22,6 +22,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { useTranslation } from '@/hooks/use-translation';
+import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 
 interface Props {
     appointments: {
@@ -100,9 +101,25 @@ export default function Sessions({ appointments }: Props) {
                 toast.success('Session started');
             }
         } catch (err: any) {
-            toast.error(
-                err.response?.data?.message || 'Could not start session',
-            );
+            if (err.response?.data?.requires_google_calendar) {
+                toast.error(
+                    err.response.data.message ||
+                        'Google Calendar connection required to generate Google Meet links.',
+                    {
+                        action: {
+                            label: 'Connect Google',
+                            onClick: () => {
+                                window.location.href = '/auth/google?calendar=1';
+                            },
+                        },
+                        duration: 10000,
+                    },
+                );
+            } else {
+                toast.error(
+                    err.response?.data?.message || 'Could not start session',
+                );
+            }
         }
     };
 
@@ -138,12 +155,10 @@ export default function Sessions({ appointments }: Props) {
                                 fontFamily: "'Bricolage Grotesque', sans-serif",
                             }}
                         >
-                            My Lessons
+                            {t('sessions.history_title')}
                         </h1>
-                        <p className="max-w-2xl text-sm font-medium text-[#A9C6E8]/90">
-                            Every lesson here is already booked and paid.
-                            Nothing needs your approval — just show up and
-                            teach.
+                        <p className="text-sm font-medium text-white/70">
+                            {t('sessions.history_desc')}
                         </p>
                     </div>
                 </div>

@@ -26,6 +26,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
 import AppLayout from '@/layouts/app-layout';
+import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 
 function PupilMeetingButton({
     apt,
@@ -745,10 +746,26 @@ function TeacherDashboard({
             }
             router.reload();
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message ||
-                    t('dashboard.start_conversation_error'),
-            );
+            if (error.response?.data?.requires_google_calendar) {
+                toast.error(
+                    error.response.data.message ||
+                        'Google Calendar connection required to generate Google Meet links.',
+                    {
+                        action: {
+                            label: t('dashboard.connect_google') || 'Connect Google',
+                            onClick: () => {
+                                window.location.href = '/auth/google?calendar=1';
+                            },
+                        },
+                        duration: 10000,
+                    },
+                );
+            } else {
+                toast.error(
+                    error.response?.data?.message ||
+                        t('dashboard.start_conversation_error'),
+                );
+            }
         } finally {
             setStartingAptId(null);
         }
@@ -763,7 +780,7 @@ function TeacherDashboard({
 
                 <div className="z-10 flex items-center space-x-4 md:space-x-6">
                     <div className="relative">
-                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/40 bg-white/20 text-3xl shadow-inner backdrop-blur-md md:h-20 md:w-20">
+                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-2 border-[#fae18e] bg-white/10 text-2xl shadow-inner backdrop-blur-md md:h-20 md:w-20 md:text-3xl">
                             {user.avatar ? (
                                 <img
                                     src={user.avatar}
@@ -821,24 +838,7 @@ function TeacherDashboard({
             </div>
 
             {/* Google Meet status warning */}
-            {!user.google_connected && (
-                <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-red-200 bg-red-50/40 p-5 md:flex-row">
-                    <div>
-                        <h4 className="font-bold text-red-800">
-                            {t('dashboard.google_not_connected')}
-                        </h4>
-                        <p className="mt-0.5 text-xs text-red-600">
-                            {t('dashboard.google_not_connected_desc')}
-                        </p>
-                    </div>
-                    <a
-                        href="/auth/google?calendar=1"
-                        className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-xs font-bold whitespace-nowrap text-white shadow-sm transition-colors hover:bg-red-700"
-                    >
-                        {t('dashboard.connect_google')}
-                    </a>
-                </div>
-            )}
+            <GoogleCalendarWarningBanner user={user} />
 
             {/* Stats grid */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">

@@ -116,45 +116,45 @@ class TeacherAppointmentController extends Controller
         }
 
         $teacher = $request->user();
+
+        if (! $teacher->google_connected || ! $teacher->google_refresh_token) {
+            return response()->json([
+                'message' => 'Please connect your Google Calendar first to generate a live Google Meet link.',
+                'requires_google_calendar' => true,
+                'connect_url' => '/auth/google?calendar=1',
+            ], 422);
+        }
+
         $needsLink = ! $appointment->google_meet_link ||
                      str_contains($appointment->google_meet_link, 'mock-') ||
-                     ($teacher->google_connected && ! $appointment->google_event_id);
+                     ! $appointment->google_event_id;
 
         if ($needsLink) {
-            if ($teacher->google_connected) {
-                try {
-                    $event = $this->googleCalendar->createEvent($teacher, [
-                        'title' => "English Practice: {$teacher->full_name} & {$appointment->pupil->full_name}",
-                        'description' => '1-on-1 English speaking session on English Speaking Platform.',
-                        'start' => $appointment->start_at->toIso8601String(),
-                        'end' => $appointment->end_at->toIso8601String(),
-                        'organizer_email' => $teacher->email,
-                        'attendees' => [
-                            ['email' => $teacher->email, 'responseStatus' => 'accepted'],
-                            ['email' => $appointment->pupil->email],
-                        ],
-                    ]);
-
-                    $appointment->update([
-                        'google_event_id' => $event['event_id'],
-                        'google_meet_link' => $event['meet_link'],
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error("Failed to generate Google Meet link during start for appointment {$appointment->id}: ".$e->getMessage());
-                    // Fallback to validly formatted mock Google Meet link
-                    $lettersOnly = preg_replace('/[^a-z]/', '', strtolower(md5($appointment->id))).'abcdefghij';
-                    $mockLink = 'https://meet.google.com/'.substr($lettersOnly, 0, 3).'-'.substr($lettersOnly, 3, 4).'-'.substr($lettersOnly, 7, 3);
-                    $appointment->update([
-                        'google_meet_link' => $mockLink,
-                    ]);
-                }
-            } else {
-                // Fallback to validly formatted mock Google Meet link
-                $lettersOnly = preg_replace('/[^a-z]/', '', strtolower(md5($appointment->id))).'abcdefghij';
-                $mockLink = 'https://meet.google.com/'.substr($lettersOnly, 0, 3).'-'.substr($lettersOnly, 3, 4).'-'.substr($lettersOnly, 7, 3);
-                $appointment->update([
-                    'google_meet_link' => $mockLink,
+            try {
+                $event = $this->googleCalendar->createEvent($teacher, [
+                    'title' => "English Practice: {$teacher->full_name} & {$appointment->pupil->full_name}",
+                    'description' => '1-on-1 English speaking session on English Speaking Platform.',
+                    'start' => $appointment->start_at->toIso8601String(),
+                    'end' => $appointment->end_at->toIso8601String(),
+                    'organizer_email' => $teacher->email,
+                    'attendees' => [
+                        ['email' => $teacher->email, 'responseStatus' => 'accepted'],
+                        ['email' => $appointment->pupil->email],
+                    ],
                 ]);
+
+                $appointment->update([
+                    'google_event_id' => $event['event_id'],
+                    'google_meet_link' => $event['meet_link'],
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Failed to generate Google Meet link during start for appointment {$appointment->id}: ".$e->getMessage());
+
+                return response()->json([
+                    'message' => 'Failed to generate Google Meet link. Please reconnect your Google Calendar and try again.',
+                    'requires_google_calendar' => true,
+                    'connect_url' => '/auth/google?calendar=1',
+                ], 422);
             }
         }
 
