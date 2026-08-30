@@ -14,14 +14,26 @@ class GoogleOAuthController extends Controller
      */
     public function redirect(Request $request)
     {
-        $scopes = ['openid', 'profile', 'email'];
+        $isCalendar = $request->boolean('calendar') || $request->has('connect_calendar');
 
-        if ($request->boolean('calendar') || $request->has('connect_calendar')) {
-            $scopes[] = 'https://www.googleapis.com/auth/calendar.events';
+        if ($isCalendar) {
+            return Socialite::driver('google')
+                ->scopes([
+                    'openid',
+                    'profile',
+                    'email',
+                    'https://www.googleapis.com/auth/calendar.events',
+                ])
+                ->with([
+                    'access_type' => 'offline',
+                    'prompt' => 'consent select_account',
+                    'include_granted_scopes' => 'true',
+                ])
+                ->redirect();
         }
 
         return Socialite::driver('google')
-            ->scopes($scopes)
+            ->scopes(['openid', 'profile', 'email'])
             ->with([
                 'access_type' => 'offline',
                 'prompt' => 'select_account',
@@ -38,23 +50,26 @@ class GoogleOAuthController extends Controller
             $googleUser = Socialite::driver('google')->user();
             $user = Auth::user();
 
+            $approvedScopes = $googleUser->approvedScopes ?? [];
+            $hasCalendarScope = false;
+            foreach ($approvedScopes as $scope) {
+                if (str_contains($scope, 'calendar')) {
+                    $hasCalendarScope = true;
+                    break;
+                }
+            }
+
             if (! $user) {
                 // Try to find existing user by email
                 $existingUser = User::where('email', $googleUser->getEmail())->first();
                 if ($existingUser) {
-                    $approvedScopes = $googleUser->approvedScopes ?? [];
-                    $hasCalendarScope = false;
-                    foreach ($approvedScopes as $scope) {
-                        if (str_contains($scope, 'calendar')) {
-                            $hasCalendarScope = true;
-                            break;
-                        }
-                    }
+                    $refreshToken = $googleUser->refreshToken ?? $existingUser->google_refresh_token;
+                    $isConnected = (bool) ($refreshToken && ($hasCalendarScope || $existingUser->google_connected));
 
                     $existingUser->update([
-                        'google_connected' => $existingUser->google_connected || $hasCalendarScope,
+                        'google_connected' => $isConnected,
                         'google_access_token' => $googleUser->token,
-                        'google_refresh_token' => $googleUser->refreshToken ?? $existingUser->google_refresh_token,
+                        'google_refresh_token' => $refreshToken,
                         'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
                         'google_scopes' => ! empty($approvedScopes) ? $approvedScopes : $existingUser->google_scopes,
                     ]);
@@ -73,22 +88,24 @@ class GoogleOAuthController extends Controller
                         'google_token' => $googleUser->token,
                         'google_refresh_token' => $googleUser->refreshToken,
                         'google_expires_in' => $googleUser->expiresIn,
+                        'scopes' => $approvedScopes,
                     ],
                 ]);
 
                 return redirect()->route('register')->with('info', 'Google authenticated successfully. Please complete your registration details.');
             }
 
-            // Connection flow for authenticated user
+            // Connection flow for authenticated user (Incremental Calendar Authorization)
+            $refreshToken = $googleUser->refreshToken ?? $user->google_refresh_token;
             $user->update([
                 'google_connected' => true,
                 'google_access_token' => $googleUser->token,
-                'google_refresh_token' => $googleUser->refreshToken ?? $user->google_refresh_token,
+                'google_refresh_token' => $refreshToken,
                 'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
-                'google_scopes' => $googleUser->approvedScopes ?? [],
+                'google_scopes' => ! empty($approvedScopes) ? $approvedScopes : $user->google_scopes,
             ]);
 
-            return redirect()->route('dashboard')->with('success', 'Google account connected successfully.');
+            return redirect()->route('dashboard')->with('success', 'Google Calendar connected successfully.');
         } catch (\Exception $e) {
             $redirectRoute = Auth::check() ? 'dashboard' : 'login';
 

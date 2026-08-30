@@ -145,4 +145,43 @@ class GoogleRegistrationTest extends TestCase
         $this->assertFalse($freshUser->google_connected);
         $this->assertNull($freshUser->google_refresh_token);
     }
+
+    public function test_google_redirect_with_calendar_flag_requests_calendar_scope(): void
+    {
+        $response = $this->get('/auth/google?calendar=1');
+        $response->assertRedirect();
+        $location = $response->headers->get('Location');
+        $this->assertStringContainsString('accounts.google.com', $location);
+        $this->assertStringContainsString('calendar.events', urldecode($location));
+        $this->assertStringContainsString('prompt=consent', urldecode($location));
+        $this->assertStringContainsString('include_granted_scopes=true', urldecode($location));
+    }
+
+    public function test_authenticated_teacher_connects_google_calendar(): void
+    {
+        $teacher = User::factory()->create([
+            'role' => 'teacher',
+            'google_connected' => false,
+            'google_refresh_token' => null,
+        ]);
+
+        $googleUser = Mockery::mock(SocialiteUser::class);
+        $googleUser->shouldReceive('getId')->andReturn('google-id-456');
+        $googleUser->shouldReceive('getEmail')->andReturn($teacher->email);
+        $googleUser->shouldReceive('getName')->andReturn($teacher->full_name);
+        $googleUser->token = 'mock-calendar-access-token';
+        $googleUser->refreshToken = 'mock-calendar-refresh-token';
+        $googleUser->expiresIn = 3600;
+        $googleUser->approvedScopes = ['https://www.googleapis.com/auth/calendar.events', 'openid', 'profile', 'email'];
+
+        Socialite::shouldReceive('driver')->with('google')->andReturn($provider = Mockery::mock());
+        $provider->shouldReceive('user')->andReturn($googleUser);
+
+        $response = $this->actingAs($teacher)->get('/auth/google/callback');
+
+        $response->assertRedirect(route('dashboard'));
+        $freshTeacher = $teacher->fresh();
+        $this->assertTrue($freshTeacher->google_connected);
+        $this->assertEquals('mock-calendar-refresh-token', $freshTeacher->google_refresh_token);
+    }
 }
