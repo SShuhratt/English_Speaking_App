@@ -184,4 +184,90 @@ class GoogleRegistrationTest extends TestCase
         $this->assertTrue($freshTeacher->google_connected);
         $this->assertEquals('mock-calendar-refresh-token', $freshTeacher->google_refresh_token);
     }
+
+    public function test_token_validity_check_does_not_mutate_expiration_date(): void
+    {
+        $originalExpiry = now()->addHour();
+        $user = User::factory()->create([
+            'google_connected' => true,
+            'google_access_token' => 'valid-access-token',
+            'google_refresh_token' => 'mock-refresh-token',
+            'google_token_expires_at' => $originalExpiry,
+        ]);
+
+        $oauthService = app(GoogleOAuthService::class);
+
+        // Call multiple times
+        for ($i = 0; $i < 5; $i++) {
+            $token = $oauthService->getValidAccessToken($user);
+            $this->assertEquals('valid-access-token', $token);
+        }
+
+        $freshUser = $user->fresh();
+        // The expiration timestamp in the database and model must NOT have been decremented
+        $this->assertTrue($freshUser->google_token_expires_at->greaterThanOrEqualTo(now()->addMinutes(50)));
+    }
+
+    public function test_subsequent_login_with_basic_scopes_preserves_existing_calendar_scope_and_refresh_token(): void
+    {
+        $teacher = User::factory()->create([
+            'role' => 'teacher',
+            'email' => 'connectedteacher@example.com',
+            'google_connected' => true,
+            'google_refresh_token' => 'long-lived-refresh-token',
+            'google_scopes' => ['openid', 'profile', 'email', 'https://www.googleapis.com/auth/calendar.events'],
+        ]);
+
+        $googleUser = Mockery::mock(SocialiteUser::class);
+        $googleUser->shouldReceive('getId')->andReturn('google-id-789');
+        $googleUser->shouldReceive('getEmail')->andReturn('connectedteacher@example.com');
+        $googleUser->shouldReceive('getName')->andReturn($teacher->full_name);
+        $googleUser->token = 'new-access-token';
+        $googleUser->refreshToken = null; // Standard login doesn't re-send refresh token
+        $googleUser->expiresIn = 3600;
+        $googleUser->approvedScopes = ['openid', 'profile', 'email']; // Only basic scopes returned
+
+        Socialite::shouldReceive('driver')->with('google')->andReturn($provider = Mockery::mock());
+        $provider->shouldReceive('user')->andReturn($googleUser);
+
+        $response = $this->get('/auth/google/callback');
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($teacher);
+
+        $freshTeacher = $teacher->fresh();
+        $this->assertTrue($freshTeacher->google_connected);
+        $this->assertEquals('long-lived-refresh-token', $freshTeacher->google_refresh_token);
+        $this->assertContains('https://www.googleapis.com/auth/calendar.events', $freshTeacher->google_scopes);
+    }
+
+    public function test_temporary_google_api_500_error_does_not_wipe_refresh_token(): void
+    {
+        $user = User::factory()->create([
+            'google_connected' => true,
+            'google_access_token' => 'expired-token',
+            'google_refresh_token' => 'valid-refresh-token',
+            'google_token_expires_at' => now()->subHour(),
+        ]);
+
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response([
+                'error' => 'internal_failure',
+                'error_description' => 'Google internal server error',
+            ], 500),
+        ]);
+
+        $oauthService = app(GoogleOAuthService::class);
+
+        try {
+            $oauthService->getValidAccessToken($user);
+        } catch (\Exception $e) {
+            // expected
+        }
+
+        $freshUser = $user->fresh();
+        // Connection & refresh token must NOT be cleared on transient server errors
+        $this->assertTrue($freshUser->google_connected);
+        $this->assertEquals('valid-refresh-token', $freshUser->google_refresh_token);
+    }
 }

@@ -66,12 +66,17 @@ class GoogleOAuthController extends Controller
                     $refreshToken = $googleUser->refreshToken ?? $existingUser->google_refresh_token;
                     $isConnected = (bool) ($refreshToken && ($hasCalendarScope || $existingUser->google_connected));
 
+                    $mergedScopes = array_values(array_unique(array_merge(
+                        $existingUser->google_scopes ?? [],
+                        $approvedScopes
+                    )));
+
                     $existingUser->update([
                         'google_connected' => $isConnected,
                         'google_access_token' => $googleUser->token,
                         'google_refresh_token' => $refreshToken,
                         'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
-                        'google_scopes' => ! empty($approvedScopes) ? $approvedScopes : $existingUser->google_scopes,
+                        'google_scopes' => $mergedScopes,
                     ]);
 
                     Auth::login($existingUser);
@@ -97,12 +102,17 @@ class GoogleOAuthController extends Controller
 
             // Connection flow for authenticated user (Incremental Calendar Authorization)
             $refreshToken = $googleUser->refreshToken ?? $user->google_refresh_token;
+            $mergedScopes = array_values(array_unique(array_merge(
+                $user->google_scopes ?? [],
+                $approvedScopes
+            )));
+
             $user->update([
-                'google_connected' => true,
+                'google_connected' => (bool) $refreshToken,
                 'google_access_token' => $googleUser->token,
                 'google_refresh_token' => $refreshToken,
                 'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
-                'google_scopes' => ! empty($approvedScopes) ? $approvedScopes : $user->google_scopes,
+                'google_scopes' => $mergedScopes,
             ]);
 
             return redirect()->route('dashboard')->with('success', 'Google Calendar connected successfully.');

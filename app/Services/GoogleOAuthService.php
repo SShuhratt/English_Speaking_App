@@ -16,8 +16,8 @@ class GoogleOAuthService
             throw new \Exception('Google account not connected.');
         }
 
-        // If token is still valid (with a 5-minute safety margin), use it
-        if ($user->google_token_expires_at && $user->google_token_expires_at->subMinutes(5)->isFuture()) {
+        // If token is still valid (with a 5-minute safety margin), use it without mutating the model attribute
+        if ($user->google_access_token && $user->google_token_expires_at && $user->google_token_expires_at->isAfter(now()->addMinutes(5))) {
             return $user->google_access_token;
         }
 
@@ -31,7 +31,11 @@ class GoogleOAuthService
 
         if (! $response->successful()) {
             $body = $response->json() ?? [];
-            if (($body['error'] ?? '') === 'invalid_grant' || in_array($response->status(), [400, 401])) {
+            $error = $body['error'] ?? '';
+            $description = strtolower($body['error_description'] ?? '');
+
+            // Only clear connection if Google explicitly confirms the refresh token was permanently revoked or expired
+            if ($error === 'invalid_grant' && (str_contains($description, 'revoked') || str_contains($description, 'expired'))) {
                 $user->update([
                     'google_connected' => false,
                     'google_access_token' => null,

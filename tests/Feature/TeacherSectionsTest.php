@@ -294,4 +294,81 @@ class TeacherSectionsTest extends TestCase
         $this->assertEquals('google-event-123', $fresh->google_event_id);
         $this->assertTrue($fresh->meeting_started);
     }
+
+    public function test_teacher_cannot_start_expired_meeting(): void
+    {
+        $teacher = User::factory()->create([
+            'role' => 'teacher',
+            'google_connected' => true,
+            'google_refresh_token' => 'mock-refresh-token',
+        ]);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        $appointment = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => now()->subMinutes(60),
+            'end_at' => now()->subMinutes(10), // Expired
+            'status' => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($teacher)
+            ->postJson("/teacher/appointments/{$appointment->id}/start");
+
+        $response->assertStatus(403);
+    }
+
+    public function test_non_owner_teacher_cannot_start_meeting(): void
+    {
+        $ownerTeacher = User::factory()->create(['role' => 'teacher']);
+        $otherTeacher = User::factory()->create(['role' => 'teacher', 'google_connected' => true, 'google_refresh_token' => 'token']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        $appointment = Appointment::create([
+            'teacher_id' => $ownerTeacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => now()->addMinutes(10),
+            'end_at' => now()->addMinutes(40),
+            'status' => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($otherTeacher)
+            ->postJson("/teacher/appointments/{$appointment->id}/start");
+
+        $response->assertStatus(403);
+    }
+
+    public function test_starting_already_started_meeting_returns_existing_link_without_creating_new_event(): void
+    {
+        $teacher = User::factory()->create([
+            'role' => 'teacher',
+            'google_connected' => true,
+            'google_refresh_token' => 'mock-refresh-token',
+        ]);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        $appointment = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => now()->addMinutes(10),
+            'end_at' => now()->addMinutes(40),
+            'status' => 'confirmed',
+            'meeting_started' => true,
+            'google_event_id' => 'existing-event-id',
+            'google_meet_link' => 'https://meet.google.com/existing-room',
+        ]);
+
+        // Mock calendar service should NOT receive any createEvent calls
+        $mockCalendar = \Mockery::mock(GoogleCalendarService::class);
+        $mockCalendar->shouldNotReceive('createEvent');
+        $this->app->instance(GoogleCalendarService::class, $mockCalendar);
+
+        $response = $this->actingAs($teacher)
+            ->postJson("/teacher/appointments/{$appointment->id}/start");
+
+        $response->assertOk();
+        $response->assertJson([
+            'google_meet_link' => 'https://meet.google.com/existing-room',
+        ]);
+    }
 }
