@@ -609,7 +609,7 @@ export default function Bookings({ bookings }: Props) {
                                         {t('payment.card_holder')}
                                     </span>
                                     <span className="mt-0.5 block truncate text-xs font-bold text-white uppercase">
-                                        {auth.user.full_name}
+                                        Zarnigor Mirsaidova
                                     </span>
                                 </div>
                                 <div>

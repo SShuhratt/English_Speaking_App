@@ -598,10 +598,10 @@ function PupilDashboard({
                                 <div>
                                     <span className="block text-[9px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
                                         {t('payment.card_holder') ||
-                                            'Student Name'}
+                                            'Card Holder'}
                                     </span>
                                     <span className="mt-0.5 block truncate text-xs font-bold text-white uppercase">
-                                        {user.full_name}
+                                        Zarnigor Mirsaidova
                                     </span>
                                 </div>
                                 <div>
