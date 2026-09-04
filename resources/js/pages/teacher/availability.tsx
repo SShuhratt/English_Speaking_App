@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { store, destroy } from '@/routes/teacher/availability';
@@ -14,7 +14,10 @@ import {
     Sparkles,
     Check,
     AlertCircle,
+    AlertTriangle,
+    Loader2,
     User,
+    Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -117,6 +120,44 @@ const translations = {
         statusLabel: 'Status',
         studentLabel: 'Student',
         topicsLabel: 'Topics',
+        allDays: 'All 7 Days',
+        weekdays: 'Weekdays (Mon–Fri)',
+        weekends: 'Weekends (Sat–Sun)',
+        selectDays: 'Select Days of the Week',
+        dateRange: 'Date Range',
+        startDate: 'Start Date',
+        endDate: 'End Date',
+        date: 'Date',
+        recurringSchedule: 'Weekly Recurring Schedule',
+        specificDates: 'Specific Date(s)',
+        todayPastTimeNotice: 'For today, availability will automatically start from current time forward. Passed hours are skipped.',
+        todayPassedNotice: "Today's selected time window has already passed. Schedule will apply to upcoming days.",
+        selectAtLeastOneDay: 'Please select at least one day of the week.',
+        removeSlot: 'Remove Slot',
+        removeThisSlot: 'Remove this Slot',
+        confirmRemoveSlot: 'Are you sure you want to remove this slot?',
+        clearDay: 'Clear Day',
+        clearDays: 'Clear Days...',
+        clearDaysTitle: 'Clear Availability for Selected Days',
+        clearDaysDesc: 'Select one or more days to completely remove their available slots.',
+        clearDayConfirm: 'Are you sure you want to clear all availability for this day?',
+        clearDaysConfirm: 'Are you sure you want to clear all availability for the selected days?',
+        recurringScopeTitle: 'This availability is weekly recurring:',
+        scopeDateOnly: 'Remove for this date only',
+        scopeDateOnlyDesc: 'Keeps future weeks intact. This date will be marked as unavailable.',
+        scopeAllWeeks: 'Remove from all upcoming weeks',
+        scopeAllWeeksDesc: 'Permanently updates or removes your recurring weekly rule.',
+        cannotRemoveBookedNotice: 'Booked appointments cannot be deleted automatically. You must cancel them first if needed.',
+        confirmRemoval: 'Confirm & Remove',
+        removing: 'Removing...',
+        editBlock: 'Edit Full Availability Block',
+        dayClearedSuccess: 'Availability cleared successfully.',
+        selectDaysToClear: 'Please select at least one day to clear.',
+        selectAllWithSlots: 'Select all days with availability',
+        deselectAll: 'Deselect all',
+        noAvailabilityOnDay: 'No availability on this day',
+        slotsCount: 'slots',
+        selectedDays: 'Selected Days',
     },
     uz: {
         title: 'Bandlik jadvali',
@@ -194,6 +235,44 @@ const translations = {
         statusLabel: 'Holat',
         studentLabel: 'Talaba',
         topicsLabel: 'Mavzular',
+        allDays: 'Barcha 7 kun',
+        weekdays: 'Ish kunlari (Dush–Jum)',
+        weekends: 'Dam olish kunlari (Shan–Yak)',
+        selectDays: 'Hafta kunlarini tanlang',
+        dateRange: "Sana oralig'i",
+        startDate: 'Boshlanish sanasi',
+        endDate: 'Tugash sanasi',
+        date: 'Sana',
+        recurringSchedule: 'Haftalik takrorlanuvchi jadval',
+        specificDates: 'Aniq sana(lar)',
+        todayPastTimeNotice: "Bugungi kun uchun o'tib ketgan soatlar avtomatik o'tkazib yuborilib, joriy vaqtdan boshlanadi.",
+        todayPassedNotice: "Bugungi tanlangan vaqt oralig'i o'tib bo'ldi. Jadval kelgusi kunlarga qo'llaniladi.",
+        selectAtLeastOneDay: 'Iltimos, haftaning kamida bitta kunini tanlang.',
+        removeSlot: "Slotni o'chirish",
+        removeThisSlot: "Ushbu slotni o'chirish",
+        confirmRemoveSlot: "Ushbu slotni o'chirib tashlamoqchimisiz?",
+        clearDay: 'Kunni tozalash',
+        clearDays: 'Kunlarni tozalash...',
+        clearDaysTitle: 'Tanlangan kunlar bandligini tozalash',
+        clearDaysDesc: "Bo'sh slotlarni butunlay o'chirish uchun bir yoki bir nechta kunni tanlang.",
+        clearDayConfirm: "Ushbu kundagi barcha bandlikni o'chirib tashlamoqchimisiz?",
+        clearDaysConfirm: "Tanlangan kunlardagi barcha bandlikni o'chirib tashlamoqchimisiz?",
+        recurringScopeTitle: 'Ushbu bandlik haftalik takrorlanadi:',
+        scopeDateOnly: "Faqat shu sana uchun o'chirish",
+        scopeDateOnlyDesc: "Kelgusi haftalarga ta'sir qilmaydi. Faqat shu sana uchun bo'sh vaqt olib tashlanadi.",
+        scopeAllWeeks: "Barcha kelgusi haftalardan o'chirish",
+        scopeAllWeeksDesc: "Haftalik takrorlanuvchi qoidangizni butunlay o'chiradi yoki yangilaydi.",
+        cannotRemoveBookedNotice: "Band qilingan darslar avtomatik o'chirilmaydi. Zarur bo'lsa, avval ularni bekor qiling.",
+        confirmRemoval: "Tasdiqlash va o'chirish",
+        removing: "O'chirilmoqda...",
+        editBlock: "To'liq bandlik blokini tahrirlash",
+        dayClearedSuccess: 'Bandlik muvaffaqiyatli tozalandi.',
+        selectDaysToClear: 'Tozalash uchun kamida bitta kunni tanlang.',
+        selectAllWithSlots: 'Bandligi bor kunlarni tanlash',
+        deselectAll: 'Barchasini bekor qilish',
+        noAvailabilityOnDay: 'Ushbu kunda bandlik mavjud emas',
+        slotsCount: 'ta slot',
+        selectedDays: 'Tanlangan kunlar',
     },
     ru: {
         title: 'График доступности',
@@ -271,8 +350,66 @@ const translations = {
         statusLabel: 'Статус',
         studentLabel: 'Студент',
         topicsLabel: 'Темы',
+        allDays: 'Все 7 дней',
+        weekdays: 'Будние (Пн–Пт)',
+        weekends: 'Выходные (Сб–Вс)',
+        selectDays: 'Выберите дни недели',
+        dateRange: 'Диапазон дат',
+        startDate: 'Дата начала',
+        endDate: 'Дата окончания',
+        date: 'Дата',
+        recurringSchedule: 'Еженедельное расписание',
+        specificDates: 'Конкретные даты',
+        todayPastTimeNotice: 'На сегодня слоты начнутся с текущего времени. Прошедшие часы будут пропущены.',
+        todayPassedNotice: 'Выбранное время на сегодня уже прошло. Расписание применится к будущим дням.',
+        selectAtLeastOneDay: 'Пожалуйста, выберите хотя бы один день недели.',
+        removeSlot: 'Удалить слот',
+        removeThisSlot: 'Удалить этот слот',
+        confirmRemoveSlot: 'Вы уверены, что хотите удалить этот слот?',
+        clearDay: 'Очистить день',
+        clearDays: 'Очистить дни...',
+        clearDaysTitle: 'Очистить доступность для выбранных дней',
+        clearDaysDesc: 'Выберите один или несколько дней, чтобы полностью удалить доступные слоты.',
+        clearDayConfirm: 'Вы уверены, что хотите очистить всю доступность на этот день?',
+        clearDaysConfirm: 'Вы уверены, что хотите очистить доступность для выбранных дней?',
+        recurringScopeTitle: 'Это расписание является еженедельно повторяющимся:',
+        scopeDateOnly: 'Удалить только для этой даты',
+        scopeDateOnlyDesc: 'Будущие недели останутся без изменений. Только эта дата станет недоступной.',
+        scopeAllWeeks: 'Удалить для всех предстоящих недель',
+        scopeAllWeeksDesc: 'Полностью удаляет или обновляет повторяющееся еженедельное правило.',
+        cannotRemoveBookedNotice: 'Забронированные занятия не удаляются автоматически. При необходимости сначала отмените их.',
+        confirmRemoval: 'Подтвердить и удалить',
+        removing: 'Удаление...',
+        editBlock: 'Редактировать весь блок доступности',
+        dayClearedSuccess: 'Доступность успешно очищена.',
+        selectDaysToClear: 'Пожалуйста, выберите хотя бы один день для очистки.',
+        selectAllWithSlots: 'Выбрать все дни с доступностью',
+        deselectAll: 'Снять выбор со всех',
+        noAvailabilityOnDay: 'На этот день нет доступности',
+        slotsCount: 'слотов',
+        selectedDays: 'Выбранные дни',
     },
 };
+
+const ALL_DAYS = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+] as const;
+
+const WEEKDAYS = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+] as const;
+
+const WEEKENDS = ['saturday', 'sunday'] as const;
 
 const daysMap = {
     en: {
@@ -329,6 +466,51 @@ export default function Availability({
     const [selectedSlotDetail, setSelectedSlotDetail] = useState<any | null>(
         null,
     );
+
+    // Deletion confirmation state (Option C & accidental deletion prevention)
+    type ConfirmDeleteTarget =
+        | {
+              type: 'slot';
+              avail: any;
+              dateStr: string;
+              timeLabel: string;
+              startTime: string;
+              endTime: string;
+          }
+        | {
+              type: 'range';
+              avail: any;
+              dateStr: string;
+              rangeStart: string;
+              rangeEnd: string;
+          }
+        | {
+              type: 'block';
+              avail: any;
+              dateStr: string;
+          }
+        | {
+              type: 'clear_day';
+              dateStr: string;
+              dayLabel: string;
+              hasRecurring: boolean;
+          }
+        | {
+              type: 'clear_days';
+              dates: string[];
+              hasRecurring: boolean;
+          };
+
+    const [deleteTarget, setDeleteTarget] =
+        useState<ConfirmDeleteTarget | null>(null);
+    const [deleteScope, setDeleteScope] = useState<'date_only' | 'all_weeks'>(
+        'date_only',
+    );
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Clear Days bulk modal state
+    const [isClearDaysModalOpen, setIsClearDaysModalOpen] = useState(false);
+    const [selectedDaysToClear, setSelectedDaysToClear] = useState<string[]>([]);
 
     // Calendar visibility toggles
     const [showCustom, setShowCustom] = useState(true);
@@ -539,66 +721,205 @@ export default function Availability({
         return `${h}:${m}`;
     };
 
+    const getTargetDateForRecurring = (dayOfWeek?: string) => {
+        if (!dayOfWeek) return formatDateString(selectedDate);
+        const weekDays = getWeekDays(selectedDate);
+        const match = weekDays.find(
+            (d) => getWeekdayName(d) === dayOfWeek.toLowerCase(),
+        );
+        return match ? formatDateString(match) : formatDateString(selectedDate);
+    };
+
     const handleDeleteRange = () => {
         if (!selectedEvent || !selectedEvent.id) return;
 
-        let rangeStartIso = '';
-        let rangeEndIso = '';
-
-        try {
-            const [startHour, startMin] = rangeStartVal.split(':').map(Number);
-            const [endHour, endMin] = rangeEndVal.split(':').map(Number);
-
-            if (selectedEvent.type === 'custom') {
-                const startLocal = parseUtcDate(selectedEvent.start_at);
-                startLocal.setHours(startHour, startMin, 0, 0);
-                const endLocal = parseUtcDate(selectedEvent.end_at);
-                endLocal.setHours(endHour, endMin, 0, 0);
-
-                if (endLocal <= startLocal) {
-                    endLocal.setDate(endLocal.getDate() + 1);
-                }
-
-                rangeStartIso = startLocal.toISOString();
-                rangeEndIso = endLocal.toISOString();
-            } else {
-                const dummyDate = new Date();
-                const startLocal = new Date(dummyDate);
-                startLocal.setHours(startHour, startMin, 0, 0);
-                const endLocal = new Date(dummyDate);
-                endLocal.setHours(endHour, endMin, 0, 0);
-
-                if (endLocal <= startLocal) {
-                    endLocal.setDate(endLocal.getDate() + 1);
-                }
-
-                rangeStartIso = startLocal.toISOString();
-                rangeEndIso = endLocal.toISOString();
-            }
-        } catch (err) {
-            toast.error('Invalid time range');
+        if (!rangeStartVal || !rangeEndVal) {
+            toast.error('Please select both start and end time');
             return;
         }
 
-        if (confirm(t.confirmDeleteRange)) {
-            router.delete(`/teacher/availability/${selectedEvent.id}`, {
-                data: {
-                    delete_type: 'range',
-                    range_start: rangeStartIso,
-                    range_end: rangeEndIso,
-                },
+        const dateStr =
+            selectedEvent.type === 'custom' && selectedEvent.start_at
+                ? formatDateString(parseUtcDate(selectedEvent.start_at))
+                : getTargetDateForRecurring(selectedEvent.day_of_week);
+
+        setDeleteScope('date_only');
+        setDeleteTarget({
+            type: 'range',
+            avail: selectedEvent,
+            dateStr,
+            rangeStart: rangeStartVal,
+            rangeEnd: rangeEndVal,
+        });
+    };
+
+    const handleOpenDeleteBlock = () => {
+        if (!selectedEvent || !selectedEvent.id) return;
+
+        const dateStr =
+            selectedEvent.type === 'custom' && selectedEvent.start_at
+                ? formatDateString(parseUtcDate(selectedEvent.start_at))
+                : getTargetDateForRecurring(selectedEvent.day_of_week);
+
+        setDeleteScope('date_only');
+        setDeleteTarget({
+            type: 'block',
+            avail: selectedEvent,
+            dateStr,
+        });
+    };
+
+    const handleOpenDeleteSlot = (slot: any) => {
+        const sH = String(slot.slotStart.getHours()).padStart(2, '0');
+        const sM = String(slot.slotStart.getMinutes()).padStart(2, '0');
+        const eH = String(slot.slotEnd.getHours()).padStart(2, '0');
+        const eM = String(slot.slotEnd.getMinutes()).padStart(2, '0');
+        const startTime = `${sH}:${sM}`;
+        const endTime = `${eH}:${eM}`;
+        const dateStr = formatDateString(slot.slotStart);
+
+        setDeleteScope('date_only');
+        setDeleteTarget({
+            type: 'slot',
+            avail: slot.avail,
+            dateStr,
+            timeLabel: slot.timeLabel,
+            startTime,
+            endTime,
+        });
+    };
+
+    const openClearDayModal = (day: Date) => {
+        const dateStr = formatDateString(day);
+        const dayName = getWeekdayName(day);
+        const hasRecurring = availabilities.some(
+            (a) =>
+                a.type === 'recurring' &&
+                a.day_of_week === dayName &&
+                a.is_active !== false,
+        );
+
+        setDeleteScope('date_only');
+        setDeleteTarget({
+            type: 'clear_day',
+            dateStr,
+            dayLabel: day.toLocaleDateString(localeMap[lang], {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+            }),
+            hasRecurring,
+        });
+    };
+
+    const executeConfirmDelete = () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
+
+        if (deleteTarget.type === 'slot') {
+            const payload: any = {
+                delete_type: 'range',
+                range_start: deleteTarget.startTime,
+                range_end: deleteTarget.endTime,
+            };
+            if (deleteTarget.avail.type === 'recurring') {
+                payload.scope = deleteScope;
+                payload.date = deleteTarget.dateStr;
+            }
+            router.delete(`/teacher/availability/${deleteTarget.avail.id}`, {
+                data: payload,
                 onSuccess: () => {
                     toast.success(t.deleteSuccess);
-                    setSelectedEvent(null);
+                    setDeleteTarget(null);
+                    setSelectedSlotDetail(null);
+                    setIsDeleting(false);
                 },
-                onError: (errors) => {
-                    if (errors.range) {
-                        toast.error(errors.range);
-                    } else {
-                        toast.error('Failed to delete time range');
-                    }
+                onError: (errs) => {
+                    setIsDeleting(false);
+                    toast.error(errs.range || 'Failed to remove slot');
                 },
             });
+        } else if (deleteTarget.type === 'range') {
+            const payload: any = {
+                delete_type: 'range',
+                range_start: deleteTarget.rangeStart,
+                range_end: deleteTarget.rangeEnd,
+            };
+            if (deleteTarget.avail.type === 'recurring') {
+                payload.scope = deleteScope;
+                payload.date = deleteTarget.dateStr;
+            }
+            router.delete(`/teacher/availability/${deleteTarget.avail.id}`, {
+                data: payload,
+                onSuccess: () => {
+                    toast.success(t.deleteSuccess);
+                    setDeleteTarget(null);
+                    setSelectedEvent(null);
+                    setIsDeleting(false);
+                },
+                onError: (errs) => {
+                    setIsDeleting(false);
+                    toast.error(errs.range || 'Failed to delete time range');
+                },
+            });
+        } else if (deleteTarget.type === 'block') {
+            const payload: any = {};
+            if (deleteTarget.avail.type === 'recurring') {
+                payload.scope = deleteScope;
+                payload.date = deleteTarget.dateStr;
+            }
+            router.delete(`/teacher/availability/${deleteTarget.avail.id}`, {
+                data: payload,
+                onSuccess: () => {
+                    toast.success(t.deleteSuccess);
+                    setDeleteTarget(null);
+                    setSelectedEvent(null);
+                    setIsDeleting(false);
+                },
+                onError: (errs) => {
+                    setIsDeleting(false);
+                    toast.error(errs.range || 'Failed to delete availability');
+                },
+            });
+        } else if (deleteTarget.type === 'clear_day') {
+            router.post(
+                '/teacher/availability/clear',
+                {
+                    date: deleteTarget.dateStr,
+                    scope: deleteScope,
+                },
+                {
+                    onSuccess: () => {
+                        toast.success(t.dayClearedSuccess);
+                        setDeleteTarget(null);
+                        setIsDeleting(false);
+                    },
+                    onError: (errs) => {
+                        setIsDeleting(false);
+                        toast.error(errs.range || 'Failed to clear day availability');
+                    },
+                },
+            );
+        } else if (deleteTarget.type === 'clear_days') {
+            router.post(
+                '/teacher/availability/clear',
+                {
+                    dates: deleteTarget.dates,
+                    scope: deleteScope,
+                },
+                {
+                    onSuccess: () => {
+                        toast.success(t.dayClearedSuccess);
+                        setDeleteTarget(null);
+                        setIsClearDaysModalOpen(false);
+                        setIsDeleting(false);
+                    },
+                    onError: (errs) => {
+                        setIsDeleting(false);
+                        toast.error(errs.range || 'Failed to clear days availability');
+                    },
+                },
+            );
         }
     };
 
@@ -628,6 +949,7 @@ export default function Availability({
         const dateStr = formatDateString(date);
 
         return availabilities.filter((avail) => {
+            if (avail.is_active === false) return false;
             if (avail.type === 'custom') {
                 return showCustom && matchCustomAvailability(avail, dateStr);
             } else {
@@ -637,15 +959,8 @@ export default function Availability({
     };
 
     const hasAvailability = (date: Date) => {
-        const dayName = getWeekdayName(date);
-        const dateStr = formatDateString(date);
-        return availabilities.some((avail) => {
-            if (avail.type === 'custom') {
-                return matchCustomAvailability(avail, dateStr);
-            } else {
-                return avail.day_of_week === dayName;
-            }
-        });
+        const slots = getSlotsWithStatusForDate(date);
+        return slots.length > 0;
     };
 
     const getSlotsWithStatusForDate = (colDate: Date) => {
@@ -655,6 +970,14 @@ export default function Availability({
         const now = new Date();
         const dateStr = formatDateString(colDate);
         const slotsList: any[] = [];
+
+        // Inactive custom overrides (blackout windows for specific dates)
+        const blackouts = availabilities.filter(
+            (avail) =>
+                avail.type === 'custom' &&
+                avail.is_active === false &&
+                matchCustomAvailability(avail, dateStr),
+        );
 
         avails.forEach((avail) => {
             let startH = 9,
@@ -718,6 +1041,20 @@ export default function Availability({
                     eM,
                     0,
                 );
+
+                // Check if this slot overlaps with any blackout custom record
+                const isBlackedOut = blackouts.some((b) => {
+                    const bStart = parseUtcDate(b.start_at).getTime();
+                    const bEnd = parseUtcDate(b.end_at).getTime();
+                    return (
+                        bStart < slotEnd.getTime() && bEnd > slotStart.getTime()
+                    );
+                });
+
+                if (isBlackedOut) {
+                    currMinutes += slotDur;
+                    continue;
+                }
 
                 const matchingApp = (appointments || []).find((app: any) => {
                     if (app.status === 'cancelled') {
@@ -784,14 +1121,29 @@ export default function Availability({
     };
 
     // Form setup matching standard Inertia Form hook
-    const { data, setData, post, processing, errors, reset } = useForm({
-        type: 'custom',
+    const { data, setData, post, processing, errors, reset, transform } = useForm<{
+        type: 'recurring' | 'custom';
+        day_of_week: string;
+        days_of_week: string[];
+        start_time: string;
+        end_time: string;
+        custom_mode: 'single' | 'range';
+        date: string;
+        start_date: string;
+        end_date: string;
+        slot_duration: number;
+    }>({
+        type: 'recurring',
         day_of_week: getWeekdayName(selectedDate),
-        start_time: '09:00',
-        end_time: '17:00',
+        days_of_week: [...ALL_DAYS],
+        start_time: '10:00',
+        end_time: '21:00',
+        custom_mode: 'single',
         date: formatDateString(selectedDate),
-        start_at: '',
-        end_at: '',
+        start_date: formatDateString(selectedDate),
+        end_date: formatDateString(
+            new Date(selectedDate.getTime() + 6 * 24 * 60 * 60 * 1000),
+        ),
         slot_duration: 30,
     });
 
@@ -801,66 +1153,52 @@ export default function Availability({
             ...prev,
             date: formatDateString(selectedDate),
             day_of_week: getWeekdayName(selectedDate),
+            days_of_week:
+                prev.days_of_week && prev.days_of_week.length > 0
+                    ? prev.days_of_week
+                    : [getWeekdayName(selectedDate)],
         }));
     }, [selectedDate]);
 
-    // Keep start_at and end_at in sync with times and dates in UTC (for custom availability)
-    useEffect(() => {
-        if (
-            data.type === 'custom' &&
-            data.date &&
-            data.start_time &&
-            data.end_time
-        ) {
-            try {
-                const [y, m, d] = data.date.split('-').map(Number);
-                const [startHour, startMin] = data.start_time
-                    .split(':')
-                    .map(Number);
-                const [endHour, endMin] = data.end_time.split(':').map(Number);
-
-                if (
-                    !isNaN(y) &&
-                    !isNaN(m) &&
-                    !isNaN(d) &&
-                    !isNaN(startHour) &&
-                    !isNaN(startMin) &&
-                    !isNaN(endHour) &&
-                    !isNaN(endMin)
-                ) {
-                    const startLocal = new Date(
-                        y,
-                        m - 1,
-                        d,
-                        startHour,
-                        startMin,
-                    );
-                    const endLocal = new Date(y, m - 1, d, endHour, endMin);
-
-                    if (endLocal <= startLocal) {
-                        endLocal.setDate(endLocal.getDate() + 1);
-                    }
-
-                    setData((prev) => ({
-                        ...prev,
-                        start_at: startLocal.toISOString(),
-                        end_at: endLocal.toISOString(),
-                    }));
-                }
-            } catch (err) {
-                // Ignore parsing errors
-            }
-        } else {
-            setData((prev) => ({
-                ...prev,
-                start_at: '',
-                end_at: '',
-            }));
-        }
-    }, [data.date, data.start_time, data.end_time, data.type]);
-
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        transform((currentData) => {
+            if (currentData.type === 'recurring') {
+                return {
+                    type: 'recurring',
+                    days_of_week:
+                        currentData.days_of_week &&
+                        currentData.days_of_week.length > 0
+                            ? currentData.days_of_week
+                            : [currentData.day_of_week],
+                    start_time: currentData.start_time,
+                    end_time: currentData.end_time,
+                    slot_duration: currentData.slot_duration,
+                } as any;
+            }
+
+            if (currentData.custom_mode === 'range') {
+                return {
+                    type: 'custom',
+                    start_date: currentData.start_date,
+                    end_date: currentData.end_date,
+                    start_time: currentData.start_time,
+                    end_time: currentData.end_time,
+                    slot_duration: currentData.slot_duration,
+                } as any;
+            }
+
+            return {
+                type: 'custom',
+                start_date: currentData.date,
+                end_date: currentData.date,
+                start_time: currentData.start_time,
+                end_time: currentData.end_time,
+                slot_duration: currentData.slot_duration,
+            } as any;
+        });
+
         post(store.url(), {
             onSuccess: () => {
                 toast.success(t.saveSuccess);
@@ -869,15 +1207,110 @@ export default function Availability({
         });
     };
 
+    const getPastTimeNotice = () => {
+        const todayStr = formatDateString(nowTime);
+        const currentH = nowTime.getHours();
+        const currentM = nowTime.getMinutes();
+        const nowTimeStr = `${String(currentH).padStart(2, '0')}:${String(currentM).padStart(2, '0')}`;
+
+        let affectsToday = false;
+        if (data.type === 'recurring') {
+            const todayWeekday = getWeekdayName(nowTime);
+            affectsToday = Boolean(data.days_of_week?.includes(todayWeekday));
+        } else {
+            if (data.custom_mode === 'range') {
+                affectsToday = Boolean(
+                    data.start_date &&
+                        data.end_date &&
+                        data.start_date <= todayStr &&
+                        data.end_date >= todayStr,
+                );
+            } else {
+                affectsToday = data.date === todayStr;
+            }
+        }
+
+        if (!affectsToday) return null;
+
+        if (data.start_time && data.end_time) {
+            if (nowTimeStr >= data.end_time) {
+                return {
+                    type: 'passed',
+                    message: t.todayPassedNotice,
+                };
+            }
+            if (nowTimeStr > data.start_time) {
+                return {
+                    type: 'clamped',
+                    message: t.todayPastTimeNotice,
+                };
+            }
+        }
+        return null;
+    };
+
     const handleDelete = (id: string | number) => {
-        if (confirm(t.confirmDelete)) {
-            router.delete(destroy.url(id), {
-                onSuccess: () => {
-                    toast.success(t.deleteSuccess);
-                    setSelectedEvent(null);
-                },
+        handleOpenDeleteBlock();
+    };
+
+    const upcomingDaysList = useMemo(() => {
+        const list: {
+            dateStr: string;
+            dayLabel: string;
+            slotCount: number;
+            hasRecurring: boolean;
+        }[] = [];
+        const today = new Date();
+        for (let i = 0; i < 14; i++) {
+            const d = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate() + i,
+            );
+            const dateStr = formatDateString(d);
+            const dayName = getWeekdayName(d);
+            const dayLabel = d.toLocaleDateString(localeMap[lang], {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+            });
+            const slots = getSlotsWithStatusForDate(d);
+            const hasRecurring = availabilities.some(
+                (a) =>
+                    a.type === 'recurring' &&
+                    a.day_of_week === dayName &&
+                    a.is_active !== false,
+            );
+            list.push({
+                dateStr,
+                dayLabel,
+                slotCount: slots.length,
+                hasRecurring,
             });
         }
+        return list;
+    }, [availabilities, appointments, showCustom, showRecurring, lang]);
+
+    const handleSelectAllDaysWithSlots = () => {
+        const daysWithSlots = upcomingDaysList
+            .filter((d) => d.slotCount > 0)
+            .map((d) => d.dateStr);
+        setSelectedDaysToClear(daysWithSlots);
+    };
+
+    const handleProceedClearSelectedDays = () => {
+        if (selectedDaysToClear.length === 0) return;
+        const hasAnyRecurring = selectedDaysToClear.some((dateStr) => {
+            const item = upcomingDaysList.find((d) => d.dateStr === dateStr);
+            return item ? item.hasRecurring : false;
+        });
+
+        setDeleteScope('date_only');
+        setDeleteTarget({
+            type: 'clear_days',
+            dates: selectedDaysToClear,
+            hasRecurring: hasAnyRecurring,
+        });
     };
 
     const handleGridClick = (
@@ -898,11 +1331,21 @@ export default function Availability({
         );
 
         setSelectedDate(dateFocus);
+        const dayStr = formatDateString(dateFocus);
+        const nextWeekDate = new Date(
+            dateFocus.getTime() + 6 * 24 * 60 * 60 * 1000,
+        );
         setData((prev) => ({
             ...prev,
             start_time: `${startHourStr}:00`,
             end_time: `${endHourStr}:00`,
             type: 'custom',
+            custom_mode: 'single',
+            date: dayStr,
+            start_date: dayStr,
+            end_date: formatDateString(nextWeekDate),
+            day_of_week: getWeekdayName(dateFocus),
+            days_of_week: [getWeekdayName(dateFocus)],
         }));
         setIsCreateModalOpen(true);
     };
@@ -1055,7 +1498,21 @@ export default function Availability({
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Clear Days Button */}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                                setSelectedDaysToClear([]);
+                                setIsClearDaysModalOpen(true);
+                            }}
+                            className="rounded-lg font-medium text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                        >
+                            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                            {t.clearDays}
+                        </Button>
+
                         {/* View Switcher */}
                         <div className="flex rounded-lg border bg-muted/30 p-1">
                             <Button
@@ -1109,7 +1566,23 @@ export default function Availability({
                     >
                         <Button
                             onClick={() => {
-                                reset();
+                                const todayStr = formatDateString(new Date());
+                                const nextWeekDate = new Date(
+                                    new Date().getTime() + 6 * 24 * 60 * 60 * 1000,
+                                );
+                                setData((prev) => ({
+                                    ...prev,
+                                    type: 'recurring',
+                                    days_of_week: [...ALL_DAYS],
+                                    day_of_week: getWeekdayName(new Date()),
+                                    start_time: '10:00',
+                                    end_time: '21:00',
+                                    custom_mode: 'single',
+                                    date: todayStr,
+                                    start_date: todayStr,
+                                    end_date: formatDateString(nextWeekDate),
+                                    slot_duration: 30,
+                                }));
                                 setIsCreateModalOpen(true);
                             }}
                             className="w-full justify-start gap-3 rounded-full border bg-white px-5 py-6 text-gray-800 shadow-md transition-all hover:bg-muted hover:shadow-lg"
@@ -1279,7 +1752,7 @@ export default function Availability({
                                 <div className="w-14 flex-shrink-0 border-r bg-card md:w-16"></div>
                                 <div className="flex flex-1 overflow-hidden">
                                     {view === 'day' ? (
-                                        <div className="flex flex-1 flex-col items-center py-3 text-center">
+                                        <div className="flex flex-1 flex-col items-center py-2.5 text-center">
                                             <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
                                                 {selectedDate.toLocaleDateString(
                                                     localeMap[lang],
@@ -1298,6 +1771,20 @@ export default function Availability({
                                             >
                                                 {selectedDate.getDate()}
                                             </span>
+                                            {hasAvailability(selectedDate) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openClearDayModal(selectedDate);
+                                                    }}
+                                                    className="mt-1 flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                                    title={t.clearDay}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                    <span>{t.clearDay}</span>
+                                                </button>
+                                            )}
                                         </div>
                                     ) : (
                                         getWeekDays(selectedDate).map(
@@ -1315,7 +1802,7 @@ export default function Availability({
                                                 return (
                                                     <div
                                                         key={idx}
-                                                        className="flex min-w-[35px] flex-1 flex-col items-center border-r py-1.5 text-center last:border-r-0 md:min-w-[100px] md:py-3"
+                                                        className="group flex min-w-[35px] flex-1 flex-col items-center border-r py-1 text-center last:border-r-0 md:min-w-[100px] md:py-2.5"
                                                     >
                                                         <span className="text-[9px] font-bold tracking-wider text-muted-foreground uppercase md:text-xs">
                                                             {day.toLocaleDateString(
@@ -1335,7 +1822,7 @@ export default function Availability({
                                                                     day,
                                                                 );
                                                             }}
-                                                            className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-9 md:w-9 md:text-xl ${
+                                                            className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all md:h-8 md:w-8 md:text-lg ${
                                                                 isToday
                                                                     ? 'bg-brand-brown text-white shadow-md shadow-brand-brown/20'
                                                                     : isSelected
@@ -1345,6 +1832,20 @@ export default function Availability({
                                                         >
                                                             {day.getDate()}
                                                         </button>
+                                                        {hasAvailability(day) && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openClearDayModal(day);
+                                                                }}
+                                                                className="mt-1 flex items-center gap-1 rounded-md px-1 py-0.5 text-[10px] font-semibold text-rose-600 opacity-80 transition-all hover:bg-rose-50 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 dark:hover:bg-rose-950/30"
+                                                                title={`${t.clearDay} (${day.toLocaleDateString(localeMap[lang], { weekday: 'short', month: 'short', day: 'numeric' })})`}
+                                                            >
+                                                                <Trash2 className="h-3 w-3" />
+                                                                <span className="hidden md:inline">{t.clearDay}</span>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 );
                                             },
@@ -1483,17 +1984,9 @@ export default function Availability({
                                                             key={slot.id}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                if (
-                                                                    slot.appointment
-                                                                ) {
-                                                                    setSelectedSlotDetail(
-                                                                        slot,
-                                                                    );
-                                                                } else {
-                                                                    setSelectedEvent(
-                                                                        slot.avail,
-                                                                    );
-                                                                }
+                                                                setSelectedSlotDetail(
+                                                                    slot,
+                                                                );
                                                             }}
                                                             style={{
                                                                 position:
@@ -1640,17 +2133,9 @@ export default function Availability({
                                                                         e,
                                                                     ) => {
                                                                         e.stopPropagation();
-                                                                        if (
-                                                                            slot.appointment
-                                                                        ) {
-                                                                            setSelectedSlotDetail(
-                                                                                slot,
-                                                                            );
-                                                                        } else {
-                                                                            setSelectedEvent(
-                                                                                slot.avail,
-                                                                            );
-                                                                        }
+                                                                        setSelectedSlotDetail(
+                                                                            slot,
+                                                                        );
                                                                     }}
                                                                     style={{
                                                                         position:
@@ -2035,12 +2520,12 @@ export default function Availability({
                 </div>
             )}
 
-            {/* Custom Google Calendar Create Availability Modal */}
+            {/* Create Availability Modal */}
             {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
                     <form
                         onSubmit={submit}
-                        className="relative flex w-full max-w-md animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95"
+                        className="relative flex w-full max-w-lg animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95 max-h-[90vh] overflow-y-auto"
                     >
                         <Button
                             variant="ghost"
@@ -2052,54 +2537,333 @@ export default function Availability({
                             <X className="h-4 w-4" />
                         </Button>
 
-                        <h3 className="mb-4 text-lg font-bold text-foreground">
-                            {t.addAvailability}
-                        </h3>
+                        <div className="mb-4">
+                            <h3 className="text-lg font-bold text-foreground">
+                                {t.addAvailability}
+                            </h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                {data.type === 'recurring'
+                                    ? t.recurringSchedule
+                                    : t.specificDates}
+                            </p>
+                        </div>
 
                         <div className="space-y-4">
+                            {/* Main Mode Toggle: Weekly Recurring vs Specific Dates */}
                             <div>
-                                <Label>{t.availabilityType}</Label>
+                                <Label className="text-xs font-semibold">
+                                    {t.availabilityType}
+                                </Label>
                                 <div className="mt-1.5 grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setData('type', 'custom')
-                                        }
-                                        className={`rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all ${
-                                            data.type === 'custom'
-                                                ? 'border-brand-brown bg-brand-brown text-white shadow-sm'
-                                                : 'bg-card text-foreground hover:bg-muted'
-                                        }`}
-                                    >
-                                        {t.singleDate} ({selectedDate.getDate()}{' '}
-                                        {t.months[
-                                            selectedDate.getMonth()
-                                        ].substring(0, 3)}
-                                        )
-                                    </button>
                                     <button
                                         type="button"
                                         onClick={() =>
                                             setData('type', 'recurring')
                                         }
-                                        className={`rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all ${
+                                        className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all ${
                                             data.type === 'recurring'
                                                 ? 'border-brand-brown bg-brand-brown text-white shadow-sm'
-                                                : 'bg-card text-foreground hover:bg-muted'
+                                                : 'border-border bg-card text-foreground hover:bg-muted'
                                         }`}
                                     >
-                                        {t.every}{' '}
-                                        {selectedDate.toLocaleDateString(
-                                            localeMap[lang],
-                                            { weekday: 'short' },
-                                        )}
+                                        <Repeat className="h-4 w-4" />
+                                        {t.weeklyRecurring}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setData('type', 'custom')
+                                        }
+                                        className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all ${
+                                            data.type === 'custom'
+                                                ? 'border-brand-brown bg-brand-brown text-white shadow-sm'
+                                                : 'border-border bg-card text-foreground hover:bg-muted'
+                                        }`}
+                                    >
+                                        <CalendarIcon className="h-4 w-4" />
+                                        {t.singleDate}
                                     </button>
                                 </div>
                             </div>
 
+                            {/* Section when Recurring */}
+                            {data.type === 'recurring' && (
+                                <div className="space-y-2.5 rounded-xl border border-muted bg-muted/20 p-3">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-xs font-semibold">
+                                            {t.selectDays}
+                                        </Label>
+                                        <span className="text-[11px] text-muted-foreground">
+                                            {data.days_of_week?.length || 0} / 7
+                                        </span>
+                                    </div>
+
+                                    {/* Presets: All 7 Days, Weekdays, Weekends */}
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setData('days_of_week', [
+                                                    ...ALL_DAYS,
+                                                ])
+                                            }
+                                            className={`rounded-lg border px-2.5 py-1 text-xs transition-colors ${
+                                                data.days_of_week?.length === 7
+                                                    ? 'border-brand-brown bg-brand-brown font-semibold text-white shadow-sm'
+                                                    : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                                            }`}
+                                        >
+                                            {t.allDays}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setData('days_of_week', [
+                                                    ...WEEKDAYS,
+                                                ])
+                                            }
+                                            className={`rounded-lg border px-2.5 py-1 text-xs transition-colors ${
+                                                data.days_of_week?.length ===
+                                                    5 &&
+                                                WEEKDAYS.every((d) =>
+                                                    data.days_of_week?.includes(
+                                                        d,
+                                                    ),
+                                                )
+                                                    ? 'border-brand-brown bg-brand-brown font-semibold text-white shadow-sm'
+                                                    : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                                            }`}
+                                        >
+                                            {t.weekdays}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setData('days_of_week', [
+                                                    ...WEEKENDS,
+                                                ])
+                                            }
+                                            className={`rounded-lg border px-2.5 py-1 text-xs transition-colors ${
+                                                data.days_of_week?.length ===
+                                                    2 &&
+                                                WEEKENDS.every((d) =>
+                                                    data.days_of_week?.includes(
+                                                        d,
+                                                    ),
+                                                )
+                                                    ? 'border-brand-brown bg-brand-brown font-semibold text-white shadow-sm'
+                                                    : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                                            }`}
+                                        >
+                                            {t.weekends}
+                                        </button>
+                                    </div>
+
+                                    {/* 7 Day Pills */}
+                                    <div className="grid grid-cols-7 gap-1.5 pt-1">
+                                        {ALL_DAYS.map((dayKey, idx) => {
+                                            const isSelected =
+                                                data.days_of_week?.includes(
+                                                    dayKey,
+                                                );
+                                            return (
+                                                <button
+                                                    key={dayKey}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const current =
+                                                            data.days_of_week ||
+                                                            [];
+                                                        if (isSelected) {
+                                                            setData(
+                                                                'days_of_week',
+                                                                current.filter(
+                                                                    (
+                                                                        d: string,
+                                                                    ) =>
+                                                                        d !==
+                                                                        dayKey,
+                                                                ),
+                                                            );
+                                                        } else {
+                                                            setData(
+                                                                'days_of_week',
+                                                                [
+                                                                    ...current,
+                                                                    dayKey,
+                                                                ],
+                                                            );
+                                                        }
+                                                    }}
+                                                    className={`flex flex-col items-center justify-center rounded-xl border py-2 px-1 text-xs transition-all ${
+                                                        isSelected
+                                                            ? 'border-brand-brown bg-brand-brown font-bold text-white shadow-sm ring-2 ring-brand-brown/20'
+                                                            : 'border-border bg-card font-medium text-foreground hover:bg-muted'
+                                                    }`}
+                                                >
+                                                    <span className="text-[11px] font-semibold uppercase tracking-wider">
+                                                        {t.weeksShort[idx]}
+                                                    </span>
+                                                    {isSelected && (
+                                                        <Check className="mt-0.5 h-3 w-3" />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {(!data.days_of_week ||
+                                        data.days_of_week.length === 0) && (
+                                        <p className="text-xs text-destructive">
+                                            {t.selectAtLeastOneDay}
+                                        </p>
+                                    )}
+                                    {errors.days_of_week && (
+                                        <p className="text-xs text-destructive">
+                                            {errors.days_of_week}
+                                        </p>
+                                    )}
+                                    {errors.day_of_week && (
+                                        <p className="text-xs text-destructive">
+                                            {errors.day_of_week}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Section when Custom Dates */}
+                            {data.type === 'custom' && (
+                                <div className="space-y-3 rounded-xl border border-muted bg-muted/20 p-3">
+                                    {/* Sub-selector: Single Date vs Date Range */}
+                                    <div className="flex rounded-lg border border-border bg-card p-0.5">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setData('custom_mode', 'single')
+                                            }
+                                            className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                                                data.custom_mode !== 'range'
+                                                    ? 'bg-brand-brown text-white shadow-sm'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                        >
+                                            {t.singleDate}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setData('custom_mode', 'range')
+                                            }
+                                            className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                                                data.custom_mode === 'range'
+                                                    ? 'bg-brand-brown text-white shadow-sm'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                        >
+                                            {t.dateRange}
+                                        </button>
+                                    </div>
+
+                                    {data.custom_mode === 'range' ? (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="grid gap-1.5">
+                                                <Label
+                                                    htmlFor="start_date"
+                                                    className="text-xs font-semibold"
+                                                >
+                                                    {t.startDate}
+                                                </Label>
+                                                <Input
+                                                    id="start_date"
+                                                    type="date"
+                                                    value={data.start_date}
+                                                    min={formatDateString(
+                                                        nowTime,
+                                                    )}
+                                                    onChange={(e) =>
+                                                        setData(
+                                                            'start_date',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="rounded-xl"
+                                                    required
+                                                />
+                                                {errors.start_date && (
+                                                    <p className="text-xs text-destructive">
+                                                        {errors.start_date}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="grid gap-1.5">
+                                                <Label
+                                                    htmlFor="end_date"
+                                                    className="text-xs font-semibold"
+                                                >
+                                                    {t.endDate}
+                                                </Label>
+                                                <Input
+                                                    id="end_date"
+                                                    type="date"
+                                                    value={data.end_date}
+                                                    min={
+                                                        data.start_date ||
+                                                        formatDateString(nowTime)
+                                                    }
+                                                    onChange={(e) =>
+                                                        setData(
+                                                            'end_date',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="rounded-xl"
+                                                    required
+                                                />
+                                                {errors.end_date && (
+                                                    <p className="text-xs text-destructive">
+                                                        {errors.end_date}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid gap-1.5">
+                                            <Label
+                                                htmlFor="single_date"
+                                                className="text-xs font-semibold"
+                                            >
+                                                {t.date}
+                                            </Label>
+                                            <Input
+                                                id="single_date"
+                                                type="date"
+                                                value={data.date}
+                                                min={formatDateString(nowTime)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'date',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="rounded-xl"
+                                                required
+                                            />
+                                            {errors.start_date && (
+                                                <p className="text-xs text-destructive">
+                                                    {errors.start_date}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Time Range */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-1.5">
-                                    <Label htmlFor="start_time">
+                                    <Label
+                                        htmlFor="start_time"
+                                        className="text-xs font-semibold"
+                                    >
                                         {t.startTime}
                                     </Label>
                                     <Input
@@ -2120,14 +2884,12 @@ export default function Availability({
                                             {errors.start_time}
                                         </p>
                                     )}
-                                    {errors.start_at && (
-                                        <p className="text-xs text-destructive">
-                                            {errors.start_at}
-                                        </p>
-                                    )}
                                 </div>
                                 <div className="grid gap-1.5">
-                                    <Label htmlFor="end_time">
+                                    <Label
+                                        htmlFor="end_time"
+                                        className="text-xs font-semibold"
+                                    >
                                         {t.endTime}
                                     </Label>
                                     <Input
@@ -2145,28 +2907,114 @@ export default function Availability({
                                             {errors.end_time}
                                         </p>
                                     )}
-                                    {errors.end_at && (
-                                        <p className="text-xs text-destructive">
-                                            {errors.end_at}
-                                        </p>
+                                </div>
+                            </div>
+
+                            {/* Slot Duration */}
+                            <div className="grid gap-1.5">
+                                <Label
+                                    htmlFor="slot_duration"
+                                    className="text-xs font-semibold"
+                                >
+                                    {t.slotDuration}
+                                </Label>
+                                <div className="flex gap-2">
+                                    <Select
+                                        value={
+                                            isCustomDuration
+                                                ? 'custom'
+                                                : String(data.slot_duration)
+                                        }
+                                        onValueChange={handleSlotDurationChange}
+                                    >
+                                        <SelectTrigger className="w-full rounded-xl">
+                                            <SelectValue
+                                                placeholder={t.slotDuration}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="15">
+                                                15 {t.minSlots}
+                                            </SelectItem>
+                                            <SelectItem value="30">
+                                                30 {t.minSlots}
+                                            </SelectItem>
+                                            <SelectItem value="45">
+                                                45 {t.minSlots}
+                                            </SelectItem>
+                                            <SelectItem value="60">
+                                                60 {t.minSlots}
+                                            </SelectItem>
+                                            <SelectItem value="0">
+                                                {t.slotDurationAll}
+                                            </SelectItem>
+                                            <SelectItem value="custom">
+                                                {t.slotDurationCustom}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {isCustomDuration && (
+                                        <div className="w-32 shrink-0">
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                max="720"
+                                                value={customMinutes}
+                                                onChange={(e) =>
+                                                    handleCustomMinutesChange(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder={t.enterMinutes}
+                                                className="rounded-xl"
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             </div>
+
+                            {/* Dynamic Past-Time Filter Notice */}
+                            {(() => {
+                                const notice = getPastTimeNotice();
+                                if (!notice) return null;
+                                return (
+                                    <div
+                                        className={`flex items-start gap-2.5 rounded-xl border p-3 text-xs leading-relaxed ${
+                                            notice.type === 'passed'
+                                                ? 'border-amber-200 bg-amber-50/80 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-200'
+                                                : 'border-blue-200 bg-blue-50/80 text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200'
+                                        }`}
+                                    >
+                                        {notice.type === 'passed' ? (
+                                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                        ) : (
+                                            <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                                        )}
+                                        <div>{notice.message}</div>
+                                    </div>
+                                );
+                            })()}
                         </div>
 
+                        {/* Modal Actions */}
                         <div className="mt-6 flex justify-end gap-3 border-t pt-4">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => setIsCreateModalOpen(false)}
-                                className="rounded-lg"
+                                className="rounded-xl"
                             >
                                 {t.cancel}
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={processing}
-                                className="rounded-lg bg-brand-button font-semibold text-brand-brown hover:bg-brand-button-hover"
+                                disabled={
+                                    processing ||
+                                    (data.type === 'recurring' &&
+                                        (!data.days_of_week ||
+                                            data.days_of_week.length === 0))
+                                }
+                                className="rounded-xl bg-brand-button font-semibold text-brand-brown shadow-sm hover:bg-brand-button-hover"
                             >
                                 {processing ? t.saving : t.save}
                             </Button>
@@ -2271,13 +3119,448 @@ export default function Availability({
                                 )}
                         </div>
 
-                        <div className="mt-6 flex justify-end">
+                        <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between border-t pt-4 dark:border-gray-800">
+                            {!selectedSlotDetail.appointment &&
+                                selectedSlotDetail.avail && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() =>
+                                                handleOpenDeleteSlot(
+                                                    selectedSlotDetail,
+                                                )
+                                            }
+                                            className="flex items-center gap-1.5 rounded-xl text-xs font-semibold shadow-xs"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            {t.removeThisSlot}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                const avail =
+                                                    selectedSlotDetail.avail;
+                                                setSelectedSlotDetail(null);
+                                                setSelectedEvent(avail);
+                                            }}
+                                            className="rounded-xl text-xs font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                        >
+                                            {t.editBlock}
+                                        </Button>
+                                    </div>
+                                )}
                             <Button
                                 variant="outline"
                                 onClick={() => setSelectedSlotDetail(null)}
-                                className="rounded-xl font-semibold"
+                                className="rounded-xl font-semibold sm:ml-auto"
                             >
-                                Close
+                                {t.cancel}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* In-App Confirmation Modal (Option C & Accidental Deletion Prevention) */}
+            {deleteTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-lg animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl duration-150 zoom-in-95 fade-in dark:border-gray-800 dark:bg-gray-900">
+                        {/* Header */}
+                        <div className="mb-4 flex items-start justify-between border-b pb-4 dark:border-gray-800">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
+                                    <Trash2 className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                        {deleteTarget.type === 'slot'
+                                            ? t.removeSlot
+                                            : deleteTarget.type === 'range'
+                                              ? t.deleteRangeTitle
+                                              : deleteTarget.type === 'block'
+                                                ? t.deleteAvailability
+                                                : deleteTarget.type ===
+                                                    'clear_day'
+                                                  ? t.clearDay
+                                                  : t.clearDays}
+                                    </h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {deleteTarget.type === 'slot'
+                                            ? t.confirmRemoveSlot
+                                            : deleteTarget.type === 'range'
+                                              ? t.confirmDeleteRange
+                                              : deleteTarget.type === 'block'
+                                                ? t.confirmDelete
+                                                : deleteTarget.type ===
+                                                    'clear_day'
+                                                  ? t.clearDayConfirm
+                                                  : t.clearDaysConfirm}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() =>
+                                    !isDeleting && setDeleteTarget(null)
+                                }
+                                disabled={isDeleting}
+                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        {/* Target Summary Box */}
+                        <div className="mb-5 space-y-2.5 rounded-xl border border-gray-100 bg-gray-50/80 p-3.5 text-sm dark:border-gray-800 dark:bg-gray-800/50">
+                            {deleteTarget.type === 'slot' && (
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-500 dark:text-gray-400">
+                                            {t.date}:
+                                        </span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                            {deleteTarget.dateStr}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-500 dark:text-gray-400">
+                                            {t.timeRange}:
+                                        </span>
+                                        <span className="font-bold text-gray-900 dark:text-white">
+                                            {deleteTarget.timeLabel}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+
+                            {deleteTarget.type === 'range' && (
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-500 dark:text-gray-400">
+                                            {t.date}:
+                                        </span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                            {deleteTarget.dateStr}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-500 dark:text-gray-400">
+                                            {t.timeRange}:
+                                        </span>
+                                        <span className="font-bold text-gray-900 dark:text-white">
+                                            {deleteTarget.rangeStart} -{' '}
+                                            {deleteTarget.rangeEnd}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+
+                            {deleteTarget.type === 'block' && (
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-500 dark:text-gray-400">
+                                            {t.availabilityType}:
+                                        </span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                            {deleteTarget.avail.type ===
+                                            'custom'
+                                                ? t.singleDate
+                                                : t.recurringWeekly}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-gray-500 dark:text-gray-400">
+                                            {deleteTarget.avail.type ===
+                                            'custom'
+                                                ? t.date
+                                                : t.dateDay}
+                                            :
+                                        </span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                            {deleteTarget.avail.type ===
+                                            'custom'
+                                                ? deleteTarget.dateStr
+                                                : daysMap[lang][
+                                                      deleteTarget.avail
+                                                          .day_of_week as keyof (typeof daysMap)['en']
+                                                  ] ||
+                                                  deleteTarget.avail.day_of_week}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+
+                            {deleteTarget.type === 'clear_day' && (
+                                <div className="flex items-center justify-between">
+                                    <span className="font-medium text-gray-500 dark:text-gray-400">
+                                        {t.date}:
+                                    </span>
+                                    <span className="font-bold text-gray-900 dark:text-white">
+                                        {deleteTarget.dayLabel} (
+                                        {deleteTarget.dateStr})
+                                    </span>
+                                </div>
+                            )}
+
+                            {deleteTarget.type === 'clear_days' && (
+                                <div>
+                                    <span className="font-medium text-gray-500 dark:text-gray-400">
+                                        {t.selectedDays}:
+                                    </span>
+                                    <div className="mt-1.5 flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
+                                        {deleteTarget.dates.map((d) => (
+                                            <span
+                                                key={d}
+                                                className="rounded-md border bg-white px-2 py-0.5 text-xs font-semibold text-gray-800 shadow-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                            >
+                                                {d}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Option C Selector for Recurring Schedules */}
+                        {((deleteTarget.type === 'slot' &&
+                            deleteTarget.avail?.type === 'recurring') ||
+                            (deleteTarget.type === 'range' &&
+                                deleteTarget.avail?.type === 'recurring') ||
+                            (deleteTarget.type === 'block' &&
+                                deleteTarget.avail?.type === 'recurring') ||
+                            (deleteTarget.type === 'clear_day' &&
+                                deleteTarget.hasRecurring) ||
+                            (deleteTarget.type === 'clear_days' &&
+                                deleteTarget.hasRecurring)) && (
+                            <div className="mb-5 space-y-2">
+                                <p className="text-xs font-bold tracking-wider text-gray-700 uppercase dark:text-gray-300">
+                                    {t.recurringScopeTitle}
+                                </p>
+                                <div className="space-y-2">
+                                    {/* Option 1: Date only (Recommended) */}
+                                    <label
+                                        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-all ${
+                                            deleteScope === 'date_only'
+                                                ? 'border-brand-brown/60 bg-brand-lightblue/20 ring-1 ring-brand-brown/50 dark:border-brand-lightblue dark:bg-brand-lightblue/10'
+                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="delete_scope"
+                                            value="date_only"
+                                            checked={deleteScope === 'date_only'}
+                                            onChange={() =>
+                                                setDeleteScope('date_only')
+                                            }
+                                            className="mt-0.5 h-4 w-4 text-brand-brown focus:ring-brand-brown"
+                                        />
+                                        <div className="flex-1 text-xs">
+                                            <div className="font-bold text-gray-900 dark:text-white">
+                                                {t.scopeDateOnly}
+                                            </div>
+                                            <div className="mt-0.5 text-gray-500 dark:text-gray-400">
+                                                {t.scopeDateOnlyDesc}
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    {/* Option 2: All weeks */}
+                                    <label
+                                        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-all ${
+                                            deleteScope === 'all_weeks'
+                                                ? 'border-rose-400 bg-rose-50/50 ring-1 ring-rose-400 dark:border-rose-800 dark:bg-rose-950/20'
+                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="delete_scope"
+                                            value="all_weeks"
+                                            checked={deleteScope === 'all_weeks'}
+                                            onChange={() =>
+                                                setDeleteScope('all_weeks')
+                                            }
+                                            className="mt-0.5 h-4 w-4 text-rose-600 focus:ring-rose-500"
+                                        />
+                                        <div className="flex-1 text-xs">
+                                            <div className="font-bold text-rose-700 dark:text-rose-300">
+                                                {t.scopeAllWeeks}
+                                            </div>
+                                            <div className="mt-0.5 text-gray-500 dark:text-gray-400">
+                                                {t.scopeAllWeeksDesc}
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Warning Note */}
+                        <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
+                            <span>{t.cannotRemoveBookedNotice}</span>
+                        </div>
+
+                        {/* Modal Actions */}
+                        <div className="flex items-center justify-end gap-2.5">
+                            <Button
+                                variant="outline"
+                                onClick={() => setDeleteTarget(null)}
+                                disabled={isDeleting}
+                                className="rounded-xl font-medium"
+                            >
+                                {t.cancel}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={executeConfirmDelete}
+                                disabled={isDeleting}
+                                className="flex items-center gap-2 rounded-xl font-semibold shadow-md shadow-rose-600/20"
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        {t.removing}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="h-4 w-4" />
+                                        {t.confirmRemoval}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Clear Days Bulk Action Modal */}
+            {isClearDaysModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-lg animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl duration-150 zoom-in-95 fade-in dark:border-gray-800 dark:bg-gray-900">
+                        <div className="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-800">
+                            <div className="flex items-center gap-2">
+                                <Trash2 className="h-5 w-5 text-rose-600" />
+                                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                                    {t.clearDaysTitle}
+                                </h3>
+                            </div>
+                            <button
+                                onClick={() => setIsClearDaysModalOpen(false)}
+                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <p className="mb-4 text-xs text-gray-600 dark:text-gray-400">
+                            {t.clearDaysDesc}
+                        </p>
+
+                        {/* Quick Selection Helpers */}
+                        <div className="mb-3 flex flex-wrap gap-2 text-xs">
+                            <button
+                                type="button"
+                                onClick={handleSelectAllDaysWithSlots}
+                                className="rounded-lg border border-brand-brown/30 bg-brand-lightblue/20 px-2.5 py-1 font-semibold text-brand-brown hover:bg-brand-lightblue/30"
+                            >
+                                {t.selectAllWithSlots}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedDaysToClear([])}
+                                className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                            >
+                                {t.deselectAll}
+                            </button>
+                        </div>
+
+                        {/* Scrollable Days List */}
+                        <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+                            {upcomingDaysList.map((item) => {
+                                const isChecked =
+                                    selectedDaysToClear.includes(item.dateStr);
+                                return (
+                                    <label
+                                        key={item.dateStr}
+                                        className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 text-xs transition-all ${
+                                            isChecked
+                                                ? 'border-rose-300 bg-rose-50/50 dark:border-rose-900 dark:bg-rose-950/20'
+                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedDaysToClear(
+                                                            (prev) => [
+                                                                ...prev,
+                                                                item.dateStr,
+                                                            ],
+                                                        );
+                                                    } else {
+                                                        setSelectedDaysToClear(
+                                                            (prev) =>
+                                                                prev.filter(
+                                                                    (d) =>
+                                                                        d !==
+                                                                        item.dateStr,
+                                                                ),
+                                                        );
+                                                    }
+                                                }}
+                                                className="h-4 w-4 rounded-md border-gray-300 text-rose-600 focus:ring-rose-500"
+                                            />
+                                            <div>
+                                                <span className="font-bold text-gray-900 dark:text-white">
+                                                    {item.dayLabel}
+                                                </span>
+                                                <span className="ml-1.5 text-gray-500 dark:text-gray-400">
+                                                    ({item.dateStr})
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            {item.slotCount > 0 ? (
+                                                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                                    {item.slotCount}{' '}
+                                                    {t.slotsCount}
+                                                </span>
+                                            ) : (
+                                                <span className="text-[11px] text-gray-400">
+                                                    {t.noAvailabilityOnDay}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </label>
+                                );
+                            })}
+                        </div>
+
+                        {/* Modal Actions */}
+                        <div className="mt-5 flex items-center justify-end gap-2.5 border-t pt-4 dark:border-gray-800">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsClearDaysModalOpen(false)}
+                                className="rounded-xl font-medium"
+                            >
+                                {t.cancel}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                disabled={selectedDaysToClear.length === 0}
+                                onClick={handleProceedClearSelectedDays}
+                                className="flex items-center gap-1.5 rounded-xl font-semibold shadow-md shadow-rose-600/20"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                {t.clearDays} ({selectedDaysToClear.length})
                             </Button>
                         </div>
                     </div>

@@ -351,6 +351,17 @@ class BookingService
         if (! $available) {
             throw new \Exception('not suitable to teacher\'s availability');
         }
+
+        $isBlackedOut = TeacherAvailability::where('teacher_id', $teacherId)
+            ->where('type', 'custom')
+            ->where('is_active', false)
+            ->where('start_at', '<', $endTz)
+            ->where('end_at', '>', $startTz)
+            ->exists();
+
+        if ($isBlackedOut) {
+            throw new \Exception('not suitable to teacher\'s availability');
+        }
     }
 
     /**

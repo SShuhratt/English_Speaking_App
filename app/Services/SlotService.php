@@ -70,6 +70,12 @@ class SlotService
                     )
                 );
 
+                $slots = $this->removeBlackoutSlots(
+                    $teacherId,
+                    $day,
+                    $slots
+                );
+
                 $allSlots = $this->removeBookedSlots(
                     $teacherId,
                     $day,
@@ -241,8 +247,8 @@ class SlotService
         foreach ($availabilities as $availability) {
 
             $tz = $availability->timezone ?: 'Asia/Tashkent';
-            $current = $availability->start_at->copy()->setTimezone($tz);
-            $end = $availability->end_at->copy()->setTimezone($tz);
+            $current = Carbon::parse($availability->start_at->format('Y-m-d H:i:s'), $tz);
+            $end = Carbon::parse($availability->end_at->format('Y-m-d H:i:s'), $tz);
             $slotDur = (isset($availability->slot_duration) && $availability->slot_duration !== null) ? (int) $availability->slot_duration : 30;
 
             if ($slotDur === 0) {
@@ -295,6 +301,77 @@ class SlotService
         }
 
         return $result;
+    }
+
+    protected function removeBlackoutSlots(
+        string $teacherId,
+        Carbon $date,
+        Collection $slots
+    ): Collection {
+        $startOfDay = $date->copy()->subDay()->startOfDay();
+        $endOfDay = $date->copy()->addDay()->endOfDay();
+
+        $blackouts = TeacherAvailability::query()
+            ->where('teacher_id', $teacherId)
+            ->where('type', 'custom')
+            ->where('is_active', false)
+            ->where('start_at', '<', $endOfDay)
+            ->where('end_at', '>', $startOfDay)
+            ->get();
+
+        if ($blackouts->isEmpty()) {
+            return $slots;
+        }
+
+        $allTimeSlots = $slots->filter(fn ($s) => ! empty($s['is_all_time']));
+        $fixedSlots = $slots->filter(fn ($s) => empty($s['is_all_time']));
+        $remainingSlots = collect();
+
+        if ($allTimeSlots->isNotEmpty()) {
+            $freeIntervals = $allTimeSlots->map(fn ($s) => [
+                'start_at' => $s['start_at'] instanceof Carbon ? $s['start_at']->copy()->setTimezone('Asia/Tashkent') : Carbon::parse((string) $s['start_at'])->setTimezone('Asia/Tashkent'),
+                'end_at' => $s['end_at'] instanceof Carbon ? $s['end_at']->copy()->setTimezone('Asia/Tashkent') : Carbon::parse((string) $s['end_at'])->setTimezone('Asia/Tashkent'),
+                'is_all_time' => true,
+            ])->toArray();
+
+            foreach ($blackouts as $blackout) {
+                $bStart = Carbon::parse($blackout->start_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
+                $bEnd = Carbon::parse($blackout->end_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
+                $freeIntervals = $this->subtractIntervals($freeIntervals, $bStart, $bEnd);
+            }
+
+            foreach ($freeIntervals as $interval) {
+                $remainingSlots->push($interval);
+            }
+        }
+
+        foreach ($fixedSlots as $slot) {
+            $slotStart = $slot['start_at'] instanceof Carbon
+                ? $slot['start_at']->copy()->setTimezone('Asia/Tashkent')
+                : Carbon::parse((string) $slot['start_at'])->setTimezone('Asia/Tashkent');
+
+            $slotEnd = $slot['end_at'] instanceof Carbon
+                ? $slot['end_at']->copy()->setTimezone('Asia/Tashkent')
+                : Carbon::parse((string) $slot['end_at'])->setTimezone('Asia/Tashkent');
+
+            $isBlackedOut = false;
+
+            foreach ($blackouts as $blackout) {
+                $bStart = Carbon::parse($blackout->start_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
+                $bEnd = Carbon::parse($blackout->end_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
+
+                if ($bStart < $slotEnd && $bEnd > $slotStart) {
+                    $isBlackedOut = true;
+                    break;
+                }
+            }
+
+            if (! $isBlackedOut) {
+                $remainingSlots->push($slot);
+            }
+        }
+
+        return $remainingSlots;
     }
 
     protected function removeBookedSlots(

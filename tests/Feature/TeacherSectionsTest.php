@@ -6,6 +6,8 @@ use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
 use App\Services\GoogleCalendarService;
+use App\Services\SlotService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -68,11 +70,13 @@ class TeacherSectionsTest extends TestCase
     public function test_teacher_can_store_custom_availability()
     {
         $teacher = User::factory()->create(['role' => 'teacher']);
+        $futureStart = Carbon::now('Asia/Tashkent')->addDays(3)->setTime(9, 0, 0);
+        $futureEnd = Carbon::now('Asia/Tashkent')->addDays(3)->setTime(17, 0, 0);
 
         $response = $this->actingAs($teacher)->post('/teacher/availability', [
             'type' => 'custom',
-            'start_at' => '2026-06-15 09:00:00',
-            'end_at' => '2026-06-15 17:00:00',
+            'start_at' => $futureStart->toDateTimeString(),
+            'end_at' => $futureEnd->toDateTimeString(),
             'slot_duration' => 30,
         ]);
 
@@ -81,10 +85,137 @@ class TeacherSectionsTest extends TestCase
         $this->assertDatabaseHas('teacher_availabilities', [
             'teacher_id' => $teacher->id,
             'type' => 'custom',
-            'start_at' => '2026-06-15 09:00:00',
-            'end_at' => '2026-06-15 17:00:00',
+            'start_at' => $futureStart->toDateTimeString(),
+            'end_at' => $futureEnd->toDateTimeString(),
             'slot_duration' => 30,
         ]);
+    }
+
+    public function test_teacher_can_store_multi_day_recurring_availability_for_all_days()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'recurring',
+            'days_of_week' => $allDays,
+            'start_time' => '10:00',
+            'end_time' => '21:00',
+            'slot_duration' => 60,
+        ]);
+
+        $response->assertRedirect();
+
+        $count = TeacherAvailability::where('teacher_id', $teacher->id)
+            ->where('type', 'recurring')
+            ->where('start_time', '10:00:00')
+            ->where('end_time', '21:00:00')
+            ->where('slot_duration', 60)
+            ->count();
+
+        $this->assertEquals(7, $count);
+    }
+
+    public function test_teacher_can_store_multi_day_recurring_availability_for_weekdays()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'recurring',
+            'days_of_week' => $weekdays,
+            'start_time' => '09:00',
+            'end_time' => '18:00',
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertRedirect();
+
+        $count = TeacherAvailability::where('teacher_id', $teacher->id)
+            ->where('type', 'recurring')
+            ->whereIn('day_of_week', $weekdays)
+            ->count();
+
+        $this->assertEquals(5, $count);
+    }
+
+    public function test_teacher_can_store_custom_date_range_availability()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $startDate = Carbon::now('Asia/Tashkent')->addDays(1)->format('Y-m-d');
+        $endDate = Carbon::now('Asia/Tashkent')->addDays(4)->format('Y-m-d');
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'start_time' => '10:00',
+            'end_time' => '20:00',
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertRedirect();
+
+        // 4 days from tomorrow
+        $count = TeacherAvailability::where('teacher_id', $teacher->id)
+            ->where('type', 'custom')
+            ->count();
+
+        $this->assertEquals(4, $count);
+    }
+
+    public function test_teacher_cannot_create_custom_availability_for_fully_passed_time()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pastStart = Carbon::now('Asia/Tashkent')->subDays(2)->setTime(9, 0);
+        $pastEnd = Carbon::now('Asia/Tashkent')->subDays(2)->setTime(17, 0);
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_at' => $pastStart->toDateTimeString(),
+            'end_at' => $pastEnd->toDateTimeString(),
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertSessionHasErrors(['start_at']);
+
+        $count = TeacherAvailability::where('teacher_id', $teacher->id)
+            ->where('type', 'custom')
+            ->count();
+
+        $this->assertEquals(0, $count);
+    }
+
+    public function test_custom_availability_for_today_clamps_to_current_time_forward()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+
+        // Travel to 14:00 today
+        $testNow = Carbon::now('Asia/Tashkent')->setTime(14, 0, 0);
+        Carbon::setTestNow($testNow);
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $testNow->format('Y-m-d'),
+            'end_date' => $testNow->format('Y-m-d'),
+            'start_time' => '10:00', // in the past relative to 14:00
+            'end_time' => '21:00',   // in the future
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertRedirect();
+
+        $availability = TeacherAvailability::where('teacher_id', $teacher->id)
+            ->where('type', 'custom')
+            ->first();
+
+        $this->assertNotNull($availability);
+        // Stored start_at in Tashkent time must be clamped to 14:00
+        $startTashkent = $availability->start_at->setTimezone('Asia/Tashkent');
+        $this->assertEquals('14:00:00', $startTashkent->format('H:i:s'));
+        $this->assertEquals('21:00:00', $availability->end_at->setTimezone('Asia/Tashkent')->format('H:i:s'));
+
+        Carbon::setTestNow(null);
     }
 
     public function test_teacher_can_delete_availability()
@@ -370,5 +501,194 @@ class TeacherSectionsTest extends TestCase
         $response->assertJson([
             'google_meet_link' => 'https://meet.google.com/existing-room',
         ]);
+    }
+
+    public function test_teacher_can_remove_slot_from_recurring_for_specific_date_only()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $tz = 'Asia/Tashkent';
+
+        // Monday recurring 10:00 - 12:00
+        $availability = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'recurring',
+            'day_of_week' => 'monday',
+            'start_time' => '10:00',
+            'end_time' => '12:00',
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        $nextMonday = Carbon::now($tz)->next('monday')->format('Y-m-d');
+
+        // Delete slot 10:30 - 11:00 for that specific date only (Option C)
+        $response = $this->actingAs($teacher)->delete("/teacher/availability/{$availability->id}", [
+            'delete_type' => 'range',
+            'scope' => 'date_only',
+            'date' => $nextMonday,
+            'range_start' => '10:30',
+            'range_end' => '11:00',
+        ]);
+
+        $response->assertRedirect();
+
+        // Recurring rule must still exist
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'id' => $availability->id,
+            'is_active' => true,
+        ]);
+
+        // A custom blackout record must be created
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'is_active' => false,
+            'start_at' => "{$nextMonday} 10:30:00",
+            'end_at' => "{$nextMonday} 11:00:00",
+        ]);
+
+        // SlotService must omit 10:30 slot on nextMonday
+        $slotService = app(SlotService::class);
+        $slots = $slotService->getAvailableSlots($teacher->id, $nextMonday);
+        $times = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($tz)->format('H:i'), $slots);
+
+        $this->assertContains('10:00', $times);
+        $this->assertNotContains('10:30', $times);
+        $this->assertContains('11:00', $times);
+        $this->assertContains('11:30', $times);
+    }
+
+    public function test_teacher_can_remove_range_from_custom_availability()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $tz = 'Asia/Tashkent';
+        $targetDate = Carbon::now($tz)->addDays(5)->format('Y-m-d');
+
+        $availability = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 10:00:00", $tz),
+            'end_at' => Carbon::parse("{$targetDate} 15:00:00", $tz),
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        // Delete range 12:00 to 13:00 from custom block
+        $response = $this->actingAs($teacher)->delete("/teacher/availability/{$availability->id}", [
+            'delete_type' => 'range',
+            'range_start' => '12:00',
+            'range_end' => '13:00',
+        ]);
+
+        $response->assertRedirect();
+
+        // Original record updated to end at 12:00
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'id' => $availability->id,
+            'start_at' => "{$targetDate} 10:00:00",
+            'end_at' => "{$targetDate} 12:00:00",
+        ]);
+
+        // Second record created from 13:00 to 15:00
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => "{$targetDate} 13:00:00",
+            'end_at' => "{$targetDate} 15:00:00",
+        ]);
+    }
+
+    public function test_teacher_cannot_remove_availability_with_booked_appointments()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $tz = 'Asia/Tashkent';
+        $targetDate = Carbon::now($tz)->addDays(3)->format('Y-m-d');
+
+        $availability = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 10:00:00", $tz),
+            'end_at' => Carbon::parse("{$targetDate} 12:00:00", $tz),
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        // Book an appointment in that window
+        Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => Carbon::parse("{$targetDate} 10:30:00", $tz),
+            'end_at' => Carbon::parse("{$targetDate} 11:00:00", $tz),
+            'status' => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($teacher)->delete("/teacher/availability/{$availability->id}");
+
+        $response->assertSessionHasErrors('range');
+        $this->assertDatabaseHas('teacher_availabilities', ['id' => $availability->id]);
+    }
+
+    public function test_teacher_can_clear_single_day_availability()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $tz = 'Asia/Tashkent';
+        $targetDate = Carbon::now($tz)->addDays(4)->format('Y-m-d');
+
+        $custom = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 09:00:00", $tz),
+            'end_at' => Carbon::parse("{$targetDate} 17:00:00", $tz),
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability/clear', [
+            'date' => $targetDate,
+            'scope' => 'date_only',
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseMissing('teacher_availabilities', [
+            'id' => $custom->id,
+        ]);
+    }
+
+    public function test_teacher_can_clear_multiple_selected_days()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $tz = 'Asia/Tashkent';
+        $date1 = Carbon::now($tz)->addDays(6)->format('Y-m-d');
+        $date2 = Carbon::now($tz)->addDays(7)->format('Y-m-d');
+
+        $custom1 = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$date1} 10:00:00", $tz),
+            'end_at' => Carbon::parse("{$date1} 18:00:00", $tz),
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        $custom2 = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$date2} 10:00:00", $tz),
+            'end_at' => Carbon::parse("{$date2} 18:00:00", $tz),
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability/clear', [
+            'dates' => [$date1, $date2],
+            'scope' => 'date_only',
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseMissing('teacher_availabilities', ['id' => $custom1->id]);
+        $this->assertDatabaseMissing('teacher_availabilities', ['id' => $custom2->id]);
     }
 }
