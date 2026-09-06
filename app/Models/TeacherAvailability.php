@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\PlatformTime;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,6 +37,22 @@ class TeacherAvailability extends Model
 
         'is_active' => 'boolean',
     ];
+
+    protected function startAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? Carbon::parse($value, 'UTC') : null,
+            set: fn ($value) => $value ? PlatformTime::toUtc($value) : null,
+        );
+    }
+
+    protected function endAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? Carbon::parse($value, 'UTC') : null,
+            set: fn ($value) => $value ? PlatformTime::toUtc($value) : null,
+        );
+    }
 
     public function teacher()
     {

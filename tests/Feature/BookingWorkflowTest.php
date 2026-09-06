@@ -314,4 +314,45 @@ class BookingWorkflowTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    public function test_pupil_can_book_with_iso_utc_timestamp_and_matches_tashkent_availability()
+    {
+        Event::fake([BookingUpdated::class]);
+
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        // Teacher has availability on Sunday from 14:00 to 20:00 Asia/Tashkent
+        TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'recurring',
+            'day_of_week' => 'sunday',
+            'start_time' => '14:00:00',
+            'end_time' => '20:00:00',
+            'slot_duration' => 30,
+        ]);
+
+        // Pupil chooses 15:00:00 to 16:00:00 Asia/Tashkent (which is 10:00:00 to 11:00:00 UTC)
+        $sundayTashkent = Carbon::parse('next sunday 15:00:00', 'Asia/Tashkent');
+        $startUtcIso = $sundayTashkent->copy()->utc()->toISOString(); // "2026-...T10:00:00.000000Z"
+        $endUtcIso = $sundayTashkent->copy()->addHour()->utc()->toISOString(); // "2026-...T11:00:00.000000Z"
+
+        $response = $this->actingAs($pupil)->postJson('/bookings', [
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => $startUtcIso,
+            'end_at' => $endUtcIso,
+            'topics' => ['Mock Exam / Interview'],
+            'duration_minutes' => 60,
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('appointments', [
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => $sundayTashkent->copy()->utc()->format('Y-m-d H:i:s'),
+            'duration_minutes' => 60,
+            'status' => 'pending',
+        ]);
+    }
 }

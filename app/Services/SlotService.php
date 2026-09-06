@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
+use App\Support\PlatformTime;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -13,7 +14,7 @@ class SlotService
 {
     public function getNextAvailableSlot(string $teacherId): ?array
     {
-        $today = Carbon::now('Asia/Tashkent');
+        $today = PlatformTime::localNow();
         for ($i = 0; $i < 7; $i++) {
             $dateStr = $today->copy()->addDays($i)->format('Y-m-d');
             $slots = $this->getAvailableSlots($teacherId, $dateStr);
@@ -50,7 +51,7 @@ class SlotService
                 // Delete expired custom availabilities from the DB
                 TeacherAvailability::where('teacher_id', $teacherId)
                     ->where('type', 'custom')
-                    ->where('end_at', '<', Carbon::now())
+                    ->where('end_at', '<', PlatformTime::now())
                     ->delete();
 
                 $day = Carbon::parse($date);
@@ -87,7 +88,7 @@ class SlotService
         );
 
         // Filter out past slots after cache retrieval to ensure accuracy to the current minute
-        $now = Carbon::now('Asia/Tashkent');
+        $now = PlatformTime::localNow();
         $filtered = [];
         foreach ($slots as $slot) {
             $start = Carbon::parse((string) $slot['start_at'], 'Asia/Tashkent')->setTimezone('Asia/Tashkent');
@@ -245,10 +246,9 @@ class SlotService
         $slots = collect();
 
         foreach ($availabilities as $availability) {
-
-            $tz = $availability->timezone ?: 'Asia/Tashkent';
-            $current = Carbon::parse($availability->start_at->format('Y-m-d H:i:s'), $tz);
-            $end = Carbon::parse($availability->end_at->format('Y-m-d H:i:s'), $tz);
+            $tz = $availability->timezone ?: PlatformTime::businessTimezone();
+            $current = $availability->start_at->copy()->setTimezone($tz);
+            $end = $availability->end_at->copy()->setTimezone($tz);
             $slotDur = (isset($availability->slot_duration) && $availability->slot_duration !== null) ? (int) $availability->slot_duration : 30;
 
             if ($slotDur === 0) {
@@ -335,8 +335,8 @@ class SlotService
             ])->toArray();
 
             foreach ($blackouts as $blackout) {
-                $bStart = Carbon::parse($blackout->start_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
-                $bEnd = Carbon::parse($blackout->end_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
+                $bStart = $blackout->start_at->copy()->setTimezone(PlatformTime::businessTimezone());
+                $bEnd = $blackout->end_at->copy()->setTimezone(PlatformTime::businessTimezone());
                 $freeIntervals = $this->subtractIntervals($freeIntervals, $bStart, $bEnd);
             }
 
@@ -357,8 +357,8 @@ class SlotService
             $isBlackedOut = false;
 
             foreach ($blackouts as $blackout) {
-                $bStart = Carbon::parse($blackout->start_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
-                $bEnd = Carbon::parse($blackout->end_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
+                $bStart = $blackout->start_at->copy()->setTimezone(PlatformTime::businessTimezone());
+                $bEnd = $blackout->end_at->copy()->setTimezone(PlatformTime::businessTimezone());
 
                 if ($bStart < $slotEnd && $bEnd > $slotStart) {
                     $isBlackedOut = true;
@@ -441,13 +441,11 @@ class SlotService
             $isBooked = false;
 
             foreach ($appointments as $appointment) {
-                $appStart = Carbon::parse($appointment->start_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
-                $appEnd = Carbon::parse($appointment->end_at->format('Y-m-d H:i:s'), 'Asia/Tashkent');
+                $appStart = $appointment->start_at->copy()->setTimezone('Asia/Tashkent');
+                $appEnd = $appointment->end_at->copy()->setTimezone('Asia/Tashkent');
 
                 if ($appointment->status === 'cancelled') {
-                    $cancelledAt = $appointment->updated_at
-                        ? Carbon::parse($appointment->updated_at->format('Y-m-d H:i:s'), 'Asia/Tashkent')
-                        : now()->copy()->setTimezone('Asia/Tashkent');
+                    $cancelledAt = ($appointment->updated_at ?? now())->copy()->setTimezone('Asia/Tashkent');
                     // If cancelled before or at start time, all slots are freed up
                     if ($cancelledAt->lte($appStart)) {
                         continue;

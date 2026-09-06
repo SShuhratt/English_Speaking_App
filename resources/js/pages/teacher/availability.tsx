@@ -18,6 +18,7 @@ import {
     Loader2,
     User,
     Repeat,
+    ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -148,6 +149,10 @@ const translations = {
         scopeAllWeeks: 'Remove from all upcoming weeks',
         scopeAllWeeksDesc: 'Permanently updates or removes your recurring weekly rule.',
         cannotRemoveBookedNotice: 'Booked appointments cannot be deleted automatically. You must cancel them first if needed.',
+        singleSlotBookedNotice: 'This slot has an active booking. Please cancel or reschedule the booking first.',
+        keepBookedLabel: 'Keep booked and awaiting-payment sessions (Recommended)',
+        keepBookedDesc: "Unoccupied slots will be cleared while keeping students' booked or pending sessions safe.",
+        bookingExpiredNotice: 'This booking expired because payment was not completed before the scheduled lesson time.',
         confirmRemoval: 'Confirm & Remove',
         removing: 'Removing...',
         editBlock: 'Edit Full Availability Block',
@@ -263,6 +268,10 @@ const translations = {
         scopeAllWeeks: "Barcha kelgusi haftalardan o'chirish",
         scopeAllWeeksDesc: "Haftalik takrorlanuvchi qoidangizni butunlay o'chiradi yoki yangilaydi.",
         cannotRemoveBookedNotice: "Band qilingan darslar avtomatik o'chirilmaydi. Zarur bo'lsa, avval ularni bekor qiling.",
+        singleSlotBookedNotice: "Ushbu slotda dars mavjud. Avval darsni bekor qilishingiz yoki boshqa vaqtga ko'chirishingiz kerak.",
+        keepBookedLabel: "Band qilingan va to'lov kutilayotgan darslarni saqlab qolish (Tavsiya etiladi)",
+        keepBookedDesc: "Talabalarning band qilingan darslarini saqlagan holda faqat bo'sh vaqtlar tozalanadi.",
+        bookingExpiredNotice: "Dars vaqtigacha to'lov amalga oshirilmaganligi sababli ushbu dars muddati tugadi.",
         confirmRemoval: "Tasdiqlash va o'chirish",
         removing: "O'chirilmoqda...",
         editBlock: "To'liq bandlik blokini tahrirlash",
@@ -378,6 +387,10 @@ const translations = {
         scopeAllWeeks: 'Удалить для всех предстоящих недель',
         scopeAllWeeksDesc: 'Полностью удаляет или обновляет повторяющееся еженедельное правило.',
         cannotRemoveBookedNotice: 'Забронированные занятия не удаляются автоматически. При необходимости сначала отмените их.',
+        singleSlotBookedNotice: 'В этом слоте есть бронирование. Сначала отмените или перенесите урок.',
+        keepBookedLabel: 'Сохранить забронированные и ожидающие оплаты уроки (Рекомендуется)',
+        keepBookedDesc: 'Свободные слоты будут очищены, а уроки учеников останутся нетронутыми.',
+        bookingExpiredNotice: 'Срок действия этой брони истек, так как оплата не была завершена до начала урока.',
         confirmRemoval: 'Подтвердить и удалить',
         removing: 'Удаление...',
         editBlock: 'Редактировать весь блок доступности',
@@ -507,6 +520,7 @@ export default function Availability({
         'date_only',
     );
     const [isDeleting, setIsDeleting] = useState(false);
+    const [keepBookedSessions, setKeepBookedSessions] = useState<boolean>(true);
 
     // Clear Days bulk modal state
     const [isClearDaysModalOpen, setIsClearDaysModalOpen] = useState(false);
@@ -744,6 +758,7 @@ export default function Availability({
                 : getTargetDateForRecurring(selectedEvent.day_of_week);
 
         setDeleteScope('date_only');
+        setKeepBookedSessions(true);
         setDeleteTarget({
             type: 'range',
             avail: selectedEvent,
@@ -761,7 +776,9 @@ export default function Availability({
                 ? formatDateString(parseUtcDate(selectedEvent.start_at))
                 : getTargetDateForRecurring(selectedEvent.day_of_week);
 
+        setSelectedEvent(null);
         setDeleteScope('date_only');
+        setKeepBookedSessions(true);
         setDeleteTarget({
             type: 'block',
             avail: selectedEvent,
@@ -778,7 +795,9 @@ export default function Availability({
         const endTime = `${eH}:${eM}`;
         const dateStr = formatDateString(slot.slotStart);
 
+        setSelectedSlotDetail(null);
         setDeleteScope('date_only');
+        setKeepBookedSessions(true);
         setDeleteTarget({
             type: 'slot',
             avail: slot.avail,
@@ -800,6 +819,7 @@ export default function Availability({
         );
 
         setDeleteScope('date_only');
+        setKeepBookedSessions(true);
         setDeleteTarget({
             type: 'clear_day',
             dateStr,
@@ -821,6 +841,7 @@ export default function Availability({
                 delete_type: 'range',
                 range_start: deleteTarget.startTime,
                 range_end: deleteTarget.endTime,
+                keep_booked: keepBookedSessions,
             };
             if (deleteTarget.avail.type === 'recurring') {
                 payload.scope = deleteScope;
@@ -844,6 +865,7 @@ export default function Availability({
                 delete_type: 'range',
                 range_start: deleteTarget.rangeStart,
                 range_end: deleteTarget.rangeEnd,
+                keep_booked: keepBookedSessions,
             };
             if (deleteTarget.avail.type === 'recurring') {
                 payload.scope = deleteScope;
@@ -863,7 +885,9 @@ export default function Availability({
                 },
             });
         } else if (deleteTarget.type === 'block') {
-            const payload: any = {};
+            const payload: any = {
+                keep_booked: keepBookedSessions,
+            };
             if (deleteTarget.avail.type === 'recurring') {
                 payload.scope = deleteScope;
                 payload.date = deleteTarget.dateStr;
@@ -887,6 +911,7 @@ export default function Availability({
                 {
                     date: deleteTarget.dateStr,
                     scope: deleteScope,
+                    keep_booked: keepBookedSessions,
                 },
                 {
                     onSuccess: () => {
@@ -906,6 +931,7 @@ export default function Availability({
                 {
                     dates: deleteTarget.dates,
                     scope: deleteScope,
+                    keep_booked: keepBookedSessions,
                 },
                 {
                     onSuccess: () => {
@@ -1058,12 +1084,19 @@ export default function Availability({
 
                 const matchingApp = (appointments || []).find((app: any) => {
                     if (app.status === 'cancelled') {
-                        const cancelledAt = app.updated_at
-                            ? new Date(app.updated_at)
-                            : new Date();
-                        const appStart = new Date(app.start_at);
-                        if (cancelledAt.getTime() <= appStart.getTime()) {
-                            return false; // restored slot!
+                        if (
+                            app.cancellation_reason ===
+                            'Conversation time expired without payment'
+                        ) {
+                            // Keep matching expired bookings so they render as expired on the schedule
+                        } else {
+                            const cancelledAt = app.updated_at
+                                ? new Date(app.updated_at)
+                                : new Date();
+                            const appStart = new Date(app.start_at);
+                            if (cancelledAt.getTime() <= appStart.getTime()) {
+                                return false; // restored slot!
+                            }
                         }
                     }
                     const appStart = new Date(app.start_at).getTime();
@@ -1075,7 +1108,21 @@ export default function Availability({
 
                 let status = 'available';
                 if (matchingApp) {
+                    const isConvExpired =
+                        now.getTime() >=
+                        new Date(matchingApp.end_at).getTime();
+
                     if (
+                        matchingApp.cancellation_reason ===
+                            'Conversation time expired without payment' ||
+                        ((matchingApp.payment_status === 'verifying' ||
+                            matchingApp.status === 'pending' ||
+                            matchingApp.status === 'accepted') &&
+                            matchingApp.payment_status !== 'paid' &&
+                            isConvExpired)
+                    ) {
+                        status = 'expired';
+                    } else if (
                         matchingApp.payment_status === 'verifying' ||
                         matchingApp.status === 'pending'
                     ) {
@@ -1092,11 +1139,12 @@ export default function Availability({
                         }
                     }
                 } else {
+                    // Omit unbooked past slots so the UI is not cluttered with expired badges
                     if (now.getTime() >= slotStart.getTime()) {
-                        status = 'expired';
-                    } else {
-                        status = 'available';
+                        currMinutes += slotDur;
+                        continue;
                     }
+                    status = 'available';
                 }
 
                 const timeLabel = `${String(sH).padStart(2, '0')}:${String(sM).padStart(2, '0')} - ${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
@@ -1305,7 +1353,9 @@ export default function Availability({
             return item ? item.hasRecurring : false;
         });
 
+        setIsClearDaysModalOpen(false);
         setDeleteScope('date_only');
+        setKeepBookedSessions(true);
         setDeleteTarget({
             type: 'clear_days',
             dates: selectedDaysToClear,
@@ -3117,6 +3167,13 @@ export default function Availability({
                                         </span>
                                     </div>
                                 )}
+
+                            {selectedSlotDetail.status === 'expired' && (
+                                <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs text-rose-800">
+                                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
+                                    <span>{t.bookingExpiredNotice}</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between border-t pt-4 dark:border-gray-800">
@@ -3399,11 +3456,43 @@ export default function Availability({
                             </div>
                         )}
 
-                        {/* Warning Note */}
-                        <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
-                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
-                            <span>{t.cannotRemoveBookedNotice}</span>
-                        </div>
+                        {/* Option to keep booked sessions (Safe Clear) */}
+                        {deleteTarget.type !== 'slot' ? (
+                            <div className="mb-5 space-y-2">
+                                <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 transition-colors dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                                    <input
+                                        type="checkbox"
+                                        checked={keepBookedSessions}
+                                        onChange={(e) =>
+                                            setKeepBookedSessions(
+                                                e.target.checked,
+                                            )
+                                        }
+                                        className="mt-0.5 h-4 w-4 rounded-md border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                    />
+                                    <div className="text-xs">
+                                        <div className="flex items-center gap-1.5 font-bold text-emerald-950 dark:text-emerald-200">
+                                            <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                            <span>{t.keepBookedLabel}</span>
+                                        </div>
+                                        <p className="mt-0.5 text-emerald-800/80 dark:text-emerald-400">
+                                            {t.keepBookedDesc}
+                                        </p>
+                                    </div>
+                                </label>
+                                {!keepBookedSessions && (
+                                    <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-[11px] text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                                        <span>{t.cannotRemoveBookedNotice}</span>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
+                                <span>{t.singleSlotBookedNotice}</span>
+                            </div>
+                        )}
 
                         {/* Modal Actions */}
                         <div className="flex items-center justify-end gap-2.5">

@@ -220,7 +220,7 @@ class MultiSlotBookingTest extends TestCase
             'topics' => ['freestyle'],
         ]);
         $appointment->timestamps = false;
-        $appointment->updated_at = $start->copy()->addMinutes(15);
+        $appointment->updated_at = $start->copy()->addMinutes(15)->utc();
         $appointment->save();
 
         Cache::flush();

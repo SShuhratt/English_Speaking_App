@@ -7,6 +7,7 @@ use App\Models\TeacherAvailability;
 use App\Models\User;
 use App\Services\BookingService;
 use App\Services\SlotService;
+use App\Support\PlatformTime;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -176,8 +177,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('teacher_availabilities', [
             'id' => $availability->id,
-            'start_at' => "{$targetDate} 12:00:00",
-            'end_at' => "{$targetDate} 15:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 12:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 15:00:00")->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -208,8 +209,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('teacher_availabilities', [
             'id' => $availability->id,
-            'start_at' => "{$targetDate} 10:00:00",
-            'end_at' => "{$targetDate} 13:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 10:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 13:00:00")->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -431,7 +432,7 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         $this->assertDatabaseHas('appointments', [
             'teacher_id' => $teacher->id,
             'pupil_id' => $pupil->id,
-            'start_at' => "{$followingFriday} 15:00:00",
+            'start_at' => Carbon::parse("{$followingFriday} 15:00:00", $this->tz)->copy()->utc()->format('Y-m-d H:i:s'),
             'status' => 'pending',
         ]);
     }
@@ -482,8 +483,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             'teacher_id' => $teacher->id,
             'type' => 'custom',
             'is_active' => false,
-            'start_at' => "{$nextSaturday} 10:00:00",
-            'end_at' => "{$nextSaturday} 14:00:00",
+            'start_at' => PlatformTime::toUtc("{$nextSaturday} 10:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$nextSaturday} 14:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         $slotService = app(SlotService::class);
@@ -606,16 +607,16 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         // First part updated: 09:00 to 12:00
         $this->assertDatabaseHas('teacher_availabilities', [
             'id' => $availability->id,
-            'start_at' => "{$targetDate} 09:00:00",
-            'end_at' => "{$targetDate} 12:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 09:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 12:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         // Second part created: 14:00 to 17:00
         $this->assertDatabaseHas('teacher_availabilities', [
             'teacher_id' => $teacher->id,
             'type' => 'custom',
-            'start_at' => "{$targetDate} 14:00:00",
-            'end_at' => "{$targetDate} 17:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 14:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 17:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         $slotService = app(SlotService::class);
@@ -676,16 +677,16 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             'teacher_id' => $teacher->id,
             'type' => 'custom',
             'is_active' => false,
-            'start_at' => "{$nextMonday} 09:00:00",
-            'end_at' => "{$nextMonday} 12:00:00",
+            'start_at' => PlatformTime::toUtc("{$nextMonday} 09:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$nextMonday} 12:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         $this->assertDatabaseHas('teacher_availabilities', [
             'teacher_id' => $teacher->id,
             'type' => 'custom',
             'is_active' => false,
-            'start_at' => "{$nextMonday} 15:00:00",
-            'end_at' => "{$nextMonday} 18:00:00",
+            'start_at' => PlatformTime::toUtc("{$nextMonday} 15:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$nextMonday} 18:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         $slotService = app(SlotService::class);
@@ -847,8 +848,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             'teacher_id' => $teacher->id,
             'type' => 'custom',
             'is_active' => false,
-            'start_at' => "{$nextWed} 12:00:00",
-            'end_at' => "{$nextWed} 14:00:00",
+            'start_at' => PlatformTime::toUtc("{$nextWed} 12:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$nextWed} 14:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         $slotService = app(SlotService::class);
@@ -908,8 +909,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         $responseFail->assertSessionHasErrors('range');
         $this->assertDatabaseHas('teacher_availabilities', [
             'id' => $availability->id,
-            'start_at' => "{$targetDate} 09:00:00",
-            'end_at' => "{$targetDate} 17:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 09:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 17:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         // Attempt 2: Clear sub-window 09:00 to 11:00 (does NOT overlap appointment) -> must SUCCEED
@@ -924,8 +925,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         // The original block's start should have been shifted to 11:00:00
         $this->assertDatabaseHas('teacher_availabilities', [
             'id' => $availability->id,
-            'start_at' => "{$targetDate} 11:00:00",
-            'end_at' => "{$targetDate} 17:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 11:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 17:00:00")->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -997,8 +998,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             $this->assertDatabaseHas('teacher_availabilities', [
                 'teacher_id' => $teacher->id,
                 'type' => 'custom',
-                'start_at' => "{$dStr} 10:00:00",
-                'end_at' => "{$dStr} 13:00:00",
+                'start_at' => PlatformTime::toUtc("{$dStr} 10:00:00")->format('Y-m-d H:i:s'),
+                'end_at' => PlatformTime::toUtc("{$dStr} 13:00:00")->format('Y-m-d H:i:s'),
                 'slot_duration' => 60,
             ]);
 
@@ -1035,8 +1036,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             $this->assertDatabaseHas('teacher_availabilities', [
                 'teacher_id' => $teacher->id,
                 'type' => 'custom',
-                'start_at' => '2026-09-15 14:30:00',
-                'end_at' => '2026-09-15 21:00:00',
+                'start_at' => PlatformTime::toUtc('2026-09-15 14:30:00')->format('Y-m-d H:i:s'),
+                'end_at' => PlatformTime::toUtc('2026-09-15 21:00:00')->format('Y-m-d H:i:s'),
             ]);
 
             $slotService = app(SlotService::class);
@@ -1082,16 +1083,16 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             $this->assertDatabaseHas('teacher_availabilities', [
                 'teacher_id' => $teacher->id,
                 'type' => 'custom',
-                'start_at' => '2026-09-15 15:00:00',
-                'end_at' => '2026-09-15 18:00:00',
+                'start_at' => PlatformTime::toUtc('2026-09-15 15:00:00')->format('Y-m-d H:i:s'),
+                'end_at' => PlatformTime::toUtc('2026-09-15 18:00:00')->format('Y-m-d H:i:s'),
             ]);
 
             // Tomorrow starts at full 10:00:00
             $this->assertDatabaseHas('teacher_availabilities', [
                 'teacher_id' => $teacher->id,
                 'type' => 'custom',
-                'start_at' => '2026-09-16 10:00:00',
-                'end_at' => '2026-09-16 18:00:00',
+                'start_at' => PlatformTime::toUtc('2026-09-16 10:00:00')->format('Y-m-d H:i:s'),
+                'end_at' => PlatformTime::toUtc('2026-09-16 18:00:00')->format('Y-m-d H:i:s'),
             ]);
 
             $slotService = app(SlotService::class);
@@ -1138,8 +1139,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             $this->assertDatabaseHas('teacher_availabilities', [
                 'teacher_id' => $teacher->id,
                 'type' => 'custom',
-                'start_at' => '2026-09-16 10:00:00',
-                'end_at' => '2026-09-16 18:00:00',
+                'start_at' => PlatformTime::toUtc('2026-09-16 10:00:00')->format('Y-m-d H:i:s'),
+                'end_at' => PlatformTime::toUtc('2026-09-16 18:00:00')->format('Y-m-d H:i:s'),
             ]);
         } finally {
             Carbon::setTestNow();
@@ -1168,5 +1169,164 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    /**
+     * Edge Case 27: Deleting range with keep_booked = true preserves active booked sessions and deletes unbooked availability.
+     */
+    public function test_deleting_custom_range_with_keep_booked_preserves_bookings(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $targetDate = Carbon::now($this->tz)->addDays(5)->format('Y-m-d');
+
+        $availability = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 09:00:00", $this->tz),
+            'end_at' => Carbon::parse("{$targetDate} 15:00:00", $this->tz),
+            'slot_duration' => 60,
+            'is_active' => true,
+        ]);
+
+        // Active booking at 11:00 - 12:00
+        $appointment = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => Carbon::parse("{$targetDate} 11:00:00", $this->tz)->copy()->utc(),
+            'end_at' => Carbon::parse("{$targetDate} 12:00:00", $this->tz)->copy()->utc(),
+            'status' => 'confirmed',
+        ]);
+
+        // Delete entire block with keep_booked = true
+        $response = $this->actingAs($teacher)->delete("/teacher/availability/{$availability->id}", [
+            'keep_booked' => true,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Original block should be deleted
+        $this->assertDatabaseMissing('teacher_availabilities', ['id' => $availability->id]);
+
+        // Preserved active custom availability covering the booking must exist
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => PlatformTime::toUtc("{$targetDate} 11:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 12:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Edge Case 28: Clearing day with keep_booked = true preserves booked appointments and clears unoccupied slots.
+     */
+    public function test_clearing_day_with_keep_booked_preserves_bookings(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $targetDate = Carbon::now($this->tz)->addDays(6)->format('Y-m-d');
+
+        TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 10:00:00", $this->tz),
+            'end_at' => Carbon::parse("{$targetDate} 16:00:00", $this->tz),
+            'slot_duration' => 60,
+            'is_active' => true,
+        ]);
+
+        // Active booking at 14:00 - 15:00
+        Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => Carbon::parse("{$targetDate} 14:00:00", $this->tz)->copy()->utc(),
+            'end_at' => Carbon::parse("{$targetDate} 15:00:00", $this->tz)->copy()->utc(),
+            'status' => 'accepted',
+        ]);
+
+        $response = $this->actingAs($teacher)->post('/teacher/availability/clear', [
+            'date' => $targetDate,
+            'scope' => 'date_only',
+            'keep_booked' => true,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Booking at 14:00 - 15:00 is preserved
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => PlatformTime::toUtc("{$targetDate} 14:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 15:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Edge Case 29: Recurring date_only removal with keep_booked = true creates blackouts only for unoccupied intervals.
+     */
+    public function test_recurring_date_only_removal_with_keep_booked_blackouts_only_free_intervals(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $nextMonday = Carbon::now($this->tz)->next(Carbon::MONDAY)->format('Y-m-d');
+
+        $rec = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'recurring',
+            'day_of_week' => 'monday',
+            'start_time' => '10:00:00',
+            'end_time' => '14:00:00',
+            'slot_duration' => 60,
+            'is_active' => true,
+        ]);
+
+        // Appointment at 11:00 - 12:00
+        Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => Carbon::parse("{$nextMonday} 11:00:00", $this->tz)->copy()->utc(),
+            'end_at' => Carbon::parse("{$nextMonday} 12:00:00", $this->tz)->copy()->utc(),
+            'status' => 'confirmed',
+        ]);
+
+        // Remove recurring for this date only with keep_booked = true
+        $response = $this->actingAs($teacher)->delete("/teacher/availability/{$rec->id}", [
+            'scope' => 'date_only',
+            'date' => $nextMonday,
+            'keep_booked' => true,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Free intervals [10:00-11:00] and [12:00-14:00] should have inactive blackout records
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => PlatformTime::toUtc("{$nextMonday} 10:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$nextMonday} 11:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => false,
+        ]);
+
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => PlatformTime::toUtc("{$nextMonday} 12:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$nextMonday} 14:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => false,
+        ]);
+
+        // No blackout record covering 11:00 - 12:00
+        $this->assertDatabaseMissing('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => "{$nextMonday} 11:00:00",
+            'end_at' => "{$nextMonday} 12:00:00",
+            'is_active' => false,
+        ]);
     }
 }

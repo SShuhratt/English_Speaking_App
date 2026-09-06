@@ -9,6 +9,7 @@ use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use App\Support\PlatformTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -46,22 +47,7 @@ class BookingService
                 $teacher->teacherProfile()->create([]);
             }
 
-            $parseTz = function ($dtString) {
-                if (empty($dtString)) {
-                    return null;
-                }
-                if ($dtString instanceof Carbon) {
-                    return $dtString->copy()->setTimezone('Asia/Tashkent');
-                }
-                $str = (string) $dtString;
-                if (preg_match('/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/', trim($str), $matches)) {
-                    return Carbon::parse("{$matches[1]} {$matches[2]}", 'Asia/Tashkent');
-                }
-
-                return Carbon::parse($str, 'Asia/Tashkent');
-            };
-
-            $start = $parseTz($startAt);
+            $start = PlatformTime::parseLocal($startAt);
             $isTrialRequested = (bool) ($meta['is_trial'] ?? false);
 
             $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 0);
@@ -76,7 +62,7 @@ class BookingService
                 $price = $hourlyRate > 0 ? (int) (round(($hourlyRate / 3) / 1000) * 1000) : 0;
             } else {
                 $isTrial = false;
-                $end = $parseTz($endAt);
+                $end = PlatformTime::parseLocal($endAt);
                 $duration = isset($meta['duration_minutes']) ? (int) $meta['duration_minutes'] : (int) $start->diffInMinutes($end);
                 if ($duration <= 0) {
                     $duration = 60;
@@ -93,8 +79,8 @@ class BookingService
             $appointment = Appointment::create([
                 'teacher_id' => $teacher->id,
                 'pupil_id' => $pupil->id,
-                'start_at' => $start->format('Y-m-d H:i:s'),
-                'end_at' => $end->format('Y-m-d H:i:s'),
+                'start_at' => $start->copy()->utc(),
+                'end_at' => $end->copy()->utc(),
                 'status' => 'pending',
                 'notes' => $meta['notes'] ?? null,
                 'topics' => $meta['topics'] ?? null,
@@ -313,13 +299,15 @@ class BookingService
      */
     protected function validateAvailability(string $teacherId, Carbon $start, Carbon $end): void
     {
-        $startTz = $start->copy()->setTimezone('Asia/Tashkent');
-        $endTz = $end->copy()->setTimezone('Asia/Tashkent');
+        $startTz = PlatformTime::toLocal($start);
+        $endTz = PlatformTime::toLocal($end);
+        $startUtc = PlatformTime::toUtc($start);
+        $endUtc = PlatformTime::toUtc($end);
         $day = strtolower($startTz->format('l'));
 
         $available = TeacherAvailability::where('teacher_id', $teacherId)
             ->where('is_active', true)
-            ->where(function ($q) use ($startTz, $endTz, $day) {
+            ->where(function ($q) use ($startTz, $endTz, $startUtc, $endUtc, $day) {
 
                 // recurring schedule
                 $q->where(function ($q) use ($startTz, $endTz, $day) {
@@ -329,20 +317,11 @@ class BookingService
                         ->whereTime('end_time', '>=', $endTz->format('H:i:s'));
                 })
 
-                // custom availability override
-                    ->orWhere(function ($q) use ($startTz, $endTz) {
-                        $startUtc = $startTz->copy()->utc();
-                        $endUtc = $endTz->copy()->utc();
+                // custom availability override (stored in UTC)
+                    ->orWhere(function ($q) use ($startUtc, $endUtc) {
                         $q->where('type', 'custom')
-                            ->where(function ($sub) use ($startTz, $endTz, $startUtc, $endUtc) {
-                                $sub->where(function ($c1) use ($startTz, $endTz) {
-                                    $c1->where('start_at', '<=', $startTz)
-                                        ->where('end_at', '>=', $endTz);
-                                })->orWhere(function ($c2) use ($startUtc, $endUtc) {
-                                    $c2->where('start_at', '<=', $startUtc)
-                                        ->where('end_at', '>=', $endUtc);
-                                });
-                            });
+                            ->where('start_at', '<=', $endUtc)
+                            ->where('end_at', '>=', $startUtc);
                     });
 
             })
@@ -355,8 +334,8 @@ class BookingService
         $isBlackedOut = TeacherAvailability::where('teacher_id', $teacherId)
             ->where('type', 'custom')
             ->where('is_active', false)
-            ->where('start_at', '<', $endTz)
-            ->where('end_at', '>', $startTz)
+            ->where('start_at', '<', $endUtc)
+            ->where('end_at', '>', $startUtc)
             ->exists();
 
         if ($isBlackedOut) {
@@ -369,22 +348,13 @@ class BookingService
      */
     protected function ensureNoConflicts(string $teacherId, Carbon $start, Carbon $end): void
     {
-        $startTz = $start->copy()->setTimezone('Asia/Tashkent');
-        $endTz = $end->copy()->setTimezone('Asia/Tashkent');
+        $startUtc = PlatformTime::toUtc($start);
+        $endUtc = PlatformTime::toUtc($end);
 
         $conflict = Appointment::where('teacher_id', $teacherId)
             ->whereIn('status', ['pending', 'accepted', 'confirmed'])
-            ->where(function ($q) use ($startTz, $endTz) {
-                $q->where(function ($sub) use ($startTz, $endTz) {
-                    $sub->where('start_at', '<', $endTz)
-                        ->where('end_at', '>', $startTz);
-                })->orWhere(function ($sub) use ($startTz, $endTz) {
-                    $startUtc = $startTz->copy()->utc();
-                    $endUtc = $endTz->copy()->utc();
-                    $sub->where('start_at', '<', $endUtc)
-                        ->where('end_at', '>', $startUtc);
-                });
-            })
+            ->where('start_at', '<', $endUtc)
+            ->where('end_at', '>', $startUtc)
             ->exists();
 
         if ($conflict) {

@@ -7,6 +7,7 @@ use App\Models\TeacherAvailability;
 use App\Models\User;
 use App\Services\GoogleCalendarService;
 use App\Services\SlotService;
+use App\Support\PlatformTime;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -85,8 +86,8 @@ class TeacherSectionsTest extends TestCase
         $this->assertDatabaseHas('teacher_availabilities', [
             'teacher_id' => $teacher->id,
             'type' => 'custom',
-            'start_at' => $futureStart->toDateTimeString(),
-            'end_at' => $futureEnd->toDateTimeString(),
+            'start_at' => $futureStart->copy()->utc()->toDateTimeString(),
+            'end_at' => $futureEnd->copy()->utc()->toDateTimeString(),
             'slot_duration' => 30,
         ]);
     }
@@ -344,16 +345,16 @@ class TeacherSectionsTest extends TestCase
 
         $response = $this->actingAs($teacher)->delete("/teacher/availability/{$availability->id}", [
             'delete_type' => 'range',
-            'range_start' => '2026-08-10T09:00:00Z',
-            'range_end' => '2026-08-10T12:00:00Z',
+            'range_start' => '09:00',
+            'range_end' => '12:00',
         ]);
 
         $response->assertRedirect();
 
         $this->assertDatabaseHas('teacher_availabilities', [
             'id' => $availability->id,
-            'start_at' => '2026-08-10 12:00:00',
-            'end_at' => '2026-08-10 17:00:00',
+            'start_at' => PlatformTime::toUtc('2026-08-10 12:00:00')->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc('2026-08-10 17:00:00')->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -543,8 +544,8 @@ class TeacherSectionsTest extends TestCase
             'teacher_id' => $teacher->id,
             'type' => 'custom',
             'is_active' => false,
-            'start_at' => "{$nextMonday} 10:30:00",
-            'end_at' => "{$nextMonday} 11:00:00",
+            'start_at' => PlatformTime::toUtc("{$nextMonday} 10:30:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$nextMonday} 11:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         // SlotService must omit 10:30 slot on nextMonday
@@ -585,16 +586,16 @@ class TeacherSectionsTest extends TestCase
         // Original record updated to end at 12:00
         $this->assertDatabaseHas('teacher_availabilities', [
             'id' => $availability->id,
-            'start_at' => "{$targetDate} 10:00:00",
-            'end_at' => "{$targetDate} 12:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 10:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 12:00:00")->format('Y-m-d H:i:s'),
         ]);
 
         // Second record created from 13:00 to 15:00
         $this->assertDatabaseHas('teacher_availabilities', [
             'teacher_id' => $teacher->id,
             'type' => 'custom',
-            'start_at' => "{$targetDate} 13:00:00",
-            'end_at' => "{$targetDate} 15:00:00",
+            'start_at' => PlatformTime::toUtc("{$targetDate} 13:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 15:00:00")->format('Y-m-d H:i:s'),
         ]);
     }
 

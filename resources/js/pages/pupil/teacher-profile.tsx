@@ -379,11 +379,16 @@ export default function TeacherProfile({
             setConfirmingSlot(null);
             fetchSlots();
         } catch (error: any) {
-            toast.error(
+            const serverErrors = error.response?.data?.errors;
+            const firstFieldError = serverErrors
+                ? (Object.values(serverErrors).flat()[0] as string)
+                : null;
+            const errorMsg =
                 error.response?.data?.message ||
-                    t('booking.failed') ||
-                    'Booking failed',
-            );
+                firstFieldError ||
+                t('booking.failed') ||
+                'Booking failed';
+            toast.error(errorMsg);
         } finally {
             setBooking(false);
         }
@@ -1661,24 +1666,42 @@ export default function TeacherProfile({
                                         )}
                                     </div>
                                 ) : (
-                                    <p className="mt-3 text-sm leading-relaxed text-[#6B7394]">
-                                        {t('booking.confirm_message', {
-                                            teacher: teacher.full_name,
-                                            start: new Date(
-                                                confirmingSlot.start_at,
-                                            ).toLocaleTimeString([], {
+                                    (() => {
+                                        const durMins =
+                                            lessonType === 'trial'
+                                                ? 20
+                                                : selectedDuration;
+                                        const startDate = new Date(
+                                            confirmingSlot.start_at,
+                                        );
+                                        const computedEndDate = new Date(
+                                            startDate.getTime() +
+                                                durMins * 60000,
+                                        );
+                                        const startStr =
+                                            startDate.toLocaleTimeString([], {
                                                 hour: '2-digit',
                                                 minute: '2-digit',
-                                            }),
-                                            end: new Date(
-                                                confirmingSlot.end_at,
-                                            ).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            }),
-                                        }) ||
-                                            `Book a session with ${teacher.full_name} from ${new Date(confirmingSlot.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${new Date(confirmingSlot.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}?`}
-                                    </p>
+                                            });
+                                        const endStr =
+                                            computedEndDate.toLocaleTimeString(
+                                                [],
+                                                {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                },
+                                            );
+                                        return (
+                                            <p className="mt-3 text-sm leading-relaxed text-[#6B7394]">
+                                                {t('booking.confirm_message', {
+                                                    teacher: teacher.full_name,
+                                                    start: startStr,
+                                                    end: endStr,
+                                                }) ||
+                                                    `Book a session with ${teacher.full_name} from ${startStr} to ${endStr}?`}
+                                            </p>
+                                        );
+                                    })()
                                 )}
 
                                 {/* Topic selection */}
