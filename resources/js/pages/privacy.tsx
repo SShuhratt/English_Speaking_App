@@ -294,6 +294,10 @@ export default function PrivacyPolicy() {
                                             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#F7DE8B]" />
                                             <span><strong>Strict Human Access Restrictions:</strong> No human is permitted to read your Google Calendar data unless you explicitly give consent for technical support troubleshooting, or where required for security investigation or compliance with law.</span>
                                         </div>
+                                        <div className="flex items-start gap-2">
+                                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#F7DE8B]" />
+                                            <span><strong>No AI/ML Model Training:</strong> ConvoMate does not transfer, sell, or provide Google user data (including Google Calendar events and Google Meet conference metadata) to third parties or use it to train, fine-tune, or improve foundational or generalized artificial intelligence (AI) and machine learning (ML) models.</span>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
