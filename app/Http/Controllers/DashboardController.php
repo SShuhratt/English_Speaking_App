@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Feedback;
+use App\Services\GamificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -71,6 +72,13 @@ class DashboardController extends Controller
                 ->latest()
                 ->first();
 
+            $gamification = [
+                'fluency' => GamificationService::calculateFluency($user),
+                'streak' => GamificationService::getStreakInfo($user),
+                'leaderboard' => GamificationService::getWeeklyLeaderboard($user),
+                'daily_spark' => GamificationService::getDailySpark(),
+            ];
+
             return Inertia::render('dashboard', [
                 'appointments' => $appointments,
                 'stats' => [
@@ -78,6 +86,7 @@ class DashboardController extends Controller
                     'upcoming_sessions' => $upcomingSessionsCount,
                 ],
                 'recentFeedback' => $recentFeedback,
+                'gamification' => $gamification,
             ]);
         }
     }

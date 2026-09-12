@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Calendar } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import type { Auth } from '@/types';
 
@@ -47,14 +48,28 @@ export default function DeleteUser() {
                     <DialogTitle>
                         Are you sure you want to delete your account?
                     </DialogTitle>
-                    <DialogDescription>
-                        Once your account is deleted, all of its resources and
-                        data will also be permanently deleted.{' '}
-                        {hasPassword
-                            ? t('profile.delete_confirm_desc_password')
-                            : t('profile.delete_confirm_desc_email', {
-                                  email: userEmail,
-                              })}
+                    <DialogDescription className="space-y-3 text-left">
+                        <p>
+                            Once your account is deleted, all of its resources and
+                            data will also be permanently deleted.{' '}
+                            {hasPassword
+                                ? t('profile.delete_confirm_desc_password')
+                                : t('profile.delete_confirm_desc_email', {
+                                      email: userEmail,
+                                  })}
+                        </p>
+                        {auth?.user?.google_connected && (
+                            <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                                <Calendar className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                                <div>
+                                    <span className="font-bold">Google Calendar: </span>
+                                    <span>
+                                        {t('profile.delete_account_google_calendar_notice') ||
+                                            'Your Google Calendar connection will be automatically cancelled, and third-party access will be revoked from your Google Account.'}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </DialogDescription>
 
                     <Form

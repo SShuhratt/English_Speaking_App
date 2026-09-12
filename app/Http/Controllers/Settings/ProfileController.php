@@ -7,6 +7,7 @@ use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Jobs\TranscodeIntroVideoJob;
 use App\Services\FileStorageService;
+use App\Services\GoogleOAuthService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -483,9 +484,13 @@ class ProfileController extends Controller
     /**
      * Delete the user's profile.
      */
-    public function destroy(ProfileDeleteRequest $request): RedirectResponse
+    public function destroy(ProfileDeleteRequest $request, GoogleOAuthService $googleOAuth): RedirectResponse
     {
         $user = $request->user();
+
+        if ($user->google_connected || $user->google_refresh_token || $user->google_access_token) {
+            $googleOAuth->revokeUserAccess($user);
+        }
 
         Auth::logout();
 

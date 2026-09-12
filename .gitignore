@@ -57,4 +57,8 @@ frankenphp-worker.php
 stitch_convomate_brand_redesign*/
 stitch_convomate_brand_redesign*.zip
 external_source
-Google_OAuth_Verification_Scenario.pdf
+
+# Google OAuth Verification Playbooks & Scenarios
+Google_OAuth_Verification_Scenario*
+*verification_scenario*
+*Verification_Scenario*

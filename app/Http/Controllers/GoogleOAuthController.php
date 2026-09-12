@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\GoogleOAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
@@ -37,6 +38,7 @@ class GoogleOAuthController extends Controller
             ->with([
                 'access_type' => 'offline',
                 'prompt' => 'select_account',
+                'include_granted_scopes' => 'true',
             ])
             ->redirect();
     }
@@ -71,13 +73,24 @@ class GoogleOAuthController extends Controller
                         $approvedScopes
                     )));
 
-                    $existingUser->update([
+                    $updatePayload = [
                         'google_connected' => $isConnected,
-                        'google_access_token' => $googleUser->token,
-                        'google_refresh_token' => $refreshToken,
-                        'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
                         'google_scopes' => $mergedScopes,
-                    ]);
+                    ];
+
+                    if ($refreshToken) {
+                        $updatePayload['google_refresh_token'] = $refreshToken;
+                    }
+
+                    // Only overwrite google_access_token if the incoming token contains calendar scope,
+                    // or if the user doesn't have calendar connected. This prevents a basic Google login
+                    // from downgrading an active calendar connection with a token lacking calendar permissions.
+                    if ($hasCalendarScope || ! $existingUser->google_connected) {
+                        $updatePayload['google_access_token'] = $googleUser->token;
+                        $updatePayload['google_token_expires_at'] = now()->addSeconds($googleUser->expiresIn);
+                    }
+
+                    $existingUser->update($updatePayload);
 
                     Auth::login($existingUser);
 
@@ -107,13 +120,21 @@ class GoogleOAuthController extends Controller
                 $approvedScopes
             )));
 
-            $user->update([
-                'google_connected' => (bool) $refreshToken,
-                'google_access_token' => $googleUser->token,
-                'google_refresh_token' => $refreshToken,
-                'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
+            $updatePayload = [
+                'google_connected' => (bool) ($refreshToken && ($hasCalendarScope || $user->google_connected)),
                 'google_scopes' => $mergedScopes,
-            ]);
+            ];
+
+            if ($refreshToken) {
+                $updatePayload['google_refresh_token'] = $refreshToken;
+            }
+
+            if ($hasCalendarScope || ! $user->google_connected) {
+                $updatePayload['google_access_token'] = $googleUser->token;
+                $updatePayload['google_token_expires_at'] = now()->addSeconds($googleUser->expiresIn);
+            }
+
+            $user->update($updatePayload);
 
             return redirect()->route('dashboard')->with('success', 'Google Calendar connected successfully.');
         } catch (\Exception $e) {
@@ -124,12 +145,14 @@ class GoogleOAuthController extends Controller
     }
 
     /**
-     * Disconnect Google Calendar for the authenticated user.
+     * Disconnect Google Calendar for the authenticated user and revoke remote access.
      */
-    public function disconnect(Request $request)
+    public function disconnect(Request $request, GoogleOAuthService $oauthService)
     {
         $user = Auth::user();
         if ($user) {
+            $oauthService->revokeUserAccess($user);
+
             $user->update([
                 'google_connected' => false,
                 'google_access_token' => null,

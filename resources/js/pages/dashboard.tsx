@@ -27,6 +27,11 @@ import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
 import AppLayout from '@/layouts/app-layout';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
+import FluencyLevelBadge from '@/components/gamification/FluencyLevelBadge';
+import StreakFlameBadge from '@/components/gamification/StreakFlameBadge';
+import WeeklyLeaderboardCard from '@/components/gamification/WeeklyLeaderboardCard';
+import DailySpeakingSparkCard from '@/components/gamification/DailySpeakingSparkCard';
+import SessionCelebrationModal from '@/components/gamification/SessionCelebrationModal';
 
 function PupilMeetingButton({
     apt,
@@ -117,11 +122,13 @@ function PupilDashboard({
     appointments = [],
     stats = {},
     recentFeedback = null,
+    gamification = null,
 }: {
     user: any;
     appointments?: any[];
     stats?: any;
     recentFeedback?: any;
+    gamification?: any;
 }) {
     const { t, locale } = useTranslation();
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
@@ -202,60 +209,77 @@ function PupilDashboard({
     return (
         <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
             {/* Header / Welcome Back Banner */}
-            <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-brand-navy p-6 text-white shadow-xl shadow-brand-navy/10 md:flex-row md:items-center md:p-8">
+            <div className="relative flex flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-brand-navy p-6 text-white shadow-xl shadow-brand-navy/10 md:p-8">
                 <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
                 <div className="pointer-events-none absolute right-1/4 -bottom-10 h-32 w-32 rounded-full bg-brand-pale-blue/20 blur-xl"></div>
 
-                <div className="z-10 flex items-center space-x-4 md:space-x-6">
-                    <div className="relative">
-                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/40 bg-white/20 text-3xl font-bold shadow-inner backdrop-blur-md md:h-20 md:w-20">
-                            {user.avatar ? (
-                                <img
-                                    src={user.avatar}
-                                    className="h-full w-full object-cover"
-                                    alt="avatar"
-                                />
-                            ) : (
-                                <span>👤</span>
-                            )}
-                        </div>
-                        <span className="absolute -right-1 -bottom-1 rounded-full border-2 border-brand-navy bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                            {t('dashboard.level', { level: 3 })}
-                        </span>
-                    </div>
-                    <div>
-                        {user.role !== 'admin' && (
-                            <div className="flex flex-wrap items-center gap-2">
-                                <div className="flex animate-pulse items-center space-x-1.5 rounded-full border border-orange-500/30 bg-orange-500/20 px-3 py-1 text-xs font-bold text-orange-200 shadow-sm">
-                                    <span>
-                                        {t('dashboard.streak', {
-                                            count:
-                                                (user.streak_count as number) ??
-                                                0,
-                                        })}
-                                    </span>
-                                </div>
+                <div className="z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                    <div className="flex items-center space-x-4 md:space-x-6">
+                        <div className="relative">
+                            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/40 bg-white/20 text-3xl font-bold shadow-inner backdrop-blur-md md:h-20 md:w-20">
+                                {user.avatar ? (
+                                    <img
+                                        src={user.avatar}
+                                        className="h-full w-full object-cover"
+                                        alt="avatar"
+                                    />
+                                ) : (
+                                    <span>👤</span>
+                                )}
                             </div>
-                        )}
-                        <h1 className="mt-2 text-2xl font-extrabold tracking-tight md:text-3xl">
-                            {t('dashboard.welcome_back', {
-                                name: user.full_name || user.name,
-                            })}{' '}
-                            👋
-                        </h1>
-                        <p className="mt-1 text-sm font-medium text-brand-yellow/80 opacity-90 md:text-base">
-                            {t('dashboard.learning_journey_desc')}
-                        </p>
+                            <span className="absolute -right-1 -bottom-1 rounded-full border-2 border-brand-navy bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                                {gamification?.fluency ? (
+                                    <span>{gamification.fluency.badge} L{gamification.fluency.level}</span>
+                                ) : (
+                                    t('dashboard.level', { level: 3 })
+                                )}
+                            </span>
+                        </div>
+                        <div>
+                            {user.role !== 'admin' && (
+                                <div className="mb-2">
+                                    {gamification?.streak ? (
+                                        <StreakFlameBadge streak={gamification.streak} />
+                                    ) : (
+                                        <div className="flex animate-pulse items-center space-x-1.5 rounded-full border border-orange-500/30 bg-orange-500/20 px-3 py-1 text-xs font-bold text-orange-200 shadow-sm">
+                                            <span>
+                                                {t('dashboard.streak', {
+                                                    count:
+                                                        (user.streak_count as number) ??
+                                                        0,
+                                                })}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">
+                                {t('dashboard.welcome_back', {
+                                    name: user.full_name || user.name,
+                                })}{' '}
+                                👋
+                            </h1>
+                            <p className="mt-1 text-sm font-medium text-brand-yellow/80 opacity-90 md:text-base">
+                                {t('dashboard.learning_journey_desc')}
+                            </p>
+                        </div>
                     </div>
+
+                    <Link
+                        href="/pupil/teachers"
+                        className="group z-10 flex shrink-0 items-center justify-center space-x-2 rounded-full bg-white px-6 py-3.5 font-bold text-brand-navy shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-brand-yellow/10 active:scale-[0.98]"
+                    >
+                        <Calendar className="h-4 w-4 transition-transform group-hover:rotate-12" />
+                        <span>{t('dashboard.book_now')}</span>
+                    </Link>
                 </div>
 
-                <Link
-                    href="/pupil/teachers"
-                    className="group z-10 flex shrink-0 items-center justify-center space-x-2 rounded-full bg-white px-6 py-3.5 font-bold text-brand-navy shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-brand-yellow/10 active:scale-[0.98]"
-                >
-                    <Calendar className="h-4 w-4 transition-transform group-hover:rotate-12" />
-                    <span>{t('dashboard.book_now')}</span>
-                </Link>
+                {/* Dynamic Fluency Level & XP Progress Banner */}
+                {gamification?.fluency && (
+                    <div className="z-10 mt-2 border-t border-white/15 pt-4">
+                        <FluencyLevelBadge fluency={gamification.fluency} />
+                    </div>
+                )}
             </div>
 
             {/* Stats Cards Grid */}
@@ -341,6 +365,18 @@ function PupilDashboard({
                     </div>
                 </div>
             </div>
+
+            {/* Gamification & Student Retention Showcase */}
+            {gamification && (
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {gamification.daily_spark && (
+                        <DailySpeakingSparkCard spark={gamification.daily_spark} />
+                    )}
+                    {gamification.leaderboard && (
+                        <WeeklyLeaderboardCard leaderboard={gamification.leaderboard} />
+                    )}
+                </div>
+            )}
 
             {/* Upcoming Sessions List */}
             <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-10">
@@ -1088,10 +1124,12 @@ export default function Dashboard({
     appointments = [],
     stats = {},
     recentFeedback = null,
+    gamification = null,
 }: {
     appointments?: any[];
     stats?: any;
     recentFeedback?: any;
+    gamification?: any;
 }) {
     const { auth } = usePage<any>().props;
     const role = (auth.user?.role as string) || 'pupil';
@@ -1113,6 +1151,7 @@ export default function Dashboard({
                     appointments={appointments}
                     stats={stats}
                     recentFeedback={recentFeedback}
+                    gamification={gamification}
                 />
             )}
         </>

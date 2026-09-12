@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 class GoogleCalendarService
@@ -12,22 +13,40 @@ class GoogleCalendarService
     ) {}
 
     /**
+     * Send HTTP request with automatic token refresh retry on 401 Unauthorized or 403 Forbidden.
+     */
+    protected function executeRequest(User $teacher, callable $callback, string $errorMessage): Response
+    {
+        $token = $this->oauth->getValidAccessToken($teacher);
+        $response = $callback($token);
+
+        // If Google responds with 401 Unauthorized or 403 Forbidden (e.g. token expired or insufficient permissions),
+        // force-refresh the access token using the long-lived refresh token and retry the operation once.
+        if (in_array($response->status(), [401, 403])) {
+            $token = $this->oauth->getValidAccessToken($teacher, forceRefresh: true);
+            $response = $callback($token);
+        }
+
+        if (! $response->successful()) {
+            throw new \Exception($errorMessage.': '.$response->body());
+        }
+
+        return $response;
+    }
+
+    /**
      * CREATE EVENT + GOOGLE MEET
      */
     public function createEvent(User $teacher, array $data): array
     {
-        $token = $this->oauth->getValidAccessToken($teacher);
+        $response = $this->executeRequest($teacher, function (string $token) use ($data) {
+            return Http::withToken($token)->post(
+                'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1',
+                $this->buildEventPayload($data)
+            );
+        }, 'Google event creation failed');
 
-        $response = Http::withToken($token)->post(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1',
-            $this->buildEventPayload($data)
-        );
-
-        if (! $response->successful()) {
-            throw new \Exception('Google event creation failed: '.$response->body());
-        }
-
-        return $this->formatResponse($response->json());
+        return $this->formatResponse($response->json() ?? []);
     }
 
     /**
@@ -35,18 +54,14 @@ class GoogleCalendarService
      */
     public function updateEvent(User $teacher, string $eventId, array $data): array
     {
-        $token = $this->oauth->getValidAccessToken($teacher);
+        $response = $this->executeRequest($teacher, function (string $token) use ($eventId, $data) {
+            return Http::withToken($token)->put(
+                "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}?conferenceDataVersion=1",
+                $this->buildEventPayload($data)
+            );
+        }, 'Google event update failed');
 
-        $response = Http::withToken($token)->put(
-            "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}?conferenceDataVersion=1",
-            $this->buildEventPayload($data)
-        );
-
-        if (! $response->successful()) {
-            throw new \Exception('Google event update failed: '.$response->body());
-        }
-
-        return $this->formatResponse($response->json());
+        return $this->formatResponse($response->json() ?? []);
     }
 
     /**
@@ -54,15 +69,11 @@ class GoogleCalendarService
      */
     public function deleteEvent(User $teacher, string $eventId): void
     {
-        $token = $this->oauth->getValidAccessToken($teacher);
-
-        $response = Http::withToken($token)->delete(
-            "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}"
-        );
-
-        if (! $response->successful()) {
-            throw new \Exception('Google event delete failed');
-        }
+        $this->executeRequest($teacher, function (string $token) use ($eventId) {
+            return Http::withToken($token)->delete(
+                "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}"
+            );
+        }, 'Google event delete failed');
     }
 
     /**

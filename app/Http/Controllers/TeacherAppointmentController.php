@@ -150,10 +150,20 @@ class TeacherAppointmentController extends Controller
             } catch (\Exception $e) {
                 Log::error("Failed to generate Google Meet link during start for appointment {$appointment->id}: ".$e->getMessage());
 
+                $freshTeacher = $teacher->fresh();
+                $isPermanentlyDisconnected = ! $freshTeacher->google_connected || ! $freshTeacher->google_refresh_token;
+
+                if ($isPermanentlyDisconnected) {
+                    return response()->json([
+                        'message' => 'Your Google Calendar connection has expired or was revoked. Please reconnect your Google Calendar and try again.',
+                        'requires_google_calendar' => true,
+                        'connect_url' => '/auth/google?calendar=1',
+                    ], 422);
+                }
+
                 return response()->json([
-                    'message' => 'Failed to generate Google Meet link. Please reconnect your Google Calendar and try again.',
-                    'requires_google_calendar' => true,
-                    'connect_url' => '/auth/google?calendar=1',
+                    'message' => 'Failed to generate Google Meet link due to a temporary service issue. Please try again.',
+                    'requires_google_calendar' => false,
                 ], 422);
             }
         }
