@@ -20,7 +20,11 @@ class AdminDashboardController extends Controller
     {
         $statusFilter = $request->query('status', 'accepted'); // default to pending verification ('accepted')
 
-        $query = Appointment::with(['teacher.teacherProfile', 'pupil.pupilProfile']);
+        $query = Appointment::with([
+            'teacher.teacherProfile',
+            'pupil.pupilProfile',
+            'cancelledBy:id,full_name,email,role',
+        ]);
 
         if ($statusFilter === 'accepted') {
             $query->where('status', 'accepted');
@@ -28,8 +32,10 @@ class AdminDashboardController extends Controller
             $query->where('status', 'confirmed');
         } elseif ($statusFilter === 'rejected') {
             $query->where('status', 'rejected');
+        } elseif ($statusFilter === 'cancelled') {
+            $query->where('status', 'cancelled');
         } else {
-            $query->whereIn('status', ['accepted', 'confirmed', 'rejected']);
+            $query->whereIn('status', ['accepted', 'confirmed', 'rejected', 'cancelled']);
         }
 
         $appointments = $query->latest()->paginate(15)->withQueryString();
@@ -38,6 +44,7 @@ class AdminDashboardController extends Controller
             'pending_verifications' => Appointment::where('status', 'accepted')->count(),
             'total_confirmed' => Appointment::where('status', 'confirmed')->count(),
             'total_rejected' => Appointment::where('status', 'rejected')->count(),
+            'total_cancelled' => Appointment::where('status', 'cancelled')->count(),
         ];
 
         return Inertia::render('admin/dashboard', [
@@ -52,9 +59,18 @@ class AdminDashboardController extends Controller
      */
     public function confirmPayment(string $id)
     {
-        $appointment = $this->bookingService->adminConfirmPayment($id);
+        try {
+            $appointment = $this->bookingService->adminConfirmPayment($id);
 
-        return back()->with('success', 'Payment confirmed successfully. Session is now confirmed.');
+            return back()->with('success', 'Payment confirmed successfully. Session is now confirmed.');
+        } catch (\Throwable $e) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -66,8 +82,17 @@ class AdminDashboardController extends Controller
             'reason' => ['required', 'string', 'min:3', 'max:1000'],
         ]);
 
-        $appointment = $this->bookingService->adminRejectPayment($id, $validated['reason']);
+        try {
+            $appointment = $this->bookingService->adminRejectPayment($id, $validated['reason']);
 
-        return back()->with('success', 'Payment rejected with reason provided.');
+            return back()->with('success', 'Payment rejected with reason provided.');
+        } catch (\Throwable $e) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

@@ -48,6 +48,10 @@ interface Appointment {
     status: string;
     payment_status?: string;
     payment_rejection_reason?: string;
+    cancellation_reason?: string;
+    cancelled_by?: string;
+    cancelled_by_user?: UserItem;
+    cancelledBy?: UserItem;
     teacher?: UserItem;
     pupil?: UserItem;
     created_at: string;
@@ -62,6 +66,7 @@ interface Props {
         pending_verifications: number;
         total_confirmed: number;
         total_rejected: number;
+        total_cancelled: number;
     };
     currentFilter: string;
 }
@@ -133,7 +138,7 @@ export default function AdminDashboard({
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <Card className="border-amber-200 bg-amber-50/40 dark:border-amber-900/50 dark:bg-amber-950/20">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-amber-900 dark:text-amber-300">
@@ -186,6 +191,23 @@ export default function AdminDashboard({
                             </p>
                         </CardContent>
                     </Card>
+
+                    <Card className="border-gray-200 bg-gray-50/40 dark:border-gray-800 dark:bg-gray-900/40">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-300">
+                                Cancelled Bookings
+                            </CardTitle>
+                            <XCircle className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                {stats.total_cancelled ?? 0}
+                            </div>
+                            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                                Sessions cancelled by pupils or teachers
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Filter Tabs & Data Table */}
@@ -200,7 +222,7 @@ export default function AdminDashboard({
                                 'Accepted (Verifying)' to 'Confirmed'.
                             </CardDescription>
                         </div>
-                        <div className="flex gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+                        <div className="flex flex-wrap gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
                             <Button
                                 size="sm"
                                 variant={
@@ -249,6 +271,22 @@ export default function AdminDashboard({
                                 }
                             >
                                 Rejected ({stats.total_rejected})
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={
+                                    currentFilter === 'cancelled'
+                                        ? 'default'
+                                        : 'ghost'
+                                }
+                                onClick={() => setFilter('cancelled')}
+                                className={
+                                    currentFilter === 'cancelled'
+                                        ? 'bg-indigo-600 text-white'
+                                        : ''
+                                }
+                            >
+                                Cancelled ({stats.total_cancelled ?? 0})
                             </Button>
                             <Button
                                 size="sm"
@@ -446,10 +484,50 @@ export default function AdminDashboard({
                                                             )}
                                                         </div>
                                                     )}
+                                                    {appt.status ===
+                                                        'cancelled' && (
+                                                        <div className="space-y-1">
+                                                            <Badge className="flex w-fit items-center gap-1 bg-gray-600 text-white">
+                                                                <XCircle className="h-3 w-3" />
+                                                                Cancelled
+                                                            </Badge>
+                                                            {appt.cancelled_by && (
+                                                                <p className="text-[11px] font-medium text-gray-500">
+                                                                    By:{' '}
+                                                                    {appt.cancelled_by ===
+                                                                    appt.pupil_id
+                                                                        ? 'Pupil'
+                                                                        : appt.cancelled_by ===
+                                                                            appt.teacher_id
+                                                                          ? 'Teacher'
+                                                                          : appt
+                                                                                  .cancelledBy
+                                                                                  ?.full_name ||
+                                                                            'User'}
+                                                                </p>
+                                                            )}
+                                                            {appt.cancellation_reason && (
+                                                                <p className="max-w-xs text-xs text-gray-500 italic">
+                                                                    "
+                                                                    {
+                                                                        appt.cancellation_reason
+                                                                    }
+                                                                    "
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {appt.status ===
+                                                        'pending' && (
+                                                        <Badge className="flex w-fit items-center gap-1 bg-sky-600 text-white">
+                                                            <Clock className="h-3 w-3" />
+                                                            Pending Teacher
+                                                        </Badge>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-4 text-right">
                                                     {appt.status ===
-                                                        'accepted' && (
+                                                    'accepted' ? (
                                                         <div className="flex items-center justify-end gap-2">
                                                             <Button
                                                                 size="sm"
@@ -476,6 +554,10 @@ export default function AdminDashboard({
                                                                 Reject
                                                             </Button>
                                                         </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">
+                                                            —
+                                                        </span>
                                                     )}
                                                 </td>
                                             </tr>

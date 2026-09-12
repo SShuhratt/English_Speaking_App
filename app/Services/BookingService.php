@@ -132,6 +132,14 @@ class BookingService
                 abort(403, 'Unauthorized');
             }
 
+            if (in_array($appointment->status, ['cancelled', 'rejected'])) {
+                throw new \Exception("Cannot cancel an appointment that is already {$appointment->status}.");
+            }
+
+            if ($appointment->status === 'completed' || $appointment->end_at->isPast()) {
+                throw new \Exception('Cannot cancel a past or completed appointment.');
+            }
+
             $googleEventId = $appointment->google_event_id;
 
             $appointment->update([
@@ -174,10 +182,23 @@ class BookingService
     /**
      * Approve appointment by teacher (Status becomes accepted, payment status verifying)
      */
-    public function approve(string $id): Appointment
+    public function approve(string $id, ?string $userId = null): Appointment
     {
-        return DB::transaction(function () use ($id) {
+        return DB::transaction(function () use ($id, $userId) {
             $appointment = Appointment::findOrFail($id);
+
+            if ($userId && $appointment->teacher_id !== $userId) {
+                abort(403, 'Unauthorized');
+            }
+
+            if ($appointment->status !== 'pending') {
+                throw new \Exception("Cannot approve an appointment that is {$appointment->status}.");
+            }
+
+            if ($appointment->end_at->isPast()) {
+                throw new \Exception('Cannot approve an expired appointment.');
+            }
+
             $appointment->update([
                 'status' => 'accepted',
                 'payment_status' => 'verifying',
@@ -206,6 +227,10 @@ class BookingService
                 throw new \Exception("Cannot confirm payment for an appointment that is already {$appointment->status}.");
             }
 
+            if ($appointment->status !== 'accepted') {
+                throw new \Exception("Cannot confirm payment for an appointment with status '{$appointment->status}'. Only 'accepted' sessions can be confirmed.");
+            }
+
             $appointment->update([
                 'status' => 'confirmed',
                 'payment_status' => 'paid',
@@ -230,6 +255,15 @@ class BookingService
     {
         return DB::transaction(function () use ($id, $reason) {
             $appointment = Appointment::with('teacher')->findOrFail($id);
+
+            if (in_array($appointment->status, ['cancelled', 'rejected'])) {
+                throw new \Exception("Cannot reject payment for an appointment that is already {$appointment->status}.");
+            }
+
+            if ($appointment->status !== 'accepted') {
+                throw new \Exception("Cannot reject payment for an appointment with status '{$appointment->status}'. Only 'accepted' sessions can be rejected.");
+            }
+
             $googleEventId = $appointment->google_event_id;
 
             $appointment->update([
@@ -280,6 +314,14 @@ class BookingService
 
             if ($appointment->teacher_id !== $userId) {
                 abort(403, 'Unauthorized');
+            }
+
+            if (in_array($appointment->status, ['cancelled', 'rejected'])) {
+                throw new \Exception("Cannot reject an appointment that is already {$appointment->status}.");
+            }
+
+            if ($appointment->status === 'completed' || $appointment->end_at->isPast()) {
+                throw new \Exception('Cannot reject an expired or completed appointment.');
             }
 
             $googleEventId = $appointment->google_event_id;

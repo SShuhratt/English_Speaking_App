@@ -79,12 +79,18 @@ class BookingController extends Controller
             'reason' => ['required', 'string', 'min:3', 'max:1000'],
         ]);
 
-        $appointment = $this->bookingService->cancel($id, $validated['reason'], $request->user()->id);
+        try {
+            $appointment = $this->bookingService->cancel($id, $validated['reason'], $request->user()->id);
 
-        return response()->json([
-            'message' => 'Appointment cancelled',
-            'data' => $appointment,
-        ]);
+            return response()->json([
+                'message' => 'Appointment cancelled',
+                'data' => $appointment,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**

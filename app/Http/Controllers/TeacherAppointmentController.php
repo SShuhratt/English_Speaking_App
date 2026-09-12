@@ -73,14 +73,20 @@ class TeacherAppointmentController extends Controller
     /**
      * Approve appointment
      */
-    public function approve(string $id)
+    public function approve(Request $request, string $id)
     {
-        $appointment = $this->bookingService->approve($id);
+        try {
+            $appointment = $this->bookingService->approve($id, $request->user()->id);
 
-        return response()->json([
-            'message' => 'Appointment approved',
-            'data' => $appointment,
-        ]);
+            return response()->json([
+                'message' => 'Appointment approved',
+                'data' => $appointment,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**
@@ -92,12 +98,18 @@ class TeacherAppointmentController extends Controller
             'reason' => ['required', 'string', 'min:3', 'max:1000'],
         ]);
 
-        $appointment = $this->bookingService->reject($id, $validated['reason'], $request->user()->id);
+        try {
+            $appointment = $this->bookingService->reject($id, $validated['reason'], $request->user()->id);
 
-        return response()->json([
-            'message' => 'Appointment rejected',
-            'data' => $appointment,
-        ]);
+            return response()->json([
+                'message' => 'Appointment rejected',
+                'data' => $appointment,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**

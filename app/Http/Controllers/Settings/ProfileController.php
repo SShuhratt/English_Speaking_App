@@ -488,10 +488,6 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($user->google_connected || $user->google_refresh_token || $user->google_access_token) {
-            $googleOAuth->revokeUserAccess($user);
-        }
-
         Auth::logout();
 
         $user->delete();
