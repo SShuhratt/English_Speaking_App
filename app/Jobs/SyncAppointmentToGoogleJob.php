@@ -35,6 +35,16 @@ class SyncAppointmentToGoogleJob implements ShouldQueue
             return;
         }
 
+        // Abort if appointment has been cancelled or rejected
+        if (in_array($appointment->status, ['cancelled', 'rejected'])) {
+            return;
+        }
+
+        // Idempotency: avoid creating duplicate Google Calendar events
+        if (! empty($appointment->google_event_id)) {
+            return;
+        }
+
         $teacher = $appointment->teacher;
 
         if ($teacher && $teacher->google_connected) {

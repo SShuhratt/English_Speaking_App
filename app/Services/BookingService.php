@@ -132,10 +132,14 @@ class BookingService
                 abort(403, 'Unauthorized');
             }
 
+            $googleEventId = $appointment->google_event_id;
+
             $appointment->update([
                 'status' => 'cancelled',
                 'cancellation_reason' => $reason,
                 'cancelled_by' => $userId,
+                'google_event_id' => null,
+                'google_meet_link' => null,
             ]);
 
             // Clear cache
@@ -149,11 +153,11 @@ class BookingService
 
             // Delete Google Calendar event if exists
             $teacher = $appointment->teacher;
-            if ($appointment->google_event_id && $teacher && $teacher->google_connected) {
+            if ($googleEventId && $teacher && $teacher->google_connected) {
                 try {
-                    app(GoogleCalendarService::class)->deleteEvent($teacher, $appointment->google_event_id);
+                    app(GoogleCalendarService::class)->deleteEvent($teacher, $googleEventId);
                 } catch (\Exception $e) {
-                    Log::error("Failed to delete Google event {$appointment->google_event_id} on cancellation: ".$e->getMessage());
+                    Log::error("Failed to delete Google event {$googleEventId} on cancellation: ".$e->getMessage());
                 }
             }
 
@@ -196,7 +200,12 @@ class BookingService
     public function adminConfirmPayment(string $id): Appointment
     {
         return DB::transaction(function () use ($id) {
-            $appointment = Appointment::findOrFail($id);
+            $appointment = Appointment::with('teacher')->findOrFail($id);
+
+            if (in_array($appointment->status, ['cancelled', 'rejected'])) {
+                throw new \Exception("Cannot confirm payment for an appointment that is already {$appointment->status}.");
+            }
+
             $appointment->update([
                 'status' => 'confirmed',
                 'payment_status' => 'paid',
@@ -221,11 +230,15 @@ class BookingService
     {
         return DB::transaction(function () use ($id, $reason) {
             $appointment = Appointment::with('teacher')->findOrFail($id);
+            $googleEventId = $appointment->google_event_id;
+
             $appointment->update([
                 'status' => 'rejected',
                 'payment_status' => 'rejected',
                 'payment_rejection_reason' => $reason,
                 'cancellation_reason' => $reason,
+                'google_event_id' => null,
+                'google_meet_link' => null,
             ]);
 
             // Clear slot cache
@@ -235,6 +248,16 @@ class BookingService
                 $dateStr = $current->toDateString();
                 Cache::forget("teacher:{$appointment->teacher_id}:slots:{$dateStr}");
                 $current = $current->addDay();
+            }
+
+            // Delete Google Calendar event if exists
+            $teacher = $appointment->teacher;
+            if ($googleEventId && $teacher && $teacher->google_connected) {
+                try {
+                    app(GoogleCalendarService::class)->deleteEvent($teacher, $googleEventId);
+                } catch (\Exception $e) {
+                    Log::error("Failed to delete Google event {$googleEventId} on admin payment rejection: ".$e->getMessage());
+                }
             }
 
             try {
@@ -259,10 +282,14 @@ class BookingService
                 abort(403, 'Unauthorized');
             }
 
+            $googleEventId = $appointment->google_event_id;
+
             $appointment->update([
                 'status' => 'rejected',
                 'cancellation_reason' => $reason,
                 'cancelled_by' => $userId,
+                'google_event_id' => null,
+                'google_meet_link' => null,
             ]);
 
             // Clear cache to make slot available again
@@ -276,11 +303,11 @@ class BookingService
 
             // Delete Google Calendar event if exists
             $teacher = $appointment->teacher;
-            if ($appointment->google_event_id && $teacher && $teacher->google_connected) {
+            if ($googleEventId && $teacher && $teacher->google_connected) {
                 try {
-                    app(GoogleCalendarService::class)->deleteEvent($teacher, $appointment->google_event_id);
+                    app(GoogleCalendarService::class)->deleteEvent($teacher, $googleEventId);
                 } catch (\Exception $e) {
-                    Log::error("Failed to delete Google event {$appointment->google_event_id} on rejection: ".$e->getMessage());
+                    Log::error("Failed to delete Google event {$googleEventId} on rejection: ".$e->getMessage());
                 }
             }
 

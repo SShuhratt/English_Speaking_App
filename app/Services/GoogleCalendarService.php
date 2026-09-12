@@ -15,7 +15,7 @@ class GoogleCalendarService
     /**
      * Send HTTP request with automatic token refresh retry on 401 Unauthorized or 403 Forbidden.
      */
-    protected function executeRequest(User $teacher, callable $callback, string $errorMessage): Response
+    protected function executeRequest(User $teacher, callable $callback, string $errorMessage, array $allowedStatuses = []): Response
     {
         $token = $this->oauth->getValidAccessToken($teacher);
         $response = $callback($token);
@@ -27,7 +27,7 @@ class GoogleCalendarService
             $response = $callback($token);
         }
 
-        if (! $response->successful()) {
+        if (! $response->successful() && ! in_array($response->status(), $allowedStatuses)) {
             throw new \Exception($errorMessage.': '.$response->body());
         }
 
@@ -73,7 +73,7 @@ class GoogleCalendarService
             return Http::withToken($token)->delete(
                 "https://www.googleapis.com/calendar/v3/calendars/primary/events/{$eventId}"
             );
-        }, 'Google event delete failed');
+        }, 'Google event delete failed', [404, 410]);
     }
 
     /**
