@@ -1329,4 +1329,300 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             'is_active' => false,
         ]);
     }
+
+    /**
+     * Edge Case 30: Creating active custom availability deletes an overlapping inactive blackout that is completely covered.
+     */
+    public function test_creating_active_availability_deletes_fully_covered_blackout(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $targetDate = Carbon::now($this->tz)->addDays(5)->format('Y-m-d');
+
+        // Blackout from 14:00 to 15:00
+        $blackout = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 14:00:00", $this->tz)->copy()->utc(),
+            'end_at' => Carbon::parse("{$targetDate} 15:00:00", $this->tz)->copy()->utc(),
+            'slot_duration' => 30,
+            'is_active' => false,
+        ]);
+
+        // Teacher adds active availability from 13:00 to 16:00
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $targetDate,
+            'end_date' => $targetDate,
+            'start_time' => '13:00',
+            'end_time' => '16:00',
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Blackout is deleted
+        $this->assertDatabaseMissing('teacher_availabilities', ['id' => $blackout->id]);
+
+        // Active availability exists
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => PlatformTime::toUtc("{$targetDate} 13:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 16:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => true,
+        ]);
+
+        // Pupil can view and book the previously blacked-out 14:00 slot
+        $slotService = app(SlotService::class);
+        $slots = $slotService->getAvailableSlots($teacher->id, $targetDate);
+        $times = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($this->tz)->format('H:i'), $slots);
+        $this->assertContains('14:00', $times);
+
+        $bookingService = app(BookingService::class);
+        $appt = $bookingService->book(
+            $pupil,
+            $teacher,
+            "{$targetDate} 14:00:00",
+            "{$targetDate} 14:30:00"
+        );
+        $this->assertNotNull($appt->id);
+    }
+
+    /**
+     * Edge Case 31: Creating active custom availability splits a spanning inactive blackout into two.
+     */
+    public function test_creating_active_availability_splits_spanning_blackout(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $targetDate = Carbon::now($this->tz)->addDays(6)->format('Y-m-d');
+
+        // Blackout spanning 14:00 to 18:00
+        $blackout = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 14:00:00", $this->tz)->copy()->utc(),
+            'end_at' => Carbon::parse("{$targetDate} 18:00:00", $this->tz)->copy()->utc(),
+            'slot_duration' => 30,
+            'is_active' => false,
+        ]);
+
+        // Teacher adds active availability in the middle: 15:00 to 16:00
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $targetDate,
+            'end_date' => $targetDate,
+            'start_time' => '15:00',
+            'end_time' => '16:00',
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Original blackout updated to 14:00 - 15:00
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'id' => $blackout->id,
+            'start_at' => PlatformTime::toUtc("{$targetDate} 14:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 15:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => false,
+        ]);
+
+        // Second blackout created for 16:00 - 18:00
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => PlatformTime::toUtc("{$targetDate} 16:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 18:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => false,
+        ]);
+
+        // Active availability exists for 15:00 - 16:00
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => PlatformTime::toUtc("{$targetDate} 15:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 16:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => true,
+        ]);
+
+        // Only 15:00 and 15:30 should be available, not 14:00 or 16:00
+        $slotService = app(SlotService::class);
+        $slots = $slotService->getAvailableSlots($teacher->id, $targetDate);
+        $times = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($this->tz)->format('H:i'), $slots);
+        $this->assertEquals(['15:00', '15:30'], $times);
+    }
+
+    /**
+     * Edge Case 32: Trimming blackout that starts before and ends inside (the exact VPS scenario).
+     */
+    public function test_creating_active_availability_trims_blackout_starting_before_and_ending_inside(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $targetDate = Carbon::now($this->tz)->addDays(7)->format('Y-m-d');
+
+        // Inactive blackout record from 20:40 to 21:40
+        $blackout = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 20:40:00", $this->tz)->copy()->utc(),
+            'end_at' => Carbon::parse("{$targetDate} 21:40:00", $this->tz)->copy()->utc(),
+            'slot_duration' => 30,
+            'is_active' => false,
+        ]);
+
+        // Teacher adds active availability from 21:00 to 22:00
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $targetDate,
+            'end_date' => $targetDate,
+            'start_time' => '21:00',
+            'end_time' => '22:00',
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Blackout is trimmed to 20:40 - 21:00
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'id' => $blackout->id,
+            'start_at' => PlatformTime::toUtc("{$targetDate} 20:40:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 21:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => false,
+        ]);
+
+        // Active slot is available from 21:00 to 22:00
+        $slotService = app(SlotService::class);
+        $slots = $slotService->getAvailableSlots($teacher->id, $targetDate);
+        $times = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($this->tz)->format('H:i'), $slots);
+        $this->assertEquals(['21:00', '21:30'], $times);
+
+        // Pupil can book 21:00 - 21:30 without "not suitable" or blackout error
+        $bookingService = app(BookingService::class);
+        $appt = $bookingService->book(
+            $pupil,
+            $teacher,
+            "{$targetDate} 21:00:00",
+            "{$targetDate} 21:30:00"
+        );
+        $this->assertNotNull($appt->id);
+    }
+
+    /**
+     * Edge Case 33: Trimming blackout that starts inside and ends after.
+     */
+    public function test_creating_active_availability_trims_blackout_starting_inside_and_ending_after(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $targetDate = Carbon::now($this->tz)->addDays(8)->format('Y-m-d');
+
+        // Blackout from 15:30 to 17:00
+        $blackout = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::parse("{$targetDate} 15:30:00", $this->tz)->copy()->utc(),
+            'end_at' => Carbon::parse("{$targetDate} 17:00:00", $this->tz)->copy()->utc(),
+            'slot_duration' => 30,
+            'is_active' => false,
+        ]);
+
+        // Teacher adds active availability from 15:00 to 16:00
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $targetDate,
+            'end_date' => $targetDate,
+            'start_time' => '15:00',
+            'end_time' => '16:00',
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Blackout start trimmed to 16:00
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'id' => $blackout->id,
+            'start_at' => PlatformTime::toUtc("{$targetDate} 16:00:00")->format('Y-m-d H:i:s'),
+            'end_at' => PlatformTime::toUtc("{$targetDate} 17:00:00")->format('Y-m-d H:i:s'),
+            'is_active' => false,
+        ]);
+
+        // Active slots for 15:00 and 15:30 are available
+        $slotService = app(SlotService::class);
+        $slots = $slotService->getAvailableSlots($teacher->id, $targetDate);
+        $times = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($this->tz)->format('H:i'), $slots);
+        $this->assertEquals(['15:00', '15:30'], $times);
+    }
+
+    /**
+     * Edge Case 34: Overlapping active custom availability records are merged and deduplicated.
+     */
+    public function test_overlapping_active_custom_availabilities_are_merged(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $targetDate = Carbon::now($this->tz)->addDays(9)->format('Y-m-d');
+
+        // First submission: 21:00 to 22:00
+        $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $targetDate,
+            'end_date' => $targetDate,
+            'start_time' => '21:00',
+            'end_time' => '22:00',
+            'slot_duration' => 30,
+        ]);
+
+        // Duplicate / extended submission: 21:30 to 22:30
+        $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $targetDate,
+            'end_date' => $targetDate,
+            'start_time' => '21:30',
+            'end_time' => '22:30',
+            'slot_duration' => 30,
+        ]);
+
+        // Should be merged into exactly 1 active record from 21:00 to 22:30
+        $actives = TeacherAvailability::where('teacher_id', $teacher->id)
+            ->where('type', 'custom')
+            ->where('is_active', true)
+            ->get();
+
+        $this->assertCount(1, $actives);
+        $this->assertEquals(
+            PlatformTime::toUtc("{$targetDate} 21:00:00")->format('Y-m-d H:i:s'),
+            $actives->first()->start_at->format('Y-m-d H:i:s')
+        );
+        $this->assertEquals(
+            PlatformTime::toUtc("{$targetDate} 22:30:00")->format('Y-m-d H:i:s'),
+            $actives->first()->end_at->format('Y-m-d H:i:s')
+        );
+    }
+
+    /**
+     * Edge Case 35: GET index does not delete expired custom records.
+     */
+    public function test_index_does_not_delete_expired_custom_availabilities(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+
+        $pastCustom = TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'custom',
+            'start_at' => Carbon::now($this->tz)->subDays(2)->hour(10)->minute(0)->copy()->utc(),
+            'end_at' => Carbon::now($this->tz)->subDays(2)->hour(12)->minute(0)->copy()->utc(),
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($teacher)->get('/teacher/availability');
+        $response->assertOk();
+
+        $this->assertDatabaseHas('teacher_availabilities', [
+            'id' => $pastCustom->id,
+        ]);
+    }
 }

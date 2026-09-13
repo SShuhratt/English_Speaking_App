@@ -716,14 +716,42 @@ export default function Availability({
 
     const parseUtcDate = (dateStr: string) => {
         if (!dateStr) return new Date();
+        let d: Date;
         if (
             !dateStr.endsWith('Z') &&
             !dateStr.includes('+') &&
             !/-\d{2}:\d{2}$/.test(dateStr)
         ) {
-            return new Date(dateStr.replace(' ', 'T') + 'Z');
+            d = new Date(dateStr.replace(' ', 'T') + 'Z');
+        } else {
+            d = new Date(dateStr);
         }
-        return new Date(dateStr);
+
+        try {
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Tashkent',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+            });
+            const parts = formatter.formatToParts(d);
+            const getPart = (type: string) =>
+                parts.find((p) => p.type === type)?.value || '0';
+            const year = parseInt(getPart('year'), 10);
+            const month = parseInt(getPart('month'), 10) - 1;
+            const day = parseInt(getPart('day'), 10);
+            let hour = parseInt(getPart('hour'), 10);
+            if (hour === 24) hour = 0;
+            const minute = parseInt(getPart('minute'), 10);
+            const second = parseInt(getPart('second'), 10);
+            return new Date(year, month, day, hour, minute, second);
+        } catch {
+            return d;
+        }
     };
 
     const [rangeStartVal, setRangeStartVal] = useState('');
@@ -993,7 +1021,7 @@ export default function Availability({
         const avails = getAvailabilitiesForDate(colDate);
         if (avails.length === 0) return [];
 
-        const now = new Date();
+        const now = parseUtcDate(new Date().toISOString());
         const dateStr = formatDateString(colDate);
         const slotsList: any[] = [];
 
@@ -1091,16 +1119,16 @@ export default function Availability({
                             // Keep matching expired bookings so they render as expired on the schedule
                         } else {
                             const cancelledAt = app.updated_at
-                                ? new Date(app.updated_at)
-                                : new Date();
-                            const appStart = new Date(app.start_at);
+                                ? parseUtcDate(app.updated_at)
+                                : now;
+                            const appStart = parseUtcDate(app.start_at);
                             if (cancelledAt.getTime() <= appStart.getTime()) {
                                 return false; // restored slot!
                             }
                         }
                     }
-                    const appStart = new Date(app.start_at).getTime();
-                    const appEnd = new Date(app.end_at).getTime();
+                    const appStart = parseUtcDate(app.start_at).getTime();
+                    const appEnd = parseUtcDate(app.end_at).getTime();
                     const sStartMs = slotStart.getTime();
                     const sEndMs = slotEnd.getTime();
                     return appStart < sEndMs && appEnd > sStartMs;
@@ -1110,7 +1138,7 @@ export default function Availability({
                 if (matchingApp) {
                     const isConvExpired =
                         now.getTime() >=
-                        new Date(matchingApp.end_at).getTime();
+                        parseUtcDate(matchingApp.end_at).getTime();
 
                     if (
                         matchingApp.cancellation_reason ===

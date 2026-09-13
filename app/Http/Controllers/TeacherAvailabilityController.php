@@ -14,12 +14,6 @@ class TeacherAvailabilityController extends Controller
 {
     public function index(Request $request)
     {
-        // Delete expired custom availabilities from the DB
-        TeacherAvailability::where('teacher_id', $request->user()->id)
-            ->where('type', 'custom')
-            ->where('end_at', '<', PlatformTime::now())
-            ->delete();
-
         // Expire unpaid appointments whose scheduled conversation end time has passed
         Appointment::where('teacher_id', $request->user()->id)
             ->whereIn('status', ['pending', 'accepted'])
@@ -159,14 +153,12 @@ class TeacherAvailabilityController extends Controller
                     $dayStart = $effectiveStart;
                 }
 
-                TeacherAvailability::create([
-                    'teacher_id' => $teacherId,
-                    'type' => 'custom',
-                    'start_at' => $dayStart->format('Y-m-d H:i:s'),
-                    'end_at' => $dayEnd->format('Y-m-d H:i:s'),
-                    'slot_duration' => $slotDuration,
-                    'is_active' => true,
-                ]);
+                $this->storeOrMergeCustomAvailability(
+                    $teacherId,
+                    PlatformTime::toUtc($dayStart),
+                    PlatformTime::toUtc($dayEnd),
+                    $slotDuration
+                );
 
                 Cache::forget("teacher:{$teacherId}:slots:{$dayStr}");
                 $createdCount++;
@@ -204,14 +196,12 @@ class TeacherAvailabilityController extends Controller
             $startAt = $effectiveStart;
         }
 
-        TeacherAvailability::create([
-            'teacher_id' => $teacherId,
-            'type' => 'custom',
-            'start_at' => $startAt->format('Y-m-d H:i:s'),
-            'end_at' => $endAt->format('Y-m-d H:i:s'),
-            'slot_duration' => $slotDuration,
-            'is_active' => true,
-        ]);
+        $this->storeOrMergeCustomAvailability(
+            $teacherId,
+            PlatformTime::toUtc($startAt),
+            PlatformTime::toUtc($endAt),
+            $slotDuration
+        );
 
         $current = $startAt->copy()->subDay();
         $limit = $endAt->copy()->addDay();
@@ -293,6 +283,14 @@ class TeacherAvailabilityController extends Controller
             if ($hasBookings) {
                 return back()->withErrors(['range' => 'Cannot update this availability because it has booked appointments.']);
             }
+        }
+
+        if ($validated['type'] === 'custom' && ! empty($validated['start_at']) && ! empty($validated['end_at'])) {
+            $this->resolveOverlappingBlackouts(
+                $teacherId,
+                PlatformTime::toUtc($validated['start_at']),
+                PlatformTime::toUtc($validated['end_at'])
+            );
         }
 
         $availability->update([
@@ -974,5 +972,111 @@ class TeacherAvailabilityController extends Controller
         }
 
         return $freeIntervals;
+    }
+
+    /**
+     * Resolve any inactive blackouts that overlap with the new active availability window.
+     */
+    protected function resolveOverlappingBlackouts(string $teacherId, Carbon $newStartUtc, Carbon $newEndUtc): void
+    {
+        $overlappingBlackouts = TeacherAvailability::where('teacher_id', $teacherId)
+            ->where('type', 'custom')
+            ->where('is_active', false)
+            ->where('start_at', '<', $newEndUtc->format('Y-m-d H:i:s'))
+            ->where('end_at', '>', $newStartUtc->format('Y-m-d H:i:s'))
+            ->get();
+
+        foreach ($overlappingBlackouts as $blackout) {
+            $bStart = $blackout->start_at->copy()->utc();
+            $bEnd = $blackout->end_at->copy()->utc();
+
+            if ($bStart->gte($newStartUtc) && $bEnd->lte($newEndUtc)) {
+                // Case 1: Blackout is completely covered by new availability -> delete blackout
+                $blackout->delete();
+            } elseif ($bStart->lt($newStartUtc) && $bEnd->gt($newEndUtc)) {
+                // Case 2: New availability is in the middle of blackout -> split blackout into two
+                $blackout->update([
+                    'end_at' => $newStartUtc,
+                ]);
+
+                TeacherAvailability::create([
+                    'teacher_id' => $teacherId,
+                    'type' => 'custom',
+                    'start_at' => $newEndUtc,
+                    'end_at' => $bEnd,
+                    'slot_duration' => $blackout->slot_duration,
+                    'is_active' => false,
+                ]);
+            } elseif ($bStart->lt($newStartUtc) && $bEnd->lte($newEndUtc)) {
+                // Case 3: Blackout starts before, ends inside -> trim blackout end
+                $blackout->update([
+                    'end_at' => $newStartUtc,
+                ]);
+            } elseif ($bStart->gte($newStartUtc) && $bEnd->gt($newEndUtc)) {
+                // Case 4: Blackout starts inside, ends after -> trim blackout start
+                $blackout->update([
+                    'start_at' => $newEndUtc,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Store active custom availability while resolving overlapping blackouts and deduplicating active records.
+     */
+    protected function storeOrMergeCustomAvailability(
+        string $teacherId,
+        Carbon $newStartUtc,
+        Carbon $newEndUtc,
+        int $slotDuration
+    ): TeacherAvailability {
+        $this->resolveOverlappingBlackouts($teacherId, $newStartUtc, $newEndUtc);
+
+        $overlappingActives = TeacherAvailability::where('teacher_id', $teacherId)
+            ->where('type', 'custom')
+            ->where('is_active', true)
+            ->where('start_at', '<=', $newEndUtc->format('Y-m-d H:i:s'))
+            ->where('end_at', '>=', $newStartUtc->format('Y-m-d H:i:s'))
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        if ($overlappingActives->isEmpty()) {
+            return TeacherAvailability::create([
+                'teacher_id' => $teacherId,
+                'type' => 'custom',
+                'start_at' => $newStartUtc,
+                'end_at' => $newEndUtc,
+                'slot_duration' => $slotDuration,
+                'is_active' => true,
+            ]);
+        }
+
+        $mergedStartUtc = $newStartUtc->copy();
+        $mergedEndUtc = $newEndUtc->copy();
+
+        foreach ($overlappingActives as $active) {
+            $actStart = $active->start_at->copy()->utc();
+            $actEnd = $active->end_at->copy()->utc();
+
+            if ($actStart->lt($mergedStartUtc)) {
+                $mergedStartUtc = $actStart;
+            }
+            if ($actEnd->gt($mergedEndUtc)) {
+                $mergedEndUtc = $actEnd;
+            }
+        }
+
+        $primary = $overlappingActives->first();
+        $primary->update([
+            'start_at' => $mergedStartUtc,
+            'end_at' => $mergedEndUtc,
+            'slot_duration' => $slotDuration,
+        ]);
+
+        foreach ($overlappingActives->slice(1) as $extra) {
+            $extra->delete();
+        }
+
+        return $primary;
     }
 }
