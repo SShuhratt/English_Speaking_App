@@ -94,7 +94,7 @@ class GoogleOAuthController extends Controller
 
                     Auth::login($existingUser);
 
-                    return redirect()->route('dashboard')->with('success', 'Logged in with Google successfully.');
+                    return redirect()->intended(route('dashboard'))->with('success', 'Logged in with Google successfully.');
                 }
 
                 // New user - store in session for registration prefill and verification bypass

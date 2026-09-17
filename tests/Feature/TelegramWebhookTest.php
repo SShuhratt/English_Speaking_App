@@ -68,7 +68,7 @@ class TelegramWebhookTest extends TestCase
 
         Http::assertSent(function ($request) {
             return $request['chat_id'] === '888222'
-                && str_contains($request['text'], 'Welcome to English Speaking Platform');
+                && str_contains($request['text'], 'Welcome to ConvoMate');
         });
     }
 

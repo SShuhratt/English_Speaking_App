@@ -53,7 +53,7 @@ class TelegramWebhookController extends Controller
                         $this->telegramService->sendMessage(
                             $chatId,
                             "👋 Hello, <b>{$existingUser->full_name}</b>!\n\n".
-                            'Your Telegram account is already connected to English Speaking Platform. You will receive real-time lesson alerts right here.'
+                            'Your Telegram account is already connected to ConvoMate. You will receive real-time lesson alerts right here.'
                         );
                     } else {
                         $this->telegramService->sendWelcomePrompt($chatId);

@@ -42,7 +42,7 @@ class AppointmentRejectedNotification extends Notification implements ShouldQueu
         $timeStr = $this->formatDateTime($this->appointment->start_at);
 
         $mail = (new MailMessage)
-            ->subject('Lesson Request Update - English Speaking Platform')
+            ->subject('Lesson Request Update - ConvoMate')
             ->greeting("Hello {$notifiable->full_name}!")
             ->line("We are writing to let you know that your lesson request for **{$timeStr}** could not be accommodated by **{$teacherName}**.")
             ->line("**Reason provided:** {$this->reason}")

@@ -45,7 +45,7 @@ class AdminConfirmedNotification extends Notification implements ShouldQueue
         $timeStr = $this->formatDateTime($this->appointment->start_at);
 
         $mail = (new MailMessage)
-            ->subject('Lesson Confirmed - English Speaking Platform')
+            ->subject('Lesson Confirmed - ConvoMate')
             ->greeting("Hello {$notifiable->full_name}!")
             ->line("Your upcoming English speaking session with **{$partnerName}** is officially confirmed.")
             ->line("**Scheduled Time:** {$timeStr}");

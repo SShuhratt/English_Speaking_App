@@ -94,6 +94,6 @@ class ConversationFiveMinuteReminderNotification extends Notification implements
     {
         $meetLink = $this->appointment->google_meet_link ?? url('/dashboard');
 
-        return "English Platform: Your speaking session starts in 5 minutes! Join here: {$meetLink}";
+        return "ConvoMate: Your speaking session starts in 5 minutes! Join here: {$meetLink}";
     }
 }

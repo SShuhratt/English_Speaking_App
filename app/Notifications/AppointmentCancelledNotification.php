@@ -48,7 +48,7 @@ class AppointmentCancelledNotification extends Notification implements ShouldQue
         $timeStr = $this->formatDateTime($this->appointment->start_at);
 
         $mail = (new MailMessage)
-            ->subject('Lesson Cancelled - English Speaking Platform')
+            ->subject('Lesson Cancelled - ConvoMate')
             ->greeting("Hello {$notifiable->full_name}!")
             ->line("Your English speaking session with **{$partnerName}** scheduled for **{$timeStr}** has been cancelled by **{$cancelledBy}**.")
             ->line("**Reason provided:** {$this->reason}");

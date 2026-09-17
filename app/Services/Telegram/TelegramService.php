@@ -89,7 +89,7 @@ class TelegramService
     {
         $signedUrl = $this->generateSignedConnectUrl($chatId);
 
-        $text = "👋 <b>Welcome to English Speaking Platform!</b>\n\n".
+        $text = "👋 <b>Welcome to ConvoMate!</b>\n\n".
             "To connect this Telegram chat to your account and receive instant lesson alerts:\n\n".
             "1️⃣ <b>Fastest:</b> Tap the button below to link directly with your browser session.\n".
             '2️⃣ <b>Or:</b> Reply to this message with your <b>6-digit code</b> from your website profile settings.';
