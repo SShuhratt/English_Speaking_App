@@ -17,6 +17,7 @@ use App\Http\Controllers\TeacherAppointmentController;
 use App\Http\Controllers\TeacherAvailabilityController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherFeedbackController;
+use App\Http\Controllers\TelegramConnectController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -104,6 +105,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/appointments/{id}', [BookingController::class, 'destroy']);
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
     Route::post('/auth/google/disconnect', [GoogleOAuthController::class, 'disconnect'])->name('google.disconnect');
+    Route::get('/telegram/connect', TelegramConnectController::class)
+        ->middleware('signed')
+        ->name('telegram.connect');
 });
 
 Route::get('/auth/google', [GoogleOAuthController::class, 'redirect']);

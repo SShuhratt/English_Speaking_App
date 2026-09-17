@@ -15,3 +15,5 @@ Schedule::call(function () {
         ->where('end_at', '<', now())
         ->delete();
 })->daily();
+
+Schedule::command('appointments:send-reminders')->everyMinute();

@@ -10,6 +10,9 @@ export type User = {
     streak_count?: number;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
+    phone_number?: string;
+    telegram_chat_id?: string;
+    telegram_username?: string;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;

@@ -41,4 +41,17 @@ return [
         'redirect' => '/auth/google/callback',
     ],
 
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'bot_username' => env('TELEGRAM_BOT_USERNAME', 'EnglishSpeakingBot'),
+    ],
+
+    'eskiz' => [
+        'driver' => env('SMS_DRIVER', 'log'), // 'log' or 'eskiz'
+        'email' => env('ESKIZ_EMAIL'),
+        'password' => env('ESKIZ_PASSWORD'),
+        'from' => env('ESKIZ_FROM', '4546'),
+        'api_url' => env('ESKIZ_API_URL', 'https://notify.eskiz.uz/api/'),
+    ],
+
 ];

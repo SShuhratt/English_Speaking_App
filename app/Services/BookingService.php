@@ -9,6 +9,11 @@ use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use App\Notifications\AdminConfirmedNotification;
+use App\Notifications\AppointmentCancelledNotification;
+use App\Notifications\AppointmentRejectedNotification;
+use App\Notifications\BookingRequestedNotification;
+use App\Notifications\TeacherApprovedNotification;
 use App\Support\PlatformTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -105,14 +110,19 @@ class BookingService
                 $current->addDay();
             }
 
-            // 5. Queue Google sync AFTER commit
-            DB::afterCommit(function () use ($appointment) {
+            // 5. Queue Google sync and dispatch notifications AFTER commit
+            DB::afterCommit(function () use ($appointment, $teacher) {
                 SyncAppointmentToGoogleJob::dispatch($appointment->id);
                 try {
                     BookingUpdated::dispatch($appointment);
                     ConversationBooked::dispatch($appointment);
                 } catch (\Exception $e) {
                     Log::error('Failed to broadcast booking update on booking creation: '.$e->getMessage());
+                }
+                try {
+                    $teacher->notify(new BookingRequestedNotification($appointment));
+                } catch (\Exception $e) {
+                    Log::error('Failed to dispatch BookingRequestedNotification: '.$e->getMessage());
                 }
             });
 
@@ -169,11 +179,23 @@ class BookingService
                 }
             }
 
-            try {
-                BookingUpdated::dispatch($appointment);
-            } catch (\Exception $e) {
-                Log::error('Failed to broadcast booking update on cancellation: '.$e->getMessage());
-            }
+            DB::afterCommit(function () use ($appointment, $reason, $userId) {
+                try {
+                    BookingUpdated::dispatch($appointment);
+                } catch (\Exception $e) {
+                    Log::error('Failed to broadcast booking update on cancellation: '.$e->getMessage());
+                }
+                try {
+                    $isPupilCancelling = $appointment->pupil_id === $userId;
+                    $cancelledByName = $isPupilCancelling
+                        ? ($appointment->pupil?->full_name ?? 'The student')
+                        : ($appointment->teacher?->full_name ?? 'The teacher');
+                    $recipient = $isPupilCancelling ? $appointment->teacher : $appointment->pupil;
+                    $recipient?->notify(new AppointmentCancelledNotification($appointment, $reason, $cancelledByName));
+                } catch (\Exception $e) {
+                    Log::error('Failed to dispatch AppointmentCancelledNotification: '.$e->getMessage());
+                }
+            });
 
             return $appointment;
         });
@@ -204,12 +226,19 @@ class BookingService
                 'payment_status' => 'verifying',
             ]);
 
-            try {
-                BookingUpdated::dispatch($appointment);
-                ConversationApproved::dispatch($appointment);
-            } catch (\Exception $e) {
-                Log::error('Failed to broadcast booking update on approval: '.$e->getMessage());
-            }
+            DB::afterCommit(function () use ($appointment) {
+                try {
+                    BookingUpdated::dispatch($appointment);
+                    ConversationApproved::dispatch($appointment);
+                } catch (\Exception $e) {
+                    Log::error('Failed to broadcast booking update on approval: '.$e->getMessage());
+                }
+                try {
+                    $appointment->pupil?->notify(new TeacherApprovedNotification($appointment));
+                } catch (\Exception $e) {
+                    Log::error('Failed to dispatch TeacherApprovedNotification: '.$e->getMessage());
+                }
+            });
 
             return $appointment;
         });
@@ -236,13 +265,21 @@ class BookingService
                 'payment_status' => 'paid',
             ]);
 
-            SyncAppointmentToGoogleJob::dispatch($appointment);
+            DB::afterCommit(function () use ($appointment) {
+                SyncAppointmentToGoogleJob::dispatch($appointment);
 
-            try {
-                BookingUpdated::dispatch($appointment);
-            } catch (\Exception $e) {
-                Log::error('Failed to broadcast booking update on admin payment confirmation: '.$e->getMessage());
-            }
+                try {
+                    BookingUpdated::dispatch($appointment);
+                } catch (\Exception $e) {
+                    Log::error('Failed to broadcast booking update on admin payment confirmation: '.$e->getMessage());
+                }
+                try {
+                    $appointment->teacher?->notify(new AdminConfirmedNotification($appointment));
+                    $appointment->pupil?->notify(new AdminConfirmedNotification($appointment));
+                } catch (\Exception $e) {
+                    Log::error('Failed to dispatch AdminConfirmedNotification: '.$e->getMessage());
+                }
+            });
 
             return $appointment;
         });
@@ -294,11 +331,18 @@ class BookingService
                 }
             }
 
-            try {
-                BookingUpdated::dispatch($appointment);
-            } catch (\Exception $e) {
-                Log::error('Failed to broadcast booking update on admin payment rejection: '.$e->getMessage());
-            }
+            DB::afterCommit(function () use ($appointment, $reason) {
+                try {
+                    BookingUpdated::dispatch($appointment);
+                } catch (\Exception $e) {
+                    Log::error('Failed to broadcast booking update on admin payment rejection: '.$e->getMessage());
+                }
+                try {
+                    $appointment->pupil?->notify(new AppointmentRejectedNotification($appointment, $reason));
+                } catch (\Exception $e) {
+                    Log::error('Failed to dispatch AppointmentRejectedNotification: '.$e->getMessage());
+                }
+            });
 
             return $appointment;
         });
@@ -353,11 +397,18 @@ class BookingService
                 }
             }
 
-            try {
-                BookingUpdated::dispatch($appointment);
-            } catch (\Exception $e) {
-                Log::error('Failed to broadcast booking update on rejection: '.$e->getMessage());
-            }
+            DB::afterCommit(function () use ($appointment, $reason) {
+                try {
+                    BookingUpdated::dispatch($appointment);
+                } catch (\Exception $e) {
+                    Log::error('Failed to broadcast booking update on rejection: '.$e->getMessage());
+                }
+                try {
+                    $appointment->pupil?->notify(new AppointmentRejectedNotification($appointment, $reason));
+                } catch (\Exception $e) {
+                    Log::error('Failed to dispatch AppointmentRejectedNotification: '.$e->getMessage());
+                }
+            });
 
             return $appointment;
         });

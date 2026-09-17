@@ -31,11 +31,15 @@ class Appointment extends Model
         'is_trial',
         'duration_minutes',
         'price',
+        'reminder_5min_sent_at',
+        'reminder_started_sent_at',
     ];
 
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
+        'reminder_5min_sent_at' => 'datetime',
+        'reminder_started_sent_at' => 'datetime',
         'topics' => 'array',
         'is_trial' => 'boolean',
         'duration_minutes' => 'integer',

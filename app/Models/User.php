@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
@@ -30,12 +31,15 @@ class User extends Authenticatable implements PasskeyUser
     protected $fillable = [
         'name',
         'email',
+        'phone_number',
         'password',
         'full_name',
         'role',
         'avatar',
         'gender',
         'has_password',
+        'telegram_chat_id',
+        'telegram_username',
 
         // Google OAuth
         'google_connected',
@@ -57,6 +61,53 @@ class User extends Authenticatable implements PasskeyUser
         'google_scopes' => 'array',
         'google_token_expires_at' => 'datetime',
     ];
+
+    /**
+     * Route notification for Telegram channel.
+     */
+    public function routeNotificationForTelegram($notification = null): ?string
+    {
+        return $this->telegram_chat_id;
+    }
+
+    /**
+     * Route notification for SMS channel.
+     */
+    public function routeNotificationForSms($notification = null): ?string
+    {
+        return $this->phone_number
+            ?: $this->teacherProfile?->phone_number
+            ?: $this->pupilProfile?->phone_number;
+    }
+
+    /**
+     * Generate a 6-digit pairing code for Telegram linking (valid for 15 minutes).
+     */
+    public function generateTelegramPairingCode(): string
+    {
+        // Check if user already has an active pairing code
+        $existingCode = Cache::get("user_telegram_code:{$this->id}");
+        if ($existingCode) {
+            return (string) $existingCode;
+        }
+
+        $code = (string) random_int(100000, 999999);
+        Cache::put("telegram_pairing:{$code}", $this->id, now()->addMinutes(15));
+        Cache::put("user_telegram_code:{$this->id}", $code, now()->addMinutes(15));
+
+        return $code;
+    }
+
+    /**
+     * Unlink Telegram from this account.
+     */
+    public function unlinkTelegram(): void
+    {
+        $this->update([
+            'telegram_chat_id' => null,
+            'telegram_username' => null,
+        ]);
+    }
 
     /**
      * Get the display name for the passkey.

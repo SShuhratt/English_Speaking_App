@@ -14,6 +14,7 @@ import {
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import GoogleCalendarSettingsCard from '@/components/settings/GoogleCalendarSettingsCard';
+import TelegramSettingsCard from '@/components/settings/TelegramSettingsCard';
 import InputError from '@/components/input-error';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
@@ -2382,25 +2383,26 @@ export default function Profile({
                     )}
                 </Form>
 
-                {/* Section: Connected Services (Teachers only) */}
-                {auth?.user?.role === 'teacher' && (
-                    <div className="mx-auto max-w-[760px] px-4 pb-12">
-                        <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12">
-                            <div className="space-y-2 lg:col-span-4">
-                                <h3 className="text-xl font-extrabold text-[#1E2A5A]">
-                                    {t('profile.connected_services') || 'Connected Services'}
-                                </h3>
-                                <p className="text-sm font-medium text-[#6B7394]">
-                                    {t('profile.connected_services_desc') ||
-                                        'Manage third-party integrations and calendar synchronization.'}
-                                </p>
-                            </div>
-                            <div className="shadow-ambient rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8">
+                {/* Section: Connected Services & Notifications */}
+                <div className="mx-auto max-w-[760px] px-4 pb-12">
+                    <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12">
+                        <div className="space-y-2 lg:col-span-4">
+                            <h3 className="text-xl font-extrabold text-[#1E2A5A]">
+                                {t('profile.connected_services') || 'Connected Services'}
+                            </h3>
+                            <p className="text-sm font-medium text-[#6B7394]">
+                                {t('profile.connected_services_desc') ||
+                                    'Manage notification channels, Telegram alerts, and calendar synchronization.'}
+                            </p>
+                        </div>
+                        <div className="shadow-ambient space-y-6 rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8">
+                            <TelegramSettingsCard user={auth.user} />
+                            {auth?.user?.role === 'teacher' && (
                                 <GoogleCalendarSettingsCard user={auth.user} />
-                            </div>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Section 4: Delete Account */}
                 <div className="mx-auto max-w-[760px] px-4 pb-20">
