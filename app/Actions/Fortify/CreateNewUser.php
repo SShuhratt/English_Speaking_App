@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -64,7 +65,7 @@ class CreateNewUser implements CreatesNewUsers
 
         Validator::make($input, $rules)->validate();
 
-        return DB::transaction(function () use ($input, $role) {
+        $user = DB::transaction(function () use ($input, $role) {
             $user = User::create([
                 'name' => $input['name'],
                 'full_name' => $input['name'],
@@ -195,5 +196,9 @@ class CreateNewUser implements CreatesNewUsers
 
             return $user;
         });
+
+        $user->notify(new WelcomeNotification($role));
+
+        return $user;
     }
 }
