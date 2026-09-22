@@ -8,6 +8,7 @@ import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { useTelegramWebApp } from '@/hooks/useTelegramWebApp';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
@@ -44,6 +45,11 @@ window.Echo = new Echo({
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+function TelegramWebAppProvider({ children }: { children: React.ReactNode }) {
+    useTelegramWebApp();
+    return <>{children}</>;
+}
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
 
@@ -69,7 +75,7 @@ createInertiaApp({
                     const props = { ...layoutProps, children: pageElement };
 
                     switch (true) {
-                        case name === 'welcome':
+                        case name === 'welcome' || name.startsWith('telegram/'):
                             return pageElement;
 
                         case name.startsWith('auth/'):
@@ -94,8 +100,10 @@ createInertiaApp({
     setup({ el, App, props }) {
         createRoot(el).render(
             <TooltipProvider>
-                <App {...props} />
-                <Toaster />
+                <TelegramWebAppProvider>
+                    <App {...props} />
+                    <Toaster />
+                </TelegramWebAppProvider>
             </TooltipProvider>,
         );
     },

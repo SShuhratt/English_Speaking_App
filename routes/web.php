@@ -17,12 +17,19 @@ use App\Http\Controllers\TeacherAppointmentController;
 use App\Http\Controllers\TeacherAvailabilityController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherFeedbackController;
+use App\Http\Controllers\TelegramAuthController;
 use App\Http\Controllers\TelegramConnectController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 Route::inertia('/privacy', 'privacy')->name('privacy');
 Route::inertia('/terms', 'terms')->name('terms');
+
+Route::get('/tma', [TelegramAuthController::class, 'entry'])->name('telegram.tma');
+Route::post('/telegram/auth', [TelegramAuthController::class, 'auth'])->name('telegram.auth');
+Route::post('/telegram/send-link-code', [TelegramAuthController::class, 'sendLinkCode'])->name('telegram.send-link-code');
+Route::post('/telegram/verify-link-code', [TelegramAuthController::class, 'verifyLinkCode'])->name('telegram.verify-link-code');
+Route::post('/telegram/quick-register', [TelegramAuthController::class, 'quickRegister'])->name('telegram.quick-register');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

@@ -62,3 +62,6 @@ external_source
 Google_OAuth_Verification_Scenario*
 *verification_scenario*
 *Verification_Scenario*
+
+# Tunnel binaries
+cloudflared

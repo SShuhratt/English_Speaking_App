@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'locale']);
 
+        $middleware->validateCsrfTokens(except: [
+            'telegram/*',
+        ]);
+
         $middleware->alias([
             'teacher' => EnsureTeacher::class,
             'pupil' => EnsurePupil::class,

@@ -34,6 +34,10 @@ class CreateNewUser implements CreatesNewUsers
             $input['email'] = $input['email'] ?? session('google_register.email');
         }
 
+        if (session()->has('telegram_register')) {
+            $input['name'] = $input['name'] ?? session('telegram_register.name');
+        }
+
         $rules = array_merge(
             $this->profileRules(),
             [
@@ -88,6 +92,15 @@ class CreateNewUser implements CreatesNewUsers
                 $user->save();
 
                 session()->forget('google_register');
+            }
+
+            if (session()->has('telegram_register')) {
+                $telegramData = session()->get('telegram_register');
+                $user->telegram_chat_id = $telegramData['telegram_chat_id'] ?? null;
+                $user->telegram_username = $telegramData['telegram_username'] ?? null;
+                $user->save();
+
+                session()->forget('telegram_register');
             }
 
             $certificates = null;

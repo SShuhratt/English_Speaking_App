@@ -74,6 +74,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'google_register' => $request->session()->get('google_register'),
+            'telegram_register' => $request->session()->get('telegram_register'),
         ];
     }
 }

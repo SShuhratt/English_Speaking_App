@@ -61,6 +61,8 @@ services:
       - "APP_ENV=${APP_ENV:-local}"
       - "APP_DEBUG=${APP_DEBUG:-true}"
       - "OCTANE_SERVER=frankenphp"
+      - "DB_HOST=postgres"
+      - "REDIS_HOST=redis"
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,6 +89,8 @@ services:
       - "SERVER_NAME=http://localhost:8000"
       - "APP_ENV=local"
       - "APP_DEBUG=true"
+      - "DB_HOST=postgres"
+      - "REDIS_HOST=redis"
     depends_on:
       api:
         condition: service_started
@@ -116,6 +120,8 @@ services:
       - "REVERB_SSL_KEY_PATH=${REVERB_SSL_KEY_PATH:-null}"
       - "APP_ENV=${APP_ENV:-local}"
       - "APP_DEBUG=${APP_DEBUG:-true}"
+      - "DB_HOST=postgres"
+      - "REDIS_HOST=redis"
     depends_on:
       api:
         condition: service_started

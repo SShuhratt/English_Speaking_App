@@ -164,4 +164,46 @@ class TelegramService
             "Welcome, <b>{$user->full_name}</b>. You will now receive instant notifications about your booking requests, approvals, and lesson reminders here."
         );
     }
+
+    /**
+     * Set persistent bot chat menu button to launch the Telegram Mini App.
+     */
+    public function setMenuButton(?string $url = null, string $text = 'Open ConvoMate'): bool
+    {
+        if (empty($this->token)) {
+            Log::info('Telegram setChatMenuButton skipped: no token configured.');
+
+            return false;
+        }
+
+        $appUrl = $url ?? rtrim(config('app.url'), '/');
+
+        try {
+            $payload = [
+                'menu_button' => [
+                    'type' => 'web_app',
+                    'text' => $text,
+                    'web_app' => [
+                        'url' => $appUrl,
+                    ],
+                ],
+            ];
+
+            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->token}/setChatMenuButton", $payload);
+
+            if ($response->successful()) {
+                Log::info("Telegram chat menu button configured to {$appUrl}");
+
+                return true;
+            }
+
+            Log::warning("Telegram setChatMenuButton failed: {$response->status()} - {$response->body()}");
+
+            return false;
+        } catch (\Throwable $e) {
+            Log::error('Exception while configuring Telegram chat menu button: '.$e->getMessage());
+
+            return false;
+        }
+    }
 }
