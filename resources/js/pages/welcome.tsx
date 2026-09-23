@@ -27,27 +27,27 @@ import {
 const teachers = [
     {
         name: 'Kamola',
-        title: 'IELTS Speaking Specialist',
-        desc: 'Exam strategy and fluency coaching · 5 yrs experience',
-        badge: 'IELTS teacher · ✔ Verified',
+        titleKey: 'welcome.teacher_kamola_title',
+        descKey: 'welcome.teacher_kamola_desc',
+        badgeKey: 'welcome.teacher_kamola_badge',
         avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
         rating: '4.9',
         reviews: '128',
     },
     {
         name: 'Javohir',
-        title: 'Conversational Fluency',
-        desc: 'Accent reduction & everyday vocabulary · 4 yrs experience',
-        badge: 'General English · ✔ Verified',
+        titleKey: 'welcome.teacher_javohir_title',
+        descKey: 'welcome.teacher_javohir_desc',
+        badgeKey: 'welcome.teacher_javohir_badge',
         avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80',
         rating: '4.8',
         reviews: '94',
     },
     {
         name: 'Dilnoza',
-        title: 'Business & Interview Prep',
-        desc: 'Corporate English & interview simulations · 6 yrs experience',
-        badge: 'Business English · ✔ Verified',
+        titleKey: 'welcome.teacher_dilnoza_title',
+        descKey: 'welcome.teacher_dilnoza_desc',
+        badgeKey: 'welcome.teacher_dilnoza_badge',
         avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80',
         rating: '5.0',
         reviews: '210',
@@ -195,19 +195,19 @@ export default function Welcome() {
                                 href="#why"
                                 className="transition-colors hover:text-[#1E2A5A]"
                             >
-                                Why humans
+                                {t('welcome.nav_why_humans')}
                             </a>
                             <a
                                 href="#how"
                                 className="transition-colors hover:text-[#1E2A5A]"
                             >
-                                How it works
+                                {t('welcome.nav_how_it_works')}
                             </a>
                             <a
                                 href="#teachers"
                                 className="transition-colors hover:text-[#1E2A5A]"
                             >
-                                Teachers
+                                {t('welcome.nav_teachers')}
                             </a>
                         </nav>
 
@@ -261,7 +261,7 @@ export default function Welcome() {
                                     href="/dashboard"
                                     className="btn-primary shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition-transform hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-[15px]"
                                 >
-                                    Dashboard
+                                    {t('nav.dashboard')}
                                 </Link>
                             ) : (
                                 <>
@@ -270,7 +270,7 @@ export default function Welcome() {
                                         href="/login"
                                         className="shrink-0 px-0.5 text-xs font-bold text-[#1E2A5A] hover:underline sm:px-1 sm:text-[15px]"
                                     >
-                                        Log in
+                                        {t('welcome.login')}
                                     </Link>
 
                                     {/* 3. Outlined Secondary Button: Be a teacher (Desktop: full label, Mobile: compact Teach badge) */}
@@ -279,9 +279,9 @@ export default function Welcome() {
                                         className="inline-flex shrink-0 items-center rounded-full border border-[#1E2A5A]/30 px-2 py-1 text-[11px] font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB] sm:px-4 sm:py-2 sm:text-sm"
                                     >
                                         <span className="hidden sm:inline">
-                                            Be a teacher
+                                            {t('welcome.be_teacher')}
                                         </span>
-                                        <span className="sm:hidden">Teach</span>
+                                        <span className="sm:hidden">{t('welcome.teach_short')}</span>
                                     </Link>
 
                                     {/* 4. Solid Primary CTA: Book a lesson */}
@@ -290,9 +290,9 @@ export default function Welcome() {
                                         className="btn-primary shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition-transform hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-[15px]"
                                     >
                                         <span className="hidden sm:inline">
-                                            Book a lesson
+                                            {t('welcome.book_lesson')}
                                         </span>
-                                        <span className="sm:hidden">Book</span>
+                                        <span className="sm:hidden">{t('welcome.book_short')}</span>
                                     </Link>
                                 </>
                             )}
@@ -323,33 +323,33 @@ export default function Welcome() {
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="py-1 text-base text-[#1E2A5A] transition-colors hover:text-[#D9B437]"
                                 >
-                                    Why humans
+                                    {t('welcome.nav_why_humans')}
                                 </a>
                                 <a
                                     href="#how"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="py-1 text-base text-[#1E2A5A] transition-colors hover:text-[#D9B437]"
                                 >
-                                    How it works
+                                    {t('welcome.nav_how_it_works')}
                                 </a>
                                 <a
                                     href="#teachers"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="py-1 text-base text-[#1E2A5A] transition-colors hover:text-[#D9B437]"
                                 >
-                                    Teachers
+                                    {t('welcome.nav_teachers')}
                                 </a>
                                 <Link
                                     href="/register?role=teacher"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="inline-flex items-center gap-1.5 py-1 text-base font-bold text-[#1E2A5A]"
                                 >
-                                    Be a teacher →
+                                    {t('welcome.be_teacher')} →
                                 </Link>
 
                                 <div className="flex items-center justify-between border-t border-[#EAE4D2] pt-4">
                                     <span className="text-xs font-bold text-[#6B7394]">
-                                        Language:
+                                        {t('welcome.language')}
                                     </span>
                                     <div className="flex gap-2">
                                         <button
@@ -391,33 +391,34 @@ export default function Welcome() {
                     <div className="wrap grid items-center gap-12 lg:grid-cols-2">
                         <div>
                             <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#1E2A5A] shadow-sm">
-                                ✦ ConvoMate English Speaking Platform — Live 1-on-1 Practice
+                                {t('welcome.hero_badge')}
                             </span>
                             <h1 className="mb-5 text-4xl font-extrabold md:text-5xl lg:text-7xl">
-                                Speak with{' '}
-                                <span className="hero-hum">humans</span>,<br />
-                                not <span className="hero-strike">bots</span>.
+                                {t('welcome.hero_title_prefix')}
+                                <span className="hero-hum">{t('welcome.hero_title_highlight1')}</span>
+                                {t('welcome.hero_title_mid')}
+                                <span className="hero-strike">{t('welcome.hero_title_highlight2')}</span>
+                                {t('welcome.hero_title_suffix')}
                             </h1>
                             <p className="mb-8 max-w-[500px] text-lg text-[#5C6480] md:text-xl">
-                                <b>ConvoMate</b> is an interactive English speaking platform where learners book live 1-on-1 sessions with IELTS-verified teachers for real-time conversation practice, fluency coaching, and personalized feedback.
+                                {t('welcome.hero_subtitle')}
                             </p>
                             <div className="mb-6 flex flex-wrap gap-4">
                                 <Link
                                     href={getBookLessonLink()}
                                     className="btn-primary rounded-full px-7 py-3.5 text-base font-bold transition-all hover:-translate-y-0.5 hover:shadow-lg"
                                 >
-                                    Book a lesson
+                                    {t('welcome.book_lesson')}
                                 </Link>
                                 <a
                                     href="#teachers"
                                     className="btn-outline rounded-full px-7 py-3.5 text-base font-bold transition-all hover:-translate-y-0.5 hover:bg-[#1E2A5A] hover:text-white"
                                 >
-                                    Meet the teachers
+                                    {t('welcome.meet_teachers')}
                                 </a>
                             </div>
                             <p className="text-[15px] font-medium text-[#5C6480]">
-                                🛡 Every teacher's certificate is checked by
-                                ConvoMate.
+                                {t('welcome.hero_trust')}
                             </p>
                         </div>
 
@@ -429,24 +430,22 @@ export default function Welcome() {
                             {/* Live lesson badge */}
                             <span className="absolute top-[-14px] left-[10px] z-[30] flex items-center gap-2 rounded-full bg-[#1E2A5A] px-4 py-2 text-sm font-bold text-white shadow-md">
                                 <span className="h-2 w-2 animate-pulse rounded-full bg-[#7BD98E]"></span>{' '}
-                                Live lesson
+                                {t('welcome.live_lesson')}
                             </span>
 
                             {/* Dialogue Callout 1 (Teacher - Top Right) */}
                             <div className="absolute top-[-6px] right-[-4px] z-[30] max-w-[230px] rotate-[2deg] rounded-2xl bg-white p-3 text-[14.5px] font-semibold text-[#1E2A5A] shadow-xl md:p-4">
-                                "Tell me about your weekend — past tense, full
-                                sentences."
+                                {t('welcome.hero_dialogue_teacher')}
                                 <small className="mt-1 block text-xs font-medium text-[#5C6480]">
-                                    Teacher
+                                    {t('welcome.teacher_label')}
                                 </small>
                             </div>
 
                             {/* Dialogue Callout 2 (Student - Bottom Left) */}
                             <div className="absolute bottom-[-28px] left-[-10px] z-[30] max-w-[230px] -rotate-[2deg] rounded-2xl bg-white p-3 text-[14.5px] font-semibold text-[#1E2A5A] shadow-xl md:p-4">
-                                "I visited my grandmother and we cooked plov
-                                together."
+                                {t('welcome.hero_dialogue_student')}
                                 <small className="mt-1 block text-xs font-medium text-[#5C6480]">
-                                    Student · speaking 90% of the lesson
+                                    {t('welcome.hero_student_callout_label')}
                                 </small>
                             </div>
 
@@ -460,7 +459,7 @@ export default function Welcome() {
                                         src="/hero_avatar_1.jpg"
                                     />
                                     <span className="relative z-[2] rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-[#1E2A5A]">
-                                        Student
+                                        {t('welcome.student_label')}
                                     </span>
                                 </div>
 
@@ -472,7 +471,7 @@ export default function Welcome() {
                                         src="/hero_avatar_2.jpg"
                                     />
                                     <span className="relative z-[2] rounded-full bg-[#1E2A5A] px-3 py-1.5 text-xs font-bold text-white">
-                                        Teacher
+                                        {t('welcome.teacher_label')}
                                     </span>
                                 </div>
                             </div>
@@ -499,16 +498,16 @@ export default function Welcome() {
                         <div className="rounded-3xl border border-[#EAE4D2] bg-[#FDFBF7] p-7 md:p-10 shadow-xs">
                             <div className="max-w-3xl">
                                 <span className="mb-3 inline-block rounded-full bg-[#1E2A5A]/10 px-3.5 py-1 text-xs font-extrabold tracking-wider text-[#1E2A5A] uppercase">
-                                    About ConvoMate Platform
+                                    {t('welcome.about_badge')}
                                 </span>
                                 <h2 className="mb-4 text-2xl font-extrabold text-[#1E2A5A] md:text-3xl">
-                                    1-on-1 English Speaking Platform & Automated Scheduling
+                                    {t('welcome.about_title')}
                                 </h2>
                                 <p className="mb-4 text-base leading-relaxed text-[#5C6480] md:text-lg">
-                                    <strong>ConvoMate</strong> is an interactive online platform designed to connect English learners with IELTS-verified teachers for real-time 1-on-1 video lessons, conversation practice, and fluency coaching.
+                                    {t('welcome.about_desc1')}
                                 </p>
                                 <p className="text-sm leading-relaxed text-[#5C6480] md:text-base">
-                                    ConvoMate uses <strong>Google Sign-In</strong> for secure, fast user authentication and integrates with <strong>Google Calendar</strong> to automatically schedule speaking lessons and generate <strong>Google Meet</strong> video conference links for confirmed student-teacher sessions.
+                                    {t('welcome.about_desc2')}
                                 </p>
                             </div>
                         </div>
@@ -518,11 +517,10 @@ export default function Welcome() {
                     <div className="wrap">
                         <div className="mb-14 text-center">
                             <h2 className="mb-4 text-3xl font-extrabold md:text-[46px]">
-                                AI can generate text. It can't feel awkwardness.
+                                {t('welcome.why_title')}
                             </h2>
                             <p className="mx-auto max-w-[580px] text-lg text-[#5C6480]">
-                                Here is why real human practice beats every
-                                language app on your phone.
+                                {t('welcome.why_subtitle')}
                             </p>
                         </div>
 
@@ -532,12 +530,10 @@ export default function Welcome() {
                                     ⚡
                                 </div>
                                 <h3 className="mb-3 text-xl font-bold">
-                                    Real feedback, mid-sentence
+                                    {t('welcome.why_f1_title')}
                                 </h3>
                                 <p className="text-[15.5px] text-[#5C6480]">
-                                    Your pronunciation gets fixed the second it
-                                    slips — not summarized in a report you'll
-                                    never open again.
+                                    {t('welcome.why_f1_desc')}
                                 </p>
                             </div>
                             <div className="rounded-[22px] border-[1.5px] border-[#E3EDF8] bg-[#E3EDF8] p-8 transition-colors hover:border-[#F7DE8B]">
@@ -545,12 +541,10 @@ export default function Welcome() {
                                     🎓
                                 </div>
                                 <h3 className="mb-3 text-xl font-bold">
-                                    The exam is a human, too
+                                    {t('welcome.why_f2_title')}
                                 </h3>
                                 <p className="text-[15.5px] text-[#5C6480]">
-                                    IELTS Speaking is an interview with a
-                                    person. The only realistic rehearsal is with
-                                    a person who knows how it's scored.
+                                    {t('welcome.why_f2_desc')}
                                 </p>
                             </div>
                             <div className="rounded-[22px] border-[1.5px] border-[#EAE4D2] bg-white p-8 transition-colors hover:border-[#F7DE8B]">
@@ -558,12 +552,10 @@ export default function Welcome() {
                                     🤝
                                 </div>
                                 <h3 className="mb-3 text-xl font-bold">
-                                    Personalized Adaptability
+                                    {t('welcome.why_f3_title')}
                                 </h3>
                                 <p className="text-[15.5px] text-[#5C6480]">
-                                    A human tutor notices when you get hesitant
-                                    or confused, adjusting the topic pace
-                                    dynamically.
+                                    {t('welcome.why_f3_desc')}
                                 </p>
                             </div>
                         </div>
@@ -572,12 +564,10 @@ export default function Welcome() {
                             <ShieldCheck className="h-10 w-10 shrink-0 text-[#1E2A5A]" />
                             <div>
                                 <b className="mb-1 block font-['Bricolage_Grotesque'] text-lg text-[#1E2A5A]">
-                                    Verified means verified
+                                    {t('welcome.verified_title')}
                                 </b>
                                 <p className="text-[15px] text-[#1E2A5A]/80">
-                                    Before any teacher appears here, we check
-                                    their IELTS certificate ourselves. The badge
-                                    is our word, not theirs.
+                                    {t('welcome.verified_desc')}
                                 </p>
                             </div>
                         </div>
@@ -589,10 +579,10 @@ export default function Welcome() {
                     <div className="wrap">
                         <div className="mb-14 text-center">
                             <h2 className="mb-4 text-3xl font-extrabold md:text-[46px]">
-                                Three steps to your first conversation
+                                {t('welcome.how_title')}
                             </h2>
                             <p className="mx-auto max-w-[560px] text-lg text-[#5C6480]">
-                                From sign-up to speaking in under ten minutes.
+                                {t('welcome.how_subtitle')}
                             </p>
                         </div>
 
@@ -601,11 +591,11 @@ export default function Welcome() {
                             <div className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6">
                                 <div className="mb-6 flex h-[248px] flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-[#EAE4D2] bg-[#FBFAF6] p-5">
                                     <div className="rounded-xl border border-[#EAE4D2] bg-white px-3.5 py-2.5 text-[13px] text-[#5C6480]">
-                                        <b className="text-[#1E2A5A]">Name</b> ·
+                                        <b className="text-[#1E2A5A]">{t('welcome.mock_name')}</b> ·
                                         Aziza
                                     </div>
                                     <div className="text-[11px] font-bold tracking-widest text-[#5C6480] uppercase">
-                                        Your level
+                                        {t('welcome.mock_level')}
                                     </div>
                                     <div className="flex gap-2">
                                         <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold">
@@ -619,7 +609,7 @@ export default function Welcome() {
                                         </span>
                                     </div>
                                     <div className="rounded-xl bg-[#1E2A5A] py-2.5 text-center text-[13px] font-bold text-white">
-                                        Create account
+                                        {t('welcome.mock_create_acc')}
                                     </div>
                                 </div>
                                 <div className="mb-3 flex items-center gap-3">
@@ -627,13 +617,11 @@ export default function Welcome() {
                                         1
                                     </div>
                                     <h3 className="text-xl font-bold">
-                                        Create your account
+                                        {t('welcome.how_step_1_title')}
                                     </h3>
                                 </div>
                                 <p className="text-[15.5px] text-[#5C6480]">
-                                    Two minutes. Tell us your level and your
-                                    goal — IELTS band, job interview, or just
-                                    confidence.
+                                    {t('welcome.how_step_1_desc')}
                                 </p>
                             </div>
 
@@ -651,14 +639,12 @@ export default function Welcome() {
                                                 Kamola
                                             </div>
                                             <div className="text-[12px] text-[#5C6480]">
-                                                IELTS teacher · ✔ Verified
+                                                {t('welcome.teacher_kamola_badge')}
                                             </div>
                                         </div>
                                     </div>
                                     <p className="text-[12.5px] leading-snug text-[#232A45]">
-                                        IELTS Speaking specialist — exam
-                                        strategy and fluency coaching · 5 yrs
-                                        experience
+                                        {t('welcome.teacher_kamola_desc')}
                                     </p>
                                     <div className="flex gap-2">
                                         <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold">
@@ -669,7 +655,7 @@ export default function Welcome() {
                                         </span>
                                     </div>
                                     <div className="rounded-xl bg-[#1E2A5A] py-2.5 text-center text-[13px] font-bold text-white">
-                                        Book · 17:30
+                                        {t('welcome.mock_book_btn')}
                                     </div>
                                 </div>
                                 <div className="mb-3 flex items-center gap-3">
@@ -677,13 +663,11 @@ export default function Welcome() {
                                         2
                                     </div>
                                     <h3 className="text-xl font-bold">
-                                        Choose a teacher and time
+                                        {t('welcome.how_step_2_title')}
                                     </h3>
                                 </div>
                                 <p className="text-[15.5px] text-[#5C6480]">
-                                    Real profiles, checked certificates, live
-                                    availability. Book the slot that fits your
-                                    day.
+                                    {t('welcome.how_step_2_desc')}
                                 </p>
                             </div>
 
@@ -693,15 +677,14 @@ export default function Welcome() {
                                     <div className="flex items-center justify-between gap-2 rounded-xl border border-[#EAE4D2] bg-white p-3">
                                         <div className="min-w-0">
                                             <b className="block text-[13px] leading-tight text-[#1E2A5A]">
-                                                Lesson starts in 5 min
+                                                {t('welcome.mock_starts_in')}
                                             </b>
                                             <small className="block text-[11px] leading-tight text-[#5C6480]">
-                                                Freestyle conversation · Dilnoza
-                                                · 1 h · 🕐 17:30
+                                                {t('welcome.mock_freestyle')}
                                             </small>
                                         </div>
                                         <span className="shrink-0 rounded-full bg-[#F7DE8B] px-3.5 py-2 text-[12px] font-extrabold text-[#1E2A5A]">
-                                            Join now
+                                            {t('welcome.mock_join')}
                                         </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2.5">
@@ -726,13 +709,11 @@ export default function Welcome() {
                                         3
                                     </div>
                                     <h3 className="text-xl font-bold">
-                                        Join the call and speak
+                                        {t('welcome.how_step_3_title')}
                                     </h3>
                                 </div>
                                 <p className="text-[15.5px] text-[#5C6480]">
-                                    One click to join. No software downloads.
-                                    Speak for 30 or 60 minutes and leave with
-                                    feedback.
+                                    {t('welcome.how_step_3_desc')}
                                 </p>
                             </div>
                         </div>
@@ -744,11 +725,10 @@ export default function Welcome() {
                     <div className="wrap">
                         <div className="mb-14 text-center">
                             <h2 className="mb-4 text-3xl font-extrabold md:text-[46px]">
-                                Certified teachers, ready to talk
+                                {t('welcome.teachers_section_title')}
                             </h2>
                             <p className="mx-auto max-w-[560px] text-lg text-[#5C6480]">
-                                Every profile is verified before it goes live.
-                                Here are a few who have slots open this week.
+                                {t('welcome.teachers_section_subtitle')}
                             </p>
                         </div>
 
@@ -769,28 +749,30 @@ export default function Welcome() {
                                                 {teacher.name}
                                             </h3>
                                             <span className="inline-block rounded-full bg-[#FDF7E4] px-2.5 py-1 text-xs font-semibold text-[#854F0B]">
-                                                {teacher.badge}
+                                                {t(teacher.badgeKey)}
                                             </span>
                                         </div>
                                     </div>
                                     <p className="mb-4 flex-1 text-sm font-medium text-[#5C6480]">
-                                        {teacher.desc}
+                                        {t(teacher.descKey)}
                                     </p>
                                     <div className="mb-4 flex items-center justify-between border-t border-[#EAE4D2] pt-3 text-xs font-semibold text-[#5C6480]">
                                         <span className="flex items-center gap-1 font-bold text-[#1E2A5A]">
                                             <Star className="h-3.5 w-3.5 fill-[#F7DE8B] text-[#F7DE8B]" />{' '}
                                             {teacher.rating} ({teacher.reviews}{' '}
-                                            reviews)
+                                            {t('welcome.reviews')})
                                         </span>
                                         <span className="font-bold text-[#1D9E75]">
-                                            Slots available
+                                            {t('welcome.slots_available')}
                                         </span>
                                     </div>
                                     <Link
                                         href={getBookLessonLink()}
                                         className="btn-primary rounded-xl py-2.5 text-center text-xs font-bold transition-transform hover:scale-[1.02]"
                                     >
-                                        Book lesson with {teacher.name}
+                                        {t('welcome.book_with_teacher', {
+                                            name: teacher.name,
+                                        })}
                                     </Link>
                                 </div>
                             ))}
@@ -801,7 +783,7 @@ export default function Welcome() {
                                 href={getBookLessonLink()}
                                 className="btn-outline inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-base font-bold transition-all hover:bg-[#1E2A5A] hover:text-white"
                             >
-                                Browse all verified teachers{' '}
+                                {t('welcome.browse_all_teachers')}{' '}
                                 <ArrowRight className="h-4 w-4" />
                             </Link>
                         </div>
@@ -812,17 +794,16 @@ export default function Welcome() {
                 <section className="bg-[#1E2A5A] py-16 text-white md:py-20">
                     <div className="wrap text-center">
                         <h2 className="mb-4 text-3xl font-extrabold text-white md:text-5xl">
-                            Ready to speak with confidence?
+                            {t('welcome.bottom_cta_title')}
                         </h2>
                         <p className="mx-auto mb-8 max-w-[500px] text-lg text-[#A9C6E8]">
-                            Book your lesson in under 2 minutes. Free during
-                            early access beta.
+                            {t('welcome.bottom_cta_subtitle')}
                         </p>
                         <Link
                             href={getBookLessonLink()}
                             className="btn-butter inline-block rounded-full px-9 py-4 text-lg font-extrabold transition-transform hover:scale-105"
                         >
-                            Book a lesson now
+                            {t('welcome.book_now')}
                         </Link>
                     </div>
                 </section>
@@ -831,33 +812,33 @@ export default function Welcome() {
                 <footer className="border-t border-[#EAE4D2] bg-white py-10">
                     <div className="wrap flex flex-col items-center justify-between gap-4 text-xs font-semibold text-[#5C6480] sm:flex-row">
                         <p>
-                            © {new Date().getFullYear()} ConvoMate. All rights
-                            reserved. Real humans, real results.
+                            © {new Date().getFullYear()} ConvoMate.{' '}
+                            {t('welcome.footer_rights_text')}
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-6">
                             <a href="#why" className="hover:text-[#1E2A5A]">
-                                Why humans
+                                {t('welcome.nav_why_humans')}
                             </a>
                             <a href="#how" className="hover:text-[#1E2A5A]">
-                                How it works
+                                {t('welcome.nav_how_it_works')}
                             </a>
                             <a
                                 href="#teachers"
                                 className="hover:text-[#1E2A5A]"
                             >
-                                Teachers
+                                {t('welcome.nav_teachers')}
                             </a>
                             <Link
                                 href="/privacy"
                                 className="hover:text-[#1E2A5A]"
                             >
-                                Privacy Policy
+                                {t('welcome.footer_privacy')}
                             </Link>
                             <Link
                                 href="/terms"
                                 className="hover:text-[#1E2A5A]"
                             >
-                                Terms of Service
+                                {t('welcome.footer_terms')}
                             </Link>
                         </div>
                     </div>
