@@ -163,7 +163,15 @@ class TelegramAuthController extends Controller
             'telegram_username' => $telegramUsername,
         ], now()->addMinutes(10));
 
-        $user->notify(new TelegramLinkOtpNotification($code));
+        try {
+            $user->notifyNow(new TelegramLinkOtpNotification($code));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Unable to send verification email at the moment. Please try again shortly.',
+            ], 500);
+        }
 
         return response()->json([
             'status' => 'code_sent',

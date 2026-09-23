@@ -96,6 +96,8 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - edtech
 
@@ -127,6 +129,8 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - edtech
 
