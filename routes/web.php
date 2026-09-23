@@ -26,6 +26,7 @@ Route::inertia('/privacy', 'privacy')->name('privacy');
 Route::inertia('/terms', 'terms')->name('terms');
 
 Route::get('/tma', [TelegramAuthController::class, 'entry'])->name('telegram.tma');
+Route::get('/telegram/token/{token}', [TelegramAuthController::class, 'consumeToken'])->name('telegram.consume-token');
 Route::post('/telegram/auth', [TelegramAuthController::class, 'auth'])->name('telegram.auth');
 Route::post('/telegram/send-link-code', [TelegramAuthController::class, 'sendLinkCode'])->name('telegram.send-link-code');
 Route::post('/telegram/verify-link-code', [TelegramAuthController::class, 'verifyLinkCode'])->name('telegram.verify-link-code');

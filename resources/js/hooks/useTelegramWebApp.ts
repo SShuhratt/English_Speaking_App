@@ -97,7 +97,10 @@ export function useTelegramWebApp() {
             // Mobile webview private browsing may restrict storage
         }
 
-        if (!authAttemptedRef.current && webApp.initData !== lastAuthedHash) {
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+        const isAuthOrOnboardingPath = currentPath === '/tma' || currentPath === '/login' || currentPath === '/register' || currentPath === '/';
+
+        if (!authAttemptedRef.current && (webApp.initData !== lastAuthedHash || isAuthOrOnboardingPath)) {
             authAttemptedRef.current = true;
 
             const csrfToken = document
@@ -106,6 +109,7 @@ export function useTelegramWebApp() {
 
             fetch('/telegram/auth', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -127,19 +131,23 @@ export function useTelegramWebApp() {
                         return;
                     }
 
-                    try {
-                        sessionStorage.setItem(sessionAuthKey, webApp.initData);
-                    } catch {
-                        // Ignore storage restrictions
-                    }
-
-                    const currentPath = window.location.pathname;
-
                     if (data.status === 'authenticated' || data.status === 'linked') {
+                        try {
+                            sessionStorage.setItem(sessionAuthKey, webApp.initData);
+                        } catch {
+                            // Ignore storage restrictions
+                        }
+
                         if (currentPath === '/tma' || currentPath === '/login' || currentPath === '/register' || currentPath === '/') {
                             window.location.href = data.redirect || '/dashboard';
                         }
                     } else if (data.status === 'needs_onboarding' || data.status === 'needs_registration') {
+                        try {
+                            sessionStorage.removeItem(sessionAuthKey);
+                        } catch {
+                            // Ignore storage restrictions
+                        }
+
                         if (currentPath !== '/tma') {
                             window.location.href = data.redirect || '/tma';
                         }

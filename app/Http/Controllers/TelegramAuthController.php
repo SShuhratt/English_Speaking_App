@@ -7,6 +7,7 @@ use App\Notifications\TelegramLinkOtpNotification;
 use App\Notifications\WelcomeNotification;
 use App\Services\Telegram\TelegramWebAppService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -33,6 +34,40 @@ class TelegramAuthController extends Controller
         }
 
         return Inertia::render('telegram/welcome');
+    }
+
+    /**
+     * Consume a one-time cryptographic login token for reliable mobile WebView 302 navigation.
+     */
+    public function consumeToken(Request $request, string $token): RedirectResponse
+    {
+        $userId = Cache::pull("telegram_login_token:{$token}");
+
+        if (! $userId) {
+            return redirect()->route('telegram.tma')->with('error', 'Login session expired or invalid. Please try again.');
+        }
+
+        $user = User::find($userId);
+
+        if (! $user) {
+            return redirect()->route('telegram.tma')->with('error', 'User account not found.');
+        }
+
+        Auth::login($user, remember: true);
+        $request->session()->regenerate();
+
+        return redirect()->route('dashboard');
+    }
+
+    /**
+     * Generate an ephemeral one-time login URL for seamless mobile WebView authentication.
+     */
+    protected function createOneTimeLoginUrl(User $user): string
+    {
+        $token = Str::random(48);
+        Cache::put("telegram_login_token:{$token}", $user->id, now()->addSeconds(60));
+
+        return route('telegram.consume-token', ['token' => $token]);
     }
 
     /**
@@ -75,10 +110,11 @@ class TelegramAuthController extends Controller
             }
 
             Auth::login($user, remember: true);
+            $request->session()->regenerate();
 
             return response()->json([
                 'status' => 'authenticated',
-                'redirect' => route('dashboard'),
+                'redirect' => $this->createOneTimeLoginUrl($user),
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->full_name,
@@ -98,7 +134,7 @@ class TelegramAuthController extends Controller
 
             return response()->json([
                 'status' => 'linked',
-                'redirect' => route('dashboard'),
+                'redirect' => $this->createOneTimeLoginUrl($currentUser),
                 'user' => [
                     'id' => $currentUser->id,
                     'name' => $currentUser->full_name,
@@ -234,10 +270,11 @@ class TelegramAuthController extends Controller
         Cache::forget("telegram_otp:{$user->id}");
 
         Auth::login($user, remember: true);
+        $request->session()->regenerate();
 
         return response()->json([
             'status' => 'authenticated',
-            'redirect' => route('dashboard'),
+            'redirect' => $this->createOneTimeLoginUrl($user),
             'user' => [
                 'id' => $user->id,
                 'name' => $user->full_name,
@@ -327,10 +364,11 @@ class TelegramAuthController extends Controller
         $user->notify(new WelcomeNotification($role));
 
         Auth::login($user, remember: true);
+        $request->session()->regenerate();
 
         return response()->json([
             'status' => 'authenticated',
-            'redirect' => route('dashboard'),
+            'redirect' => $this->createOneTimeLoginUrl($user),
             'user' => [
                 'id' => $user->id,
                 'name' => $user->full_name,

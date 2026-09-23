@@ -67,6 +67,7 @@ export default function TelegramWelcome() {
         try {
             const res = await fetch('/telegram/quick-register', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -92,6 +93,11 @@ export default function TelegramWelcome() {
             }
 
             if (data.status === 'authenticated') {
+                try {
+                    sessionStorage.removeItem('convomate_tma_auth_hash');
+                } catch {
+                    // Ignore storage restrictions
+                }
                 window.location.href = data.redirect || '/dashboard';
             }
         } catch {
@@ -115,6 +121,7 @@ export default function TelegramWelcome() {
         try {
             const res = await fetch('/telegram/send-link-code', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -151,6 +158,7 @@ export default function TelegramWelcome() {
         try {
             const res = await fetch('/telegram/verify-link-code', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -172,6 +180,11 @@ export default function TelegramWelcome() {
             }
 
             if (data.status === 'authenticated') {
+                try {
+                    sessionStorage.removeItem('convomate_tma_auth_hash');
+                } catch {
+                    // Ignore storage restrictions
+                }
                 window.location.href = data.redirect || '/dashboard';
             }
         } catch {

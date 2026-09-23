@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\TelegramLinkOtpNotification;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
@@ -84,8 +85,12 @@ class TelegramAuthTest extends TestCase
         $response->assertOk();
         $response->assertJson([
             'status' => 'authenticated',
-            'redirect' => route('dashboard'),
         ]);
+        $redirectUrl = $response->json('redirect');
+        $this->assertStringContainsString('/telegram/token/', $redirectUrl);
+
+        $consumeResponse = $this->get($redirectUrl);
+        $consumeResponse->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
         $this->assertEquals('updated_username', $user->fresh()->telegram_username);
@@ -115,8 +120,8 @@ class TelegramAuthTest extends TestCase
         $response->assertOk();
         $response->assertJson([
             'status' => 'linked',
-            'redirect' => route('dashboard'),
         ]);
+        $this->assertStringContainsString('/telegram/token/', $response->json('redirect'));
 
         $this->assertEquals('88899911', $user->fresh()->telegram_chat_id);
         $this->assertEquals('brand_new_handle', $user->fresh()->telegram_username);
@@ -263,8 +268,12 @@ class TelegramAuthTest extends TestCase
         $response->assertOk();
         $response->assertJson([
             'status' => 'authenticated',
-            'redirect' => route('dashboard'),
         ]);
+        $redirectUrl = $response->json('redirect');
+        $this->assertStringContainsString('/telegram/token/', $redirectUrl);
+
+        $consumeResponse = $this->get($redirectUrl);
+        $consumeResponse->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
         $this->assertEquals('77665544', $user->fresh()->telegram_chat_id);
@@ -332,8 +341,12 @@ class TelegramAuthTest extends TestCase
         $response->assertOk();
         $response->assertJson([
             'status' => 'authenticated',
-            'redirect' => route('dashboard'),
         ]);
+        $redirectUrl = $response->json('redirect');
+        $this->assertStringContainsString('/telegram/token/', $redirectUrl);
+
+        $consumeResponse = $this->get($redirectUrl);
+        $consumeResponse->assertRedirect(route('dashboard'));
 
         $user = User::where('email', 'fast@example.com')->first();
         $this->assertNotNull($user);
@@ -346,6 +359,47 @@ class TelegramAuthTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         Notification::assertSentTo($user, WelcomeNotification::class);
+    }
+
+    public function test_consume_token_authenticates_user_and_redirects_to_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $token = 'test_valid_cryptographic_token_for_consumption_1234567890';
+        Cache::put("telegram_login_token:{$token}", $user->id, now()->addSeconds(60));
+
+        $response = $this->get(route('telegram.consume-token', ['token' => $token]));
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_consume_token_burns_token_so_it_cannot_be_reused(): void
+    {
+        $user = User::factory()->create();
+        $token = 'single_use_token_1234567890';
+        Cache::put("telegram_login_token:{$token}", $user->id, now()->addSeconds(60));
+
+        // First use succeeds
+        $firstResponse = $this->get(route('telegram.consume-token', ['token' => $token]));
+        $firstResponse->assertRedirect(route('dashboard'));
+
+        // Log out to verify second use cannot log in
+        Auth::logout();
+
+        // Second use fails because token was pulled from cache
+        $secondResponse = $this->get(route('telegram.consume-token', ['token' => $token]));
+        $secondResponse->assertRedirect(route('telegram.tma'));
+        $secondResponse->assertSessionHas('error');
+        $this->assertGuest();
+    }
+
+    public function test_consume_token_fails_with_invalid_or_expired_token(): void
+    {
+        $response = $this->get(route('telegram.consume-token', ['token' => 'completely_invalid_or_expired_token']));
+
+        $response->assertRedirect(route('telegram.tma'));
+        $response->assertSessionHas('error');
+        $this->assertGuest();
     }
 
     public function test_quick_register_rejects_duplicate_email(): void
