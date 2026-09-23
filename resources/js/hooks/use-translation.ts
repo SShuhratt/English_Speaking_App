@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { usePage, router } from '@inertiajs/react';
 
 const dictionary = {
@@ -355,6 +356,62 @@ const dictionary = {
         'auth.pupil_desc': 'Book speaking sessions',
         'auth.teacher_desc': 'Teach & manage schedule',
         'auth.continue_with_google': 'Continue with Google',
+        'auth.or_continue_with': 'Or continue with',
+        'auth.or_register_with_email': 'Or register with email',
+        'auth.quick_onboarding_link': 'Quick Onboarding & Link Account',
+        'auth.switch_telegram_signup': 'Switch to Quick Telegram Sign-Up',
+        'auth.connected_via_telegram': 'Connected via Telegram',
+        'auth.telegram_complete_desc': 'Complete your registration to start practicing.',
+        'auth.google_verified_notice': 'Your email will be verified automatically.',
+        'auth.terms_service': 'Terms of Service',
+        'auth.privacy_policy': 'Privacy Policy',
+        'auth.terms_agree_notice': "By continuing, you agree to ConvoMate's :terms and :privacy.",
+        'auth.email_placeholder': 'email@example.com',
+        'auth.level_beginner': 'Beginner (A1)',
+        'auth.level_pre_intermediate': 'Pre-Intermediate (A2)',
+        'auth.level_upper_intermediate': 'Upper-Intermediate (B2)',
+        'auth.level_advanced': 'Advanced (C1)',
+        'auth.level_ielts_band': 'IELTS Band',
+        'auth.level_cefr_band': 'CEFR Band',
+        'auth.pupil_certificates_label': 'Upload IELTS Certificate(s) (PDF or Image)',
+        'auth.hourly_rate': "Hourly Rate (so'm / hour)",
+        'auth.hourly_rate_placeholder': 'e.g. 50000 (can be 0)',
+        'auth.certificates_heading': 'Language Certificates & Scores',
+        'auth.certificates_subheading': 'Upload your credentials and provide official band scores.',
+        'auth.add_certificate': '+ Add Certificate',
+        'auth.certificate_num': 'Certificate #:num',
+        'auth.remove_certificate': '✕ Remove',
+        'auth.certificate_type': 'Certificate Type',
+        'auth.cert_type_other': 'Other Certificate',
+        'auth.cert_type_ielts': 'IELTS (Academic / General)',
+        'auth.cert_type_cefr': 'CEFR / Multilevel',
+        'auth.cert_type_toefl': 'TOEFL',
+        'auth.custom_cert_placeholder': 'Enter certificate name (e.g. Duolingo, Cambridge C1, PTE)',
+        'auth.score_overall': 'Overall',
+        'auth.score_listening': 'Listening',
+        'auth.score_reading': 'Reading',
+        'auth.score_writing': 'Writing',
+        'auth.score_speaking': 'Speaking',
+        'auth.upload_cert_doc': 'Upload Certificate Document (PDF or Image)',
+        'auth.choose_cert_file': 'Choose Certificate File',
+        'auth.attached_file': '✓ Attached: :file',
+        'auth.no_file_chosen': 'No file chosen yet',
+        'auth.forgot_password_title': 'Forgot password',
+        'auth.forgot_password_desc': 'Enter your email to receive a password reset link',
+        'auth.send_password_reset_link': 'Email password reset link',
+        'auth.return_to_login': 'Or, return to',
+        'auth.reset_password_title': 'Reset password',
+        'auth.reset_password_desc': 'Please enter your new password below',
+        'auth.reset_password_button': 'Reset password',
+        'auth.email_verification_title': 'Email verification',
+        'auth.email_verification_desc': 'Please verify your email address by clicking on the link we just emailed to you.',
+        'auth.resend_verification_email': 'Resend verification email',
+        'auth.verification_link_sent': 'A new verification link has been sent to the email address you provided during registration.',
+        'auth.confirm_password_title': 'Confirm password',
+        'auth.confirm_password_desc': 'This is a secure area of the application. Please confirm your password before continuing.',
+        'auth.confirm_with_passkey': 'Confirm with passkey',
+        'auth.confirming': 'Confirming...',
+        'auth.or_confirm_with_password': 'Or confirm with password',
         'auth.gender': 'Gender',
         'auth.gender_male': 'Male',
         'auth.gender_female': 'Female',
@@ -1217,7 +1274,63 @@ const dictionary = {
         'auth.join_as': "Ro'yxatdan o'tish turi",
         'auth.pupil_desc': 'Darslarni bron qilish',
         'auth.teacher_desc': 'Dars berish va jadvalni boshqarish',
-        'auth.continue_with_google': 'Continue with Google',
+        'auth.continue_with_google': 'Google orqali davom etish',
+        'auth.or_continue_with': 'Yoki quyidagilar orqali davom eting',
+        'auth.or_register_with_email': 'Yoki email orqali ro‘yxatdan o‘ting',
+        'auth.quick_onboarding_link': 'Tezkor ro‘yxatdan o‘tish va hisobni ulash',
+        'auth.switch_telegram_signup': 'Tezkor Telegram orqali ro‘yxatdan o‘tishga o‘tish',
+        'auth.connected_via_telegram': 'Telegram orqali ulandi',
+        'auth.telegram_complete_desc': 'Mashg‘ulotlarni boshlash uchun ro‘yxatdan o‘tishni yakunlang.',
+        'auth.google_verified_notice': 'Email pochtangiz avtomatik tarzda tasdiqlanadi.',
+        'auth.terms_service': 'Foydalanish shartlari',
+        'auth.privacy_policy': 'Maxfiylik siyosati',
+        'auth.terms_agree_notice': "Davom etish orqali siz ConvoMate :terms va :privacy qoidalariga rozilik bildirasiz.",
+        'auth.email_placeholder': 'email@example.com',
+        'auth.level_beginner': 'Boshlang‘ich (A1)',
+        'auth.level_pre_intermediate': 'O‘rta osti (A2)',
+        'auth.level_upper_intermediate': 'Yuqori o‘rta (B2)',
+        'auth.level_advanced': 'Ilg‘or (C1)',
+        'auth.level_ielts_band': 'IELTS Band',
+        'auth.level_cefr_band': 'CEFR Band',
+        'auth.pupil_certificates_label': 'IELTS sertifikati(lar)ni yuklash (PDF yoki rasm)',
+        'auth.hourly_rate': "Soatlik narx (so‘m / soat)",
+        'auth.hourly_rate_placeholder': 'masalan, 50000 (0 bo‘lishi mumkin)',
+        'auth.certificates_heading': 'Til sertifikatlari va ballar',
+        'auth.certificates_subheading': 'Hujjatlaringizni yuklang va rasmiy ballaringizni kiriting.',
+        'auth.add_certificate': '+ Sertifikat qo‘shish',
+        'auth.certificate_num': 'Sertifikat #:num',
+        'auth.remove_certificate': '✕ O‘chirish',
+        'auth.certificate_type': 'Sertifikat turi',
+        'auth.cert_type_other': 'Boshqa sertifikat',
+        'auth.cert_type_ielts': 'IELTS (Akademik / Umumiy)',
+        'auth.cert_type_cefr': 'CEFR / Milliy sertifikat',
+        'auth.cert_type_toefl': 'TOEFL',
+        'auth.custom_cert_placeholder': 'Sertifikat nomini kiriting (masalan, Duolingo, Cambridge C1, PTE)',
+        'auth.score_overall': 'Umumiy',
+        'auth.score_listening': 'Listening',
+        'auth.score_reading': 'Reading',
+        'auth.score_writing': 'Writing',
+        'auth.score_speaking': 'Speaking',
+        'auth.upload_cert_doc': 'Sertifikat hujjatini yuklash (PDF yoki rasm)',
+        'auth.choose_cert_file': 'Faylni tanlang',
+        'auth.attached_file': '✓ Biriktirildi: :file',
+        'auth.no_file_chosen': 'Hali fayl tanlanmadi',
+        'auth.forgot_password_title': 'Parolni unutdingizmi?',
+        'auth.forgot_password_desc': 'Parolni tiklash havolasini olish uchun emailingizni kiriting',
+        'auth.send_password_reset_link': 'Parolni tiklash havolasini yuborish',
+        'auth.return_to_login': 'Yoki qaytish:',
+        'auth.reset_password_title': 'Parolni yangilash',
+        'auth.reset_password_desc': 'Iltimos, quyida yangi parolingizni kiriting',
+        'auth.reset_password_button': 'Parolni yangilash',
+        'auth.email_verification_title': 'Emailni tasdiqlash',
+        'auth.email_verification_desc': 'Iltimos, sizga yuborilgan xatdagi havola orqali email manzilingizni tasdiqlang.',
+        'auth.resend_verification_email': 'Tasdiqlash xatini qayta yuborish',
+        'auth.verification_link_sent': 'Ro‘yxatdan o‘tishda ko‘rsatilgan email manziliga yangi tasdiqlash havolasi yuborildi.',
+        'auth.confirm_password_title': 'Parolni tasdiqlash',
+        'auth.confirm_password_desc': 'Bu ilovaning xavfsiz qismi. Davom etishdan oldin parolingizni tasdiqlang.',
+        'auth.confirm_with_passkey': 'Passkey orqali tasdiqlash',
+        'auth.confirming': 'Tasdiqlanmoqda...',
+        'auth.or_confirm_with_password': 'Yoki parol orqali tasdiqlash',
         'auth.gender': 'Jinsi',
         'auth.gender_male': 'Erkak',
         'auth.gender_female': 'Ayol',
@@ -2088,7 +2201,63 @@ const dictionary = {
         'auth.join_as': 'Зарегистрироваться как',
         'auth.pupil_desc': 'Бронировать разговорные уроки',
         'auth.teacher_desc': 'Преподавать и вести расписание',
-        'auth.continue_with_google': 'Continue with Google',
+        'auth.continue_with_google': 'Продолжить через Google',
+        'auth.or_continue_with': 'Или продолжите через',
+        'auth.or_register_with_email': 'Или зарегистрируйтесь через email',
+        'auth.quick_onboarding_link': 'Быстрая регистрация и привязка аккаунта',
+        'auth.switch_telegram_signup': 'Перейти к быстрой регистрации через Telegram',
+        'auth.connected_via_telegram': 'Подключено через Telegram',
+        'auth.telegram_complete_desc': 'Завершите регистрацию, чтобы начать практику.',
+        'auth.google_verified_notice': 'Ваш email будет подтвержден автоматически.',
+        'auth.terms_service': 'Условия обслуживания',
+        'auth.privacy_policy': 'Политика конфиденциальности',
+        'auth.terms_agree_notice': 'Продолжая, вы соглашаетесь с :terms и :privacy платформы ConvoMate.',
+        'auth.email_placeholder': 'email@example.com',
+        'auth.level_beginner': 'Начальный (A1)',
+        'auth.level_pre_intermediate': 'Ниже среднего (A2)',
+        'auth.level_upper_intermediate': 'Выше среднего (B2)',
+        'auth.level_advanced': 'Продвинутый (C1)',
+        'auth.level_ielts_band': 'IELTS Band',
+        'auth.level_cefr_band': 'CEFR Band',
+        'auth.pupil_certificates_label': 'Загрузить сертификат(ы) IELTS (PDF или изображение)',
+        'auth.hourly_rate': 'Почасовая ставка (сум / час)',
+        'auth.hourly_rate_placeholder': 'напр. 50000 (может быть 0)',
+        'auth.certificates_heading': 'Языковые сертификаты и баллы',
+        'auth.certificates_subheading': 'Загрузите документы и укажите официальные баллы.',
+        'auth.add_certificate': '+ Добавить сертификат',
+        'auth.certificate_num': 'Сертификат #:num',
+        'auth.remove_certificate': '✕ Удалить',
+        'auth.certificate_type': 'Тип сертификата',
+        'auth.cert_type_other': 'Другой сертификат',
+        'auth.cert_type_ielts': 'IELTS (Academic / General)',
+        'auth.cert_type_cefr': 'CEFR / Multilevel',
+        'auth.cert_type_toefl': 'TOEFL',
+        'auth.custom_cert_placeholder': 'Введите название сертификата (напр. Duolingo, Cambridge C1, PTE)',
+        'auth.score_overall': 'Общий',
+        'auth.score_listening': 'Listening',
+        'auth.score_reading': 'Reading',
+        'auth.score_writing': 'Writing',
+        'auth.score_speaking': 'Speaking',
+        'auth.upload_cert_doc': 'Загрузить документ сертификата (PDF или изображение)',
+        'auth.choose_cert_file': 'Выберите файл',
+        'auth.attached_file': '✓ Прикреплен: :file',
+        'auth.no_file_chosen': 'Файл еще не выбран',
+        'auth.forgot_password_title': 'Забыли пароль?',
+        'auth.forgot_password_desc': 'Введите ваш email для получения ссылки на сброс пароля',
+        'auth.send_password_reset_link': 'Отправить ссылку для сброса пароля',
+        'auth.return_to_login': 'Или вернитесь к',
+        'auth.reset_password_title': 'Сброс пароля',
+        'auth.reset_password_desc': 'Пожалуйста, введите новый пароль ниже',
+        'auth.reset_password_button': 'Сбросить пароль',
+        'auth.email_verification_title': 'Подтверждение email',
+        'auth.email_verification_desc': 'Пожалуйста, подтвердите свой адрес электронной почты, перейдя по ссылке, которую мы только что отправили вам.',
+        'auth.resend_verification_email': 'Отправить письмо с подтверждением повторно',
+        'auth.verification_link_sent': 'Новая ссылка для подтверждения была отправлена на адрес электронной почты, указанный вами при регистрации.',
+        'auth.confirm_password_title': 'Подтверждение пароля',
+        'auth.confirm_password_desc': 'Это защищенная зона приложения. Пожалуйста, подтвердите пароль перед продолжением.',
+        'auth.confirm_with_passkey': 'Подтвердить с помощью passkey',
+        'auth.confirming': 'Подтверждение...',
+        'auth.or_confirm_with_password': 'Или подтвердите с помощью пароля',
         'auth.gender': 'Пол',
         'auth.gender_male': 'Мужской',
         'auth.gender_female': 'Женский',
@@ -2602,7 +2771,24 @@ export function useTranslation() {
     const cookieLocale = typeof document !== 'undefined'
         ? (document.cookie.match(/(?:^|;\s*)locale=([a-z]{2})/)?.[1] as 'en' | 'uz' | 'ru' | undefined)
         : undefined;
-    const locale = (page.props?.locale || cookieLocale || 'en') as 'en' | 'uz' | 'ru';
+    const initialLocale = (cookieLocale || page.props?.locale || 'en') as 'en' | 'uz' | 'ru';
+    const [locale, setLocaleState] = useState<'en' | 'uz' | 'ru'>(initialLocale);
+
+    useEffect(() => {
+        if (page.props?.locale && page.props.locale !== locale && !cookieLocale) {
+            setLocaleState(page.props.locale);
+        }
+    }, [page.props?.locale]);
+
+    useEffect(() => {
+        const handleLocaleChange = (e: CustomEvent<'en' | 'uz' | 'ru'>) => {
+            if (e.detail && e.detail !== locale) {
+                setLocaleState(e.detail);
+            }
+        };
+        window.addEventListener('locale-changed' as any, handleLocaleChange);
+        return () => window.removeEventListener('locale-changed' as any, handleLocaleChange);
+    }, [locale]);
 
     const t = (key: string, replacements?: Record<string, string | number>) => {
         const langDict =
@@ -2639,14 +2825,13 @@ export function useTranslation() {
 
     const setLanguage = (newLang: 'en' | 'uz' | 'ru') => {
         document.cookie = `locale=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
-        try {
-            router.flushAll();
-        } catch {
-            // Ignore if flushAll unsupported
+        setLocaleState(newLang);
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('locale-changed', { detail: newLang }));
         }
-        router.reload({ preserveScroll: true });
     };
 
     return { t, locale, setLanguage };
 }
+
 

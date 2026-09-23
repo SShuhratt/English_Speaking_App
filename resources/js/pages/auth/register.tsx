@@ -29,7 +29,7 @@ export default function Register({ passwordRules }: Props) {
         }
         return 'pupil';
     });
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const { google_register, telegram_register } = usePage<any>().props;
     const [isInsideTelegram, setIsInsideTelegram] = useState(Boolean(telegram_register));
 
@@ -115,8 +115,7 @@ export default function Register({ passwordRules }: Props) {
                         <span className="font-semibold">
                             {t('auth.registering_with_google')}
                         </span>{' '}
-                        {google_register.email}. Your email will be verified
-                        automatically.
+                        {google_register.email}. {t('auth.google_verified_notice')}
                     </div>
                 </div>
             )}
@@ -127,8 +126,8 @@ export default function Register({ passwordRules }: Props) {
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .36z" />
                     </svg>
                     <div>
-                        <span className="font-semibold">Connected via Telegram</span>
-                        {telegram_register.telegram_username ? ` (@${telegram_register.telegram_username})` : ''}. Complete your registration to start practicing.
+                        <span className="font-semibold">{t('auth.connected_via_telegram')}</span>
+                        {telegram_register.telegram_username ? ` (@${telegram_register.telegram_username})` : ''}. {t('auth.telegram_complete_desc')}
                     </div>
                 </div>
             )}
@@ -167,7 +166,7 @@ export default function Register({ passwordRules }: Props) {
                     <div className="relative flex items-center py-2">
                         <div className="flex-grow border-t border-border"></div>
                         <span className="mx-4 flex-shrink text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                            Or register with email
+                            {t('auth.or_register_with_email')}
                         </span>
                         <div className="flex-grow border-t border-border"></div>
                     </div>
@@ -182,7 +181,7 @@ export default function Register({ passwordRules }: Props) {
                     <svg className="h-5 w-5 shrink-0 text-sky-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .36z" />
                     </svg>
-                    Switch to Quick Telegram Sign-Up
+                    {t('auth.switch_telegram_signup')}
                 </a>
             )}
 
@@ -235,7 +234,7 @@ export default function Register({ passwordRules }: Props) {
                                             ? 'cursor-not-allowed bg-muted'
                                             : ''
                                     }
-                                    placeholder="email@example.com"
+                                    placeholder={t('auth.email_placeholder')}
                                 />
                                 <InputError message={errors.email} />
                             </div>
@@ -349,30 +348,29 @@ export default function Register({ passwordRules }: Props) {
                                                 {t('auth.select_level')}
                                             </option>
                                             <option value="beginner">
-                                                Beginner
+                                                {t('auth.level_beginner')}
                                             </option>
                                             <option value="pre-intermediate">
-                                                Pre-Intermediate
+                                                {t('auth.level_pre_intermediate')}
                                             </option>
                                             <option value="upper-intermediate">
-                                                Upper-Intermediate
+                                                {t('auth.level_upper_intermediate')}
                                             </option>
                                             <option value="advanced">
-                                                Advanced
+                                                {t('auth.level_advanced')}
                                             </option>
                                             <option value="ielts_band">
-                                                IELTS Band
+                                                {t('auth.level_ielts_band')}
                                             </option>
                                             <option value="cefr_band">
-                                                CEFR Band
+                                                {t('auth.level_cefr_band')}
                                             </option>
                                         </select>
                                         <InputError message={errors.level} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="ielts_certificates">
-                                            Upload IELTS Certificate(s) (PDF or
-                                            Image)
+                                            {t('auth.pupil_certificates_label')}
                                         </Label>
                                         <Input
                                             id="ielts_certificates"
@@ -393,14 +391,14 @@ export default function Register({ passwordRules }: Props) {
                                 <>
                                     <div className="grid gap-2">
                                         <Label htmlFor="price">
-                                            Hourly Rate (so'm / hour)
+                                            {t('auth.hourly_rate')}
                                         </Label>
                                         <Input
                                             id="price"
                                             type="number"
                                             min="0"
                                             name="price"
-                                            placeholder="e.g. 50000 (can be 0)"
+                                            placeholder={t('auth.hourly_rate_placeholder')}
                                         />
                                         <InputError message={errors.price} />
                                     </div>
@@ -441,13 +439,10 @@ export default function Register({ passwordRules }: Props) {
                                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
                                                 <h3 className="text-base font-extrabold text-brand-navy dark:text-white">
-                                                    Language Certificates &
-                                                    Scores
+                                                    {t('auth.certificates_heading')}
                                                 </h3>
                                                 <p className="text-xs font-medium text-muted-foreground">
-                                                    Upload your credentials and
-                                                    provide official band
-                                                    scores.
+                                                    {t('auth.certificates_subheading')}
                                                 </p>
                                             </div>
                                             <Button
@@ -457,7 +452,7 @@ export default function Register({ passwordRules }: Props) {
                                                 onClick={addCertificate}
                                                 className="border-indigo-200 bg-white font-bold text-indigo-600 hover:bg-indigo-50 dark:bg-gray-800 dark:text-indigo-400"
                                             >
-                                                + Add Certificate
+                                                {t('auth.add_certificate')}
                                             </Button>
                                         </div>
 
@@ -469,8 +464,7 @@ export default function Register({ passwordRules }: Props) {
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <span className="inline-flex items-center rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                                                            Certificate #
-                                                            {index + 1}
+                                                            {t('auth.certificate_num', { num: index + 1 })}
                                                         </span>
                                                         {certificates.length >
                                                             1 && (
@@ -483,7 +477,7 @@ export default function Register({ passwordRules }: Props) {
                                                                 }
                                                                 className="flex cursor-pointer items-center gap-1 text-xs font-bold text-red-500 hover:text-red-700"
                                                             >
-                                                                ✕ Remove
+                                                                {t('auth.remove_certificate')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -491,7 +485,7 @@ export default function Register({ passwordRules }: Props) {
                                                     <div className="space-y-3">
                                                         <div>
                                                             <Label className="text-xs font-bold">
-                                                                Certificate Type
+                                                                {t('auth.certificate_type')}
                                                             </Label>
                                                             <select
                                                                 name={`certificates[${index}][type]`}
@@ -509,20 +503,16 @@ export default function Register({ passwordRules }: Props) {
                                                                 className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-semibold text-foreground focus:border-indigo-500 focus:outline-none"
                                                             >
                                                                 <option value="other">
-                                                                    Other
-                                                                    Certificate
+                                                                    {t('auth.cert_type_other')}
                                                                 </option>
                                                                 <option value="ielts">
-                                                                    IELTS
-                                                                    (Academic /
-                                                                    General)
+                                                                    {t('auth.cert_type_ielts')}
                                                                 </option>
                                                                 <option value="cefr">
-                                                                    CEFR /
-                                                                    Multilevel
+                                                                    {t('auth.cert_type_cefr')}
                                                                 </option>
                                                                 <option value="toefl">
-                                                                    TOEFL
+                                                                    {t('auth.cert_type_toefl')}
                                                                 </option>
                                                             </select>
                                                         </div>
@@ -547,7 +537,7 @@ export default function Register({ passwordRules }: Props) {
                                                                                 .value,
                                                                         )
                                                                     }
-                                                                    placeholder="Enter certificate name (e.g. Duolingo, Cambridge C1, PTE)"
+                                                                    placeholder={t('auth.custom_cert_placeholder')}
                                                                     required
                                                                     className="text-sm font-medium"
                                                                 />
@@ -557,7 +547,7 @@ export default function Register({ passwordRules }: Props) {
                                                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                                                             <div>
                                                                 <Label className="text-[11px] font-bold">
-                                                                    Overall
+                                                                    {t('auth.score_overall')}
                                                                 </Label>
                                                                 <Input
                                                                     type="text"
@@ -583,7 +573,7 @@ export default function Register({ passwordRules }: Props) {
                                                             </div>
                                                             <div>
                                                                 <Label className="text-[11px] font-bold">
-                                                                    Listening
+                                                                    {t('auth.score_listening')}
                                                                 </Label>
                                                                 <Input
                                                                     type="text"
@@ -609,7 +599,7 @@ export default function Register({ passwordRules }: Props) {
                                                             </div>
                                                             <div>
                                                                 <Label className="text-[11px] font-bold">
-                                                                    Reading
+                                                                    {t('auth.score_reading')}
                                                                 </Label>
                                                                 <Input
                                                                     type="text"
@@ -635,7 +625,7 @@ export default function Register({ passwordRules }: Props) {
                                                             </div>
                                                             <div>
                                                                 <Label className="text-[11px] font-bold">
-                                                                    Writing
+                                                                    {t('auth.score_writing')}
                                                                 </Label>
                                                                 <Input
                                                                     type="text"
@@ -661,7 +651,7 @@ export default function Register({ passwordRules }: Props) {
                                                             </div>
                                                             <div>
                                                                 <Label className="text-[11px] font-bold">
-                                                                    Speaking
+                                                                    {t('auth.score_speaking')}
                                                                 </Label>
                                                                 <Input
                                                                     type="text"
@@ -689,18 +679,13 @@ export default function Register({ passwordRules }: Props) {
 
                                                         <div>
                                                             <Label className="mb-1.5 block text-[11px] font-bold">
-                                                                Upload
-                                                                Certificate
-                                                                Document (PDF or
-                                                                Image)
+                                                                {t('auth.upload_cert_doc')}
                                                             </Label>
                                                             <div className="flex items-center gap-3">
                                                                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-xs font-bold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900">
                                                                     <Upload className="h-4 w-4" />
                                                                     <span>
-                                                                        Choose
-                                                                        Certificate
-                                                                        File
+                                                                        {t('auth.choose_cert_file')}
                                                                     </span>
                                                                     <input
                                                                         type="file"
@@ -728,17 +713,13 @@ export default function Register({ passwordRules }: Props) {
                                                                 </label>
                                                                 {cert.file_name ? (
                                                                     <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                                                                        ✓
-                                                                        Attached:{' '}
-                                                                        {
-                                                                            cert.file_name
-                                                                        }
+                                                                        {t('auth.attached_file', {
+                                                                            file: cert.file_name,
+                                                                        })}
                                                                     </span>
                                                                 ) : (
                                                                     <span className="text-xs text-muted-foreground italic">
-                                                                        No file
-                                                                        chosen
-                                                                        yet
+                                                                        {t('auth.no_file_chosen')}
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -804,20 +785,60 @@ export default function Register({ passwordRules }: Props) {
                             </Button>
 
                             <p className="text-center text-xs text-muted-foreground">
-                                By continuing, you agree to ConvoMate's{' '}
-                                <a
-                                    href="/terms"
-                                    className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
-                                >
-                                    Terms of Service
-                                </a>{' '}
-                                and{' '}
-                                <a
-                                    href="/privacy"
-                                    className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
-                                >
-                                    Privacy Policy
-                                </a>.
+                                {locale === 'uz' ? (
+                                    <>
+                                        Davom etish orqali siz ConvoMate'ning{' '}
+                                        <a
+                                            href="/terms"
+                                            className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                        >
+                                            {t('auth.terms_service')}
+                                        </a>{' '}
+                                        va{' '}
+                                        <a
+                                            href="/privacy"
+                                            className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                        >
+                                            {t('auth.privacy_policy')}
+                                        </a>
+                                        ga rozilik bildirasiz.
+                                    </>
+                                ) : locale === 'ru' ? (
+                                    <>
+                                        Продолжая, вы соглашаетесь с{' '}
+                                        <a
+                                            href="/terms"
+                                            className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                        >
+                                            {t('auth.terms_service')}
+                                        </a>{' '}
+                                        и{' '}
+                                        <a
+                                            href="/privacy"
+                                            className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                        >
+                                            {t('auth.privacy_policy')}
+                                        </a>{' '}
+                                        ConvoMate.
+                                    </>
+                                ) : (
+                                    <>
+                                        By continuing, you agree to ConvoMate's{' '}
+                                        <a
+                                            href="/terms"
+                                            className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                        >
+                                            {t('auth.terms_service')}
+                                        </a>{' '}
+                                        and{' '}
+                                        <a
+                                            href="/privacy"
+                                            className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                                        >
+                                            {t('auth.privacy_policy')}
+                                        </a>.
+                                    </>
+                                )}
                             </p>
                         </div>
 
