@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TeacherProfile;
 use App\Models\User;
 use App\Services\SlotService;
 use Illuminate\Database\Eloquent\Builder;
@@ -63,27 +64,38 @@ class TeacherController extends Controller
         $currentUser = auth()->user();
         $isPrivileged = $currentUser && ($currentUser->role === 'admin' || $currentUser->id === $teacher->id);
 
-        if (! $isPrivileged && $teacher->teacherProfile && is_array($teacher->teacherProfile->certificates)) {
-            $sanitizedCerts = array_map(function ($cert) {
-                if (is_array($cert)) {
-                    $cert['file_url'] = null;
-                    $cert['file_name'] = null;
+        if (! $isPrivileged && (! $teacher->teacherProfile || ! $teacher->teacherProfile->is_verified)) {
+            abort(404);
+        }
+
+        if (! $isPrivileged && $teacher->teacherProfile) {
+            $certs = $teacher->teacherProfile->certificates;
+            if (is_string($certs)) {
+                $certs = json_decode($certs, true) ?? [];
+            }
+            if (is_array($certs)) {
+                $visibleCerts = [];
+                foreach ($certs as $cert) {
+                    if (is_array($cert) && ($cert['status'] ?? 'pending') === 'verified') {
+                        $cert['file_url'] = null;
+                        $visibleCerts[] = $cert;
+                    }
                 }
-
-                return $cert;
-            }, $teacher->teacherProfile->certificates);
-
-            $teacher->teacherProfile->certificates = $sanitizedCerts;
+                $teacher->teacherProfile->certificates = $visibleCerts;
+            }
         }
 
         $hasEligibleTrial = ! $currentUser || ! $currentUser->hasBookedWithTeacher($teacher->id);
         $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 0);
         $trialPrice = $hourlyRate > 0 ? (int) (round(($hourlyRate / 3) / 1000) * 1000) : 0;
 
+        $conversationStats = TeacherProfile::getConversationStats($teacher->id);
+
         return Inertia::render('pupil/teacher-profile', [
             'teacher' => $teacher,
             'hasEligibleTrial' => $hasEligibleTrial,
             'trialPrice' => $trialPrice,
+            'conversationStats' => $conversationStats,
         ]);
     }
 
@@ -104,6 +116,13 @@ class TeacherController extends Controller
             ->first();
 
         if (! $teacher) {
+            return redirect()->route('pupil.teachers.index');
+        }
+
+        $currentUser = auth()->user();
+        $isPrivileged = $currentUser && ($currentUser->role === 'admin' || $currentUser->id === $teacher->id);
+
+        if (! $isPrivileged && (! $teacher->teacherProfile || ! $teacher->teacherProfile->is_verified)) {
             return redirect()->route('pupil.teachers.index');
         }
 
@@ -162,7 +181,9 @@ class TeacherController extends Controller
             $status = 'all';
         }
 
-        $query = User::where('role', 'teacher')->with('teacherProfile');
+        $query = User::where('role', 'teacher')
+            ->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true))
+            ->with('teacherProfile');
 
         // Name Search Filter (case-insensitive)
         if ($search !== '') {
@@ -172,13 +193,9 @@ class TeacherController extends Controller
         }
 
         // Status Filter
-        if ($status === 'verified') {
-            $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
-        } elseif ($status === 'unverified') {
-            $query->where(function ($q) {
-                $q->whereDoesntHave('teacherProfile')
-                    ->orWhereHas('teacherProfile', fn ($q2) => $q2->where('is_verified', false));
-            });
+        if ($status === 'unverified') {
+            // Unverified teachers are never shown to pupils or other teachers
+            $query->whereRaw('1 = 0');
         } elseif ($status === 'new') {
             $query->where('users.created_at', '>=', now()->subDays(7));
         }

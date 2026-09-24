@@ -22,9 +22,16 @@ import {
     Trash2,
     ShieldCheck,
     ShieldAlert,
+    Eye,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { CertificatePreviewModal } from '@/components/certificates/CertificatePreviewModal';
+import {
+    getCertificateDefinition,
+    LANGUAGE_OPTIONS,
+    getDefaultLanguageForExam,
+} from '@/config/certificates';
 
 interface Feedback {
     id: string;
@@ -66,12 +73,18 @@ interface Props {
     teacher: Teacher;
     hasEligibleTrial?: boolean;
     trialPrice?: number;
+    conversationStats?: {
+        total_conversations: number;
+        total_minutes: number;
+        total_time_formatted: string;
+    };
 }
 
 export default function TeacherProfile({
     teacher,
     hasEligibleTrial = true,
     trialPrice,
+    conversationStats,
 }: Props) {
     const { auth } = usePage<any>().props;
     const { t } = useTranslation();
@@ -84,6 +97,7 @@ export default function TeacherProfile({
         name: string;
     } | null>(null);
     const [selectedDuration, setSelectedDuration] = React.useState<number>(60);
+    const [selectedCertForPreview, setSelectedCertForPreview] = React.useState<any | null>(null);
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
@@ -96,20 +110,26 @@ export default function TeacherProfile({
                 const isUrl = c.startsWith('http') || c.startsWith('/storage');
                 return {
                     type: 'ielts',
+                    language: 'english',
                     custom_type_name: '',
+                    custom_language: '',
                     title: isUrl ? 'IELTS Certificate' : c,
                     overall: '',
                     listening: '',
                     reading: '',
                     writing: '',
                     speaking: '',
+                    sub_scores: {},
                     file_url: isUrl ? c : null,
                     file_name: isUrl ? c.substring(c.lastIndexOf('/') + 1) : '',
                     status: 'verified',
                 };
             }
             const certType = c.type ?? 'ielts';
+            const certLang =
+                c.language ?? (getDefaultLanguageForExam(certType) || 'english');
             const customName = c.custom_type_name ?? '';
+            const def = getCertificateDefinition(certType);
 
             const isFileName = (str: string) => {
                 if (!str) return true;
@@ -128,25 +148,25 @@ export default function TeacherProfile({
                     !isFileName(customName)
                 ) {
                     displayTitle = customName;
-                } else if (certType === 'ielts') {
-                    displayTitle = 'IELTS (Academic / General)';
-                } else if (certType === 'cefr') {
-                    displayTitle = 'CEFR / Multilevel';
-                } else if (certType === 'toefl') {
-                    displayTitle = 'TOEFL';
                 } else {
-                    displayTitle = 'Language Certificate';
+                    displayTitle = def.label;
                 }
             }
             return {
                 type: certType,
+                language: certLang,
                 custom_type_name: customName,
+                custom_language: c.custom_language ?? '',
                 title: displayTitle,
                 overall: c.overall ?? '',
                 listening: c.listening ?? '',
                 reading: c.reading ?? '',
                 writing: c.writing ?? '',
                 speaking: c.speaking ?? '',
+                sub_scores:
+                    c.sub_scores && typeof c.sub_scores === 'object'
+                        ? c.sub_scores
+                        : {},
                 file_url: c.file_url ?? null,
                 file_name: c.file_name ?? '',
                 status: c.status ?? 'pending',
@@ -775,6 +795,22 @@ export default function TeacherProfile({
                                         </span>
                                     </div>
                                 )}
+                            <div className="score-chip">
+                                <span className="sv">
+                                    {conversationStats?.total_conversations ?? 0}
+                                </span>
+                                <span className="sl">
+                                    {t('dashboard.completed_conversations')}
+                                </span>
+                            </div>
+                            <div className="score-chip">
+                                <span className="sv">
+                                    {conversationStats?.total_time_formatted ?? '0m'}
+                                </span>
+                                <span className="sl">
+                                    {t('dashboard.speaking_time')}
+                                </span>
+                            </div>
                             <span className="new-badge">
                                 <Sparkles className="spark h-3.5 w-3.5 fill-amber-400 text-amber-500" />
                                 {t(
@@ -889,232 +925,147 @@ export default function TeacherProfile({
                             </div>
                             {normalizedCerts.length > 0 ? (
                                 <div className="space-y-4">
-                                    {normalizedCerts.map((cert, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="space-y-3 rounded-2xl border border-[#E6E9F2] bg-white p-4 shadow-sm"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A]">
-                                                        <FileText className="h-4 w-4" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="text-sm font-bold text-[#1E2A5A]">
-                                                            {cert.title ||
-                                                                (cert.type ===
-                                                                'other'
-                                                                    ? cert.custom_type_name
-                                                                    : cert.type?.toUpperCase()) ||
-                                                                'Language Certificate'}
-                                                        </h4>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {cert.status ===
-                                                    'verified' ? (
-                                                        <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A]">
-                                                            ✓ Verified
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-bold text-[#6B7394]">
-                                                            Under review
-                                                        </span>
-                                                    )}
+                                    {normalizedCerts.map((cert, idx) => {
+                                        const def = getCertificateDefinition(cert.type);
+                                        const langOption = cert.language
+                                            ? LANGUAGE_OPTIONS.find((l) => l.id === cert.language)
+                                            : null;
+                                        const langBadge = cert.custom_language
+                                            ? cert.custom_language
+                                            : langOption
+                                              ? t(langOption.labelKey, langOption.label)
+                                              : t(def.languageBadgeKey, def.fallbackLanguageBadge);
 
-                                                    {auth?.user?.role ===
-                                                        'admin' && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant={
-                                                                cert.status ===
-                                                                'verified'
-                                                                    ? 'outline'
-                                                                    : 'default'
-                                                            }
-                                                            onClick={() => {
-                                                                router.post(
-                                                                    `/admin/teachers/${teacher.id}/certificates/${idx}/verify`,
-                                                                    {
-                                                                        status:
-                                                                            cert.status ===
-                                                                            'verified'
-                                                                                ? 'under_review'
-                                                                                : 'verified',
-                                                                    },
-                                                                );
-                                                            }}
-                                                            className={
-                                                                cert.status !==
-                                                                'verified'
-                                                                    ? 'h-6 bg-emerald-600 px-2 text-[11px] font-bold text-white hover:bg-emerald-700'
-                                                                    : 'h-6 px-2 text-[11px] font-bold'
-                                                            }
-                                                        >
-                                                            {cert.status ===
-                                                            'verified'
-                                                                ? t(
-                                                                      'admin.unverify_certificate',
-                                                                  )
-                                                                : t(
-                                                                      'admin.verify_certificate',
-                                                                  )}
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
+                                        const skills = def.skills.map((s) => {
+                                            const val =
+                                                (cert as any)[s.key] ??
+                                                cert.sub_scores?.[s.key] ??
+                                                '';
+                                            return {
+                                                label: t(s.labelKey, s.fallbackLabel),
+                                                value: val || '—',
+                                            };
+                                        });
 
-                                            {/* Sub-scores layout */}
-                                            <div className="rounded-xl border border-[#E6E9F2]/60 bg-[#FAFBFD] p-3">
-                                                {/* Mobile layout (< sm): vertical stacked key-value list */}
-                                                <div className="flex flex-col gap-2 text-xs sm:hidden">
-                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">
-                                                            Overall:
-                                                        </span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">
-                                                            {cert.overall ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">
-                                                            Listening:
-                                                        </span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">
-                                                            {cert.listening ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">
-                                                            Reading:
-                                                        </span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">
-                                                            {cert.reading ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/50 pb-1.5">
-                                                        <span className="font-bold text-[#6B7394]">
-                                                            Writing:
-                                                        </span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">
-                                                            {cert.writing ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="font-bold text-[#6B7394]">
-                                                            Speaking:
-                                                        </span>
-                                                        <span className="font-extrabold text-[#1E2A5A]">
-                                                            {cert.speaking ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Desktop layout (>= sm): 5 horizontal columns */}
-                                                <div className="hidden gap-1.5 text-center sm:grid sm:grid-cols-5">
-                                                    <div>
-                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
-                                                            Overall
-                                                        </span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
-                                                            {cert.overall ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
-                                                            Listening
-                                                        </span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
-                                                            {cert.listening ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
-                                                            Reading
-                                                        </span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
-                                                            {cert.reading ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
-                                                            Writing
-                                                        </span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
-                                                            {cert.writing ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-[10px] font-bold text-[#6B7394] uppercase">
-                                                            Speaking
-                                                        </span>
-                                                        <span className="text-xs font-extrabold text-[#1E2A5A]">
-                                                            {cert.speaking ||
-                                                                '—'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Document Inspection (Admin & Owner Teacher Only) */}
-                                            {(auth?.user?.role === 'admin' ||
-                                                auth?.user?.id ===
-                                                    teacher.id) && (
-                                                <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] px-3.5 py-2.5">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs font-bold text-[#6B7394]">
-                                                            Certificate Document:
-                                                        </span>
-                                                        {cert.file_url ? (
-                                                            <a
-                                                                href={
-                                                                    cert.file_url
-                                                                }
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-100 hover:text-indigo-900"
-                                                            >
-                                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                                <span>
-                                                                    View Document
-                                                                    {cert.file_name
-                                                                        ? ` (${cert.file_name})`
-                                                                        : ''}
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className="space-y-3.5 rounded-2xl border border-[#E6E9F2] bg-white p-4 shadow-sm"
+                                            >
+                                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A]">
+                                                            <Award className="h-4.5 w-4.5" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <h4 className="text-sm font-bold text-[#1E2A5A]">
+                                                                    {cert.title || def.label}
+                                                                </h4>
+                                                                <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700">
+                                                                    {langBadge}
                                                                 </span>
-                                                            </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {cert.status === 'verified' ? (
+                                                            <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A]">
+                                                                ✓ Verified
+                                                            </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-                                                                No document attached
+                                                            <span className="inline-flex items-center rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-bold text-[#6B7394]">
+                                                                Under review
                                                             </span>
                                                         )}
+
+                                                        {auth?.user?.role === 'admin' && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant={
+                                                                    cert.status === 'verified'
+                                                                        ? 'outline'
+                                                                        : 'default'
+                                                                }
+                                                                onClick={() => {
+                                                                    router.post(
+                                                                        `/admin/teachers/${teacher.id}/certificates/${idx}/verify`,
+                                                                        {
+                                                                            status:
+                                                                                cert.status === 'verified'
+                                                                                    ? 'under_review'
+                                                                                    : 'verified',
+                                                                        },
+                                                                    );
+                                                                }}
+                                                                className={
+                                                                    cert.status !== 'verified'
+                                                                        ? 'h-6 bg-emerald-600 px-2 text-[11px] font-bold text-white hover:bg-emerald-700'
+                                                                        : 'h-6 px-2 text-[11px] font-bold'
+                                                                }
+                                                            >
+                                                                {cert.status === 'verified'
+                                                                    ? t('admin.unverify_certificate')
+                                                                    : t('admin.verify_certificate')}
+                                                            </Button>
+                                                        )}
                                                     </div>
-                                                    {cert.file_url && (
-                                                        <a
-                                                            href={cert.file_url}
-                                                            download={
-                                                                cert.file_name ||
-                                                                'certificate'
-                                                            }
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-xs font-bold text-[#1E2A5A] hover:underline"
-                                                        >
-                                                            Download
-                                                        </a>
+                                                </div>
+
+                                                {/* Scores display */}
+                                                <div className="rounded-xl border border-[#E6E9F2]/60 bg-[#FAFBFD] p-3">
+                                                    {/* Overall row */}
+                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/60 pb-2">
+                                                        <span className="text-xs font-bold text-[#6B7394]">
+                                                            {t(def.overall.labelKey, def.overall.fallbackLabel)}
+                                                        </span>
+                                                        <span className="rounded-lg bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold text-indigo-700">
+                                                            {cert.overall || '—'}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Sub-skills grid if any */}
+                                                    {skills.length > 0 && (
+                                                        <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                                            {skills.map((s, sIdx) => (
+                                                                <div
+                                                                    key={sIdx}
+                                                                    className="rounded-lg border border-[#E6E9F2]/60 bg-white p-2 text-center shadow-2xs"
+                                                                >
+                                                                    <span className="block truncate text-[10px] font-bold text-[#6B7394] uppercase">
+                                                                        {s.label}
+                                                                    </span>
+                                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">
+                                                                        {s.value}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     )}
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
+
+                                                {/* Certificate Document Action (Accessible to all pupils & admins/teachers) */}
+                                                {cert.file_url && (
+                                                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                                        <span className="flex items-center gap-1.5 text-xs font-medium text-[#6B7394]">
+                                                            <FileText className="h-3.5 w-3.5" />
+                                                            <span className="truncate max-w-[200px] sm:max-w-xs">
+                                                                {cert.file_name || 'Certificate Document'}
+                                                            </span>
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSelectedCertForPreview(cert)}
+                                                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/80 px-3 py-1.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 hover:text-indigo-900"
+                                                        >
+                                                            <Eye className="h-3.5 w-3.5" />
+                                                            <span>{t('teacher.view_certificate', 'View Certificate')}</span>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <p className="text-sm font-medium text-muted-foreground italic">
@@ -1822,6 +1773,12 @@ export default function TeacherProfile({
                 onClose={() => setDeletingUser(null)}
                 userId={deletingUser?.id ?? null}
                 userName={deletingUser?.name}
+            />
+
+            <CertificatePreviewModal
+                isOpen={Boolean(selectedCertForPreview)}
+                onClose={() => setSelectedCertForPreview(null)}
+                certificate={selectedCertForPreview}
             />
         </>
     );

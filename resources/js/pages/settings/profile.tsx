@@ -20,6 +20,11 @@ import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
 import { useTranslation } from '@/hooks/use-translation';
+import {
+    CertificateInputCard,
+    CertificateData,
+} from '@/components/certificates/CertificateInputCard';
+import { getDefaultLanguageForExam } from '@/config/certificates';
 
 type PageProps = {
     auth: Auth & {
@@ -218,7 +223,7 @@ export default function Profile({
     };
 
     // --- Teacher specific logic ---
-    const initialTeacherCerts = React.useMemo(() => {
+    const initialTeacherCerts: CertificateData[] = React.useMemo(() => {
         const rawCerts = auth.user.teacher_profile?.certificates ?? [];
         const parsed = safeParseArray(rawCerts);
 
@@ -238,6 +243,7 @@ export default function Profile({
                     id: 0,
                     isExisting: true,
                     type: 'ielts',
+                    language: 'english',
                     custom_type_name: '',
                     title: 'IELTS (Academic / General)',
                     overall: profileOverall || profileSpeaking,
@@ -259,6 +265,7 @@ export default function Profile({
                     id: index,
                     isExisting: true,
                     type: 'ielts',
+                    language: 'english',
                     custom_type_name: '',
                     title: isUrl ? 'IELTS (Academic / General)' : c,
                     overall: profileOverall || profileSpeaking,
@@ -280,18 +287,28 @@ export default function Profile({
                 String(c?.overall ?? '') || profileOverall || profileSpeaking;
             const speakingVal =
                 String(c?.speaking ?? '') || profileSpeaking || overallVal;
+            const certType = String(c?.type ?? 'ielts');
+            const certLang = String(
+                c?.language ?? (getDefaultLanguageForExam(certType) || 'english'),
+            );
 
             return {
                 id: index,
                 isExisting: true,
-                type: String(c?.type ?? 'ielts'),
+                type: certType,
+                language: certLang,
                 custom_type_name: String(c?.custom_type_name ?? ''),
+                custom_language: String(c?.custom_language ?? ''),
                 title: String(c?.title ?? ''),
                 overall: overallVal,
                 listening: String(c?.listening ?? '') || overallVal,
                 reading: String(c?.reading ?? '') || overallVal,
                 writing: String(c?.writing ?? '') || overallVal,
                 speaking: speakingVal,
+                sub_scores:
+                    c?.sub_scores && typeof c.sub_scores === 'object'
+                        ? c.sub_scores
+                        : {},
                 file_url: c?.file_url ? String(c.file_url) : null,
                 file_name: String(c?.file_name ?? ''),
                 status: String(c?.status ?? 'pending'),
@@ -299,7 +316,7 @@ export default function Profile({
         });
     }, [auth.user]);
 
-    const [certs, setCerts] = React.useState(initialTeacherCerts);
+    const [certs, setCerts] = React.useState<CertificateData[]>(initialTeacherCerts);
 
     React.useEffect(() => {
         setCerts(initialTeacherCerts);
@@ -312,13 +329,16 @@ export default function Profile({
                 id: Date.now(),
                 isExisting: false, // New certificate: editable scores!
                 type: 'ielts',
+                language: 'english',
                 custom_type_name: '',
+                custom_language: '',
                 title: 'IELTS (Academic / General)',
                 overall: '',
                 listening: '',
                 reading: '',
                 writing: '',
                 speaking: '',
+                sub_scores: {},
                 file_url: null,
                 file_name: '',
                 status: 'pending',
@@ -330,6 +350,14 @@ export default function Profile({
         setCerts((prev) => {
             const next = [...prev];
             next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    };
+
+    const updateCert = (index: number, updated: CertificateData) => {
+        setCerts((prev) => {
+            const next = [...prev];
+            next[index] = { ...next[index], ...updated };
             return next;
         });
     };
@@ -991,433 +1019,36 @@ export default function Profile({
 
                                                 <div className="space-y-4">
                                                     {certs.map((c, index) => (
-                                                        <div
-                                                            key={c.id || index}
-                                                            className="space-y-3.5 rounded-2xl border border-[#E6E9F2] bg-white p-4 shadow-sm"
-                                                        >
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="rounded-lg bg-[#EEF4FB] px-2.5 py-1 text-xs font-bold text-[#1E2A5A]">
-                                                                        Certificate
-                                                                        #
-                                                                        {index +
-                                                                            1}
-                                                                    </span>
-                                                                    {c.status ===
-                                                                    'verified' ? (
-                                                                        <span className="rounded-full bg-[#F7DE8B] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A]">
-                                                                            ✓
-                                                                            Verified
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span className="rounded-full bg-[#F1F3F8] px-2.5 py-0.5 text-[11px] font-bold text-[#6B7394]">
-                                                                            Under
-                                                                            review
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        removeCertificate(
-                                                                            index,
-                                                                        )
-                                                                    }
-                                                                    className="flex cursor-pointer items-center gap-1 p-1 text-xs font-bold text-red-500 transition hover:text-red-700"
-                                                                >
-                                                                    <Trash2 className="h-3.5 w-3.5" />{' '}
-                                                                    Delete
-                                                                    Certificate
-                                                                </button>
-                                                            </div>
-
-                                                            <div className="space-y-3">
-                                                                <div>
-                                                                    <label className="text-xs font-bold text-[#22284A]">
-                                                                        Certificate
-                                                                        Type
-                                                                    </label>
-                                                                    <select
-                                                                        name={`certificates[${index}][type]`}
-                                                                        disabled={Boolean(
-                                                                            c.isExisting,
-                                                                        )}
-                                                                        value={
-                                                                            c.type ||
-                                                                            'ielts'
-                                                                        }
-                                                                        onChange={(
-                                                                            e,
-                                                                        ) =>
-                                                                            updateCertField(
-                                                                                index,
-                                                                                'type',
-                                                                                e
-                                                                                    .target
-                                                                                    .value,
-                                                                            )
-                                                                        }
-                                                                        className={`mt-1 block w-full rounded-xl border border-[#E6E9F2] px-3 py-2 text-xs font-bold text-[#22284A] ${
-                                                                            c.isExisting
-                                                                                ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                : 'bg-white focus:border-[#1E2A5A] focus:outline-none'
-                                                                        }`}
-                                                                    >
-                                                                        <option value="other">
-                                                                            Other
-                                                                            Certificate
-                                                                        </option>
-                                                                        <option value="ielts">
-                                                                            IELTS
-                                                                            (Academic
-                                                                            /
-                                                                            General)
-                                                                        </option>
-                                                                        <option value="cefr">
-                                                                            CEFR
-                                                                            /
-                                                                            Multilevel
-                                                                        </option>
-                                                                        <option value="toefl">
-                                                                            TOEFL
-                                                                        </option>
-                                                                    </select>
-                                                                    {c.isExisting && (
-                                                                        <input
-                                                                            type="hidden"
-                                                                            name={`certificates[${index}][type]`}
-                                                                            value={
-                                                                                c.type ||
-                                                                                'ielts'
-                                                                            }
-                                                                        />
-                                                                    )}
-                                                                </div>
-
-                                                                {c.type ===
-                                                                    'other' && (
-                                                                    <div>
-                                                                        <input
-                                                                            type="text"
-                                                                            name={`certificates[${index}][custom_type_name]`}
-                                                                            readOnly={Boolean(
-                                                                                c.isExisting,
-                                                                            )}
-                                                                            value={
-                                                                                c.custom_type_name ||
-                                                                                ''
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateCertField(
-                                                                                    index,
-                                                                                    'custom_type_name',
-                                                                                    e
-                                                                                        .target
-                                                                                        .value,
-                                                                                )
-                                                                            }
-                                                                            placeholder="Enter certificate name (e.g. Duolingo, Cambridge C1, PTE)"
-                                                                            className={`w-full rounded-xl border border-[#E6E9F2] px-3 py-2 text-xs font-medium text-[#22284A] ${
-                                                                                c.isExisting
-                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                    : 'bg-white focus:border-[#1E2A5A] focus:outline-none'
-                                                                            }`}
-                                                                        />
-                                                                    </div>
-                                                                )}
-
-                                                                <div className="space-y-3">
-                                                                    <div>
-                                                                        <label className="text-xs font-bold text-[#22284A]">
-                                                                            {t('auth.score_overall')}
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name={`certificates[${index}][overall]`}
-                                                                            readOnly={Boolean(
-                                                                                c.isExisting,
-                                                                            )}
-                                                                            value={
-                                                                                c.overall ||
-                                                                                ''
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateCertField(
-                                                                                    index,
-                                                                                    'overall',
-                                                                                    e
-                                                                                        .target
-                                                                                        .value,
-                                                                                )
-                                                                            }
-                                                                            placeholder="e.g. 7.5"
-                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs font-bold text-[#22284A] ${
-                                                                                c.isExisting
-                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                    : 'bg-white focus:border-[#1E2A5A]'
-                                                                            }`}
-                                                                        />
-                                                                    </div>
-
-                                                                    <div className="grid grid-cols-2 gap-3">
-                                                                        <div className="min-w-0">
-                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
-                                                                                {t('auth.score_listening')}
-                                                                            </label>
-                                                                            <input
-                                                                                type="text"
-                                                                                name={`certificates[${index}][listening]`}
-                                                                                readOnly={Boolean(
-                                                                                    c.isExisting,
-                                                                                )}
-                                                                                value={
-                                                                                    c.listening ||
-                                                                                    ''
-                                                                                }
-                                                                                onChange={(
-                                                                                    e,
-                                                                                ) =>
-                                                                                    updateCertField(
-                                                                                        index,
-                                                                                        'listening',
-                                                                                        e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    )
-                                                                                }
-                                                                                placeholder="e.g. 8.0"
-                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                    c.isExisting
-                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                        : 'bg-white focus:border-[#1E2A5A]'
-                                                                                }`}
-                                                                            />
-                                                                        </div>
-                                                                        <div className="min-w-0">
-                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
-                                                                                {t('auth.score_reading')}
-                                                                            </label>
-                                                                            <input
-                                                                                type="text"
-                                                                                name={`certificates[${index}][reading]`}
-                                                                                readOnly={Boolean(
-                                                                                    c.isExisting,
-                                                                                )}
-                                                                                value={
-                                                                                    c.reading ||
-                                                                                    ''
-                                                                                }
-                                                                                onChange={(
-                                                                                    e,
-                                                                                ) =>
-                                                                                    updateCertField(
-                                                                                        index,
-                                                                                        'reading',
-                                                                                        e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    )
-                                                                                }
-                                                                                placeholder="e.g. 7.0"
-                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                    c.isExisting
-                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                        : 'bg-white focus:border-[#1E2A5A]'
-                                                                                }`}
-                                                                            />
-                                                                        </div>
-                                                                        <div className="min-w-0">
-                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
-                                                                                {t('auth.score_writing')}
-                                                                            </label>
-                                                                            <input
-                                                                                type="text"
-                                                                                name={`certificates[${index}][writing]`}
-                                                                                readOnly={Boolean(
-                                                                                    c.isExisting,
-                                                                                )}
-                                                                                value={
-                                                                                    c.writing ||
-                                                                                    ''
-                                                                                }
-                                                                                onChange={(
-                                                                                    e,
-                                                                                ) =>
-                                                                                    updateCertField(
-                                                                                        index,
-                                                                                        'writing',
-                                                                                        e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    )
-                                                                                }
-                                                                                placeholder="e.g. 6.5"
-                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                    c.isExisting
-                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                        : 'bg-white focus:border-[#1E2A5A]'
-                                                                                }`}
-                                                                            />
-                                                                        </div>
-                                                                        <div className="min-w-0">
-                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
-                                                                                {t('auth.score_speaking')}
-                                                                            </label>
-                                                                            <input
-                                                                                type="text"
-                                                                                name={`certificates[${index}][speaking]`}
-                                                                                readOnly={Boolean(
-                                                                                    c.isExisting,
-                                                                                )}
-                                                                                value={
-                                                                                    c.speaking ||
-                                                                                    ''
-                                                                                }
-                                                                                onChange={(
-                                                                                    e,
-                                                                                ) =>
-                                                                                    updateCertField(
-                                                                                        index,
-                                                                                        'speaking',
-                                                                                        e
-                                                                                            .target
-                                                                                            .value,
-                                                                                    )
-                                                                                }
-                                                                                placeholder="e.g. 8.5"
-                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                    c.isExisting
-                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                        : 'bg-white focus:border-[#1E2A5A]'
-                                                                                }`}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-
-                                                                {c.isExisting ? (
-                                                                    <p className="flex items-center gap-1 text-[11px] text-[#6B7394] italic">
-                                                                        🔒
-                                                                        Verified
-                                                                        registration
-                                                                        scores
-                                                                        are
-                                                                        locked.
-                                                                        New
-                                                                        certificates
-                                                                        added
-                                                                        below
-                                                                        can be
-                                                                        assigned
-                                                                        band
-                                                                        scores.
-                                                                    </p>
-                                                                ) : (
-                                                                    <p className="flex items-center gap-1 text-[11px] font-semibold text-[#1D9E75]">
-                                                                        ✎ Enter
-                                                                        official
-                                                                        band
-                                                                        scores
-                                                                        for this
-                                                                        new
-                                                                        certificate
-                                                                        before
-                                                                        saving.
-                                                                    </p>
-                                                                )}
-
-                                                                <div>
-                                                                    <label className="mb-1.5 block text-[11px] font-bold text-[#6B7394]">
-                                                                        Certificate
-                                                                        Document
-                                                                        Credential
-                                                                    </label>
-                                                                    <div className="flex flex-wrap items-center gap-3">
-                                                                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#D5E2F2] bg-[#EEF4FB] px-4 py-2.5 text-xs font-bold text-[#1E2A5A] shadow-sm transition hover:bg-[#E2ECF8]">
-                                                                            <Upload className="h-4 w-4 text-[#1E2A5A]" />
-                                                                            <span>
-                                                                                Upload
-                                                                                Certificate
-                                                                                Document
-                                                                                (PDF
-                                                                                or
-                                                                                Image)
-                                                                            </span>
-                                                                            <input
-                                                                                type="file"
-                                                                                name={`certificate_files[${index}]`}
-                                                                                accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif"
-                                                                                onChange={(
-                                                                                    e,
-                                                                                ) =>
-                                                                                    handleCertFileSelect(
-                                                                                        index,
-                                                                                        e,
-                                                                                    )
-                                                                                }
-                                                                                className="hidden"
-                                                                            />
-                                                                        </label>
-                                                                        {c.file_name ? (
-                                                                            <span className="flex items-center gap-1.5 rounded-lg border border-[#B3E8D7] bg-[#E8F8F3] px-3 py-1.5 text-xs font-semibold text-[#1D9E75]">
-                                                                                ✓
-                                                                                File
-                                                                                Attached:{' '}
-                                                                                {
-                                                                                    c.file_name
-                                                                                }
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span className="text-xs text-[#6B7394] italic">
-                                                                                No
-                                                                                file
-                                                                                attached
-                                                                                yet
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
+                                                        <React.Fragment key={c.id || index}>
+                                                            <CertificateInputCard
+                                                                index={index}
+                                                                cert={c}
+                                                                readOnly={Boolean(c.isExisting)}
+                                                                canRemove={true}
+                                                                onChange={(updated) => updateCert(index, updated)}
+                                                                onRemove={() => removeCertificate(index)}
+                                                            />
                                                             <input
                                                                 type="hidden"
                                                                 name={`certificates[${index}][title]`}
-                                                                value={
-                                                                    c.title ||
-                                                                    c.custom_type_name ||
-                                                                    c.type
-                                                                }
+                                                                value={c.title || c.custom_type_name || c.type}
                                                             />
                                                             <input
                                                                 type="hidden"
                                                                 name={`certificates[${index}][file_url]`}
-                                                                value={
-                                                                    c.file_url ||
-                                                                    ''
-                                                                }
+                                                                value={c.file_url || ''}
                                                             />
                                                             <input
                                                                 type="hidden"
                                                                 name={`certificates[${index}][file_name]`}
-                                                                value={
-                                                                    c.file_name ||
-                                                                    ''
-                                                                }
+                                                                value={c.file_name || ''}
                                                             />
                                                             <input
                                                                 type="hidden"
                                                                 name={`certificates[${index}][status]`}
-                                                                value={
-                                                                    c.status ||
-                                                                    'pending'
-                                                                }
+                                                                value={c.status || 'pending'}
                                                             />
-                                                        </div>
+                                                        </React.Fragment>
                                                     ))}
                                                 </div>
 

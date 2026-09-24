@@ -197,4 +197,94 @@ class RegistrationTest extends TestCase
         $this->assertEquals('doc2.pdf', $certs[1]['title']);
         $this->assertTrue(str_starts_with($certs[1]['file_url'], '/storage/') || str_contains($certs[1]['file_url'], 'storage.googleapis.com') || str_contains($certs[1]['file_url'], 'doc2.pdf'));
     }
+
+    public function test_new_teacher_can_register_with_structured_multilingual_certificates()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Structured Teacher',
+            'email' => 'structured_teacher@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 29,
+            'phone_number' => '+998909876543',
+            'certificates' => [
+                [
+                    'type' => 'topik2',
+                    'language' => 'korean',
+                    'overall' => 'Level 5 (210)',
+                    'reading' => '70',
+                    'listening' => '75',
+                    'writing' => '65',
+                ],
+                [
+                    'type' => 'cefr',
+                    'language' => 'german',
+                    'overall' => 'B2',
+                    'listening' => 'B2',
+                    'reading' => 'B2',
+                    'writing' => 'B1',
+                    'speaking' => 'B2',
+                ],
+            ],
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $teacher = User::where('email', 'structured_teacher@example.com')->first();
+        $certs = $teacher->teacherProfile->certificates;
+
+        $this->assertCount(2, $certs);
+        $this->assertEquals('topik2', $certs[0]['type']);
+        $this->assertEquals('korean', $certs[0]['language']);
+        $this->assertEquals('Level 5 (210)', $certs[0]['overall']);
+        $this->assertEquals('70', $certs[0]['reading']);
+
+        $this->assertEquals('cefr', $certs[1]['type']);
+        $this->assertEquals('german', $certs[1]['language']);
+        $this->assertEquals('B2', $certs[1]['overall']);
+        $this->assertEquals('B2', $certs[1]['listening']);
+        $this->assertEquals('B2', $certs[1]['speaking']);
+    }
+
+    public function test_new_teacher_can_register_with_formatted_price_string()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Price Teacher',
+            'email' => 'price_teacher@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 30,
+            'phone_number' => '+998901234567',
+            'price' => '65 000',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $teacher = User::where('email', 'price_teacher@example.com')->first();
+        $this->assertSame(65000, $teacher->teacherProfile->price);
+    }
+
+    public function test_new_teacher_can_register_with_empty_or_zero_price()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Free Teacher',
+            'email' => 'free_teacher@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 25,
+            'phone_number' => '+998907654321',
+            'price' => '',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $teacher = User::where('email', 'free_teacher@example.com')->first();
+        $this->assertSame(0, $teacher->teacherProfile->price);
+    }
 }

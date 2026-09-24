@@ -842,10 +842,7 @@ function TeacherDashboard({
                             🌟
                         </h1>
                         <p className="mt-1 text-sm font-medium text-brand-yellow/80 opacity-90 md:text-base">
-                            {t('dashboard.teacher_subtitle', { name: '' })
-                                .replace(/^\s*,\s*/, '')
-                                .trim() ||
-                                "Darslaringiz va bo'sh vaqtlarigizni samarali boshqaring."}
+                            {t('dashboard.teacher_subtitle')}
                         </p>
                     </div>
                 </div>
@@ -877,7 +874,7 @@ function TeacherDashboard({
             <GoogleCalendarWarningBanner user={user} />
 
             {/* Stats grid */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {/* Bugungi darslar */}
                 <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-white p-6 transition duration-200">
                     <div className="absolute top-0 left-0 h-full w-2 bg-[#061445]"></div>
@@ -901,6 +898,52 @@ function TeacherDashboard({
                     </div>
                     <div className="mt-4 text-xs font-medium text-[#45464f]">
                         {t('dashboard.sessions_today_desc')}
+                    </div>
+                </div>
+
+                {/* Yakunlangan darslar */}
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-white p-6 transition duration-200">
+                    <div className="absolute top-0 left-0 h-full w-2 bg-sky-500"></div>
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                            <p className="text-sm font-semibold tracking-wider text-[#45464f] uppercase">
+                                {t('dashboard.completed_conversations')}
+                            </p>
+                            <div className="flex items-baseline space-x-2">
+                                <span className="text-4xl font-extrabold tracking-tight text-[#1b1b1f]">
+                                    {stats.completed_conversations || 0}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition duration-200 group-hover:scale-110">
+                            <CheckCircle2 className="h-5 w-5" />
+                        </div>
+                    </div>
+                    <div className="mt-4 text-xs font-medium text-[#45464f]">
+                        {t('dashboard.completed_conversations_desc')}
+                    </div>
+                </div>
+
+                {/* Jami suhbat vaqti */}
+                <div className="group shadow-ambient hover:shadow-ambient-md relative overflow-hidden rounded-3xl bg-white p-6 transition duration-200">
+                    <div className="absolute top-0 left-0 h-full w-2 bg-indigo-500"></div>
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                            <p className="text-sm font-semibold tracking-wider text-[#45464f] uppercase">
+                                {t('dashboard.speaking_time')}
+                            </p>
+                            <div className="flex items-baseline space-x-2">
+                                <span className="text-4xl font-extrabold tracking-tight text-[#1b1b1f]">
+                                    {stats.speaking_time || '0m'}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition duration-200 group-hover:scale-110">
+                            <Clock className="h-5 w-5" />
+                        </div>
+                    </div>
+                    <div className="mt-4 text-xs font-medium text-[#45464f]">
+                        {t('dashboard.speaking_time_desc')}
                     </div>
                 </div>
 

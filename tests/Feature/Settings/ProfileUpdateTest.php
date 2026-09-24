@@ -462,4 +462,73 @@ class ProfileUpdateTest extends TestCase
         $this->assertNotNull($user->avatar);
         $this->assertNotNull($user->teacherProfile->intro_video_url);
     }
+
+    public function test_teacher_profile_can_be_updated_with_multi_language_and_cefr_certificates()
+    {
+        $user = User::factory()->create(['role' => 'teacher']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Teacher Multilingual',
+                'email' => 'multilingual@example.com',
+                'age' => 32,
+                'phone_number' => '+998901234567',
+                'certificates' => [
+                    [
+                        'type' => 'testdaf',
+                        'language' => 'german',
+                        'overall' => 'TDN 18',
+                        'leseverstehen' => '5',
+                        'hoerverstehen' => '5',
+                        'schriftlicher_ausdruck' => '4',
+                        'muendlicher_ausdruck' => '4',
+                    ],
+                    [
+                        'type' => 'cefr',
+                        'language' => 'french',
+                        'overall' => 'C1',
+                        'listening' => 'C1',
+                        'reading' => 'C1',
+                        'writing' => 'B2',
+                        'speaking' => 'C1',
+                    ],
+                    [
+                        'type' => 'other',
+                        'language' => 'other',
+                        'custom_language' => 'Polish',
+                        'custom_type_name' => 'State Certificate B2',
+                        'overall' => 'Pass with Merit',
+                    ],
+                ],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $user->refresh();
+        $certs = $user->teacherProfile->certificates;
+
+        $this->assertCount(3, $certs);
+
+        // First cert: German TestDaF
+        $this->assertEquals('testdaf', $certs[0]['type']);
+        $this->assertEquals('german', $certs[0]['language']);
+        $this->assertEquals('TDN 18', $certs[0]['overall']);
+        $this->assertEquals('5', $certs[0]['sub_scores']['leseverstehen']);
+
+        // Second cert: French CEFR
+        $this->assertEquals('cefr', $certs[1]['type']);
+        $this->assertEquals('french', $certs[1]['language']);
+        $this->assertEquals('C1', $certs[1]['overall']);
+        $this->assertEquals('C1', $certs[1]['listening']);
+        $this->assertEquals('C1', $certs[1]['speaking']);
+
+        // Third cert: Polish Other
+        $this->assertEquals('other', $certs[2]['type']);
+        $this->assertEquals('other', $certs[2]['language']);
+        $this->assertEquals('Polish', $certs[2]['custom_language']);
+        $this->assertEquals('State Certificate B2', $certs[2]['custom_type_name']);
+        $this->assertEquals('Pass with Merit', $certs[2]['overall']);
+    }
 }

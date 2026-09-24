@@ -48,6 +48,11 @@ class CreateNewUser implements CreatesNewUsers
         // Add role-specific validation rules
         $role = $input['role'] ?? null;
         if ($role === 'teacher') {
+            if (isset($input['price']) && is_string($input['price'])) {
+                $sanitizedPrice = preg_replace('/\D/', '', $input['price']);
+                $input['price'] = $sanitizedPrice !== '' ? (int) $sanitizedPrice : null;
+            }
+
             $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
             $rules['phone_number'] = ['required', 'string', 'max:20'];
             $rules['overall_level'] = ['nullable', 'string', 'max:255'];
@@ -126,18 +131,31 @@ class CreateNewUser implements CreatesNewUsers
                         }
 
                         $certType = $certItem['type'] ?? 'ielts';
+                        $language = $certItem['language'] ?? 'english';
                         $customName = $certItem['custom_type_name'] ?? '';
+                        $customLanguage = $certItem['custom_language'] ?? '';
                         $title = $certType === 'other' && ! empty($customName) ? $customName : strtoupper($certType);
+
+                        $subScores = is_array($certItem['sub_scores'] ?? null) ? $certItem['sub_scores'] : [];
+                        $standardKeys = ['type', 'language', 'custom_type_name', 'custom_language', 'title', 'overall', 'listening', 'reading', 'writing', 'speaking', 'file_url', 'file_name', 'status', 'sub_scores', 'id', 'isExisting', 'file'];
+                        foreach ($certItem as $k => $v) {
+                            if (! in_array($k, $standardKeys, true) && is_scalar($v) && $v !== '') {
+                                $subScores[$k] = (string) $v;
+                            }
+                        }
 
                         $finalCertificates[] = [
                             'type' => $certType,
+                            'language' => $language,
                             'custom_type_name' => $customName,
+                            'custom_language' => $customLanguage,
                             'title' => $title,
                             'overall' => (string) ($certItem['overall'] ?? ''),
                             'listening' => (string) ($certItem['listening'] ?? ''),
                             'reading' => (string) ($certItem['reading'] ?? ''),
                             'writing' => (string) ($certItem['writing'] ?? ''),
                             'speaking' => (string) ($certItem['speaking'] ?? ''),
+                            'sub_scores' => $subScores,
                             'file_url' => $fileUrl,
                             'file_name' => $fileName,
                             'status' => 'pending',
@@ -148,7 +166,9 @@ class CreateNewUser implements CreatesNewUsers
                         $path = $file->store('certificates', $disk);
                         $finalCertificates[] = [
                             'type' => 'ielts',
+                            'language' => 'english',
                             'custom_type_name' => '',
+                            'custom_language' => '',
                             'title' => $file->getClientOriginalName(),
                             'overall' => '',
                             'listening' => '',

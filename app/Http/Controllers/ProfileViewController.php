@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TeacherProfile;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -33,8 +34,41 @@ class ProfileViewController extends Controller
                 ])
                 ->firstOrFail();
 
+            $currentUser = auth()->user();
+            $isPrivileged = $currentUser && ($currentUser->role === 'admin' || $currentUser->id === $teacher->id);
+
+            if (! $isPrivileged && (! $teacher->teacherProfile || ! $teacher->teacherProfile->is_verified)) {
+                abort(404);
+            }
+
+            if (! $isPrivileged && $teacher->teacherProfile) {
+                $certs = $teacher->teacherProfile->certificates;
+                if (is_string($certs)) {
+                    $certs = json_decode($certs, true) ?? [];
+                }
+                if (is_array($certs)) {
+                    $visibleCerts = [];
+                    foreach ($certs as $cert) {
+                        if (is_array($cert) && ($cert['status'] ?? 'pending') === 'verified') {
+                            $cert['file_url'] = null;
+                            $visibleCerts[] = $cert;
+                        }
+                    }
+                    $teacher->teacherProfile->certificates = $visibleCerts;
+                }
+            }
+
+            $hasEligibleTrial = ! $currentUser || ! $currentUser->hasBookedWithTeacher($teacher->id);
+            $hourlyRate = (float) ($teacher->teacherProfile?->price ?? 0);
+            $trialPrice = $hourlyRate > 0 ? (int) (round(($hourlyRate / 3) / 1000) * 1000) : 0;
+
+            $conversationStats = TeacherProfile::getConversationStats($teacher->id);
+
             return Inertia::render('pupil/teacher-profile', [
                 'teacher' => $teacher,
+                'hasEligibleTrial' => $hasEligibleTrial,
+                'trialPrice' => $trialPrice,
+                'conversationStats' => $conversationStats,
             ]);
         }
 

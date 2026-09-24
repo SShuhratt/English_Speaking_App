@@ -13,6 +13,10 @@ import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { useTranslation } from '@/hooks/use-translation';
 import AuthLayout from '@/layouts/auth-layout';
+import {
+    CertificateInputCard,
+    CertificateData,
+} from '@/components/certificates/CertificateInputCard';
 
 type Props = {
     passwordRules: string;
@@ -32,6 +36,12 @@ export default function Register({ passwordRules }: Props) {
     const { t, locale } = useTranslation();
     const { google_register, telegram_register } = usePage<any>().props;
     const [isInsideTelegram, setIsInsideTelegram] = useState(Boolean(telegram_register));
+    const [price, setPrice] = useState('');
+
+    const formatPrice = (val: string) => {
+        const clean = val.replace(/\D/g, '');
+        return clean ? clean.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : '';
+    };
 
     useEffect(() => {
         if (typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.initData)) {
@@ -39,20 +49,10 @@ export default function Register({ passwordRules }: Props) {
         }
     }, []);
 
-    const [certificates, setCertificates] = useState<
-        Array<{
-            type: string;
-            custom_type_name: string;
-            overall: string;
-            listening: string;
-            reading: string;
-            writing: string;
-            speaking: string;
-            file_name?: string;
-        }>
-    >([
+    const [certificates, setCertificates] = useState<CertificateData[]>([
         {
-            type: 'other',
+            type: 'ielts',
+            language: 'english',
             custom_type_name: '',
             overall: '',
             listening: '',
@@ -68,6 +68,7 @@ export default function Register({ passwordRules }: Props) {
             ...prev,
             {
                 type: 'ielts',
+                language: 'english',
                 custom_type_name: '',
                 overall: '',
                 listening: '',
@@ -84,11 +85,11 @@ export default function Register({ passwordRules }: Props) {
         setCertificates((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const updateCertificate = (index: number, field: string, value: string) => {
+    const updateCertificate = (index: number, updated: CertificateData) => {
         setCertificates((prev) => {
-            const updated = [...prev];
-            updated[index] = { ...updated[index], [field]: value };
-            return updated;
+            const copy = [...prev];
+            copy[index] = updated;
+            return copy;
         });
     };
 
@@ -393,13 +394,34 @@ export default function Register({ passwordRules }: Props) {
                                         <Label htmlFor="price">
                                             {t('auth.hourly_rate')}
                                         </Label>
-                                        <Input
-                                            id="price"
-                                            type="number"
-                                            min="0"
-                                            name="price"
-                                            placeholder={t('auth.hourly_rate_placeholder')}
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                id="price"
+                                                type="text"
+                                                inputMode="numeric"
+                                                autoComplete="off"
+                                                value={price}
+                                                onChange={(e) =>
+                                                    setPrice(
+                                                        formatPrice(
+                                                            e.target.value,
+                                                        ),
+                                                    )
+                                                }
+                                                className="pr-16"
+                                                placeholder={t(
+                                                    'auth.hourly_rate_placeholder',
+                                                )}
+                                            />
+                                            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-bold text-muted-foreground select-none">
+                                                {t('auth.currency_som') || "so'm"}
+                                            </span>
+                                            <input
+                                                type="hidden"
+                                                name="price"
+                                                value={price.replace(/\s/g, '')}
+                                            />
+                                        </div>
                                         <InputError message={errors.price} />
                                     </div>
 
@@ -428,277 +450,18 @@ export default function Register({ passwordRules }: Props) {
 
                                         <div className="space-y-4">
                                             {certificates.map((cert, index) => (
-                                                <div
+                                                <CertificateInputCard
                                                     key={index}
-                                                    className="space-y-4 rounded-2xl border border-border/80 bg-card p-4 shadow-sm"
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="inline-flex items-center rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                                                            {t('auth.certificate_num', { num: index + 1 })}
-                                                        </span>
-                                                        {certificates.length >
-                                                            1 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    removeCertificate(
-                                                                        index,
-                                                                    )
-                                                                }
-                                                                className="flex cursor-pointer items-center gap-1 text-xs font-bold text-red-500 hover:text-red-700"
-                                                            >
-                                                                {t('auth.remove_certificate')}
-                                                            </button>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="space-y-3">
-                                                        <div>
-                                                            <Label className="text-xs font-bold">
-                                                                {t('auth.certificate_type')}
-                                                            </Label>
-                                                            <select
-                                                                name={`certificates[${index}][type]`}
-                                                                value={
-                                                                    cert.type
-                                                                }
-                                                                onChange={(e) =>
-                                                                    updateCertificate(
-                                                                        index,
-                                                                        'type',
-                                                                        e.target
-                                                                            .value,
-                                                                    )
-                                                                }
-                                                                className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-semibold text-foreground focus:border-indigo-500 focus:outline-none"
-                                                            >
-                                                                <option value="other">
-                                                                    {t('auth.cert_type_other')}
-                                                                </option>
-                                                                <option value="ielts">
-                                                                    {t('auth.cert_type_ielts')}
-                                                                </option>
-                                                                <option value="cefr">
-                                                                    {t('auth.cert_type_cefr')}
-                                                                </option>
-                                                                <option value="toefl">
-                                                                    {t('auth.cert_type_toefl')}
-                                                                </option>
-                                                            </select>
-                                                        </div>
-
-                                                        {cert.type ===
-                                                            'other' && (
-                                                            <div>
-                                                                <Input
-                                                                    type="text"
-                                                                    name={`certificates[${index}][custom_type_name]`}
-                                                                    value={
-                                                                        cert.custom_type_name
-                                                                    }
-                                                                    onChange={(
-                                                                        e,
-                                                                    ) =>
-                                                                        updateCertificate(
-                                                                            index,
-                                                                            'custom_type_name',
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        )
-                                                                    }
-                                                                    placeholder={t('auth.custom_cert_placeholder')}
-                                                                    required
-                                                                    className="text-sm font-medium"
-                                                                />
-                                                            </div>
-                                                        )}
-
-                                                        <div className="space-y-3">
-                                                            <div>
-                                                                <Label className="text-xs font-bold text-foreground">
-                                                                    {t('auth.score_overall')}
-                                                                </Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    name={`certificates[${index}][overall]`}
-                                                                    value={
-                                                                        cert.overall
-                                                                    }
-                                                                    onChange={(
-                                                                        e,
-                                                                    ) =>
-                                                                        updateCertificate(
-                                                                            index,
-                                                                            'overall',
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        )
-                                                                    }
-                                                                    placeholder="e.g. 7.5"
-                                                                    required
-                                                                    className="mt-1 h-9 text-xs font-semibold"
-                                                                />
-                                                            </div>
-
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <div className="min-w-0">
-                                                                    <Label className="block truncate text-[11px] font-bold">
-                                                                        {t('auth.score_listening')}
-                                                                    </Label>
-                                                                    <Input
-                                                                        type="text"
-                                                                        name={`certificates[${index}][listening]`}
-                                                                        value={
-                                                                            cert.listening
-                                                                        }
-                                                                        onChange={(
-                                                                            e,
-                                                                        ) =>
-                                                                            updateCertificate(
-                                                                                index,
-                                                                                'listening',
-                                                                                e
-                                                                                    .target
-                                                                                    .value,
-                                                                            )
-                                                                        }
-                                                                        placeholder="e.g. 8.0"
-                                                                        required
-                                                                        className="mt-1 h-9 text-xs"
-                                                                    />
-                                                                </div>
-                                                                <div className="min-w-0">
-                                                                    <Label className="block truncate text-[11px] font-bold">
-                                                                        {t('auth.score_reading')}
-                                                                    </Label>
-                                                                    <Input
-                                                                        type="text"
-                                                                        name={`certificates[${index}][reading]`}
-                                                                        value={
-                                                                            cert.reading
-                                                                        }
-                                                                        onChange={(
-                                                                            e,
-                                                                        ) =>
-                                                                            updateCertificate(
-                                                                                index,
-                                                                                'reading',
-                                                                                e
-                                                                                    .target
-                                                                                    .value,
-                                                                            )
-                                                                        }
-                                                                        placeholder="e.g. 7.0"
-                                                                        required
-                                                                        className="mt-1 h-9 text-xs"
-                                                                    />
-                                                                </div>
-                                                                <div className="min-w-0">
-                                                                    <Label className="block truncate text-[11px] font-bold">
-                                                                        {t('auth.score_writing')}
-                                                                    </Label>
-                                                                    <Input
-                                                                        type="text"
-                                                                        name={`certificates[${index}][writing]`}
-                                                                        value={
-                                                                            cert.writing
-                                                                        }
-                                                                        onChange={(
-                                                                            e,
-                                                                        ) =>
-                                                                            updateCertificate(
-                                                                                index,
-                                                                                'writing',
-                                                                                e
-                                                                                    .target
-                                                                                    .value,
-                                                                            )
-                                                                        }
-                                                                        placeholder="e.g. 6.5"
-                                                                        required
-                                                                        className="mt-1 h-9 text-xs"
-                                                                    />
-                                                                </div>
-                                                                <div className="min-w-0">
-                                                                    <Label className="block truncate text-[11px] font-bold">
-                                                                        {t('auth.score_speaking')}
-                                                                    </Label>
-                                                                    <Input
-                                                                        type="text"
-                                                                        name={`certificates[${index}][speaking]`}
-                                                                        value={
-                                                                            cert.speaking
-                                                                        }
-                                                                        onChange={(
-                                                                            e,
-                                                                        ) =>
-                                                                            updateCertificate(
-                                                                                index,
-                                                                                'speaking',
-                                                                                e
-                                                                                    .target
-                                                                                    .value,
-                                                                            )
-                                                                        }
-                                                                        placeholder="e.g. 8.5"
-                                                                        required
-                                                                        className="mt-1 h-9 text-xs"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div>
-                                                            <Label className="mb-1.5 block text-[11px] font-bold">
-                                                                {t('auth.upload_cert_doc')}
-                                                            </Label>
-                                                            <div className="flex items-center gap-3">
-                                                                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-xs font-bold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 dark:hover:bg-indigo-900">
-                                                                    <Upload className="h-4 w-4" />
-                                                                    <span>
-                                                                        {t('auth.choose_cert_file')}
-                                                                    </span>
-                                                                    <input
-                                                                        type="file"
-                                                                        name={`certificate_files[${index}]`}
-                                                                        accept=".pdf,.png,.jpg,.jpeg,.svg,.webp"
-                                                                        className="hidden"
-                                                                        onChange={(
-                                                                            e,
-                                                                        ) => {
-                                                                            const file =
-                                                                                e
-                                                                                    .target
-                                                                                    .files?.[0];
-                                                                            if (
-                                                                                file
-                                                                            ) {
-                                                                                updateCertificate(
-                                                                                    index,
-                                                                                    'file_name',
-                                                                                    file.name,
-                                                                                );
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </label>
-                                                                {cert.file_name ? (
-                                                                    <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                                                                        {t('auth.attached_file', {
-                                                                            file: cert.file_name,
-                                                                        })}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-xs text-muted-foreground italic">
-                                                                        {t('auth.no_file_chosen')}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                    index={index}
+                                                    cert={cert}
+                                                    onChange={(updated) =>
+                                                        updateCertificate(index, updated)
+                                                    }
+                                                    onRemove={() =>
+                                                        removeCertificate(index)
+                                                    }
+                                                    canRemove={certificates.length > 1}
+                                                />
                                             ))}
                                         </div>
                                     </div>

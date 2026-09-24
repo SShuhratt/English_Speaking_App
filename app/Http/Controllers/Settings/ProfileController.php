@@ -162,7 +162,9 @@ class ProfileController extends Controller
                     $overallScore = isset($profileData['overall_level']) ? (string) $profileData['overall_level'] : '';
                     $finalCertificates[] = [
                         'type' => 'ielts',
+                        'language' => 'english',
                         'custom_type_name' => '',
+                        'custom_language' => '',
                         'title' => $isUrl ? 'IELTS (Academic / General)' : $cName,
                         'overall' => $overallScore,
                         'listening' => '',
@@ -180,7 +182,9 @@ class ProfileController extends Controller
                         $path = $file->store('certificates', $disk);
                         $finalCertificates[] = [
                             'type' => 'ielts',
+                            'language' => 'english',
                             'custom_type_name' => '',
+                            'custom_language' => '',
                             'title' => $file->getClientOriginalName(),
                             'overall' => '',
                             'listening' => '',
@@ -199,7 +203,9 @@ class ProfileController extends Controller
                         $isUrl = str_starts_with($certData, 'http') || str_starts_with($certData, '/storage');
                         $finalCertificates[] = [
                             'type' => 'ielts',
+                            'language' => 'english',
                             'custom_type_name' => '',
+                            'custom_language' => '',
                             'title' => $isUrl ? 'IELTS (Academic / General)' : $certData,
                             'overall' => '',
                             'listening' => '',
@@ -228,6 +234,7 @@ class ProfileController extends Controller
                         if ($matchedExisting) {
                             // Locked existing cert: preserve DB type, title, scores, and status
                             $type = $matchedExisting['type'] ?? 'ielts';
+                            $language = $matchedExisting['language'] ?? ($certData['language'] ?? 'english');
                             $customName = $matchedExisting['custom_type_name'] ?? '';
                             $title = $matchedExisting['title'] ?? ($type === 'other' && ! empty($customName) ? $customName : strtoupper($type));
                             $fileUrl = $matchedExisting['file_url'] ?? null;
@@ -242,15 +249,23 @@ class ProfileController extends Controller
                                 $fileName = $file->getClientOriginalName();
                             }
 
+                            $customLanguage = $matchedExisting['custom_language'] ?? ($certData['custom_language'] ?? '');
+                            $subScores = is_array($matchedExisting['sub_scores'] ?? null)
+                                ? $matchedExisting['sub_scores']
+                                : (is_array($certData['sub_scores'] ?? null) ? $certData['sub_scores'] : []);
+
                             $finalCertificates[] = [
                                 'type' => $type,
+                                'language' => $language,
                                 'custom_type_name' => $customName,
+                                'custom_language' => $customLanguage,
                                 'title' => $title,
                                 'overall' => (string) ($matchedExisting['overall'] ?? ''),
                                 'listening' => (string) ($matchedExisting['listening'] ?? ''),
                                 'reading' => (string) ($matchedExisting['reading'] ?? ''),
                                 'writing' => (string) ($matchedExisting['writing'] ?? ''),
                                 'speaking' => (string) ($matchedExisting['speaking'] ?? ''),
+                                'sub_scores' => $subScores,
                                 'file_url' => $fileUrl,
                                 'file_name' => $fileName,
                                 'status' => $status,
@@ -258,7 +273,9 @@ class ProfileController extends Controller
                         } else {
                             // New certificate entry
                             $type = $certData['type'] ?? 'ielts';
+                            $language = $certData['language'] ?? 'english';
                             $customName = $certData['custom_type_name'] ?? '';
+                            $customLanguage = $certData['custom_language'] ?? '';
                             $title = $certData['title'] ?? ($type === 'other' && ! empty($customName) ? $customName : strtoupper($type));
                             $fileUrl = $certData['file_url'] ?? null;
                             $fileName = $certData['file_name'] ?? null;
@@ -272,15 +289,26 @@ class ProfileController extends Controller
                                 $fileName = $file->getClientOriginalName();
                             }
 
+                            $subScores = is_array($certData['sub_scores'] ?? null) ? $certData['sub_scores'] : [];
+                            $standardKeys = ['type', 'language', 'custom_type_name', 'custom_language', 'title', 'overall', 'listening', 'reading', 'writing', 'speaking', 'file_url', 'file_name', 'status', 'sub_scores', 'id', 'isExisting', 'file'];
+                            foreach ($certData as $k => $v) {
+                                if (! in_array($k, $standardKeys, true) && is_scalar($v) && $v !== '') {
+                                    $subScores[$k] = (string) $v;
+                                }
+                            }
+
                             $finalCertificates[] = [
                                 'type' => $type,
+                                'language' => $language,
                                 'custom_type_name' => $customName,
+                                'custom_language' => $customLanguage,
                                 'title' => $title,
                                 'overall' => (string) ($certData['overall'] ?? ''),
                                 'listening' => (string) ($certData['listening'] ?? ''),
                                 'reading' => (string) ($certData['reading'] ?? ''),
                                 'writing' => (string) ($certData['writing'] ?? ''),
                                 'speaking' => (string) ($certData['speaking'] ?? ''),
+                                'sub_scores' => $subScores,
                                 'file_url' => $fileUrl,
                                 'file_name' => $fileName,
                                 'status' => $status,

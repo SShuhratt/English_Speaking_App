@@ -195,6 +195,7 @@ class AdminUserManagementTest extends TestCase
         $teacher = User::factory()->create(['role' => 'teacher']);
         TeacherProfile::create([
             'user_id' => $teacher->id,
+            'is_verified' => true,
             'certificates' => [
                 [
                     'type' => 'ielts',

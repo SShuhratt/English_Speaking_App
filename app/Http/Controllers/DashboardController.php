@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Feedback;
+use App\Models\TeacherProfile;
 use App\Services\GamificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,12 +43,16 @@ class DashboardController extends Controller
             $averageRating = Feedback::where('teacher_id', $user->id)
                 ->avg('rating_score') ?: 5.0;
 
+            $convStats = TeacherProfile::getConversationStats($user->id);
+
             return Inertia::render('dashboard', [
                 'appointments' => $appointments,
                 'stats' => [
                     'sessions_today' => $sessionsTodayCount,
                     'total_pupils' => $totalPupilsCount,
                     'average_rating' => round($averageRating, 1),
+                    'completed_conversations' => $convStats['total_conversations'],
+                    'speaking_time' => $convStats['total_time_formatted'],
                 ],
             ]);
         } else {

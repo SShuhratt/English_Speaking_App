@@ -64,7 +64,6 @@ export default function TeacherDirectory({
                 <TeacherFilterBar
                     baseUrl="/teacher/teachers"
                     currentFilters={activeFilters}
-                    showUnverified={true}
                 />
 
                 {/* Teachers Grid */}
