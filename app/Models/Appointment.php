@@ -33,6 +33,8 @@ class Appointment extends Model
         'price',
         'reminder_5min_sent_at',
         'reminder_started_sent_at',
+        'pupil_package_id',
+        'is_package_booking',
     ];
 
     protected $casts = [
@@ -44,6 +46,7 @@ class Appointment extends Model
         'is_trial' => 'boolean',
         'duration_minutes' => 'integer',
         'price' => 'integer',
+        'is_package_booking' => 'boolean',
     ];
 
     protected function startAt(): Attribute
@@ -85,5 +88,10 @@ class Appointment extends Model
     public function feedbacks()
     {
         return $this->hasManyThrough(Feedback::class, Conversation::class, 'appointment_id', 'conversation_id');
+    }
+
+    public function pupilPackage()
+    {
+        return $this->belongsTo(PupilPackage::class, 'pupil_package_id');
     }
 }

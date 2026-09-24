@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PupilPackage;
+use App\Models\TeacherPackage;
 use App\Models\TeacherProfile;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -64,11 +66,38 @@ class ProfileViewController extends Controller
 
             $conversationStats = TeacherProfile::getConversationStats($teacher->id);
 
+            $packages = TeacherPackage::where('teacher_id', $teacher->id)
+                ->where('is_active', true)
+                ->orderBy('total_hours', 'asc')
+                ->get();
+
+            $activePupilPackage = null;
+            $pendingPupilPackage = null;
+
+            if ($currentUser && $currentUser->role === 'pupil') {
+                $activePupilPackage = PupilPackage::where('pupil_id', $currentUser->id)
+                    ->where('teacher_id', $teacher->id)
+                    ->where('status', 'active')
+                    ->where('payment_status', 'paid')
+                    ->where('remaining_minutes', '>', 0)
+                    ->orderBy('created_at', 'asc')
+                    ->first();
+
+                $pendingPupilPackage = PupilPackage::where('pupil_id', $currentUser->id)
+                    ->where('teacher_id', $teacher->id)
+                    ->where('payment_status', 'verifying')
+                    ->latest()
+                    ->first();
+            }
+
             return Inertia::render('pupil/teacher-profile', [
                 'teacher' => $teacher,
                 'hasEligibleTrial' => $hasEligibleTrial,
                 'trialPrice' => $trialPrice,
                 'conversationStats' => $conversationStats,
+                'packages' => $packages,
+                'activePupilPackage' => $activePupilPackage,
+                'pendingPupilPackage' => $pendingPupilPackage,
             ]);
         }
 

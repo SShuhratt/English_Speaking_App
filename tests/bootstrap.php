@@ -11,12 +11,17 @@ putenv('DB_CONNECTION=testing');
 putenv('DB_DATABASE=edtech_test');
 putenv('APP_ENV=testing');
 
+$dbHost = gethostbyname('postgres') === 'postgres' ? '127.0.0.1' : 'postgres';
+putenv("DB_HOST={$dbHost}");
+
 $_ENV['DB_CONNECTION'] = 'testing';
 $_ENV['DB_DATABASE'] = 'edtech_test';
 $_ENV['APP_ENV'] = 'testing';
+$_ENV['DB_HOST'] = $dbHost;
 
 $_SERVER['DB_CONNECTION'] = 'testing';
 $_SERVER['DB_DATABASE'] = 'edtech_test';
 $_SERVER['APP_ENV'] = 'testing';
+$_SERVER['DB_HOST'] = $dbHost;
 
 require __DIR__.'/../vendor/autoload.php';

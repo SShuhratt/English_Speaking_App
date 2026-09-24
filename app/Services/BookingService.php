@@ -7,6 +7,7 @@ use App\Events\ConversationApproved;
 use App\Events\ConversationBooked;
 use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
+use App\Models\PupilPackage;
 use App\Models\TeacherAvailability;
 use App\Models\User;
 use App\Notifications\AdminConfirmedNotification;
@@ -75,6 +76,31 @@ class BookingService
                 $price = $hourlyRate > 0 ? (int) (round(($hourlyRate * $duration / 60) / 1000) * 1000) : 0;
             }
 
+            // Check if pupil has an active paid package for this teacher with enough remaining minutes
+            $isPackageBooking = false;
+            $pupilPackageId = null;
+
+            if (! $isTrial) {
+                $activePackage = PupilPackage::where('pupil_id', $pupil->id)
+                    ->where('teacher_id', $teacher->id)
+                    ->where('status', 'active')
+                    ->where('payment_status', 'paid')
+                    ->where('remaining_minutes', '>=', $duration)
+                    ->orderBy('created_at', 'asc')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($activePackage) {
+                    $isPackageBooking = true;
+                    $pupilPackageId = $activePackage->id;
+                    $price = 0;
+                    $activePackage->decrement('remaining_minutes', $duration);
+                    if ($activePackage->fresh()->remaining_minutes <= 0) {
+                        $activePackage->update(['status' => 'exhausted']);
+                    }
+                }
+            }
+
             // 1. Validate teacher availability
             $this->validateAvailability($teacher->id, $start, $end);
 
@@ -92,6 +118,9 @@ class BookingService
                 'is_trial' => $isTrial,
                 'duration_minutes' => $duration,
                 'price' => $price,
+                'pupil_package_id' => $pupilPackageId,
+                'is_package_booking' => $isPackageBooking,
+                'payment_status' => $isPackageBooking ? 'paid' : 'pending',
 
                 // Google fields intentionally empty for now
                 'google_event_id' => null,
@@ -160,6 +189,8 @@ class BookingService
                 'google_meet_link' => null,
             ]);
 
+            $this->refundPackageMinutesIfNeeded($appointment);
+
             // Clear cache
             $current = $appointment->start_at->copy()->subDay();
             $limit = $appointment->end_at->copy()->addDay();
@@ -221,12 +252,18 @@ class BookingService
                 throw new \Exception('Cannot approve an expired appointment.');
             }
 
+            $isPaidPackage = $appointment->is_package_booking && $appointment->payment_status === 'paid';
+
             $appointment->update([
-                'status' => 'accepted',
-                'payment_status' => 'verifying',
+                'status' => $isPaidPackage ? 'confirmed' : 'accepted',
+                'payment_status' => $isPaidPackage ? 'paid' : 'verifying',
             ]);
 
-            DB::afterCommit(function () use ($appointment) {
+            DB::afterCommit(function () use ($appointment, $isPaidPackage) {
+                if ($isPaidPackage) {
+                    SyncAppointmentToGoogleJob::dispatch($appointment);
+                }
+
                 try {
                     BookingUpdated::dispatch($appointment);
                     ConversationApproved::dispatch($appointment);
@@ -312,6 +349,8 @@ class BookingService
                 'google_meet_link' => null,
             ]);
 
+            $this->refundPackageMinutesIfNeeded($appointment);
+
             // Clear slot cache
             $current = $appointment->start_at->copy()->subDay();
             $limit = $appointment->end_at->copy()->addDay();
@@ -377,6 +416,8 @@ class BookingService
                 'google_event_id' => null,
                 'google_meet_link' => null,
             ]);
+
+            $this->refundPackageMinutesIfNeeded($appointment);
 
             // Clear cache to make slot available again
             $current = $appointment->start_at->copy()->subDay();
@@ -479,6 +520,25 @@ class BookingService
 
         if ($conflict) {
             throw new \Exception('Time slot already booked.');
+        }
+    }
+
+    /**
+     * Refund package minutes if appointment was booked using a package
+     */
+    protected function refundPackageMinutesIfNeeded(Appointment $appointment): void
+    {
+        if ($appointment->is_package_booking && $appointment->pupil_package_id) {
+            // Only refund if cancelled before lesson starts or rejected by teacher
+            if ($appointment->status === 'rejected' || $appointment->start_at->isFuture()) {
+                $pupilPackage = PupilPackage::lockForUpdate()->find($appointment->pupil_package_id);
+                if ($pupilPackage) {
+                    $pupilPackage->increment('remaining_minutes', $appointment->duration_minutes);
+                    if ($pupilPackage->status === 'exhausted' && $pupilPackage->remaining_minutes > 0) {
+                        $pupilPackage->update(['status' => 'active']);
+                    }
+                }
+            }
         }
     }
 }

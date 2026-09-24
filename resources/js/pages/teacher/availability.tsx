@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { store, destroy } from '@/routes/teacher/availability';
 import {
     Clock,
@@ -19,6 +19,7 @@ import {
     User,
     Repeat,
     ShieldCheck,
+    Package,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,10 +40,12 @@ import {
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
+import TeacherPackagesManager from '@/components/teachers/TeacherPackagesManager';
 
 interface Props {
     availabilities: any[];
     appointments?: any[];
+    packages?: any[];
 }
 
 const translations = {
@@ -463,7 +466,9 @@ const localeMap = {
 export default function Availability({
     availabilities,
     appointments = [],
+    packages = [],
 }: Props) {
+    const { auth } = usePage<any>().props;
     const { locale } = useTranslation();
     const lang = (
         locale === 'en' || locale === 'uz' || locale === 'ru' ? locale : 'en'
@@ -471,6 +476,7 @@ export default function Availability({
 
     const t = translations[lang];
 
+    const [mainTab, setMainTab] = useState<'calendar' | 'packages'>('calendar');
     const [view, setView] = useState<'day' | 'week'>('week');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentDate, setCurrentDate] = useState(new Date()); // Month focus for sidebar mini-calendar
@@ -1531,7 +1537,7 @@ export default function Availability({
             <Head title="Teacher Availability Scheduler" />
             <div className="flex h-[calc(100vh-4rem)] animate-in flex-col overflow-hidden bg-background duration-300 select-none fade-in">
                 <GoogleCalendarWarningBanner className="m-4 shrink-0" />
-                {/* Header (Google Calendar Style Toolbar) */}
+                {/* Header (Toolbar) */}
                 <div className="flex items-center justify-between border-b bg-card px-6 py-3.5">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2.5">
@@ -1543,79 +1549,119 @@ export default function Availability({
                             </span>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        {/* Top-Level Mode Switcher */}
+                        <div className="flex items-center gap-1 rounded-xl bg-muted/60 p-1 border">
+                            <Button
+                                variant={mainTab === 'calendar' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => setMainTab('calendar')}
+                                className={`rounded-lg font-semibold text-xs gap-1.5 ${mainTab === 'calendar' ? 'bg-background shadow-xs text-foreground' : 'text-muted-foreground'}`}
+                            >
+                                <CalendarIcon className="h-3.5 w-3.5" />
+                                {t.title}
+                            </Button>
+                            <Button
+                                variant={mainTab === 'packages' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => setMainTab('packages')}
+                                className={`rounded-lg font-semibold text-xs gap-1.5 ${mainTab === 'packages' ? 'bg-background shadow-xs text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground'}`}
+                            >
+                                <Package className="h-3.5 w-3.5" />
+                                Conversation Packs
+                                {packages && packages.length > 0 && (
+                                    <span className="ml-1 rounded-full bg-indigo-100 dark:bg-indigo-950 px-1.5 py-0.2 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
+                                        {packages.length}
+                                    </span>
+                                )}
+                            </Button>
+                        </div>
+
+                        {mainTab === 'calendar' && (
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={setToday}
+                                    className="rounded-lg px-4 font-medium"
+                                >
+                                    {t.today}
+                                </Button>
+                                <div className="flex items-center">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => navigateCalendar('prev')}
+                                        className="h-8 w-8 rounded-lg"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => navigateCalendar('next')}
+                                        className="h-8 w-8 rounded-lg"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <span className="ml-2 text-lg font-semibold text-foreground capitalize">
+                                    {currentTitleString()}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {mainTab === 'calendar' && (
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            {/* Clear Days Button */}
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={setToday}
-                                className="rounded-lg px-4 font-medium"
+                                onClick={() => {
+                                    setSelectedDaysToClear([]);
+                                    setIsClearDaysModalOpen(true);
+                                }}
+                                className="rounded-lg font-medium text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
                             >
-                                {t.today}
+                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                {t.clearDays}
                             </Button>
-                            <div className="flex items-center">
+
+                            {/* View Switcher */}
+                            <div className="flex rounded-lg border bg-muted/30 p-1">
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => navigateCalendar('prev')}
-                                    className="h-8 w-8 rounded-lg"
+                                    variant={view === 'day' ? 'secondary' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setView('day')}
+                                    className="rounded-md font-medium"
                                 >
-                                    <ChevronLeft className="h-4 w-4" />
+                                    {t.day}
                                 </Button>
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => navigateCalendar('next')}
-                                    className="h-8 w-8 rounded-lg"
+                                    variant={
+                                        view === 'week' ? 'secondary' : 'ghost'
+                                    }
+                                    size="sm"
+                                    onClick={() => setView('week')}
+                                    className="rounded-md font-medium"
                                 >
-                                    <ChevronRight className="h-4 w-4" />
+                                    {t.week}
                                 </Button>
                             </div>
-                            <span className="ml-2 text-lg font-semibold text-foreground capitalize">
-                                {currentTitleString()}
-                            </span>
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        {/* Clear Days Button */}
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                                setSelectedDaysToClear([]);
-                                setIsClearDaysModalOpen(true);
-                            }}
-                            className="rounded-lg font-medium text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
-                        >
-                            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                            {t.clearDays}
-                        </Button>
-
-                        {/* View Switcher */}
-                        <div className="flex rounded-lg border bg-muted/30 p-1">
-                            <Button
-                                variant={view === 'day' ? 'secondary' : 'ghost'}
-                                size="sm"
-                                onClick={() => setView('day')}
-                                className="rounded-md font-medium"
-                            >
-                                {t.day}
-                            </Button>
-                            <Button
-                                variant={
-                                    view === 'week' ? 'secondary' : 'ghost'
-                                }
-                                size="sm"
-                                onClick={() => setView('week')}
-                                className="rounded-md font-medium"
-                            >
-                                {t.week}
-                            </Button>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Trial Info Banner */}
+                {mainTab === 'packages' ? (
+                    <div className="flex-1 overflow-y-auto p-6 max-w-7xl mx-auto w-full">
+                        <TeacherPackagesManager
+                            packages={packages || []}
+                            hourlyRate={Number(auth?.user?.teacher_profile?.price ?? 0)}
+                        />
+                    </div>
+                ) : (
+                    <>
+                        {/* Trial Info Banner */}
                 <div className="mx-6 mt-3 mb-1 flex items-center gap-3 rounded-2xl border border-[#F7DE8B] bg-[#FBEDBD]/60 px-4 py-3 text-xs text-[#5C4500]">
                     <Sparkles className="h-4 w-4 shrink-0 text-[#8A6A12]" />
                     <span>
@@ -2294,6 +2340,8 @@ export default function Availability({
                         </div>
                     </div>
                 </div>
+                </>
+                )}
             </div>
 
             {/* Custom Google Calendar Event details / edit / delete modal */}

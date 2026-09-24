@@ -10,6 +10,7 @@ use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MatchmakingController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\PupilBookingController;
+use App\Http\Controllers\PupilPackageController;
 use App\Http\Controllers\PupilProgressController;
 use App\Http\Controllers\PupilSessionController;
 use App\Http\Controllers\SupportController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\TeacherAppointmentController;
 use App\Http\Controllers\TeacherAvailabilityController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherFeedbackController;
+use App\Http\Controllers\TeacherPackageController;
 use App\Http\Controllers\TelegramAuthController;
 use App\Http\Controllers\TelegramConnectController;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::post('/appointments/{id}/confirm-payment', [AdminDashboardController::class, 'confirmPayment'])->name('appointments.confirm-payment');
         Route::post('/appointments/{id}/reject-payment', [AdminDashboardController::class, 'rejectPayment'])->name('appointments.reject-payment');
+        Route::post('/packages/{id}/confirm-payment', [AdminDashboardController::class, 'confirmPackagePayment'])->name('packages.confirm-payment');
+        Route::post('/packages/{id}/reject-payment', [AdminDashboardController::class, 'rejectPackagePayment'])->name('packages.reject-payment');
 
         Route::get('/teachers', [AdminUserController::class, 'teachers'])->name('teachers');
         Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
@@ -72,6 +76,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/availability/{id}', [TeacherAvailabilityController::class, 'update'])->name('availability.update');
         Route::post('/availability/clear', [TeacherAvailabilityController::class, 'clear'])->name('availability.clear');
         Route::delete('/availability/{id}', [TeacherAvailabilityController::class, 'destroy'])->name('availability.destroy');
+
+        Route::get('/packages', [TeacherPackageController::class, 'index'])->name('packages.index');
+        Route::post('/packages', [TeacherPackageController::class, 'store'])->name('packages.store');
+        Route::put('/packages/{id}', [TeacherPackageController::class, 'update'])->name('packages.update');
+        Route::post('/packages/{id}/toggle', [TeacherPackageController::class, 'toggleActive'])->name('packages.toggle');
+        Route::delete('/packages/{id}', [TeacherPackageController::class, 'destroy'])->name('packages.destroy');
+
         Route::get('/sessions', [TeacherAppointmentController::class, 'sessions'])->name('sessions');
         Route::get('/feedback', [TeacherFeedbackController::class, 'index'])->name('feedback');
         Route::get('/teachers', [TeacherController::class, 'teacherDirectory'])->name('teachers');
@@ -84,6 +95,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
         Route::get('/booking', [TeacherController::class, 'showBooking'])->name('booking.show');
         Route::get('/bookings', [PupilBookingController::class, 'index'])->name('bookings.index');
+        Route::get('/packages', [PupilPackageController::class, 'index'])->name('packages.index');
+        Route::post('/packages/purchase', [PupilPackageController::class, 'purchase'])->name('packages.purchase');
         Route::get('/sessions', [PupilSessionController::class, 'index'])->name('sessions.index');
         Route::post('/appointments/{id}/join', [PupilSessionController::class, 'join'])->name('appointments.join');
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\TeacherAvailability;
+use App\Models\TeacherPackage;
 use App\Support\PlatformTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -35,9 +36,14 @@ class TeacherAvailabilityController extends Controller
             ->orderBy('start_at', 'asc')
             ->get();
 
+        $packages = TeacherPackage::where('teacher_id', $request->user()->id)
+            ->orderBy('total_hours', 'asc')
+            ->get();
+
         return Inertia::render('teacher/availability', [
             'availabilities' => $availabilities,
             'appointments' => $appointments,
+            'packages' => $packages,
         ]);
     }
 

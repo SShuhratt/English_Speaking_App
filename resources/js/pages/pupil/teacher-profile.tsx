@@ -23,6 +23,9 @@ import {
     ShieldCheck,
     ShieldAlert,
     Eye,
+    Package,
+    CheckCircle2,
+    AlertCircle,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -32,6 +35,33 @@ import {
     LANGUAGE_OPTIONS,
     getDefaultLanguageForExam,
 } from '@/config/certificates';
+
+export interface TeacherPackage {
+    id: string;
+    teacher_id: string;
+    title: string;
+    total_hours: number;
+    total_minutes: number;
+    price: number;
+    discount_percentage?: number | null;
+    description?: string | null;
+    is_active: boolean;
+}
+
+export interface PupilPackage {
+    id: string;
+    pupil_id: string;
+    teacher_id: string;
+    teacher_package_id: string;
+    package_title: string;
+    total_minutes: number;
+    remaining_minutes: number;
+    price_paid: number;
+    payment_status: 'pending' | 'verifying' | 'paid' | 'rejected';
+    payment_rejection_reason?: string | null;
+    status: 'active' | 'exhausted' | 'expired' | 'cancelled';
+    created_at?: string;
+}
 
 interface Feedback {
     id: string;
@@ -78,6 +108,9 @@ interface Props {
         total_minutes: number;
         total_time_formatted: string;
     };
+    packages?: TeacherPackage[];
+    activePupilPackage?: PupilPackage | null;
+    pendingPupilPackage?: PupilPackage | null;
 }
 
 export default function TeacherProfile({
@@ -85,12 +118,19 @@ export default function TeacherProfile({
     hasEligibleTrial = true,
     trialPrice,
     conversationStats,
+    packages = [],
+    activePupilPackage = null,
+    pendingPupilPackage = null,
 }: Props) {
     const { auth } = usePage<any>().props;
     const { t } = useTranslation();
 
     const [lessonType, setLessonType] = React.useState<'trial' | 'full'>(
-        hasEligibleTrial ? 'trial' : 'full',
+        activePupilPackage && activePupilPackage.remaining_minutes > 0
+            ? 'full'
+            : hasEligibleTrial
+              ? 'trial'
+              : 'full',
     );
     const [deletingUser, setDeletingUser] = React.useState<{
         id: string;
@@ -98,6 +138,8 @@ export default function TeacherProfile({
     } | null>(null);
     const [selectedDuration, setSelectedDuration] = React.useState<number>(60);
     const [selectedCertForPreview, setSelectedCertForPreview] = React.useState<any | null>(null);
+    const [purchasingPackage, setPurchasingPackage] = React.useState<TeacherPackage | null>(null);
+    const [submittingPurchase, setSubmittingPurchase] = React.useState(false);
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
@@ -431,19 +473,82 @@ export default function TeacherProfile({
             ? `${calculatedTrialPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
             : "0 so'm";
 
-    const calculatedFullPrice =
-        hourlyPrice > 0 ? Math.round((hourlyPrice * selectedDuration) / 60) : 0;
-    const formattedFullPrice =
-        calculatedFullPrice > 0
-            ? `${calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
-            : "0 so'm";
+    const durMins = lessonType === 'trial' ? 20 : selectedDuration;
+
+    const isCoveredByPackage =
+        lessonType !== 'trial' &&
+        !!activePupilPackage &&
+        activePupilPackage.remaining_minutes >= durMins;
+
+    const hasPartialPackage =
+        lessonType !== 'trial' &&
+        !!activePupilPackage &&
+        activePupilPackage.remaining_minutes > 0 &&
+        activePupilPackage.remaining_minutes < durMins;
+
+    const calculatedFullPrice = isCoveredByPackage
+        ? 0
+        : hourlyPrice > 0
+          ? Math.round((hourlyPrice * selectedDuration) / 60)
+          : 0;
+    const formattedFullPrice = isCoveredByPackage
+        ? "0 so'm"
+        : calculatedFullPrice > 0
+          ? `${calculatedFullPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
+          : "0 so'm";
 
     const activePrice =
         lessonType === 'trial' ? calculatedTrialPrice : calculatedFullPrice;
-    const formattedActivePrice =
-        activePrice > 0
-            ? `${activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
-            : "0 so'm";
+    const formattedActivePrice = isCoveredByPackage
+        ? "0 so'm"
+        : activePrice > 0
+          ? `${activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
+          : "0 so'm";
+
+    const handlePurchasePackage = () => {
+        if (!purchasingPackage) return;
+        if (!auth?.user) {
+            router.visit('/login');
+            return;
+        }
+        if (auth.user.role !== 'pupil') {
+            toast.error('Only students can purchase conversation packs.');
+            return;
+        }
+
+        setSubmittingPurchase(true);
+        router.post(
+            '/pupil/packages/purchase',
+            {
+                teacher_package_id: purchasingPackage.id,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setPurchasingPackage(null);
+                    toast.success(
+                        t('packages.purchase_success') ||
+                            'Package purchase request submitted! Admin will verify payment shortly.',
+                    );
+                },
+                onError: (err: any) => {
+                    const msg =
+                        err?.message ||
+                        (typeof err === 'object' ? Object.values(err)[0] : null) ||
+                        'Failed to submit purchase.';
+                    toast.error(
+                        typeof msg === 'string'
+                            ? msg
+                            : 'Failed to submit purchase.',
+                    );
+                },
+                onFinish: () => {
+                    setSubmittingPurchase(false);
+                },
+            },
+        );
+    };
+
     const genderPronoun =
         teacher.gender === 'male'
             ? 'his'
@@ -1074,6 +1179,148 @@ export default function TeacherProfile({
                             )}
                         </div>
 
+                        {/* Section: Conversation Packs */}
+                        {packages && packages.length > 0 && (
+                            <div className="section">
+                                <div className="sec-title justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="n">
+                                            <Package className="h-3.5 w-3.5" />
+                                        </span>
+                                        <span>{t('packages.title') || 'Conversation Packs'}</span>
+                                    </div>
+                                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                                        {t('packages.discount_badge', { discount: '10-30' }) || 'Special Discount'}
+                                    </span>
+                                </div>
+                                <p className="mb-4 text-xs leading-relaxed text-[#6B7394]">
+                                    {t('packages.subtitle') ||
+                                        'Purchase discounted conversation hours with this teacher in bulk and use them anytime for free bookings.'}
+                                </p>
+
+                                {activePupilPackage && activePupilPackage.remaining_minutes > 0 && (
+                                    <div className="mb-4 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-900">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                                                <CheckCircle2 className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-emerald-950">
+                                                    {t('packages.active_package') || 'Active Conversation Pack'}
+                                                </p>
+                                                <p className="text-[11.5px] text-emerald-700">
+                                                    {activePupilPackage.package_title} ·{' '}
+                                                    {t('packages.remaining_time', {
+                                                        time:
+                                                            activePupilPackage.remaining_minutes >= 60
+                                                                ? `${Math.floor(activePupilPackage.remaining_minutes / 60)}h ${activePupilPackage.remaining_minutes % 60 > 0 ? (activePupilPackage.remaining_minutes % 60) + 'm' : ''}`
+                                                                : `${activePupilPackage.remaining_minutes} min`,
+                                                    }) ||
+                                                        `Remaining: ${activePupilPackage.remaining_minutes} min`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white shadow-xs">
+                                            {t('packages.status_active') || 'Active'}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {pendingPupilPackage && (
+                                    <div className="mb-4 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                                                <Clock className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-amber-950">
+                                                    {t('packages.pending_verification') || 'Payment Verification Pending'}
+                                                </p>
+                                                <p className="text-[11.5px] text-amber-700">
+                                                    {pendingPupilPackage.package_title} · Admin will approve your payment shortly.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="rounded-full bg-amber-200 px-2.5 py-0.5 text-[10.5px] font-bold text-amber-800">
+                                            Verifying
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {packages.map((pkg) => {
+                                        const regularRate = hourlyPrice * pkg.total_hours;
+                                        const savings = regularRate > pkg.price ? regularRate - pkg.price : 0;
+                                        const isCurrentActive =
+                                            activePupilPackage?.teacher_package_id === pkg.id &&
+                                            activePupilPackage?.remaining_minutes > 0;
+
+                                        return (
+                                            <div
+                                                key={pkg.id}
+                                                className={`relative flex flex-col justify-between rounded-2xl border p-4 transition-all ${
+                                                    isCurrentActive
+                                                        ? 'border-emerald-300 bg-emerald-50/30 shadow-xs'
+                                                        : 'border-[#E6E9F2] bg-[#FAFBFD] hover:border-[#1E2A5A]/30 hover:bg-white hover:shadow-md'
+                                                }`}
+                                            >
+                                                {pkg.discount_percentage && pkg.discount_percentage > 0 ? (
+                                                    <span className="absolute top-3 right-3 rounded-full bg-[#1E2A5A] px-2 py-0.5 text-[10px] font-extrabold text-[#F7DE8B]">
+                                                        {t('packages.discount_badge', { discount: pkg.discount_percentage }) ||
+                                                            `${pkg.discount_percentage}% OFF`}
+                                                    </span>
+                                                ) : null}
+
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-[#1E2A5A]">
+                                                        {pkg.title}
+                                                    </h4>
+                                                    <p className="mt-0.5 text-xs font-semibold text-[#6B7394]">
+                                                        {t('packages.hours_count', { count: pkg.total_hours }) ||
+                                                            `${pkg.total_hours} Hours`}
+                                                        {' '}({pkg.total_minutes} min)
+                                                    </p>
+
+                                                    {pkg.description && (
+                                                        <p className="mt-2 text-xs leading-relaxed text-[#6B7394]">
+                                                            {pkg.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <div className="mt-4 border-t border-[#E6E9F2] pt-3">
+                                                    <div className="flex items-baseline justify-between">
+                                                        <div>
+                                                            <div className="text-base font-extrabold text-[#1E2A5A]">
+                                                                {pkg.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                                            </div>
+                                                            {savings > 0 && (
+                                                                <div className="text-[11px] font-medium text-emerald-600">
+                                                                    {t('packages.savings', {
+                                                                        amount: `${savings.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`,
+                                                                    }) || `Save ${savings.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {auth?.user?.role !== 'teacher' && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setPurchasingPackage(pkg)}
+                                                                className="cursor-pointer rounded-xl bg-[#F7DE8B] px-3.5 py-1.5 text-xs font-bold text-[#1E2A5A] shadow-xs transition hover:bg-[#F0CE5F]"
+                                                            >
+                                                                {t('packages.buy_button') || 'Buy Pack'}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Section 4: Pupil feedback */}
                         <div className="section">
                             <div className="sec-title">
@@ -1185,6 +1432,45 @@ export default function TeacherProfile({
                                 </span>
                                 <span className="per">/ hour</span>
                             </div>
+
+                            {/* Active Package Banner in Rail */}
+                            {activePupilPackage && activePupilPackage.remaining_minutes > 0 && (
+                                <div className="mt-3.5 mb-1 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950">
+                                    <div className="flex items-center justify-between font-bold">
+                                        <span className="flex items-center gap-1.5 text-emerald-900">
+                                            <Package className="h-4 w-4 text-emerald-600" />
+                                            {t('packages.active_package') || 'Active Pack'}
+                                        </span>
+                                        <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-extrabold text-emerald-900">
+                                            {activePupilPackage.remaining_minutes >= 60
+                                                ? `${Math.floor(activePupilPackage.remaining_minutes / 60)}h ${activePupilPackage.remaining_minutes % 60 > 0 ? (activePupilPackage.remaining_minutes % 60) + 'm' : ''}`
+                                                : `${activePupilPackage.remaining_minutes} min`}{' '}
+                                            left
+                                        </span>
+                                    </div>
+                                    <p className="mt-1 text-[11.5px] leading-snug text-emerald-700">
+                                        {isCoveredByPackage
+                                            ? t('packages.covered_badge') || 'Covered by your Pack (Free Booking)'
+                                            : t('packages.insufficient_minutes', {
+                                                  remaining: `${activePupilPackage.remaining_minutes} min`,
+                                                  duration: `${durMins} min`,
+                                              }) ||
+                                              `Pack has ${activePupilPackage.remaining_minutes} min left. Standard rate applies for this ${durMins} min session.`}
+                                    </p>
+                                </div>
+                            )}
+
+                            {pendingPupilPackage && (
+                                <div className="mt-3.5 mb-1 rounded-2xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900">
+                                    <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                                        <Clock className="h-3.5 w-3.5 text-amber-600" />
+                                        <span>Payment Verification Pending</span>
+                                    </div>
+                                    <p className="mt-0.5 text-[11px] text-amber-700">
+                                        {pendingPupilPackage.package_title}
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="rail-label">Lesson type</div>
 
@@ -1461,8 +1747,8 @@ export default function TeacherProfile({
                                         });
                                     })()}{' '}
                                     ·{' '}
-                                    <b className="text-[#1E2A5A]">
-                                        {formattedActivePrice}
+                                    <b className={isCoveredByPackage ? "text-emerald-700 font-extrabold" : "text-[#1E2A5A]"}>
+                                        {isCoveredByPackage ? "0 so'm (Free with Pack)" : formattedActivePrice}
                                     </b>
                                 </div>
                             )}
@@ -1479,7 +1765,9 @@ export default function TeacherProfile({
                                 {auth?.user?.role === 'teacher'
                                     ? 'Viewing Teacher Profile'
                                     : pickedSlot
-                                      ? `Pay ${formattedActivePrice} & book`
+                                      ? isCoveredByPackage
+                                          ? 'Book session (Free with Pack)'
+                                          : `Pay ${formattedActivePrice} & book`
                                       : 'Select a slot first'}
                             </button>
 
@@ -1741,6 +2029,34 @@ export default function TeacherProfile({
                                     )}
                                 </div>
 
+                                {isCoveredByPackage && (
+                                    <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950">
+                                        <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-600 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-emerald-950">
+                                                {t('packages.covered_badge') || 'Covered by your Conversation Pack (Free)'}
+                                            </p>
+                                            <p className="mt-0.5 text-[11.5px] text-emerald-700">
+                                                Session length: {durMins} min. Remaining pack minutes after booking: {activePupilPackage ? Math.max(0, activePupilPackage.remaining_minutes - durMins) : 0} min.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {hasPartialPackage && (
+                                    <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-950">
+                                        <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-amber-950">
+                                                Insufficient Conversation Pack Minutes
+                                            </p>
+                                            <p className="mt-0.5 text-[11.5px] text-amber-700">
+                                                Your pack has {activePupilPackage?.remaining_minutes} min remaining, which is less than this {durMins} min session. Standard price ({formattedActivePrice}) will apply.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="mt-6 flex items-center justify-end gap-3">
                                     <button
                                         onClick={() => setConfirmingSlot(null)}
@@ -1758,11 +2074,105 @@ export default function TeacherProfile({
                                         {booking
                                             ? t('booking.requesting') ||
                                               'Requesting...'
-                                            : t('booking.confirm_btn') ||
-                                              'Confirm Booking'}
+                                            : isCoveredByPackage
+                                              ? 'Confirm Free Booking'
+                                              : t('booking.confirm_btn') ||
+                                                'Confirm Booking'}
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Buy Pack Confirmation Modal */}
+            {purchasingPackage && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#22284A]/40 backdrop-blur-sm p-4">
+                    <div
+                        className="relative w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95"
+                        style={{ fontFamily: "'Schibsted Grotesk', sans-serif" }}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setPurchasingPackage(null)}
+                            disabled={submittingPurchase}
+                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] transition-colors hover:bg-[#A9C6E8] hover:text-[#1E2A5A]"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[#EEF4FB] text-[#1E2A5A]">
+                                <Package className="h-6 w-6 text-[#1E2A5A]" />
+                            </div>
+                            <div className="flex-1">
+                                <h3
+                                    className="text-lg font-bold text-[#1E2A5A]"
+                                    style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+                                >
+                                    {t('packages.buy_button') || 'Buy Conversation Pack'}
+                                </h3>
+                                <p className="mt-1 text-xs text-[#6B7394]">
+                                    {teacher.full_name} · {purchasingPackage.title}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 space-y-3 rounded-2xl border border-[#E6E9F2] bg-[#FAFBFD] p-4 text-xs">
+                            <div className="flex justify-between py-1 border-b border-[#E6E9F2]">
+                                <span className="text-[#6B7394]">{t('packages.pack_hours') || 'Total Hours'}</span>
+                                <span className="font-bold text-[#1E2A5A]">{purchasingPackage.total_hours} Hours ({purchasingPackage.total_minutes} mins)</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-[#E6E9F2]">
+                                <span className="text-[#6B7394]">{t('packages.pack_price') || 'Total Price'}</span>
+                                <span className="font-extrabold text-base text-[#1E2A5A]">
+                                    {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                </span>
+                            </div>
+                            {purchasingPackage.discount_percentage && purchasingPackage.discount_percentage > 0 ? (
+                                <div className="flex justify-between py-1 border-b border-[#E6E9F2]">
+                                    <span className="text-[#6B7394]">Discount</span>
+                                    <span className="font-bold text-emerald-600">
+                                        {purchasingPackage.discount_percentage}% OFF
+                                    </span>
+                                </div>
+                            ) : null}
+                            <div className="flex justify-between py-1">
+                                <span className="text-[#6B7394]">Rate per hour</span>
+                                <span className="font-semibold text-[#1E2A5A]">
+                                    {Math.round(purchasingPackage.price / purchasingPackage.total_hours).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm / hr
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-[11.5px] leading-relaxed text-[#1E2A5A]">
+                            <div className="flex items-center gap-1.5 font-bold mb-0.5">
+                                <Info className="h-3.5 w-3.5 text-blue-600" />
+                                <span>How it works</span>
+                            </div>
+                            Once submitted, the administrator verifies your payment. After verification, your hours become available immediately, allowing you to book conversations with {teacher.full_name} for free until your hours are completely used!
+                        </div>
+
+                        <div className="mt-6 flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setPurchasingPackage(null)}
+                                disabled={submittingPurchase}
+                                className="cursor-pointer rounded-xl border border-[#E6E9F2] px-4 py-2 text-sm font-semibold text-[#6B7394] transition-colors hover:bg-[#FAFBFD]"
+                            >
+                                {t('booking.cancel_btn') || 'Cancel'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handlePurchasePackage}
+                                disabled={submittingPurchase}
+                                className="cursor-pointer rounded-xl bg-[#F7DE8B] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors hover:bg-[#F0CE5F] disabled:opacity-50"
+                            >
+                                {submittingPurchase
+                                    ? (t('packages.buying') || 'Processing...')
+                                    : (t('packages.buy_button') || 'Confirm & Order')}
+                            </button>
                         </div>
                     </div>
                 </div>
