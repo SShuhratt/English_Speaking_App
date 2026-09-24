@@ -1128,9 +1128,9 @@ export default function Profile({
                                                                     </div>
                                                                 )}
 
-                                                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                                                                <div className="space-y-3">
                                                                     <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
+                                                                        <label className="text-xs font-bold text-[#22284A]">
                                                                             {t('auth.score_overall')}
                                                                         </label>
                                                                         <input
@@ -1162,139 +1162,143 @@ export default function Profile({
                                                                             }`}
                                                                         />
                                                                     </div>
-                                                                    <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            {t('auth.score_listening')}
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name={`certificates[${index}][listening]`}
-                                                                            readOnly={Boolean(
-                                                                                c.isExisting,
-                                                                            )}
-                                                                            value={
-                                                                                c.listening ||
-                                                                                ''
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateCertField(
-                                                                                    index,
-                                                                                    'listening',
-                                                                                    e
-                                                                                        .target
-                                                                                        .value,
-                                                                                )
-                                                                            }
-                                                                            placeholder="e.g. 8.0"
-                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting
-                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                    : 'bg-white focus:border-[#1E2A5A]'
-                                                                            }`}
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            {t('auth.score_reading')}
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name={`certificates[${index}][reading]`}
-                                                                            readOnly={Boolean(
-                                                                                c.isExisting,
-                                                                            )}
-                                                                            value={
-                                                                                c.reading ||
-                                                                                ''
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateCertField(
-                                                                                    index,
-                                                                                    'reading',
-                                                                                    e
-                                                                                        .target
-                                                                                        .value,
-                                                                                )
-                                                                            }
-                                                                            placeholder="e.g. 7.0"
-                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting
-                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                    : 'bg-white focus:border-[#1E2A5A]'
-                                                                            }`}
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            {t('auth.score_writing')}
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name={`certificates[${index}][writing]`}
-                                                                            readOnly={Boolean(
-                                                                                c.isExisting,
-                                                                            )}
-                                                                            value={
-                                                                                c.writing ||
-                                                                                ''
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateCertField(
-                                                                                    index,
-                                                                                    'writing',
-                                                                                    e
-                                                                                        .target
-                                                                                        .value,
-                                                                                )
-                                                                            }
-                                                                            placeholder="e.g. 6.5"
-                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting
-                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                    : 'bg-white focus:border-[#1E2A5A]'
-                                                                            }`}
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            {t('auth.score_speaking')}
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name={`certificates[${index}][speaking]`}
-                                                                            readOnly={Boolean(
-                                                                                c.isExisting,
-                                                                            )}
-                                                                            value={
-                                                                                c.speaking ||
-                                                                                ''
-                                                                            }
-                                                                            onChange={(
-                                                                                e,
-                                                                            ) =>
-                                                                                updateCertField(
-                                                                                    index,
-                                                                                    'speaking',
-                                                                                    e
-                                                                                        .target
-                                                                                        .value,
-                                                                                )
-                                                                            }
-                                                                            placeholder="e.g. 8.5"
-                                                                            className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
-                                                                                c.isExisting
-                                                                                    ? 'cursor-not-allowed bg-[#F4F6FB]'
-                                                                                    : 'bg-white focus:border-[#1E2A5A]'
-                                                                            }`}
-                                                                        />
+
+                                                                    <div className="grid grid-cols-2 gap-3">
+                                                                        <div className="min-w-0">
+                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
+                                                                                {t('auth.score_listening')}
+                                                                            </label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name={`certificates[${index}][listening]`}
+                                                                                readOnly={Boolean(
+                                                                                    c.isExisting,
+                                                                                )}
+                                                                                value={
+                                                                                    c.listening ||
+                                                                                    ''
+                                                                                }
+                                                                                onChange={(
+                                                                                    e,
+                                                                                ) =>
+                                                                                    updateCertField(
+                                                                                        index,
+                                                                                        'listening',
+                                                                                        e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    )
+                                                                                }
+                                                                                placeholder="e.g. 8.0"
+                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                    c.isExisting
+                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                        : 'bg-white focus:border-[#1E2A5A]'
+                                                                                }`}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
+                                                                                {t('auth.score_reading')}
+                                                                            </label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name={`certificates[${index}][reading]`}
+                                                                                readOnly={Boolean(
+                                                                                    c.isExisting,
+                                                                                )}
+                                                                                value={
+                                                                                    c.reading ||
+                                                                                    ''
+                                                                                }
+                                                                                onChange={(
+                                                                                    e,
+                                                                                ) =>
+                                                                                    updateCertField(
+                                                                                        index,
+                                                                                        'reading',
+                                                                                        e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    )
+                                                                                }
+                                                                                placeholder="e.g. 7.0"
+                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                    c.isExisting
+                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                        : 'bg-white focus:border-[#1E2A5A]'
+                                                                                }`}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
+                                                                                {t('auth.score_writing')}
+                                                                            </label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name={`certificates[${index}][writing]`}
+                                                                                readOnly={Boolean(
+                                                                                    c.isExisting,
+                                                                                )}
+                                                                                value={
+                                                                                    c.writing ||
+                                                                                    ''
+                                                                                }
+                                                                                onChange={(
+                                                                                    e,
+                                                                                ) =>
+                                                                                    updateCertField(
+                                                                                        index,
+                                                                                        'writing',
+                                                                                        e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    )
+                                                                                }
+                                                                                placeholder="e.g. 6.5"
+                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                    c.isExisting
+                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                        : 'bg-white focus:border-[#1E2A5A]'
+                                                                                }`}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <label className="block truncate text-[11px] font-bold text-[#6B7394]">
+                                                                                {t('auth.score_speaking')}
+                                                                            </label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name={`certificates[${index}][speaking]`}
+                                                                                readOnly={Boolean(
+                                                                                    c.isExisting,
+                                                                                )}
+                                                                                value={
+                                                                                    c.speaking ||
+                                                                                    ''
+                                                                                }
+                                                                                onChange={(
+                                                                                    e,
+                                                                                ) =>
+                                                                                    updateCertField(
+                                                                                        index,
+                                                                                        'speaking',
+                                                                                        e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    )
+                                                                                }
+                                                                                placeholder="e.g. 8.5"
+                                                                                className={`mt-1 w-full rounded-lg border border-[#E6E9F2] px-2.5 py-1.5 text-xs text-[#22284A] ${
+                                                                                    c.isExisting
+                                                                                        ? 'cursor-not-allowed bg-[#F4F6FB]'
+                                                                                        : 'bg-white focus:border-[#1E2A5A]'
+                                                                                }`}
+                                                                            />
+                                                                        </div>
                                                                     </div>
                                                                 </div>
+
 
                                                                 {c.isExisting ? (
                                                                     <p className="flex items-center gap-1 text-[11px] text-[#6B7394] italic">

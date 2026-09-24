@@ -514,9 +514,9 @@ export default function Register({ passwordRules }: Props) {
                                                             </div>
                                                         )}
 
-                                                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                                                        <div className="space-y-3">
                                                             <div>
-                                                                <Label className="text-[11px] font-bold">
+                                                                <Label className="text-xs font-bold text-foreground">
                                                                     {t('auth.score_overall')}
                                                                 </Label>
                                                                 <Input
@@ -538,112 +538,115 @@ export default function Register({ passwordRules }: Props) {
                                                                     }
                                                                     placeholder="e.g. 7.5"
                                                                     required
-                                                                    className="mt-1 h-9 text-xs"
+                                                                    className="mt-1 h-9 text-xs font-semibold"
                                                                 />
                                                             </div>
-                                                            <div>
-                                                                <Label className="text-[11px] font-bold">
-                                                                    {t('auth.score_listening')}
-                                                                </Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    name={`certificates[${index}][listening]`}
-                                                                    value={
-                                                                        cert.listening
-                                                                    }
-                                                                    onChange={(
-                                                                        e,
-                                                                    ) =>
-                                                                        updateCertificate(
-                                                                            index,
-                                                                            'listening',
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        )
-                                                                    }
-                                                                    placeholder="e.g. 8.0"
-                                                                    required
-                                                                    className="mt-1 h-9 text-xs"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <Label className="text-[11px] font-bold">
-                                                                    {t('auth.score_reading')}
-                                                                </Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    name={`certificates[${index}][reading]`}
-                                                                    value={
-                                                                        cert.reading
-                                                                    }
-                                                                    onChange={(
-                                                                        e,
-                                                                    ) =>
-                                                                        updateCertificate(
-                                                                            index,
-                                                                            'reading',
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        )
-                                                                    }
-                                                                    placeholder="e.g. 7.0"
-                                                                    required
-                                                                    className="mt-1 h-9 text-xs"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <Label className="text-[11px] font-bold">
-                                                                    {t('auth.score_writing')}
-                                                                </Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    name={`certificates[${index}][writing]`}
-                                                                    value={
-                                                                        cert.writing
-                                                                    }
-                                                                    onChange={(
-                                                                        e,
-                                                                    ) =>
-                                                                        updateCertificate(
-                                                                            index,
-                                                                            'writing',
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        )
-                                                                    }
-                                                                    placeholder="e.g. 6.5"
-                                                                    required
-                                                                    className="mt-1 h-9 text-xs"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <Label className="text-[11px] font-bold">
-                                                                    {t('auth.score_speaking')}
-                                                                </Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    name={`certificates[${index}][speaking]`}
-                                                                    value={
-                                                                        cert.speaking
-                                                                    }
-                                                                    onChange={(
-                                                                        e,
-                                                                    ) =>
-                                                                        updateCertificate(
-                                                                            index,
-                                                                            'speaking',
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        )
-                                                                    }
-                                                                    placeholder="e.g. 8.5"
-                                                                    required
-                                                                    className="mt-1 h-9 text-xs"
-                                                                />
+
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div className="min-w-0">
+                                                                    <Label className="block truncate text-[11px] font-bold">
+                                                                        {t('auth.score_listening')}
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="text"
+                                                                        name={`certificates[${index}][listening]`}
+                                                                        value={
+                                                                            cert.listening
+                                                                        }
+                                                                        onChange={(
+                                                                            e,
+                                                                        ) =>
+                                                                            updateCertificate(
+                                                                                index,
+                                                                                'listening',
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                            )
+                                                                        }
+                                                                        placeholder="e.g. 8.0"
+                                                                        required
+                                                                        className="mt-1 h-9 text-xs"
+                                                                    />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <Label className="block truncate text-[11px] font-bold">
+                                                                        {t('auth.score_reading')}
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="text"
+                                                                        name={`certificates[${index}][reading]`}
+                                                                        value={
+                                                                            cert.reading
+                                                                        }
+                                                                        onChange={(
+                                                                            e,
+                                                                        ) =>
+                                                                            updateCertificate(
+                                                                                index,
+                                                                                'reading',
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                            )
+                                                                        }
+                                                                        placeholder="e.g. 7.0"
+                                                                        required
+                                                                        className="mt-1 h-9 text-xs"
+                                                                    />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <Label className="block truncate text-[11px] font-bold">
+                                                                        {t('auth.score_writing')}
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="text"
+                                                                        name={`certificates[${index}][writing]`}
+                                                                        value={
+                                                                            cert.writing
+                                                                        }
+                                                                        onChange={(
+                                                                            e,
+                                                                        ) =>
+                                                                            updateCertificate(
+                                                                                index,
+                                                                                'writing',
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                            )
+                                                                        }
+                                                                        placeholder="e.g. 6.5"
+                                                                        required
+                                                                        className="mt-1 h-9 text-xs"
+                                                                    />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <Label className="block truncate text-[11px] font-bold">
+                                                                        {t('auth.score_speaking')}
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="text"
+                                                                        name={`certificates[${index}][speaking]`}
+                                                                        value={
+                                                                            cert.speaking
+                                                                        }
+                                                                        onChange={(
+                                                                            e,
+                                                                        ) =>
+                                                                            updateCertificate(
+                                                                                index,
+                                                                                'speaking',
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                            )
+                                                                        }
+                                                                        placeholder="e.g. 8.5"
+                                                                        required
+                                                                        className="mt-1 h-9 text-xs"
+                                                                    />
+                                                                </div>
                                                             </div>
                                                         </div>
 
