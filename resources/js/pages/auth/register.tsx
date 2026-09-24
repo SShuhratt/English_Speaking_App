@@ -403,36 +403,6 @@ export default function Register({ passwordRules }: Props) {
                                         <InputError message={errors.price} />
                                     </div>
 
-                                    <div className="grid gap-2">
-                                        <Label className="text-sm font-semibold">
-                                            {t('labels.title')}
-                                        </Label>
-                                        <div className="mt-1.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                                            {[
-                                                'mock',
-                                                'freestyle',
-                                                'lessons',
-                                                'business english',
-                                                'practice q&a',
-                                            ].map((lbl) => (
-                                                <label
-                                                    key={lbl}
-                                                    className="flex cursor-pointer items-center gap-2.5 rounded-xl border p-3 text-sm font-medium transition-colors select-none hover:bg-muted/40"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        name="labels[]"
-                                                        value={lbl}
-                                                        className="rounded border-input text-brand-orange focus:ring-brand-orange"
-                                                    />
-                                                    <span>
-                                                        {t(`labels.${lbl}`)}
-                                                    </span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                        <InputError message={errors.labels} />
-                                    </div>
 
                                     {/* Multi-Certificate & Scores Repeater Section */}
                                     <div className="mt-6 space-y-4 rounded-3xl border border-blue-100 bg-blue-50/30 p-5 dark:border-blue-900/40 dark:bg-blue-950/10">

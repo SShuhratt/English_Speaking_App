@@ -1131,7 +1131,7 @@ export default function Profile({
                                                                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                                                                     <div>
                                                                         <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            Overall
+                                                                            {t('auth.score_overall')}
                                                                         </label>
                                                                         <input
                                                                             type="text"
@@ -1164,7 +1164,7 @@ export default function Profile({
                                                                     </div>
                                                                     <div>
                                                                         <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            Listening
+                                                                            {t('auth.score_listening')}
                                                                         </label>
                                                                         <input
                                                                             type="text"
@@ -1197,7 +1197,7 @@ export default function Profile({
                                                                     </div>
                                                                     <div>
                                                                         <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            Reading
+                                                                            {t('auth.score_reading')}
                                                                         </label>
                                                                         <input
                                                                             type="text"
@@ -1230,7 +1230,7 @@ export default function Profile({
                                                                     </div>
                                                                     <div>
                                                                         <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            Writing
+                                                                            {t('auth.score_writing')}
                                                                         </label>
                                                                         <input
                                                                             type="text"
@@ -1263,7 +1263,7 @@ export default function Profile({
                                                                     </div>
                                                                     <div>
                                                                         <label className="text-[11px] font-bold text-[#6B7394]">
-                                                                            Speaking
+                                                                            {t('auth.score_speaking')}
                                                                         </label>
                                                                         <input
                                                                             type="text"
