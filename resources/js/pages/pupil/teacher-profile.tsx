@@ -23,6 +23,7 @@ import {
     ShieldCheck,
     ShieldAlert,
     Eye,
+    Maximize2,
     Package,
     CheckCircle2,
     AlertCircle,
@@ -1173,25 +1174,77 @@ export default function TeacherProfile({
                                                     )}
                                                 </div>
 
-                                                {/* Certificate Document Action (Accessible to all pupils & admins/teachers) */}
-                                                {cert.file_url && (
-                                                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                                                        <span className="flex items-center gap-1.5 text-xs font-medium text-[#6B7394]">
-                                                            <FileText className="h-3.5 w-3.5" />
-                                                            <span className="truncate max-w-[200px] sm:max-w-xs">
-                                                                {cert.file_name || 'Certificate Document'}
-                                                            </span>
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setSelectedCertForPreview(cert)}
-                                                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/80 px-3 py-1.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 hover:text-indigo-900"
-                                                        >
-                                                            <Eye className="h-3.5 w-3.5" />
-                                                            <span>{t('teacher.view_certificate', 'View Certificate')}</span>
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                {/* Certificate Document Action & Small Frame (Accessible to all pupils & admins/teachers) */}
+                                                {cert.file_url && (() => {
+                                                    const isCertPdf = Boolean(
+                                                        cert.file_name?.toLowerCase().endsWith('.pdf') ||
+                                                        cert.file_url?.toLowerCase().includes('.pdf')
+                                                    );
+                                                    return (
+                                                        <div className="space-y-2.5 pt-1">
+                                                            {/* Small Frame Preview Box (Clickable, expands to popup modal) */}
+                                                            <div
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                onClick={() => setSelectedCertForPreview(cert)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        setSelectedCertForPreview(cert);
+                                                                    }
+                                                                }}
+                                                                className="group relative flex h-32 w-full sm:w-56 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-2xs transition-all hover:border-indigo-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-850"
+                                                                title={t('teacher.click_to_expand', 'Click to expand')}
+                                                            >
+                                                                {isCertPdf ? (
+                                                                    <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-indigo-50/70 to-blue-50/40 p-3 text-center dark:from-gray-900 dark:to-indigo-950/40">
+                                                                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500 text-white shadow-xs">
+                                                                            <FileText className="h-5 w-5" />
+                                                                        </span>
+                                                                        <span className="mt-2 max-w-[90%] truncate text-[11px] font-bold text-gray-800 dark:text-gray-200">
+                                                                            {cert.file_name || cert.title || 'certificate.pdf'}
+                                                                        </span>
+                                                                        <span className="mt-0.5 text-[9px] font-semibold text-indigo-600 dark:text-indigo-400">
+                                                                            PDF Document
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <img
+                                                                        src={cert.file_url}
+                                                                        alt={cert.file_name || cert.title || 'Certificate'}
+                                                                        className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105"
+                                                                        loading="lazy"
+                                                                    />
+                                                                )}
+                                                                {/* Hover overlay with zoom icon */}
+                                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-950/60 text-white opacity-0 backdrop-blur-[1px] transition-opacity duration-200 group-hover:opacity-100">
+                                                                    <Maximize2 className="h-6 w-6 mb-1 text-white" />
+                                                                    <span className="text-[11px] font-bold">
+                                                                        {t('teacher.click_to_expand', 'Click to expand')}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Action Row */}
+                                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                                <span className="flex items-center gap-1.5 text-xs font-medium text-[#6B7394]">
+                                                                    <FileText className="h-3.5 w-3.5" />
+                                                                    <span className="truncate max-w-[180px] sm:max-w-xs">
+                                                                        {cert.file_name || 'Certificate Document'}
+                                                                    </span>
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setSelectedCertForPreview(cert)}
+                                                                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/80 px-3 py-1.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
+                                                                >
+                                                                    <Eye className="h-3.5 w-3.5" />
+                                                                    <span>{t('teacher.view_certificate', 'View Certificate')}</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         );
                                     })}

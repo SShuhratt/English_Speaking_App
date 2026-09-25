@@ -24,6 +24,7 @@ import {
     CertificateInputCard,
     CertificateData,
 } from '@/components/certificates/CertificateInputCard';
+import { CertificatePreviewModal } from '@/components/certificates/CertificatePreviewModal';
 import { getDefaultLanguageForExam } from '@/config/certificates';
 
 type PageProps = {
@@ -90,6 +91,7 @@ export default function Profile({
 }) {
     const { auth } = usePage<PageProps>().props;
     const { t } = useTranslation();
+    const [selectedCertForPreview, setSelectedCertForPreview] = React.useState<CertificateData | null>(null);
 
     const isImageFile = (url: string) => {
         const cleanUrl = url.split('?')[0];
@@ -1027,6 +1029,7 @@ export default function Profile({
                                                                 canRemove={true}
                                                                 onChange={(updated) => updateCert(index, updated)}
                                                                 onRemove={() => removeCertificate(index)}
+                                                                onPreview={(certToPreview) => setSelectedCertForPreview(certToPreview)}
                                                             />
                                                             <input
                                                                 type="hidden"
@@ -2057,6 +2060,12 @@ export default function Profile({
                     </div>
                 </div>
             </div>
+
+            <CertificatePreviewModal
+                isOpen={Boolean(selectedCertForPreview)}
+                onClose={() => setSelectedCertForPreview(null)}
+                certificate={selectedCertForPreview}
+            />
         </>
     );
 }

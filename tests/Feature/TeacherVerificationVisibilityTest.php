@@ -216,4 +216,39 @@ class TeacherVerificationVisibilityTest extends TestCase
             ->where('teacher.teacher_profile.certificates.0.file_url', 'https://example.com/storage/certificates/sample.pdf')
         );
     }
+
+    public function test_teacher_can_view_own_certificates_with_file_urls_on_settings_profile()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'title' => 'IELTS Academic',
+                    'status' => 'verified',
+                    'file_url' => 'https://example.com/storage/certificates/sample.pdf',
+                    'file_name' => 'sample.pdf',
+                    'overall' => '8.0',
+                ],
+                [
+                    'type' => 'cefr',
+                    'title' => 'CEFR C1',
+                    'status' => 'pending',
+                    'file_url' => 'https://example.com/storage/certificates/pending.pdf',
+                    'file_name' => 'pending.pdf',
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($teacher)->get('/settings/profile');
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('settings/profile')
+            ->has('auth.user.teacher_profile.certificates', 2)
+            ->where('auth.user.teacher_profile.certificates.0.file_url', 'https://example.com/storage/certificates/sample.pdf')
+            ->where('auth.user.teacher_profile.certificates.1.file_url', 'https://example.com/storage/certificates/pending.pdf')
+        );
+    }
 }

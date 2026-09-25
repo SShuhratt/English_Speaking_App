@@ -10,7 +10,7 @@ import { getCertificateDefinition, LANGUAGE_OPTIONS } from '@/config/certificate
 import { useTranslation } from '@/hooks/use-translation';
 
 export interface CertificatePreviewData {
-    id?: string;
+    id?: string | number;
     type?: string;
     language?: string;
     title?: string;
@@ -24,6 +24,7 @@ export interface CertificatePreviewData {
     sub_scores?: Record<string, string>;
     file_url?: string | null;
     file_name?: string | null;
+    file?: File | null;
     status?: string;
 }
 
@@ -40,12 +41,30 @@ export const CertificatePreviewModal: React.FC<CertificatePreviewModalProps> = (
 }) => {
     const { t } = useTranslation();
 
+    const objectUrl = React.useMemo(() => {
+        if (certificate?.file && !certificate.file_url) {
+            return URL.createObjectURL(certificate.file);
+        }
+        return null;
+    }, [certificate?.file, certificate?.file_url]);
+
+    React.useEffect(() => {
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [objectUrl]);
+
     if (!certificate) return null;
 
+    const effectiveUrl = certificate.file_url || objectUrl;
     const definition = getCertificateDefinition(certificate.type);
-    const isPdf =
+    const isPdf = Boolean(
         certificate.file_name?.toLowerCase().endsWith('.pdf') ||
-        certificate.file_url?.toLowerCase().includes('.pdf');
+        certificate.file_url?.toLowerCase().includes('.pdf') ||
+        certificate.file?.type === 'application/pdf'
+    );
 
     const displayTitle =
         certificate.title ||
@@ -128,46 +147,69 @@ export const CertificatePreviewModal: React.FC<CertificatePreviewModalProps> = (
                 </DialogHeader>
 
                 {/* Document Body */}
-                <div className="max-h-[65vh] overflow-y-auto bg-gray-100/50 p-4 dark:bg-gray-950/50 sm:p-6">
-                    {certificate.file_url ? (
+                <div className="max-h-[70vh] overflow-y-auto bg-gray-100/50 p-4 dark:bg-gray-950/50 sm:p-6">
+                    {effectiveUrl ? (
                         isPdf ? (
                             <div className="flex flex-col items-center gap-3">
-                                <div className="flex w-full items-center justify-between rounded-xl bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-2xs dark:bg-gray-800 dark:text-gray-200">
-                                    <span className="truncate">
+                                <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 shadow-2xs dark:bg-gray-800 dark:text-gray-200">
+                                    <span className="truncate max-w-[220px] sm:max-w-md">
                                         {certificate.file_name || 'certificate.pdf'}
                                     </span>
-                                    <a
-                                        href={certificate.file_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-300"
-                                    >
-                                        <ExternalLink className="h-3.5 w-3.5" />
-                                        {t('teacher.open_original_file', 'Open Original Document')}
-                                    </a>
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={effectiveUrl}
+                                            download={certificate.file_name || 'certificate.pdf'}
+                                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                        >
+                                            <Download className="h-3.5 w-3.5" />
+                                            {t('common.download', 'Download')}
+                                        </a>
+                                        <a
+                                            href={effectiveUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-300"
+                                        >
+                                            <ExternalLink className="h-3.5 w-3.5" />
+                                            {t('teacher.open_original_file', 'Open Original Document')}
+                                        </a>
+                                    </div>
                                 </div>
                                 <iframe
-                                    src={`${certificate.file_url}#toolbar=0`}
-                                    className="h-[52vh] w-full rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-800 dark:bg-gray-900"
+                                    src={`${effectiveUrl}#toolbar=0`}
+                                    className="h-[58vh] w-full rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-800 dark:bg-gray-900"
                                     title="Certificate PDF Viewer"
                                 />
+                                <p className="text-center text-[11px] text-gray-400 dark:text-gray-500">
+                                    {t('teacher.pdf_preview_hint', 'If the document does not display in your browser, use the open or download button above.')}
+                                </p>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center gap-3">
                                 <img
-                                    src={certificate.file_url}
+                                    src={effectiveUrl}
                                     alt={displayTitle}
-                                    className="max-h-[55vh] w-auto max-w-full rounded-xl object-contain shadow-md"
+                                    className="max-h-[58vh] w-auto max-w-full rounded-xl object-contain shadow-md"
                                 />
-                                <a
-                                    href={certificate.file_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
-                                >
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                    {t('teacher.open_original_file', 'Open full size in new tab')}
-                                </a>
+                                <div className="flex items-center gap-3">
+                                    <a
+                                        href={effectiveUrl}
+                                        download={certificate.file_name || 'certificate.png'}
+                                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                    >
+                                        <Download className="h-3.5 w-3.5" />
+                                        {t('common.download', 'Download')}
+                                    </a>
+                                    <a
+                                        href={effectiveUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
+                                    >
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                        {t('teacher.open_original_file', 'Open full size in new tab')}
+                                    </a>
+                                </div>
                             </div>
                         )
                     ) : (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, FileText, Upload, X, RefreshCw, Award, Eye } from 'lucide-react';
+import { Trash2, FileText, Upload, X, RefreshCw, Award, Eye, Maximize2 } from 'lucide-react';
 import {
     CERTIFICATE_DEFINITIONS,
     getCertificateDefinition,
@@ -37,6 +37,7 @@ interface CertificateInputCardProps {
     onRemove?: () => void;
     canRemove?: boolean;
     readOnly?: boolean;
+    onPreview?: (cert: CertificateData) => void;
 }
 
 export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
@@ -46,6 +47,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
     onRemove,
     canRemove = true,
     readOnly = false,
+    onPreview,
 }) => {
     const { t } = useTranslation();
     const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -140,6 +142,41 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
     // Determine current attached file name
     const currentFileName = cert.file ? cert.file.name : cert.file_name;
     const hasFile = Boolean(currentFileName || cert.file_url);
+
+    const objectUrl = React.useMemo(() => {
+        if (cert.file) {
+            return URL.createObjectURL(cert.file);
+        }
+        return null;
+    }, [cert.file]);
+
+    React.useEffect(() => {
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [objectUrl]);
+
+    const effectiveUrl = cert.file_url || objectUrl;
+
+    const isPdf = Boolean(
+        (currentFileName && currentFileName.toLowerCase().endsWith('.pdf')) ||
+        (cert.file_url && cert.file_url.toLowerCase().includes('.pdf')) ||
+        (cert.file && cert.file.type === 'application/pdf')
+    );
+
+    const handleTriggerPreview = () => {
+        if (onPreview) {
+            onPreview({
+                ...cert,
+                file_url: effectiveUrl,
+                file_name: currentFileName,
+            });
+        } else if (effectiveUrl) {
+            window.open(effectiveUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
 
     // Format file size helper if File object is available
     const fileSizeFormatted = React.useMemo(() => {
@@ -358,56 +395,102 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                 />
 
                 {hasFile ? (
-                    /* Attached File Card with Replace and Delete */
-                    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/70 p-2.5 dark:border-gray-800 dark:bg-gray-800/40">
-                        <div className="flex min-w-0 items-center gap-2.5">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-2xs dark:bg-gray-800 dark:text-indigo-400">
-                                <FileText className="h-4 w-4" />
-                            </span>
-                            <div className="min-w-0">
-                                <p className="truncate text-xs font-bold text-gray-900 dark:text-white">
-                                    {currentFileName || 'certificate.pdf'}
-                                </p>
-                                <p className="text-[10px] font-medium text-gray-400">
-                                    {fileSizeFormatted ? `${fileSizeFormatted} · ` : ''}
-                                    {currentFileName?.toLowerCase().endsWith('.pdf')
-                                        ? 'PDF Document'
-                                        : 'Image Document'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                            {cert.file_url && (
-                                <a
-                                    href={cert.file_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50/80 px-2.5 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
+                    /* Attached File Card with Small Frame Preview, Replace and Delete */
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+                            {/* Small Frame Thumbnail / Preview Box */}
+                            {effectiveUrl ? (
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={handleTriggerPreview}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleTriggerPreview();
+                                        }
+                                    }}
+                                    className="group relative h-28 w-full sm:w-44 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-2xs transition-all hover:border-indigo-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
+                                    title={t('teacher.click_to_expand', 'Click to expand')}
                                 >
-                                    <Eye className="h-3.5 w-3.5" />
-                                    <span>{t('teacher.view_certificate') || 'View'}</span>
-                                </a>
+                                    {isPdf ? (
+                                        <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-indigo-50/70 to-blue-50/40 p-2.5 text-center dark:from-gray-900 dark:to-indigo-950/40">
+                                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500 text-white shadow-xs">
+                                                <FileText className="h-5 w-5" />
+                                            </span>
+                                            <span className="mt-1.5 max-w-[90%] truncate text-[10px] font-bold text-gray-700 dark:text-gray-300">
+                                                {currentFileName || 'document.pdf'}
+                                            </span>
+                                            <span className="text-[9px] font-semibold text-indigo-600 dark:text-indigo-400">
+                                                PDF Document
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <img
+                                            src={effectiveUrl}
+                                            alt={currentFileName || 'Certificate'}
+                                            className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105"
+                                        />
+                                    )}
+                                    {/* Hover expand overlay */}
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-950/60 text-white opacity-0 backdrop-blur-[1px] transition-opacity duration-200 group-hover:opacity-100">
+                                        <Maximize2 className="h-5 w-5 mb-1" />
+                                        <span className="text-[11px] font-bold">
+                                            {t('teacher.click_to_expand', 'Click to expand')}
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex h-24 w-full sm:w-36 shrink-0 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-100 text-gray-400 dark:border-gray-700 dark:bg-gray-800">
+                                    <FileText className="h-6 w-6" />
+                                </div>
                             )}
-                            {!readOnly && (
-                                <>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                    >
-                                        <RefreshCw className="h-3 w-3" />
-                                        {t('auth.replace_file', 'Replace')}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleRemoveFile}
-                                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </button>
-                                </>
-                            )}
+
+                            {/* File Info and Action Buttons */}
+                            <div className="flex min-w-0 flex-1 flex-col justify-between self-stretch py-0.5">
+                                <div>
+                                    <p className="truncate text-xs font-bold text-gray-900 dark:text-white">
+                                        {currentFileName || 'certificate.pdf'}
+                                    </p>
+                                    <p className="text-[10px] font-medium text-gray-400 mt-0.5">
+                                        {fileSizeFormatted ? `${fileSizeFormatted} · ` : ''}
+                                        {isPdf ? 'PDF Document' : 'Image Document'}
+                                    </p>
+                                </div>
+
+                                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                                    {effectiveUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={handleTriggerPreview}
+                                            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50/80 px-2.5 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
+                                        >
+                                            <Eye className="h-3.5 w-3.5" />
+                                            <span>{t('teacher.view_certificate', 'View Certificate')}</span>
+                                        </button>
+                                    )}
+                                    {!readOnly && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                            >
+                                                <RefreshCw className="h-3 w-3" />
+                                                {t('auth.replace_file', 'Replace')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveFile}
+                                                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                                                title={t('auth.remove_file', 'Remove')}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ) : (
