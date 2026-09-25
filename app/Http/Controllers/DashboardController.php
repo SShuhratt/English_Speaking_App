@@ -53,6 +53,7 @@ class DashboardController extends Controller
                     'average_rating' => round($averageRating, 1),
                     'completed_conversations' => $convStats['total_conversations'],
                     'speaking_time' => $convStats['total_time_formatted'],
+                    'speaking_time_minutes' => $convStats['total_minutes'],
                 ],
             ]);
         } else {

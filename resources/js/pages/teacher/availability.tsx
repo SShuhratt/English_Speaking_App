@@ -51,6 +51,7 @@ interface Props {
 const translations = {
     en: {
         title: 'Availability',
+        packagesTab: 'Conversation Packs',
         today: 'Today',
         day: 'Day',
         week: 'Week',
@@ -169,6 +170,7 @@ const translations = {
     },
     uz: {
         title: 'Bandlik jadvali',
+        packagesTab: "Suhbat to'plamlari",
         today: 'Bugun',
         day: 'Kun',
         week: 'Hafta',
@@ -288,6 +290,7 @@ const translations = {
     },
     ru: {
         title: 'График доступности',
+        packagesTab: 'Пакеты разговоров',
         today: 'Сегодня',
         day: 'День',
         week: 'Неделя',
@@ -1567,7 +1570,7 @@ export default function Availability({
                                 className={`rounded-lg font-semibold text-xs gap-1.5 ${mainTab === 'packages' ? 'bg-background shadow-xs text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground'}`}
                             >
                                 <Package className="h-3.5 w-3.5" />
-                                Conversation Packs
+                                {t.packagesTab || 'Conversation Packs'}
                                 {packages && packages.length > 0 && (
                                     <span className="ml-1 rounded-full bg-indigo-100 dark:bg-indigo-950 px-1.5 py-0.2 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
                                         {packages.length}

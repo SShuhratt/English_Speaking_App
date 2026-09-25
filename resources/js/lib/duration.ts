@@ -110,3 +110,41 @@ export function formatRemainingBalance(minutes: number, locale: string = 'en'): 
     }
     return `${formatDuration(minutes, locale)} remaining`;
 }
+
+/**
+ * Format speaking time which can be total minutes (number) or a legacy string like "6h", "1h 30m", "45m".
+ */
+export function formatSpeakingTime(input: number | string | undefined | null, locale: string = 'en'): string {
+    if (input === null || input === undefined || input === '') {
+        return formatMinutes(0, locale);
+    }
+
+    if (typeof input === 'number') {
+        return formatDuration(input, locale);
+    }
+
+    const trimmed = input.trim();
+    if (/^\d+$/.test(trimmed)) {
+        return formatDuration(parseInt(trimmed, 10), locale);
+    }
+
+    let totalMinutes = 0;
+    const hourMatch = trimmed.match(/(\d+)\s*h/i);
+    const minMatch = trimmed.match(/(\d+)\s*m/i);
+
+    if (hourMatch) {
+        totalMinutes += parseInt(hourMatch[1], 10) * 60;
+    }
+    if (minMatch) {
+        totalMinutes += parseInt(minMatch[1], 10);
+    }
+
+    if (!hourMatch && !minMatch) {
+        const parsed = parseInt(trimmed, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+            totalMinutes = parsed;
+        }
+    }
+
+    return formatDuration(totalMinutes, locale);
+}

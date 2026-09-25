@@ -37,6 +37,7 @@ import {
     formatMinutes,
     formatRateUnit,
     formatRemainingBalance,
+    formatSpeakingTime,
 } from '@/lib/duration';
 import {
     getCertificateDefinition,
@@ -930,7 +931,10 @@ export default function TeacherProfile({
                             </div>
                             <div className="score-chip">
                                 <span className="sv">
-                                    {conversationStats?.total_time_formatted ?? '0m'}
+                                    {formatSpeakingTime(
+                                        conversationStats?.total_minutes ?? conversationStats?.total_time_formatted,
+                                        locale,
+                                    )}
                                 </span>
                                 <span className="sl">
                                     {t('dashboard.speaking_time')}
@@ -1720,9 +1724,7 @@ export default function TeacherProfile({
                                         <p className="py-2 text-xs text-muted-foreground italic">
                                             No available slots for this day for
                                             the selected duration (
-                                            {selectedDuration >= 60
-                                                ? selectedDuration / 60 + ' h'
-                                                : selectedDuration + ' min'}
+                                            {formatDuration(selectedDuration, locale)}
                                             ).
                                         </p>
                                     );
@@ -1737,8 +1739,8 @@ export default function TeacherProfile({
                                 <div className="mt-3.5 rounded-xl border border-[#E8E6DE] bg-[#F7F6F2] p-3 text-[13px] leading-relaxed text-[#6B7394]">
                                     <b className="text-[#22284A]">
                                         {lessonType === 'trial'
-                                            ? 'Trial · 20 min'
-                                            : `Full lesson · ${selectedDuration >= 60 ? selectedDuration / 60 + ' h' : selectedDuration + ' min'}`}
+                                            ? `Trial · ${formatDuration(20, locale)}`
+                                            : `Full lesson · ${formatDuration(selectedDuration, locale)}`}
                                     </b>{' '}
                                     with{' '}
                                     {teacher.full_name?.split(' ')[0] ||

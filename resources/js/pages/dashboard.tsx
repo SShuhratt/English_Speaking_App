@@ -25,7 +25,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
-import { formatDuration } from '@/lib/duration';
+import { formatDuration, formatSpeakingTime } from '@/lib/duration';
 import AppLayout from '@/layouts/app-layout';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import FluencyLevelBadge from '@/components/gamification/FluencyLevelBadge';
@@ -935,7 +935,7 @@ function TeacherDashboard({
                             </p>
                             <div className="flex items-baseline space-x-2">
                                 <span className="text-4xl font-extrabold tracking-tight text-[#1b1b1f]">
-                                    {stats.speaking_time || '0m'}
+                                    {formatSpeakingTime(stats.speaking_time_minutes ?? stats.speaking_time, locale)}
                                 </span>
                             </div>
                         </div>

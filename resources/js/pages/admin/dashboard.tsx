@@ -106,7 +106,7 @@ export default function AdminDashboard({
     currentFilter,
     currentTab = 'appointments',
 }: Props) {
-    const { locale } = useTranslation();
+    const { locale, t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'appointments' | 'packages'>(
         currentTab === 'packages' ? 'packages' : 'appointments',
     );
@@ -296,7 +296,7 @@ export default function AdminDashboard({
                         }`}
                     >
                         <Package className="h-4 w-4" />
-                        <span>Conversation Packs</span>
+                        <span>{t('packages.title') || 'Conversation Packs'}</span>
                         {(stats.pending_package_verifications ?? 0) > 0 && (
                             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
                                 {stats.pending_package_verifications}
@@ -691,10 +691,10 @@ export default function AdminDashboard({
                     <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <CardTitle className="text-lg">
-                                Conversation Packs
+                                {t('packages.title') || 'Conversation Packs'}
                             </CardTitle>
                             <CardDescription>
-                                Confirm payments to activate conversation packages for pupils.
+                                {t('packages.admin_desc') || 'Confirm payments to activate conversation packages for pupils.'}
                             </CardDescription>
                         </div>
                         <div className="flex flex-wrap gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
