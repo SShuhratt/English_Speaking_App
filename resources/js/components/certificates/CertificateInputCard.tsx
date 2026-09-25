@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, FileText, Upload, X, RefreshCw, Award } from 'lucide-react';
+import { Trash2, FileText, Upload, X, RefreshCw, Award, Eye } from 'lucide-react';
 import {
     CERTIFICATE_DEFINITIONS,
     getCertificateDefinition,
@@ -377,25 +377,38 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                             </div>
                         </div>
 
-                        {!readOnly && (
-                            <div className="flex items-center gap-1.5">
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        <div className="flex items-center gap-1.5">
+                            {cert.file_url && (
+                                <a
+                                    href={cert.file_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50/80 px-2.5 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
                                 >
-                                    <RefreshCw className="h-3 w-3" />
-                                    {t('auth.replace_file', 'Replace')}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleRemoveFile}
-                                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
-                        )}
+                                    <Eye className="h-3.5 w-3.5" />
+                                    <span>{t('teacher.view_certificate') || 'View'}</span>
+                                </a>
+                            )}
+                            {!readOnly && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                    >
+                                        <RefreshCw className="h-3 w-3" />
+                                        {t('auth.replace_file', 'Replace')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveFile}
+                                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     /* Dropzone when no file selected */

@@ -179,4 +179,41 @@ class TeacherVerificationVisibilityTest extends TestCase
             ->where('conversationStats.total_time_formatted', '1h 15m')
         );
     }
+
+    public function test_pupil_can_view_verified_certificate_file_url_but_not_unverified()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'title' => 'IELTS Academic',
+                    'status' => 'verified',
+                    'file_url' => 'https://example.com/storage/certificates/sample.pdf',
+                    'file_name' => 'sample.pdf',
+                    'overall' => '8.0',
+                ],
+                [
+                    'type' => 'cefr',
+                    'title' => 'CEFR C1',
+                    'status' => 'pending',
+                    'file_url' => 'https://example.com/storage/certificates/pending.pdf',
+                    'file_name' => 'pending.pdf',
+                ],
+            ],
+        ]);
+
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        $response = $this->actingAs($pupil)->get("/pupil/teachers/{$teacher->id}");
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('pupil/teacher-profile')
+            ->has('teacher.teacher_profile.certificates', 1)
+            ->where('teacher.teacher_profile.certificates.0.title', 'IELTS Academic')
+            ->where('teacher.teacher_profile.certificates.0.file_url', 'https://example.com/storage/certificates/sample.pdf')
+        );
+    }
 }

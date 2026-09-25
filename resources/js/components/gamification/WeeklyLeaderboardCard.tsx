@@ -59,7 +59,7 @@ export default function WeeklyLeaderboardCard({
                     href="/pupil/teachers"
                     className="inline-flex items-center gap-1 rounded-full border border-[#061445]/15 bg-[#061445]/5 px-3 py-1.5 text-xs font-bold text-[#061445] transition hover:bg-[#061445] hover:text-white"
                 >
-                    <span>Practice Now</span>
+                    <span>{t('gamification.leaderboard_practice_btn')}</span>
                     <ArrowUpRight className="h-3.5 w-3.5" />
                 </Link>
             </div>
@@ -147,13 +147,13 @@ export default function WeeklyLeaderboardCard({
                         {t('gamification.empty_leaderboard')}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                        Complete a lesson or start a peer conversation to lead the community!
+                        {t('gamification.empty_leaderboard_desc')}
                     </p>
                     <Link
                         href="/pupil/teachers"
                         className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#061445] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#061445]/90"
                     >
-                        Book a Speaking Session
+                        {t('gamification.empty_leaderboard_action')}
                     </Link>
                 </div>
             )}
@@ -172,19 +172,19 @@ export default function WeeklyLeaderboardCard({
                                 </p>
                                 <p className="text-xs font-medium text-amber-800/80">
                                     {userStanding.minutes_spoken > 0
-                                        ? `${userStanding.minutes_spoken} minutes spoken this week`
-                                        : 'No sessions yet this week'}
+                                        ? t('gamification.user_minutes_spoken', { count: userStanding.minutes_spoken })
+                                        : t('gamification.no_sessions_this_week')}
                                 </p>
                             </div>
                         </div>
 
                         {userStanding.is_in_top_five ? (
                             <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-800">
-                                Top 5 Speaker 🌟
+                                {t('gamification.top_five_badge')}
                             </span>
                         ) : (
                             <span className="text-xs font-bold text-amber-900">
-                                Keep speaking to climb the ranks! 🚀
+                                {t('gamification.climb_ranks_hint')}
                             </span>
                         )}
                     </div>

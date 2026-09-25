@@ -91,14 +91,14 @@ export default function PaymentModal({
                                 )}
                                 {teacherName && (
                                     <p className="text-[11px] text-muted-foreground truncate">
-                                        Teacher: <span className="font-medium text-foreground">{teacherName}</span>
+                                        {t('payment.teacher_label') || 'Teacher:'} <span className="font-medium text-foreground">{teacherName}</span>
                                     </p>
                                 )}
                             </div>
                             {formattedAmount && (
                                 <div className="text-right shrink-0">
                                     <span className="text-[10px] font-semibold text-muted-foreground uppercase block">
-                                        Total Due
+                                        {t('payment.total_due') || 'Total Due'}
                                     </span>
                                     <span className="font-mono text-sm font-extrabold text-foreground">
                                         {formattedAmount}
@@ -134,7 +134,7 @@ export default function PaymentModal({
                     {/* Card Number Section with Copy Button */}
                     <div className="mt-6">
                         <span className="mb-1 block text-[10px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
-                            Card Number
+                            {t('payment.card_number') || 'Card Number'}
                         </span>
                         <div className="flex items-center justify-between rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 backdrop-blur-md">
                             <span className="font-mono text-lg font-black tracking-widest text-white">
@@ -150,7 +150,7 @@ export default function PaymentModal({
                                 ) : (
                                     <Copy className="h-3.5 w-3.5" />
                                 )}
-                                <span>{copiedCard ? 'Copied' : t('payment.copy_card') || 'Copy'}</span>
+                                <span>{copiedCard ? t('payment.copied') || 'Copied' : t('payment.copy_card') || 'Copy'}</span>
                             </button>
                         </div>
                     </div>
@@ -191,13 +191,13 @@ export default function PaymentModal({
                                 <p className="text-[11px] font-medium text-amber-800/80 dark:text-amber-300/80">
                                     {pupilName && (
                                         <>
-                                            Name: <strong className="font-bold">{pupilName}</strong>
+                                            {t('payment.name_label') || 'Name:'} <strong className="font-bold">{pupilName}</strong>
                                         </>
                                     )}
                                     {pupilName && pupilId && ' | '}
                                     {pupilId && (
                                         <>
-                                            ID:{' '}
+                                            {t('payment.id_label') || 'ID:'}{' '}
                                             <strong className="font-mono font-bold text-amber-950 dark:text-amber-100">
                                                 {pupilId}
                                             </strong>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from '@/hooks/use-translation';
+import { formatSpeakingTime } from '@/lib/duration';
 import { Sparkles, Trophy, CheckCircle, X } from 'lucide-react';
 
 interface Props {
@@ -15,7 +16,7 @@ export default function SessionCelebrationModal({
     minutesSpoken = 30,
     xpEarned = 350,
 }: Props) {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
 
     if (!isOpen) return null;
 
@@ -51,15 +52,15 @@ export default function SessionCelebrationModal({
                 <div className="mt-6 grid grid-cols-2 gap-3">
                     <div className="rounded-2xl bg-amber-50/80 p-4 border border-amber-100">
                         <p className="text-xs font-bold text-amber-800 uppercase">
-                            Speaking Time
+                            {t('dashboard.speaking_time')}
                         </p>
                         <p className="mt-1 text-2xl font-black text-[#061445]">
-                            +{minutesSpoken}m
+                            +{formatSpeakingTime(minutesSpoken, locale)}
                         </p>
                     </div>
                     <div className="rounded-2xl bg-emerald-50/80 p-4 border border-emerald-100">
                         <p className="text-xs font-bold text-emerald-800 uppercase">
-                            XP Gained
+                            {t('gamification.xp_gained')}
                         </p>
                         <p className="mt-1 text-2xl font-black text-emerald-700">
                             +{xpEarned} XP

@@ -268,7 +268,7 @@ function PupilDashboard({
 
                     <Link
                         href="/pupil/teachers"
-                        className="group z-10 flex shrink-0 items-center justify-center space-x-2 rounded-full bg-white px-6 py-3.5 font-bold text-brand-navy shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-brand-yellow/10 active:scale-[0.98]"
+                        className="group z-10 flex shrink-0 items-center justify-center space-x-2 rounded-full bg-white px-6 py-3.5 font-bold text-brand-navy shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-[#F7DE8B] hover:text-[#061445] hover:shadow-lg active:scale-[0.98]"
                     >
                         <Calendar className="h-4 w-4 transition-transform group-hover:rotate-12" />
                         <span>{t('dashboard.book_now')}</span>
@@ -602,7 +602,7 @@ function PupilDashboard({
 
                             <div className="mt-6">
                                 <span className="mb-1 block text-[10px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
-                                    Card Number
+                                    {t('payment.card_number') || 'Card Number'}
                                 </span>
                                 <div className="flex items-center justify-between rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 backdrop-blur-md">
                                     <span className="font-mono text-lg font-black tracking-widest text-white">
@@ -623,7 +623,7 @@ function PupilDashboard({
                                         )}
                                         <span>
                                             {copiedCard
-                                                ? 'Copied'
+                                                ? t('payment.copied') || 'Copied'
                                                 : t('payment.copy_card') ||
                                                   'Copy Card'}
                                         </span>
@@ -664,11 +664,11 @@ function PupilDashboard({
                                             'Must send proof with your Pupil ID to Telegram for verification!'}
                                     </p>
                                     <p className="text-[11px] font-medium text-amber-800">
-                                        Name:{' '}
+                                        {t('payment.name_label') || 'Name:'}{' '}
                                         <strong className="font-bold">
                                             {user.full_name}
                                         </strong>{' '}
-                                        | ID:{' '}
+                                        | {t('payment.id_label') || 'ID:'}{' '}
                                         <strong className="font-mono font-bold text-amber-950">
                                             {user.short_id ||
                                                 user.id

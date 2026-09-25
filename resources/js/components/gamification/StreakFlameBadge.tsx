@@ -65,7 +65,9 @@ export default function StreakFlameBadge({ streak }: { streak: StreakData }) {
             >
                 <Flame className={`h-4 w-4 ${tierStyles.iconColor}`} />
                 <span>
-                    {streak.streak_count} {streak.streak_count === 1 ? 'Day Streak' : 'Days Streak'}
+                    {streak.streak_count === 1
+                        ? t('gamification.day_streak', { count: 1 })
+                        : t('gamification.days_streak', { count: streak.streak_count })}
                 </span>
                 <span className="opacity-60">·</span>
                 <span className="font-semibold text-white/90">{tierTitle}</span>
@@ -78,7 +80,7 @@ export default function StreakFlameBadge({ streak }: { streak: StreakData }) {
                     title={t(streak.shield_message_key) || streak.default_shield_message}
                 >
                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
-                    <span className="hidden sm:inline">Shield Active</span>
+                    <span className="hidden sm:inline">{t('gamification.shield_active')}</span>
                 </div>
             )}
         </div>

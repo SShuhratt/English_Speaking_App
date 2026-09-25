@@ -79,7 +79,6 @@ class TeacherController extends Controller
                 $visibleCerts = [];
                 foreach ($certs as $cert) {
                     if (is_array($cert) && ($cert['status'] ?? 'pending') === 'verified') {
-                        $cert['file_url'] = null;
                         $visibleCerts[] = $cert;
                     }
                 }
