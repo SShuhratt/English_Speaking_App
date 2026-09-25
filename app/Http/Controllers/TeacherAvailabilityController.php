@@ -36,9 +36,13 @@ class TeacherAvailabilityController extends Controller
             ->orderBy('start_at', 'asc')
             ->get();
 
-        $packages = TeacherPackage::where('teacher_id', $request->user()->id)
-            ->orderBy('total_hours', 'asc')
-            ->get();
+        try {
+            $packages = TeacherPackage::where('teacher_id', $request->user()->id)
+                ->orderBy('total_hours', 'asc')
+                ->get();
+        } catch (\Throwable $e) {
+            $packages = collect();
+        }
 
         return Inertia::render('teacher/availability', [
             'availabilities' => $availabilities,

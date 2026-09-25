@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useTranslation } from '@/hooks/use-translation';
+import { formatHours } from '@/lib/duration';
 import { toast } from 'sonner';
 import axios from 'axios';
 
@@ -30,7 +31,7 @@ interface Props {
 }
 
 export default function TeacherPackagesManager({ packages: initialPackages, hourlyRate = 0 }: Props) {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const [packagesList, setPackagesList] = useState<TeacherPackageItem[]>(initialPackages || []);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPackage, setEditingPackage] = useState<TeacherPackageItem | null>(null);
@@ -56,7 +57,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
 
     const openCreateModal = () => {
         setEditingPackage(null);
-        setTitle(t('packages.hours_count', { count: 5 }));
+        setTitle(formatHours(5, locale));
         setHours('5');
         const regularTotal = hourlyRate * 5;
         const suggested = regularTotal > 0 ? Math.round((regularTotal * 0.9) / 1000) * 1000 : 0;
@@ -80,7 +81,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
         setHours(newHoursStr);
         const parsedHours = parseInt(newHoursStr, 10);
         if (parsedHours > 0) {
-            setTitle(t('packages.hours_count', { count: parsedHours }));
+            setTitle(formatHours(parsedHours, locale));
             if (hourlyRate > 0) {
                 const regularTotal = hourlyRate * parsedHours;
                 const disc = parseInt(discount, 10) || 0;
@@ -348,7 +349,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                                     className="font-medium text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200/60"
                                                 >
                                                     <Clock className="mr-1 h-3 w-3" />
-                                                    {pkg.total_hours} {t('packages.hours')}
+                                                    {formatHours(pkg.total_hours, locale)}
                                                 </Badge>
                                                 {pkg.discount_percentage ? (
                                                     <Badge className="bg-emerald-600 text-white text-[11px] font-bold">
@@ -486,7 +487,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                         onClick={() => handleHoursChange(preset)}
                                         className={hours === preset ? 'bg-indigo-600 text-white' : ''}
                                     >
-                                        {preset} {t('packages.hours')}
+                                        {formatHours(parseInt(preset, 10), locale)}
                                     </Button>
                                 ))}
                                 <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
@@ -565,7 +566,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                 {t('packages.standard_rate_info', {
                                     rate: hourlyRate.toLocaleString('ru-RU').replace(/,/g, ' '),
                                     currency: t('auth.currency_som'),
-                                    hours: hours || '0',
+                                    hours: formatHours(parseInt(hours, 10) || 0, locale),
                                     total: (hourlyRate * (parseInt(hours, 10) || 0)).toLocaleString('ru-RU').replace(/,/g, ' '),
                                 })}
                             </div>

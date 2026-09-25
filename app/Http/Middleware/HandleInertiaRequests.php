@@ -65,7 +65,13 @@ class HandleInertiaRequests extends Middleware
                     ? Appointment::where('teacher_id', $user->id)->where('status', 'pending')->count()
                     : 0,
                 'pending_verifications_count' => ($user && $user->role === 'admin')
-                    ? (Appointment::where('status', 'accepted')->count() + PupilPackage::where('payment_status', 'verifying')->count())
+                    ? (function () {
+                        try {
+                            return Appointment::where('status', 'accepted')->count() + PupilPackage::where('payment_status', 'verifying')->count();
+                        } catch (\Throwable) {
+                            return Appointment::where('status', 'accepted')->count();
+                        }
+                    })()
                     : 0,
                 'unread_support_count' => $user
                     ? ($user->role === 'admin'

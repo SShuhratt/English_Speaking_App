@@ -31,6 +31,8 @@ import {
     AlertCircle,
     Package,
 } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
+import { formatDuration, formatRemainingBalance } from '@/lib/duration';
 
 interface UserItem {
     id: string;
@@ -104,6 +106,7 @@ export default function AdminDashboard({
     currentFilter,
     currentTab = 'appointments',
 }: Props) {
+    const { locale } = useTranslation();
     const [activeTab, setActiveTab] = useState<'appointments' | 'packages'>(
         currentTab === 'packages' ? 'packages' : 'appointments',
     );
@@ -820,11 +823,11 @@ export default function AdminDashboard({
                                                         </p>
                                                         <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
                                                             <span className="font-medium text-indigo-600 dark:text-indigo-400">
-                                                                {Math.round(pkg.total_minutes / 60)}h ({pkg.total_minutes} mins)
+                                                                {formatDuration(pkg.total_minutes, locale)}
                                                             </span>
                                                             <span>•</span>
                                                             <span>
-                                                                {pkg.remaining_minutes} mins balance
+                                                                {formatRemainingBalance(pkg.remaining_minutes, locale)}
                                                             </span>
                                                         </div>
                                                     </div>

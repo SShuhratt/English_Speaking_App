@@ -25,6 +25,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
+import { formatDuration } from '@/lib/duration';
 import AppLayout from '@/layouts/app-layout';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import FluencyLevelBadge from '@/components/gamification/FluencyLevelBadge';
@@ -1037,7 +1038,7 @@ function TeacherDashboard({
                                                     )}
                                                 </span>
                                                 <span className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-                                                    {durationMin}m
+                                                    {formatDuration(durationMin, locale)}
                                                 </span>
                                             </div>
                                             <div className="flex-1">
