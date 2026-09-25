@@ -32,6 +32,8 @@ export function Breadcrumbs({
             'pupil feedback': 'nav.pupil_feedback',
             profile: 'nav.profile',
             settings: 'nav.settings',
+            support: 'support.title',
+            'convomate support': 'support.title',
         };
 
         const key =

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\PupilPackage;
+use App\Notifications\PackagePaymentConfirmedNotification;
+use App\Notifications\PackagePaymentRejectedNotification;
 use App\Services\BookingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -135,6 +137,9 @@ class AdminDashboardController extends Controller
                 'status' => 'active',
             ]);
 
+            $package->load(['teacher.teacherProfile', 'pupil.pupilProfile']);
+            $package->pupil?->notify(new PackagePaymentConfirmedNotification($package));
+
             return back()->with('success', 'Package payment confirmed successfully. Minutes are now active for the student.');
         } catch (\Throwable $e) {
             Inertia::flash('toast', [
@@ -167,6 +172,9 @@ class AdminDashboardController extends Controller
                 'payment_rejection_reason' => $validated['reason'],
                 'status' => 'cancelled',
             ]);
+
+            $package->load(['teacher.teacherProfile', 'pupil.pupilProfile']);
+            $package->pupil?->notify(new PackagePaymentRejectedNotification($package, $validated['reason']));
 
             return back()->with('success', 'Package payment rejected with reason provided.');
         } catch (\Throwable $e) {

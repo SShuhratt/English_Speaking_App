@@ -38,12 +38,41 @@ class CreateNewUser implements CreatesNewUsers
             $input['name'] = $input['name'] ?? session('telegram_register.name');
         }
 
+        if (isset($input['email']) && is_string($input['email'])) {
+            $input['email'] = mb_strtolower(trim($input['email']));
+        }
+
+        if (isset($input['name']) && is_string($input['name'])) {
+            $input['name'] = trim(preg_replace('/\s+/', ' ', $input['name']));
+        }
+
+        if (isset($input['phone_number']) && is_string($input['phone_number'])) {
+            $cleanedPhone = trim($input['phone_number']);
+            $digitsOnly = preg_replace('/\D/', '', $cleanedPhone);
+
+            if (str_starts_with($cleanedPhone, '+')) {
+                $input['phone_number'] = '+'.$digitsOnly;
+            } elseif (strlen($digitsOnly) === 9) {
+                $input['phone_number'] = '+998'.$digitsOnly;
+            } elseif (str_starts_with($digitsOnly, '998') && strlen($digitsOnly) === 12) {
+                $input['phone_number'] = '+'.$digitsOnly;
+            } else {
+                $input['phone_number'] = preg_replace('/[^\d+]/', '', $cleanedPhone);
+            }
+        }
+
         $rules = array_merge(
             $this->profileRules(),
             [
                 'password' => $this->passwordRules(),
             ]
         );
+
+        $phoneRule = [
+            'required',
+            'string',
+            'regex:/^(\+998\d{9}|\+(?!998)[1-9]\d{6,14})$/',
+        ];
 
         // Add role-specific validation rules
         $role = $input['role'] ?? null;
@@ -54,7 +83,7 @@ class CreateNewUser implements CreatesNewUsers
             }
 
             $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
-            $rules['phone_number'] = ['required', 'string', 'max:20'];
+            $rules['phone_number'] = $phoneRule;
             $rules['overall_level'] = ['nullable', 'string', 'max:255'];
             $rules['speaking_band'] = ['nullable', 'numeric', 'min:0', 'max:9'];
             $rules['price'] = ['nullable', 'integer', 'min:0'];
@@ -66,13 +95,20 @@ class CreateNewUser implements CreatesNewUsers
             $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
         } elseif ($role === 'pupil') {
             $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
-            $rules['phone_number'] = ['required', 'string', 'max:20'];
+            $rules['phone_number'] = $phoneRule;
             $rules['level'] = ['required', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
             $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
         }
 
-        Validator::make($input, $rules)->validate();
+        $messages = [
+            'name.regex' => 'Name should only contain letters, spaces, and hyphens.',
+            'name.min' => 'Name must be at least 2 characters.',
+            'phone_number.regex' => 'Please enter a valid phone number (e.g. +998 90 123 45 67).',
+            'email.email' => 'Please enter a valid email address.',
+        ];
+
+        Validator::make($input, $rules, $messages)->validate();
 
         $user = DB::transaction(function () use ($input, $role) {
             $user = User::create([

@@ -9,9 +9,14 @@ use App\Models\TeacherAvailability;
 use App\Models\TeacherPackage;
 use App\Models\TeacherProfile;
 use App\Models\User;
+use App\Notifications\Channels\TelegramChannel;
+use App\Notifications\PackagePaymentConfirmedNotification;
+use App\Notifications\PackagePaymentPendingNotification;
+use App\Notifications\PackagePaymentRejectedNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class ConversationPackTest extends TestCase
@@ -132,6 +137,8 @@ class ConversationPackTest extends TestCase
 
     public function test_pupil_can_order_package_and_it_enters_verifying_state(): void
     {
+        Notification::fake();
+
         $teacher = User::factory()->create(['role' => 'teacher']);
         TeacherProfile::create([
             'user_id' => $teacher->id,
@@ -166,6 +173,8 @@ class ConversationPackTest extends TestCase
             'payment_status' => 'verifying',
             'status' => 'pending',
         ]);
+
+        Notification::assertSentTo($pupil, PackagePaymentPendingNotification::class);
     }
 
     public function test_pupil_cannot_purchase_inactive_package_or_from_unverified_teacher(): void
@@ -192,6 +201,8 @@ class ConversationPackTest extends TestCase
 
     public function test_admin_can_confirm_package_payment(): void
     {
+        Notification::fake();
+
         $admin = User::factory()->create(['role' => 'admin']);
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
@@ -213,10 +224,14 @@ class ConversationPackTest extends TestCase
             'payment_status' => 'paid',
             'status' => 'active',
         ]);
+
+        Notification::assertSentTo($pupil, PackagePaymentConfirmedNotification::class);
     }
 
     public function test_admin_can_reject_package_payment_with_reason(): void
     {
+        Notification::fake();
+
         $admin = User::factory()->create(['role' => 'admin']);
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
@@ -241,6 +256,28 @@ class ConversationPackTest extends TestCase
             'status' => 'cancelled',
             'payment_rejection_reason' => 'Payment receipt unreadable',
         ]);
+
+        Notification::assertSentTo($pupil, PackagePaymentRejectedNotification::class);
+    }
+
+    public function test_admin_sidebar_counts_pending_package_verifications(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $teacher = User::factory()->create(['role' => 'teacher']);
+
+        PupilPackage::factory()->create([
+            'pupil_id' => $pupil->id,
+            'teacher_id' => $teacher->id,
+            'payment_status' => 'verifying',
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($admin)->get('/admin/dashboard');
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('auth.pending_verifications_count', 1)
+        );
     }
 
     public function test_booking_with_active_package_sets_price_to_zero_and_deducts_minutes(): void
@@ -536,5 +573,183 @@ class ConversationPackTest extends TestCase
             'id' => $pupilPackage->id,
             'remaining_minutes' => 30,
         ]);
+    }
+
+    public function test_teacher_cannot_create_package_with_duplicate_title(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+            'price' => 50000,
+        ]);
+
+        TeacherPackage::create([
+            'teacher_id' => $teacher->id,
+            'title' => '20 Hours Pack',
+            'total_hours' => 20,
+            'total_minutes' => 1200,
+            'price' => 550000,
+            'discount_percentage' => 45,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($teacher)->postJson('/teacher/packages', [
+            'title' => '  20 hours pack  ',
+            'total_hours' => 15,
+            'price' => 450000,
+            'discount_percentage' => 40,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['title']);
+    }
+
+    public function test_teacher_cannot_create_package_with_same_hours_and_discount(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+            'price' => 50000,
+        ]);
+
+        TeacherPackage::create([
+            'teacher_id' => $teacher->id,
+            'title' => '20 Hours Standard',
+            'total_hours' => 20,
+            'total_minutes' => 1200,
+            'price' => 550000,
+            'discount_percentage' => 45,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($teacher)->postJson('/teacher/packages', [
+            'title' => '20 Hours VIP',
+            'total_hours' => 20,
+            'price' => 550000,
+            'discount_percentage' => 45,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['total_hours']);
+    }
+
+    public function test_teacher_can_create_package_with_same_hours_if_title_and_discount_differ(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+            'price' => 50000,
+        ]);
+
+        TeacherPackage::create([
+            'teacher_id' => $teacher->id,
+            'title' => '20 Hours Standard',
+            'total_hours' => 20,
+            'total_minutes' => 1200,
+            'price' => 550000,
+            'discount_percentage' => 45,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($teacher)->postJson('/teacher/packages', [
+            'title' => 'Fairytale 20h',
+            'total_hours' => 20,
+            'price' => 650000,
+            'discount_percentage' => 35,
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('teacher_packages', [
+            'teacher_id' => $teacher->id,
+            'title' => 'Fairytale 20h',
+            'total_hours' => 20,
+            'discount_percentage' => 35,
+        ]);
+    }
+
+    public function test_teacher_can_update_existing_package_without_self_conflict(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+            'price' => 50000,
+        ]);
+
+        $package = TeacherPackage::create([
+            'teacher_id' => $teacher->id,
+            'title' => '20 Hours Standard',
+            'total_hours' => 20,
+            'total_minutes' => 1200,
+            'price' => 550000,
+            'discount_percentage' => 45,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($teacher)->putJson("/teacher/packages/{$package->id}", [
+            'title' => '20 Hours Standard',
+            'total_hours' => 20,
+            'price' => 550000,
+            'discount_percentage' => 45,
+            'description' => 'Updated notes',
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('teacher_packages', [
+            'id' => $package->id,
+            'description' => 'Updated notes',
+        ]);
+    }
+
+    public function test_package_notifications_render_mail_and_telegram_content_correctly(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher', 'full_name' => 'Jane Smith']);
+        $pupil = User::factory()->create([
+            'role' => 'pupil',
+            'full_name' => 'John Student',
+            'telegram_chat_id' => '12345678',
+        ]);
+
+        $pupilPackage = PupilPackage::factory()->create([
+            'pupil_id' => $pupil->id,
+            'teacher_id' => $teacher->id,
+            'package_title' => '10 Hours Super Pack',
+            'total_minutes' => 600,
+            'remaining_minutes' => 600,
+            'price_paid' => 900000,
+            'payment_status' => 'verifying',
+            'status' => 'pending',
+        ]);
+        $pupilPackage->load(['teacher', 'pupil']);
+
+        // 1. Pending Notification
+        $pendingNotification = new PackagePaymentPendingNotification($pupilPackage);
+        $this->assertContains('mail', $pendingNotification->via($pupil));
+        $this->assertContains(TelegramChannel::class, $pendingNotification->via($pupil));
+
+        $mail = $pendingNotification->toMail($pupil);
+        $this->assertStringContainsString('9860 1966 1940 4458', implode("\n", $mail->introLines));
+        $this->assertStringContainsString('900 000', implode("\n", $mail->introLines));
+
+        $telegram = $pendingNotification->toTelegram($pupil);
+        $this->assertStringContainsString('9860 1966 1940 4458', $telegram);
+        $this->assertStringContainsString('https://t.me/+Z9Gr0FnDDAFhOTky', $telegram);
+
+        // 2. Confirmed Notification
+        $confirmedNotification = new PackagePaymentConfirmedNotification($pupilPackage);
+        $mailConfirmed = $confirmedNotification->toMail($pupil);
+        $this->assertStringContainsString('Jane Smith', implode("\n", $mailConfirmed->introLines));
+        $telegramConfirmed = $confirmedNotification->toTelegram($pupil);
+        $this->assertStringContainsString('Package Payment Confirmed', $telegramConfirmed);
+
+        // 3. Rejected Notification
+        $rejectedNotification = new PackagePaymentRejectedNotification($pupilPackage, 'Incorrect transfer amount');
+        $mailRejected = $rejectedNotification->toMail($pupil);
+        $this->assertStringContainsString('Incorrect transfer amount', implode("\n", $mailRejected->introLines));
+        $telegramRejected = $rejectedNotification->toTelegram($pupil);
+        $this->assertStringContainsString('Incorrect transfer amount', $telegramRejected);
     }
 }

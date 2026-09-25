@@ -43,6 +43,42 @@ export default function Register({ passwordRules }: Props) {
         return clean ? clean.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : '';
     };
 
+    const [phone, setPhone] = useState('+998 ');
+
+    const formatPhoneNumber = (val: string) => {
+        if (!val || val === '+') return val;
+        const clean = val.replace(/[^\d+]/g, '');
+        const digits = clean.replace(/\D/g, '');
+
+        if (clean.startsWith('+998') || clean.startsWith('998') || (!clean.startsWith('+') && digits.length <= 9)) {
+            let uzDigits = digits;
+            if (uzDigits.startsWith('998')) {
+                uzDigits = uzDigits.slice(3);
+            }
+            uzDigits = uzDigits.slice(0, 9);
+
+            let formatted = '+998';
+            if (uzDigits.length > 0) {
+                formatted += ' ' + uzDigits.slice(0, 2);
+            }
+            if (uzDigits.length > 2) {
+                formatted += ' ' + uzDigits.slice(2, 5);
+            }
+            if (uzDigits.length > 5) {
+                formatted += ' ' + uzDigits.slice(5, 7);
+            }
+            if (uzDigits.length > 7) {
+                formatted += ' ' + uzDigits.slice(7, 9);
+            }
+            return formatted;
+        }
+
+        if (!clean.startsWith('+')) {
+            return ('+' + clean).slice(0, 16);
+        }
+        return clean.slice(0, 16);
+    };
+
     useEffect(() => {
         if (typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.initData)) {
             setIsInsideTelegram(true);
@@ -202,6 +238,8 @@ export default function Register({ passwordRules }: Props) {
                                     id="name"
                                     type="text"
                                     required
+                                    minLength={2}
+                                    maxLength={100}
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="name"
@@ -230,6 +268,9 @@ export default function Register({ passwordRules }: Props) {
                                     name="email"
                                     defaultValue={google_register?.email || ''}
                                     readOnly={!!google_register}
+                                    onBlur={(e) => {
+                                        e.target.value = e.target.value.trim().toLowerCase();
+                                    }}
                                     className={
                                         google_register
                                             ? 'cursor-not-allowed bg-muted'
@@ -302,10 +343,12 @@ export default function Register({ passwordRules }: Props) {
                                 </Label>
                                 <Input
                                     id="phone_number"
-                                    type="text"
+                                    type="tel"
                                     required
                                     name="phone_number"
-                                    placeholder="+998 90 123 4567"
+                                    value={phone}
+                                    onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                                    placeholder="+998 90 123 45 67"
                                 />
                                 <InputError message={errors.phone_number} />
                             </div>

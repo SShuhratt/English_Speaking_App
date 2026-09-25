@@ -30,6 +30,7 @@ import {
 import axios from 'axios';
 import { toast } from 'sonner';
 import { CertificatePreviewModal } from '@/components/certificates/CertificatePreviewModal';
+import PaymentModal from '@/components/PaymentModal';
 import {
     getCertificateDefinition,
     LANGUAGE_OPTIONS,
@@ -140,6 +141,11 @@ export default function TeacherProfile({
     const [selectedCertForPreview, setSelectedCertForPreview] = React.useState<any | null>(null);
     const [purchasingPackage, setPurchasingPackage] = React.useState<TeacherPackage | null>(null);
     const [submittingPurchase, setSubmittingPurchase] = React.useState(false);
+    const [paymentModalPackage, setPaymentModalPackage] = React.useState<{
+        title: string;
+        price: number;
+        teacherName: string;
+    } | null>(null);
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
@@ -516,6 +522,8 @@ export default function TeacherProfile({
             return;
         }
 
+        const packageToPay = purchasingPackage;
+
         setSubmittingPurchase(true);
         router.post(
             '/pupil/packages/purchase',
@@ -526,6 +534,11 @@ export default function TeacherProfile({
                 preserveScroll: true,
                 onSuccess: () => {
                     setPurchasingPackage(null);
+                    setPaymentModalPackage({
+                        title: packageToPay.title,
+                        price: packageToPay.price,
+                        teacherName: teacher.full_name,
+                    });
                     toast.success(
                         t('packages.purchase_success') ||
                             'Package purchase request submitted! Admin will verify payment shortly.',
@@ -1241,9 +1254,24 @@ export default function TeacherProfile({
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="rounded-full bg-amber-200 px-2.5 py-0.5 text-[10.5px] font-bold text-amber-800">
-                                            Verifying
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setPaymentModalPackage({
+                                                        title: pendingPupilPackage.package_title,
+                                                        price: pendingPupilPackage.price_paid,
+                                                        teacherName: teacher.full_name,
+                                                    })
+                                                }
+                                                className="cursor-pointer rounded-xl bg-amber-200/90 hover:bg-amber-300 px-3 py-1.5 text-[11px] font-bold text-amber-950 transition-colors shadow-xs"
+                                            >
+                                                {t('packages.view_payment_details') || 'Payment Details'}
+                                            </button>
+                                            <span className="rounded-full bg-amber-200/60 px-2.5 py-1 text-[10.5px] font-bold text-amber-800">
+                                                Verifying
+                                            </span>
+                                        </div>
                                     </div>
                                 )}
 
@@ -2190,6 +2218,18 @@ export default function TeacherProfile({
                 onClose={() => setSelectedCertForPreview(null)}
                 certificate={selectedCertForPreview}
             />
+
+            {paymentModalPackage && (
+                <PaymentModal
+                    isOpen={!!paymentModalPackage}
+                    onClose={() => setPaymentModalPackage(null)}
+                    itemTitle={paymentModalPackage.title}
+                    amount={paymentModalPackage.price}
+                    teacherName={paymentModalPackage.teacherName}
+                    pupilId={auth?.user?.short_id || auth?.user?.id?.substring(0, 8).toUpperCase()}
+                    pupilName={auth?.user?.full_name}
+                />
+            )}
         </>
     );
 }

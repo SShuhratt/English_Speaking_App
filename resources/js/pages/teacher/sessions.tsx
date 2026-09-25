@@ -98,16 +98,16 @@ export default function Sessions({ appointments }: Props) {
             if (res.data.google_meet_link) {
                 window.open(res.data.google_meet_link, '_blank');
             } else {
-                toast.success('Session started');
+                toast.success(t('sessions.session_started'));
             }
         } catch (err: any) {
             if (err.response?.data?.requires_google_calendar) {
                 toast.error(
                     err.response.data.message ||
-                        'Google Calendar connection required to generate Google Meet links.',
+                        t('sessions.google_calendar_required'),
                     {
                         action: {
-                            label: 'Connect Google',
+                            label: t('sessions.connect_google'),
                             onClick: () => {
                                 window.location.href = '/auth/google?calendar=1';
                             },
@@ -117,7 +117,7 @@ export default function Sessions({ appointments }: Props) {
                 );
             } else {
                 toast.error(
-                    err.response?.data?.message || 'Could not start session',
+                    err.response?.data?.message || t('sessions.cannot_start_session'),
                 );
             }
         }
@@ -135,7 +135,7 @@ export default function Sessions({ appointments }: Props) {
 
     return (
         <>
-            <Head title="SESSION MANAGEMENT — My Lessons · ConvoMate" />
+            <Head title={`${t('sessions.mgmt_badge')} — ${t('sessions.history_title')} · ConvoMate`} />
 
             <div
                 className="mx-auto max-w-6xl space-y-8 p-6 md:p-8"
@@ -147,7 +147,7 @@ export default function Sessions({ appointments }: Props) {
 
                     <div className="relative z-10 space-y-2">
                         <span className="text-[11px] font-black tracking-widest text-[#F7DE8B] uppercase">
-                            SESSION MANAGEMENT
+                            {t('sessions.mgmt_badge')}
                         </span>
                         <h1
                             className="text-3xl font-extrabold tracking-tight text-white md:text-4xl"
@@ -173,7 +173,7 @@ export default function Sessions({ appointments }: Props) {
                                 : 'text-[#6B7394] hover:bg-[#EEF4FB]'
                         }`}
                     >
-                        All
+                        {t('sessions.tab_all')}
                         <span
                             className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                                 activeTab === 'all'
@@ -192,7 +192,7 @@ export default function Sessions({ appointments }: Props) {
                                 : 'text-[#6B7394] hover:bg-[#EEF4FB]'
                         }`}
                     >
-                        Upcoming
+                        {t('sessions.tab_upcoming')}
                         {upcomingCount > 0 && (
                             <span
                                 className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
@@ -213,7 +213,7 @@ export default function Sessions({ appointments }: Props) {
                                 : 'text-[#6B7394] hover:bg-[#EEF4FB]'
                         }`}
                     >
-                        Completed
+                        {t('sessions.tab_completed')}
                         {completedCount > 0 && (
                             <span
                                 className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
@@ -236,13 +236,13 @@ export default function Sessions({ appointments }: Props) {
                             filteredAppointments.map((apt) => {
                                 const isTrial = apt.is_trial;
                                 const pupilName =
-                                    apt.pupil?.full_name || 'Student';
+                                    apt.pupil?.full_name || t('sessions.student_fallback');
                                 const teacherFeedback = apt.feedbacks?.find(
                                     (fb: any) => fb.author_id === auth.user.id,
                                 );
                                 const formattedDate = new Date(
                                     apt.start_at,
-                                ).toLocaleDateString('en-US', {
+                                ).toLocaleDateString(undefined, {
                                     weekday: 'short',
                                     day: 'numeric',
                                     month: 'short',
@@ -268,10 +268,7 @@ export default function Sessions({ appointments }: Props) {
                                     apt.price !== null
                                         ? Number(apt.price)
                                         : 0;
-                                const formattedPriceStr =
-                                    rawPrice
-                                        .toLocaleString('ru-RU')
-                                        .replace(/,/g, ' ') + ' UZS';
+                                const formattedPriceStr = `${rawPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} ${t('auth.currency_som')}`;
 
                                 return (
                                     <div
@@ -286,25 +283,22 @@ export default function Sessions({ appointments }: Props) {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 {isTrial ? (
                                                     <span className="rounded-full bg-[#1E2A5A] px-3 py-1 text-[10px] font-extrabold tracking-wider text-[#F7DE8B] uppercase">
-                                                        Trial ·{' '}
-                                                        {durationMinutes} min
+                                                        {t('sessions.trial_badge', { duration: durationMinutes })}
                                                     </span>
                                                 ) : (
                                                     <span className="rounded-full border border-[#A9C6E8] bg-[#E4EEF9] px-3 py-1 text-[10px] font-extrabold tracking-wider text-[#1E2A5A] uppercase">
-                                                        Lesson ·{' '}
-                                                        {durationMinutes} min
+                                                        {t('sessions.lesson_badge', { duration: durationMinutes })}
                                                     </span>
                                                 )}
                                                 {apt.status === 'confirmed' ? (
                                                     <span className="inline-flex items-center gap-1 rounded-full bg-[#DDF2E6] px-2.5 py-0.5 text-[10.5px] font-bold text-[#1E7A4D]">
                                                         <Check className="h-3 w-3" />{' '}
-                                                        PAID
+                                                        {t('sessions.paid_badge')}
                                                     </span>
                                                 ) : apt.status ===
                                                   'accepted' ? (
                                                     <span className="inline-flex items-center gap-1 rounded-full border border-[#F7DE8B] bg-[#FFF9E5] px-2.5 py-0.5 text-[10.5px] font-bold text-[#8A6A12]">
-                                                        STATUS ACCEPTED ·
-                                                        AWAITING PAYMENT
+                                                        {t('sessions.awaiting_payment')}
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-[10.5px] font-bold text-muted-foreground uppercase">
@@ -332,8 +326,7 @@ export default function Sessions({ appointments }: Props) {
                                                 </h3>
                                                 {isTrial && (
                                                     <p className="mt-0.5 text-xs font-semibold text-[#8A6A12]">
-                                                        — new student, first
-                                                        session with you
+                                                        {t('sessions.new_student_desc')}
                                                     </p>
                                                 )}
                                                 <div className="mt-2 flex items-center gap-2 text-xs text-[#6B7394]">
@@ -343,8 +336,8 @@ export default function Sessions({ appointments }: Props) {
                                                     <span>
                                                         ·{' '}
                                                         {isTrial
-                                                            ? '⅓ of your rate'
-                                                            : 'your full rate'}
+                                                            ? t('sessions.third_of_rate')
+                                                            : t('sessions.full_rate')}
                                                     </span>
                                                 </div>
                                             </div>
@@ -359,7 +352,7 @@ export default function Sessions({ appointments }: Props) {
                                                         }
                                                         className="rounded-full bg-[#1E2A5A] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#1E2A5A]/90"
                                                     >
-                                                        Join lesson
+                                                        {t('sessions.join_lesson')}
                                                     </button>
                                                 )}
 
@@ -373,7 +366,7 @@ export default function Sessions({ appointments }: Props) {
                                                             }
                                                             className="rounded-full border border-[#1E2A5A]/20 px-3.5 py-2 text-xs font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB]"
                                                         >
-                                                            Feedback
+                                                            {t('sessions.feedback_btn')}
                                                         </button>
                                                     )}
                                             </div>
@@ -382,7 +375,7 @@ export default function Sessions({ appointments }: Props) {
                                         {teacherFeedback && (
                                             <div className="mt-3 rounded-2xl border border-[#E8E6DE] bg-white/80 p-3 text-xs text-[#6B7394]">
                                                 <b className="text-[#1E2A5A]">
-                                                    Your feedback:
+                                                    {t('sessions.your_feedback_prefix')}
                                                 </b>{' '}
                                                 "{teacherFeedback.comment}"
                                             </div>
@@ -394,18 +387,16 @@ export default function Sessions({ appointments }: Props) {
                             <div className="rounded-3xl border border-dashed border-[#E8E6DE] bg-white p-12 text-center text-[#6B7394]">
                                 <Clock className="mx-auto mb-3 h-10 w-10 text-[#6B7394]/40" />
                                 <p className="text-base font-bold text-[#22284A]">
-                                    No lessons found
+                                    {t('sessions.no_lessons')}
                                 </p>
                                 <p className="mt-1 text-xs text-[#6B7394]">
-                                    Unpaid bookings never appear here — a lesson
-                                    exists only after the student has paid.
+                                    {t('sessions.no_lessons_desc')}
                                 </p>
                             </div>
                         )}
 
                         <p className="pt-2 text-center text-xs text-[#6B7394]">
-                            ✦ Unpaid bookings never appear here — a lesson
-                            exists only after the student has paid.
+                            {t('sessions.unpaid_note')}
                         </p>
                     </div>
 
@@ -414,12 +405,12 @@ export default function Sessions({ appointments }: Props) {
                         {/* Quick Stats Card */}
                         <div className="rounded-3xl border border-[#E8E6DE] bg-white p-6 shadow-sm">
                             <div className="mb-4 text-[11px] font-extrabold tracking-wider text-[#6B7394] uppercase">
-                                QUICK STATS
+                                {t('sessions.quick_stats')}
                             </div>
                             <div className="space-y-3.5 text-sm">
                                 <div className="flex items-center justify-between border-b border-[#E8E6DE] pb-3">
                                     <span className="font-medium text-[#6B7394]">
-                                        Trials this week
+                                        {t('sessions.trials_this_week')}
                                     </span>
                                     <span
                                         className="text-base font-extrabold text-[#1E2A5A]"
@@ -433,7 +424,7 @@ export default function Sessions({ appointments }: Props) {
                                 </div>
                                 <div className="flex items-center justify-between border-b border-[#E8E6DE] pb-3">
                                     <span className="font-medium text-[#6B7394]">
-                                        Upcoming
+                                        {t('sessions.tab_upcoming')}
                                     </span>
                                     <span
                                         className="text-base font-extrabold text-[#1E2A5A]"
@@ -447,7 +438,7 @@ export default function Sessions({ appointments }: Props) {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="font-medium text-[#6B7394]">
-                                        Completed
+                                        {t('sessions.tab_completed')}
                                     </span>
                                     <span
                                         className="text-base font-extrabold text-[#1E2A5A]"
@@ -466,13 +457,10 @@ export default function Sessions({ appointments }: Props) {
                         <div className="border-1.5 rounded-3xl border-[#F7DE8B] bg-[#FBEDBD]/70 p-6 shadow-sm">
                             <div className="mb-2 flex items-center gap-1.5 text-[11px] font-black tracking-wider text-[#8A6A12] uppercase">
                                 <Sparkles className="h-4 w-4 text-[#8A6A12]" />{' '}
-                                MARKETPLACE TIP
+                                {t('sessions.marketplace_tip_title')}
                             </div>
                             <p className="text-xs leading-relaxed font-medium text-[#5C4500]">
-                                A trial is your audition. Assess the student's
-                                level, name 2–3 concrete things to work on, and
-                                propose a weekly plan — that's how trials become
-                                regular students.
+                                {t('sessions.marketplace_tip_desc')}
                             </p>
                         </div>
                     </div>
@@ -483,8 +471,7 @@ export default function Sessions({ appointments }: Props) {
                     <div className="fixed right-6 bottom-6 z-50 max-w-sm animate-in rounded-2xl border border-white/10 bg-[#1E2A5A] p-4 text-white shadow-2xl duration-300 fade-in slide-in-from-bottom-4">
                         <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-2 text-xs font-extrabold tracking-wider text-[#F7DE8B] uppercase">
-                                <Sparkles className="h-4 w-4" /> New trial
-                                lesson
+                                <Sparkles className="h-4 w-4" /> {t('sessions.new_trial_toast')}
                             </div>
                             <button
                                 onClick={() => setToastDismissed(true)}
@@ -494,22 +481,21 @@ export default function Sessions({ appointments }: Props) {
                             </button>
                         </div>
                         <p className="mt-1.5 text-xs leading-snug text-white/90">
-                            <b>{latestTrial.pupil?.full_name}</b> booked a trial
-                            ·{' '}
-                            {new Date(latestTrial.start_at).toLocaleTimeString(
-                                [],
-                                {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: false,
-                                },
-                            )}{' '}
-                            ·{' '}
-                            {(latestTrial.price || 23000)
-                                .toLocaleString('ru-RU')
-                                .replace(/,/g, ' ')}{' '}
-                            UZS, already paid. Tip: assess level and propose a
-                            plan.
+                            {t('sessions.trial_toast_body', {
+                                name: latestTrial.pupil?.full_name || t('sessions.student_fallback'),
+                                time: new Date(latestTrial.start_at).toLocaleTimeString(
+                                    [],
+                                    {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: false,
+                                    },
+                                ),
+                                price: (latestTrial.price || 23000)
+                                    .toLocaleString('ru-RU')
+                                    .replace(/,/g, ' '),
+                                currency: t('auth.currency_som'),
+                            })}
                         </p>
                     </div>
                 )}

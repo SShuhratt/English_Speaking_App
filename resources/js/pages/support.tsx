@@ -17,10 +17,9 @@ import {
     MessageSquare,
     Send,
     HelpCircle,
-    ShieldAlert,
-    CheckCircle2,
-    User,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface AdminUser {
     id: string;
@@ -44,6 +43,7 @@ interface Props {
 }
 
 export default function Support({ messages = [] }: Props) {
+    const { t } = useTranslation();
     const { data, setData, post, processing, reset, errors } = useForm({
         subject: '',
         message: '',
@@ -52,13 +52,16 @@ export default function Support({ messages = [] }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/support', {
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                reset();
+                toast.success(t('support.message_sent_success'));
+            },
         });
     };
 
     return (
         <>
-            <Head title="Convomate Support" />
+            <Head title={t('support.title')} />
 
             <div className="mx-auto max-w-5xl space-y-8 p-4 md:p-8">
                 {/* Header Banner */}
@@ -69,11 +72,10 @@ export default function Support({ messages = [] }: Props) {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold">
-                                Help & Support Desk
+                                {t('support.help_desk')}
                             </h1>
                             <p className="text-sm text-indigo-100">
-                                Contact the Convomate platform admins, report an
-                                issue, or read announcements.
+                                {t('support.help_desk_desc')}
                             </p>
                         </div>
                     </div>
@@ -86,11 +88,10 @@ export default function Support({ messages = [] }: Props) {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Send className="h-5 w-5 text-indigo-600" />
-                                    Send Message to Admin
+                                    {t('support.send_message_title')}
                                 </CardTitle>
                                 <CardDescription>
-                                    Have a question, feedback, or payment issue?
-                                    Send us a direct message.
+                                    {t('support.send_message_desc')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -99,10 +100,10 @@ export default function Support({ messages = [] }: Props) {
                                     className="space-y-4"
                                 >
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="subject">Subject</Label>
+                                        <Label htmlFor="subject">{t('support.subject')}</Label>
                                         <Input
                                             id="subject"
-                                            placeholder="e.g., Booking error or Payment question"
+                                            placeholder={t('support.subject_placeholder')}
                                             value={data.subject}
                                             onChange={(e) =>
                                                 setData(
@@ -119,11 +120,11 @@ export default function Support({ messages = [] }: Props) {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="message">Message</Label>
+                                        <Label htmlFor="message">{t('support.message')}</Label>
                                         <Textarea
                                             id="message"
                                             rows={5}
-                                            placeholder="Describe your question or concern in detail..."
+                                            placeholder={t('support.message_placeholder')}
                                             value={data.message}
                                             onChange={(e) =>
                                                 setData(
@@ -145,8 +146,8 @@ export default function Support({ messages = [] }: Props) {
                                         className="w-full bg-indigo-600 font-semibold text-white hover:bg-indigo-700"
                                     >
                                         {processing
-                                            ? 'Sending...'
-                                            : 'Send Message'}
+                                            ? t('support.sending_button')
+                                            : t('support.send_button')}
                                     </Button>
                                 </form>
                             </CardContent>
@@ -159,20 +160,21 @@ export default function Support({ messages = [] }: Props) {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <MessageSquare className="h-5 w-5 text-indigo-600" />
-                                    Support History & Announcements
+                                    {t('support.history_title')}
                                 </CardTitle>
                                 <CardDescription>
-                                    View platform broadcasts and responses from
-                                    the administration team.
+                                    {t('support.history_desc')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {messages.length === 0 ? (
                                     <div className="py-12 text-center text-muted-foreground">
                                         <MessageSquare className="mx-auto h-12 w-12 stroke-1 opacity-40" />
-                                        <p className="mt-2 text-sm">
-                                            No messages yet. Feel free to submit
-                                            a ticket!
+                                        <h4 className="mt-3 text-base font-semibold text-gray-800 dark:text-gray-200">
+                                            {t('support.no_messages')}
+                                        </h4>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            {t('support.no_messages_desc')}
                                         </p>
                                     </div>
                                 ) : (
@@ -194,20 +196,19 @@ export default function Support({ messages = [] }: Props) {
                                                         <div className="flex items-center gap-2">
                                                             {isBroadcast ? (
                                                                 <Badge className="bg-purple-600 hover:bg-purple-700">
-                                                                    Platform
-                                                                    Announcement
+                                                                    {t('support.badge_broadcast')}
                                                                 </Badge>
                                                             ) : (
                                                                 <Badge
                                                                     variant="outline"
                                                                     className="capitalize"
                                                                 >
-                                                                    Ticket
+                                                                    {t('support.badge_ticket')}
                                                                 </Badge>
                                                             )}
                                                             <h4 className="font-semibold text-foreground">
                                                                 {msg.subject ||
-                                                                    'Support Request'}
+                                                                    t('support.default_subject')}
                                                             </h4>
                                                         </div>
                                                         <span className="text-[11px] text-muted-foreground">
@@ -243,5 +244,5 @@ export default function Support({ messages = [] }: Props) {
 }
 
 Support.layout = {
-    breadcrumbs: [{ title: 'Convomate Support', href: '/support' }],
+    breadcrumbs: [{ title: 'convomate support', href: '/support' }],
 };

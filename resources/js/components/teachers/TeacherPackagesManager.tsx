@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
-import { Package, Plus, Trash2, Edit2, Check, Sparkles, Clock, AlertCircle, ToggleLeft, ToggleRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
+import { Package, Plus, Trash2, Edit2, Sparkles, Clock, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,13 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPackage, setEditingPackage] = useState<TeacherPackageItem | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [togglingId, setTogglingId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (initialPackages) {
+            setPackagesList(initialPackages);
+        }
+    }, [initialPackages]);
 
     const [title, setTitle] = useState('');
     const [hours, setHours] = useState('5');
@@ -42,15 +49,19 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
     const [discount, setDiscount] = useState<string>('');
     const [description, setDescription] = useState('');
 
+    const formatNumberWithSpaces = (val: string) => {
+        const digits = val.replace(/\D/g, '');
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    };
+
     const openCreateModal = () => {
         setEditingPackage(null);
         setTitle(t('packages.hours_count', { count: 5 }));
         setHours('5');
-        // Default suggested price (10% discount if hourly rate available)
         const regularTotal = hourlyRate * 5;
         const suggested = regularTotal > 0 ? Math.round((regularTotal * 0.9) / 1000) * 1000 : 0;
         setPrice(suggested > 0 ? formatNumberWithSpaces(suggested.toString()) : '');
-        setDiscount('10');
+        setDiscount(hourlyRate > 0 ? '10' : '');
         setDescription('');
         setIsModalOpen(true);
     };
@@ -65,11 +76,6 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
         setIsModalOpen(true);
     };
 
-    const formatNumberWithSpaces = (val: string) => {
-        const digits = val.replace(/\D/g, '');
-        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    };
-
     const handleHoursChange = (newHoursStr: string) => {
         setHours(newHoursStr);
         const parsedHours = parseInt(newHoursStr, 10);
@@ -77,9 +83,48 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
             setTitle(t('packages.hours_count', { count: parsedHours }));
             if (hourlyRate > 0) {
                 const regularTotal = hourlyRate * parsedHours;
-                const disc = parseInt(discount, 10) || 10;
-                const calculated = Math.round((regularTotal * (1 - disc / 100)) / 1000) * 1000;
+                const disc = parseInt(discount, 10) || 0;
+                const calculated = disc > 0
+                    ? Math.round((regularTotal * (1 - disc / 100)) / 1000) * 1000
+                    : regularTotal;
                 setPrice(formatNumberWithSpaces(calculated.toString()));
+            }
+        }
+    };
+
+    const handleDiscountChange = (newDiscountStr: string) => {
+        let clean = newDiscountStr.replace(/\D/g, '');
+        if (clean !== '') {
+            let num = parseInt(clean, 10);
+            if (num > 99) num = 99;
+            clean = num.toString();
+        }
+        setDiscount(clean);
+
+        const parsedHours = parseInt(hours, 10) || 0;
+        if (hourlyRate > 0 && parsedHours > 0) {
+            const regularTotal = hourlyRate * parsedHours;
+            const discNum = clean === '' ? 0 : parseInt(clean, 10);
+            const calculated = discNum > 0
+                ? Math.round((regularTotal * (1 - discNum / 100)) / 1000) * 1000
+                : regularTotal;
+            setPrice(formatNumberWithSpaces(calculated.toString()));
+        }
+    };
+
+    const handlePriceChange = (newPriceStr: string) => {
+        const digits = newPriceStr.replace(/\D/g, '');
+        setPrice(formatNumberWithSpaces(digits));
+
+        const parsedHours = parseInt(hours, 10) || 0;
+        const numericPrice = parseInt(digits, 10) || 0;
+        if (hourlyRate > 0 && parsedHours > 0 && numericPrice > 0) {
+            const regularTotal = hourlyRate * parsedHours;
+            if (numericPrice < regularTotal) {
+                const calculatedDiscount = Math.round(((regularTotal - numericPrice) / regularTotal) * 100);
+                setDiscount(Math.min(99, Math.max(1, calculatedDiscount)).toString());
+            } else {
+                setDiscount('0');
             }
         }
     };
@@ -90,12 +135,41 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
         const numericHours = parseInt(hours, 10);
 
         if (!numericHours || numericHours <= 0) {
-            toast.error('Please enter a valid number of hours');
+            toast.error(t('packages.hours_validation'));
             return;
         }
 
         if (!numericPrice || numericPrice <= 0) {
-            toast.error('Please enter a valid price');
+            toast.error(t('packages.price_validation'));
+            return;
+        }
+
+        // Client-side duplicate validation
+        const cleanTitle = title.trim().toLowerCase();
+        let effectiveDiscount = discount ? parseInt(discount, 10) : null;
+        if (effectiveDiscount === null && hourlyRate > 0 && hourlyRate * numericHours > numericPrice) {
+            effectiveDiscount = Math.round(((hourlyRate * numericHours - numericPrice) / (hourlyRate * numericHours)) * 100);
+        }
+
+        const otherPackages = packagesList.filter(
+            (p) => !editingPackage || p.id !== editingPackage.id,
+        );
+
+        const hasDuplicateTitle = otherPackages.some(
+            (p) => p.title.trim().toLowerCase() === cleanTitle,
+        );
+        if (hasDuplicateTitle) {
+            toast.error(t('packages.error_duplicate_title'));
+            return;
+        }
+
+        const hasDuplicateDurationDiscount = otherPackages.some(
+            (p) =>
+                p.total_hours === numericHours &&
+                (p.discount_percentage ?? null) === effectiveDiscount,
+        );
+        if (hasDuplicateDurationDiscount) {
+            toast.error(t('packages.error_duplicate_duration_discount'));
             return;
         }
 
@@ -103,52 +177,104 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
         try {
             if (editingPackage) {
                 const res = await axios.put(`/teacher/packages/${editingPackage.id}`, {
-                    title,
+                    title: title.trim(),
                     total_hours: numericHours,
                     price: numericPrice,
                     discount_percentage: discount ? parseInt(discount, 10) : null,
                     description,
                 });
-                toast.success('Conversation pack updated successfully');
+                const updated = res.data?.package;
+                setPackagesList((prev) =>
+                    prev.map((p) =>
+                        p.id === editingPackage.id
+                            ? updated || {
+                                  ...p,
+                                  title: title.trim(),
+                                  total_hours: numericHours,
+                                  total_minutes: numericHours * 60,
+                                  price: numericPrice,
+                                  discount_percentage: discount ? parseInt(discount, 10) : null,
+                                  description,
+                              }
+                            : p,
+                    ),
+                );
+                toast.success(t('packages.update_success'));
                 router.reload({ only: ['packages'] });
             } else {
                 const res = await axios.post('/teacher/packages', {
-                    title,
+                    title: title.trim(),
                     total_hours: numericHours,
                     price: numericPrice,
                     discount_percentage: discount ? parseInt(discount, 10) : null,
                     description,
                 });
-                toast.success('Conversation pack created successfully');
+                if (res.data?.package) {
+                    setPackagesList((prev) => [...prev, res.data.package]);
+                }
+                toast.success(t('packages.create_success'));
                 router.reload({ only: ['packages'] });
             }
             setIsModalOpen(false);
         } catch (error: any) {
-            const msg = error.response?.data?.message || 'Failed to save package';
-            toast.error(msg);
+            const fieldErrors = error.response?.data?.errors;
+            if (fieldErrors?.title) {
+                toast.error(t('packages.error_duplicate_title'));
+            } else if (fieldErrors?.total_hours) {
+                toast.error(t('packages.error_duplicate_duration_discount'));
+            } else {
+                const firstError = fieldErrors ? Object.values(fieldErrors).flat()[0] : null;
+                const msg = (firstError as string) || error.response?.data?.message || t('packages.save_error');
+                toast.error(msg);
+            }
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleToggle = async (pkg: TeacherPackageItem) => {
+        if (togglingId) return;
+        setTogglingId(pkg.id);
         try {
-            await axios.post(`/teacher/packages/${pkg.id}/toggle`);
-            toast.success('Package status updated');
+            const res = await axios.post(`/teacher/packages/${pkg.id}/toggle`);
+            const updatedActive = Boolean(res.data?.is_active);
+            setPackagesList((prev) =>
+                prev.map((p) =>
+                    p.id === pkg.id ? { ...p, is_active: updatedActive } : p,
+                ),
+            );
+            if (updatedActive) {
+                toast.success(
+                    t('packages.status_activated', { name: pkg.title }),
+                );
+            } else {
+                toast.success(
+                    t('packages.status_deactivated', { name: pkg.title }),
+                );
+            }
             router.reload({ only: ['packages'] });
         } catch (error: any) {
-            toast.error('Failed to update status');
+            toast.error(t('packages.status_update_error'));
+        } finally {
+            setTogglingId(null);
         }
     };
 
     const handleDelete = async (pkg: TeacherPackageItem) => {
         if (!confirm(t('packages.delete_confirm'))) return;
         try {
-            await axios.delete(`/teacher/packages/${pkg.id}`);
-            toast.success('Package deleted or deactivated');
+            const res = await axios.delete(`/teacher/packages/${pkg.id}`);
+            if (res.data?.deactivated) {
+                setPackagesList((prev) =>
+                    prev.map((p) => (p.id === pkg.id ? { ...p, is_active: false } : p)),
+                );
+            } else {
+                setPackagesList((prev) => prev.filter((p) => p.id !== pkg.id));
+            }
+            toast.success(t('packages.delete_success'));
             router.reload({ only: ['packages'] });
         } catch (error: any) {
-            toast.error('Failed to delete package');
+            toast.error(t('packages.delete_error'));
         }
     };
 
@@ -183,7 +309,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                             {t('packages.no_packages')}
                         </h4>
                         <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                            Encourage pupils to commit to multiple conversation sessions by offering bundled hours at an attractive discount.
+                            {t('packages.empty_encourage')}
                         </p>
                         <Button
                             onClick={openCreateModal}
@@ -219,34 +345,45 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                             <div className="mt-1 flex items-center gap-2">
                                                 <Badge
                                                     variant="secondary"
-                                                    className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200/50 text-xs font-semibold"
+                                                    className="font-medium text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200/60"
                                                 >
-                                                    <Clock className="h-3 w-3 mr-1 inline" />
+                                                    <Clock className="mr-1 h-3 w-3" />
                                                     {pkg.total_hours} {t('packages.hours')}
                                                 </Badge>
                                                 {pkg.discount_percentage ? (
-                                                    <Badge className="bg-emerald-600 text-white text-xs font-bold">
+                                                    <Badge className="bg-emerald-600 text-white text-[11px] font-bold">
                                                         {t('packages.discount_badge', { discount: pkg.discount_percentage })}
                                                     </Badge>
                                                 ) : null}
                                             </div>
                                         </div>
-                                        <Badge
-                                            variant="outline"
-                                            className={pkg.is_active ? 'border-emerald-300 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-xs' : 'border-gray-300 text-gray-500 text-xs'}
-                                        >
-                                            {pkg.is_active ? t('packages.status_active') : t('packages.status_inactive')}
-                                        </Badge>
+
+                                        {pkg.is_active ? (
+                                            <Badge
+                                                variant="outline"
+                                                className="border-emerald-300 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300 text-[11px] font-semibold"
+                                            >
+                                                {t('packages.status_active')}
+                                            </Badge>
+                                        ) : (
+                                            <Badge
+                                                variant="outline"
+                                                className="border-gray-300 text-gray-500 bg-gray-50 dark:bg-gray-800 dark:text-gray-400 text-[11px] font-semibold"
+                                            >
+                                                {t('packages.status_inactive')}
+                                            </Badge>
+                                        )}
                                     </div>
-                                    {pkg.description && (
-                                        <CardDescription className="text-xs mt-2 line-clamp-2">
-                                            {pkg.description}
-                                        </CardDescription>
-                                    )}
                                 </CardHeader>
 
-                                <CardContent className="space-y-4 pt-2">
-                                    <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
+                                <CardContent className="space-y-4">
+                                    {pkg.description ? (
+                                        <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                                            {pkg.description}
+                                        </p>
+                                    ) : null}
+
+                                    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/60 p-3">
                                         <div className="flex items-baseline justify-between">
                                             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                                                 {t('packages.price')}
@@ -265,7 +402,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                         {savings > 0 && (
                                             <div className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
                                                 <Sparkles className="h-3 w-3" />
-                                                {t('packages.savings', { amount: `${savings.toLocaleString('ru-RU').replace(/,/g, ' ')} ${t('auth.currency_som')}` })}
+                                                {t('packages.teacher_discount', { amount: `${savings.toLocaleString('ru-RU').replace(/,/g, ' ')} ${t('auth.currency_som')}` })}
                                             </div>
                                         )}
                                     </div>
@@ -275,8 +412,9 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                             type="button"
                                             size="sm"
                                             variant="ghost"
+                                            disabled={togglingId === pkg.id}
                                             onClick={() => handleToggle(pkg)}
-                                            className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900"
+                                            className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 disabled:opacity-50"
                                         >
                                             {pkg.is_active ? (
                                                 <span className="flex items-center gap-1.5">
@@ -328,17 +466,17 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                             {editingPackage ? t('packages.edit_pack') : t('packages.create_pack')}
                         </DialogTitle>
                         <DialogDescription>
-                            Set bulk conversation hours and discounted pricing for pupils.
+                            {editingPackage ? t('packages.modal_edit_desc') : t('packages.modal_create_desc')}
                         </DialogDescription>
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="space-y-4 py-2">
-                        {/* Preset Hour Buttons */}
+                        {/* Preset Hour Buttons and Custom Hours Input */}
                         <div>
                             <Label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                                 {t('packages.pack_hours')}
                             </Label>
-                            <div className="mt-1.5 flex gap-2">
+                            <div className="mt-1.5 flex flex-wrap items-center gap-2">
                                 {['5', '10', '15', '20'].map((preset) => (
                                     <Button
                                         key={preset}
@@ -351,6 +489,21 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                         {preset} {t('packages.hours')}
                                     </Button>
                                 ))}
+                                <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+                                    <span className="text-xs text-gray-500 font-medium">
+                                        {t('packages.custom_hours')}:
+                                    </span>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        value={hours}
+                                        onChange={(e) => handleHoursChange(e.target.value)}
+                                        className="w-20 h-8 text-center text-xs font-bold"
+                                        placeholder="8"
+                                        required
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -363,7 +516,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                 id="pkg-title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="e.g. 5 Hours Conversation Pack"
+                                placeholder={t('packages.pack_title_placeholder')}
                                 className="mt-1"
                                 required
                             />
@@ -381,8 +534,8 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                         type="text"
                                         inputMode="numeric"
                                         value={price}
-                                        onChange={(e) => setPrice(formatNumberWithSpaces(e.target.value))}
-                                        placeholder="e.g. 450 000"
+                                        onChange={(e) => handlePriceChange(e.target.value)}
+                                        placeholder={t('packages.pack_price_placeholder')}
                                         className="pr-14"
                                         required
                                     />
@@ -393,16 +546,15 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                             </div>
                             <div>
                                 <Label htmlFor="pkg-discount" className="text-xs font-semibold">
-                                    Discount % (Optional)
+                                    {t('packages.discount_optional')}
                                 </Label>
                                 <Input
                                     id="pkg-discount"
-                                    type="number"
-                                    min="0"
-                                    max="100"
+                                    type="text"
+                                    inputMode="numeric"
                                     value={discount}
-                                    onChange={(e) => setDiscount(e.target.value)}
-                                    placeholder="e.g. 15"
+                                    onChange={(e) => handleDiscountChange(e.target.value)}
+                                    placeholder={t('packages.discount_placeholder')}
                                     className="mt-1"
                                 />
                             </div>
@@ -410,19 +562,24 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
 
                         {hourlyRate > 0 && (
                             <div className="rounded-lg bg-indigo-50/70 dark:bg-indigo-950/40 p-2.5 text-xs text-indigo-700 dark:text-indigo-300">
-                                Standard rate: {hourlyRate.toLocaleString('ru-RU').replace(/,/g, ' ')} {t('auth.currency_som')} / hour (Standard total for {hours}h: {(hourlyRate * (parseInt(hours, 10) || 0)).toLocaleString('ru-RU').replace(/,/g, ' ')} {t('auth.currency_som')})
+                                {t('packages.standard_rate_info', {
+                                    rate: hourlyRate.toLocaleString('ru-RU').replace(/,/g, ' '),
+                                    currency: t('auth.currency_som'),
+                                    hours: hours || '0',
+                                    total: (hourlyRate * (parseInt(hours, 10) || 0)).toLocaleString('ru-RU').replace(/,/g, ' '),
+                                })}
                             </div>
                         )}
 
                         <div>
                             <Label htmlFor="pkg-desc" className="text-xs font-semibold">
-                                Description (Optional)
+                                {t('packages.desc_optional')}
                             </Label>
                             <Input
                                 id="pkg-desc"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="e.g. Focus on IELTS speaking and daily fluency"
+                                placeholder={t('packages.desc_placeholder')}
                                 className="mt-1"
                             />
                         </div>
@@ -434,14 +591,14 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                 onClick={() => setIsModalOpen(false)}
                                 disabled={submitting}
                             >
-                                Cancel
+                                {t('packages.cancel_btn')}
                             </Button>
                             <Button
                                 type="submit"
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
                                 disabled={submitting}
                             >
-                                {submitting ? 'Saving...' : 'Save Pack'}
+                                {submitting ? t('packages.saving_btn') : (editingPackage ? t('packages.update_btn') : t('packages.save_btn'))}
                             </Button>
                         </DialogFooter>
                     </form>

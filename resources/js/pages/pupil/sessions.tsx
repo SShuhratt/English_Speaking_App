@@ -87,7 +87,7 @@ export default function Sessions({ sessions }: Props) {
 
                     <div className="relative z-10 space-y-1.5">
                         <span className="text-[10px] font-black tracking-widest text-brand-yellow uppercase">
-                            SESSION HISTORY
+                            {t('sessions.history_badge')}
                         </span>
                         <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('sessions.past_title')}
@@ -139,7 +139,7 @@ export default function Sessions({ sessions }: Props) {
                                                             }
                                                         </Link>
                                                     ) : (
-                                                        'Teacher'
+                                                        t('sessions.teacher_fallback')
                                                     )}
                                                 </h4>
                                                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
@@ -267,7 +267,7 @@ export default function Sessions({ sessions }: Props) {
                             {t('sessions.dialog_desc', {
                                 name:
                                     selectedApt?.teacher?.full_name ||
-                                    'Teacher',
+                                    t('sessions.teacher_fallback'),
                             })}
                         </DialogDescription>
                     </DialogHeader>

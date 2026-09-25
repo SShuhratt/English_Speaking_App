@@ -287,4 +287,76 @@ class RegistrationTest extends TestCase
         $teacher = User::where('email', 'free_teacher@example.com')->first();
         $this->assertSame(0, $teacher->teacherProfile->price);
     }
+
+    public function test_registration_rejects_invalid_phone_numbers()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Valid Name',
+            'email' => 'invalid_phone@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'pupil',
+            'age' => 20,
+            'phone_number' => '12345',
+            'level' => 'beginner',
+        ]);
+
+        $response->assertSessionHasErrors(['phone_number']);
+        $this->assertGuest();
+    }
+
+    public function test_registration_normalizes_and_accepts_valid_uzbek_phone_number()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Valid Uzbek User',
+            'email' => 'uzbek_user@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'pupil',
+            'age' => 20,
+            'phone_number' => '+998 90 123 45 67',
+            'level' => 'beginner',
+        ]);
+
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('pupil_profiles', [
+            'phone_number' => '+998901234567',
+        ]);
+    }
+
+    public function test_registration_rejects_names_with_digits_or_symbols()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'John123',
+            'email' => 'john123@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'pupil',
+            'age' => 20,
+            'phone_number' => '+998901234567',
+            'level' => 'beginner',
+        ]);
+
+        $response->assertSessionHasErrors(['name']);
+        $this->assertGuest();
+    }
+
+    public function test_registration_normalizes_email_to_lowercase()
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Case Sensitive Email',
+            'email' => 'LOWERCASE_TEST@EXAMPLE.COM',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'pupil',
+            'age' => 20,
+            'phone_number' => '+998901234567',
+            'level' => 'beginner',
+        ]);
+
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', [
+            'email' => 'lowercase_test@example.com',
+        ]);
+    }
 }

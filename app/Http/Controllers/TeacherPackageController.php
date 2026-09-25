@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TeacherPackage;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class TeacherPackageController extends Controller
 {
@@ -44,9 +45,38 @@ class TeacherPackageController extends Controller
             }
         }
 
+        $normalizedTitle = trim($validated['title']);
+
+        // Prevent duplicate title for this teacher (case-insensitive & trimmed)
+        $titleExists = TeacherPackage::where('teacher_id', $user->id)
+            ->whereRaw('LOWER(TRIM(title)) = ?', [mb_strtolower($normalizedTitle)])
+            ->exists();
+
+        if ($titleExists) {
+            throw ValidationException::withMessages([
+                'title' => ['A conversation pack with this title already exists.'],
+            ]);
+        }
+
+        // Prevent duplicate duration and discount percentage for this teacher
+        $durationDiscountQuery = TeacherPackage::where('teacher_id', $user->id)
+            ->where('total_hours', $totalHours);
+
+        if (is_null($discount)) {
+            $durationDiscountQuery->whereNull('discount_percentage');
+        } else {
+            $durationDiscountQuery->where('discount_percentage', $discount);
+        }
+
+        if ($durationDiscountQuery->exists()) {
+            throw ValidationException::withMessages([
+                'total_hours' => ['You already have a package with this duration and discount percentage.'],
+            ]);
+        }
+
         $package = TeacherPackage::create([
             'teacher_id' => $user->id,
-            'title' => $validated['title'],
+            'title' => $normalizedTitle,
             'total_hours' => $totalHours,
             'total_minutes' => $totalHours * 60,
             'price' => $price,
@@ -96,8 +126,39 @@ class TeacherPackageController extends Controller
             }
         }
 
+        $normalizedTitle = trim($validated['title']);
+
+        // Prevent duplicate title for this teacher (excluding this package)
+        $titleExists = TeacherPackage::where('teacher_id', $request->user()->id)
+            ->where('id', '!=', $package->id)
+            ->whereRaw('LOWER(TRIM(title)) = ?', [mb_strtolower($normalizedTitle)])
+            ->exists();
+
+        if ($titleExists) {
+            throw ValidationException::withMessages([
+                'title' => ['A conversation pack with this title already exists.'],
+            ]);
+        }
+
+        // Prevent duplicate duration and discount percentage for this teacher (excluding this package)
+        $durationDiscountQuery = TeacherPackage::where('teacher_id', $request->user()->id)
+            ->where('id', '!=', $package->id)
+            ->where('total_hours', $totalHours);
+
+        if (is_null($discount)) {
+            $durationDiscountQuery->whereNull('discount_percentage');
+        } else {
+            $durationDiscountQuery->where('discount_percentage', $discount);
+        }
+
+        if ($durationDiscountQuery->exists()) {
+            throw ValidationException::withMessages([
+                'total_hours' => ['You already have a package with this duration and discount percentage.'],
+            ]);
+        }
+
         $package->update([
-            'title' => $validated['title'],
+            'title' => $normalizedTitle,
             'total_hours' => $totalHours,
             'total_minutes' => $totalHours * 60,
             'price' => $price,
@@ -134,7 +195,8 @@ class TeacherPackageController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'message' => 'Package status updated',
-                'is_active' => $package->is_active,
+                'is_active' => (bool) $package->is_active,
+                'package' => $package,
             ]);
         }
 
@@ -155,13 +217,18 @@ class TeacherPackageController extends Controller
         if ($package->pupilPackages()->exists()) {
             $package->update(['is_active' => false]);
             $message = 'Package has active purchases and was deactivated instead of deleted.';
+            $deactivated = true;
         } else {
             $package->delete();
             $message = 'Conversation pack deleted successfully.';
+            $deactivated = false;
         }
 
         if ($request->wantsJson()) {
-            return response()->json(['message' => $message]);
+            return response()->json([
+                'message' => $message,
+                'deactivated' => $deactivated,
+            ]);
         }
 
         return back()->with('success', $message);

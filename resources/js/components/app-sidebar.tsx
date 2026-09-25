@@ -79,7 +79,7 @@ export function AppSidebar() {
                 icon: GraduationCap,
             },
             {
-                title: 'Convomate Support',
+                title: t('support.title'),
                 href: '/support',
                 icon: HelpCircle,
                 badge: unreadSupportCount,
@@ -104,7 +104,7 @@ export function AppSidebar() {
                 icon: Users,
             },
             {
-                title: 'Convomate Support',
+                title: t('support.title'),
                 href: '/admin/support',
                 icon: HelpCircle,
                 badge: unreadSupportCount,
@@ -140,7 +140,7 @@ export function AppSidebar() {
                 icon: BookOpen,
             },
             {
-                title: 'Convomate Support',
+                title: t('support.title'),
                 href: '/support',
                 icon: HelpCircle,
                 badge: unreadSupportCount,

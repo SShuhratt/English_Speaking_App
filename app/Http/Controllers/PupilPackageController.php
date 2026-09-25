@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PupilPackage;
 use App\Models\TeacherPackage;
+use App\Notifications\PackagePaymentPendingNotification;
 use Illuminate\Http\Request;
 
 class PupilPackageController extends Controller
@@ -62,7 +63,10 @@ class PupilPackageController extends Controller
             'status' => 'pending',
         ]);
 
-        if ($request->wantsJson()) {
+        $pupilPackage->load(['teacher.teacherProfile', 'pupil.pupilProfile']);
+        $request->user()->notify(new PackagePaymentPendingNotification($pupilPackage));
+
+        if ($request->wantsJson() && ! $request->hasHeader('X-Inertia')) {
             return response()->json([
                 'message' => 'Package purchase request submitted! Admin will verify payment shortly.',
                 'pupil_package' => $pupilPackage,
