@@ -457,11 +457,15 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#FDF9EC] p-3.5">
                         <p className="m-0 text-xs font-medium text-[#1E2A5A]">
                             {sessionsLeftThisWeek === 1
-                                ? t('progress.one_session_left') || '1 session left to finish Week ' + (currentWeekIndex + 1)
-                                : `${sessionsLeftThisWeek} ${t('progress.sessions_left') || 'sessions left to finish Week ' + (currentWeekIndex + 1)}`}
+                                ? t('progress.one_session_left', '1 session left to finish this week')
+                                : t(
+                                      'progress.sessions_left',
+                                      { count: String(sessionsLeftThisWeek) },
+                                      `${sessionsLeftThisWeek} sessions left to finish this week`
+                                  )}
                             {' — '}
                             <span className="text-[#5F5E5A]">
-                                {t('progress.book_with_teacher_free') || 'book your next session with a top teacher'}
+                                {t('progress.book_with_teacher_free', 'book your next session with a top teacher')}
                             </span>
                         </p>
                         <Link
