@@ -15,10 +15,14 @@ class ConversationEndorsement extends Model
         'giver_id',
         'receiver_id',
         'tags',
+        'talk_time_ratio',
+        'balanced_bonus_awarded',
     ];
 
     protected $casts = [
         'tags' => 'array',
+        'talk_time_ratio' => 'integer',
+        'balanced_bonus_awarded' => 'boolean',
     ];
 
     public function giver()

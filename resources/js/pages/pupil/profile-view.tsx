@@ -10,7 +10,10 @@ import {
     ArrowLeft,
     Mail,
     User,
+    MapPin,
 } from 'lucide-react';
+import SpeakingPassportCard from '@/components/gamification/SpeakingPassportCard';
+import MilestoneBadgesCard from '@/components/gamification/MilestoneBadgesCard';
 
 interface Props {
     pupil: {
@@ -25,6 +28,8 @@ interface Props {
             target_level?: string;
             target_overall_band?: string | number;
             target_speaking_band?: string | number;
+            country_code?: string;
+            city?: string;
             labels?: string[];
             certificates?: Array<{
                 title: string;
@@ -33,9 +38,15 @@ interface Props {
             }>;
         };
     };
+    gamification?: {
+        fluency?: any;
+        momentum?: any;
+        passport?: any;
+        badges?: any;
+    };
 }
 
-export default function PupilProfileView({ pupil }: Props) {
+export default function PupilProfileView({ pupil, gamification }: Props) {
     const { t } = useTranslation();
 
     const initials = pupil.full_name
@@ -98,6 +109,12 @@ export default function PupilProfileView({ pupil }: Props) {
                                 <Mail className="h-3.5 w-3.5 text-[#1E2A5A]" />
                                 {pupil.email}
                             </span>
+                            {(pupil.pupil_profile?.city || pupil.pupil_profile?.country_code) && (
+                                <span className="flex items-center gap-1.5">
+                                    <MapPin className="h-3.5 w-3.5 text-[#1E2A5A]" />
+                                    {[pupil.pupil_profile.city, pupil.pupil_profile.country_code ? (t(`countries.${pupil.pupil_profile.country_code.toLowerCase()}`) || pupil.pupil_profile.country_code) : null].filter(Boolean).join(', ')}
+                                </span>
+                            )}
                             <span className="flex items-center gap-1.5">
                                 <Clock className="h-3.5 w-3.5 text-[#1E2A5A]" />
                                 Joined{' '}
@@ -262,6 +279,18 @@ export default function PupilProfileView({ pupil }: Props) {
                         </div>
                     </div>
                 </div>
+
+                {/* Gamification Passport & Milestones Showcase */}
+                {gamification && (
+                    <div className="mt-8 space-y-6">
+                        {gamification.passport && (
+                            <SpeakingPassportCard passport={gamification.passport} />
+                        )}
+                        {gamification.badges && (
+                            <MilestoneBadgesCard badges={gamification.badges} />
+                        )}
+                    </div>
+                )}
             </div>
         </>
     );

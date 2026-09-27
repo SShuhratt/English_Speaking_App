@@ -103,6 +103,8 @@ class ProfileController extends Controller
                 'labels.*' => ['string', 'in:mock,freestyle,lessons,business english,practice q&a,job interview prep'],
                 'headline' => ['nullable', 'string', 'max:90'],
                 'bio' => ['nullable', 'string', 'max:600'],
+                'country_code' => ['nullable', 'string', 'max:10'],
+                'city' => ['nullable', 'string', 'max:100'],
                 'price' => ['nullable', 'integer', 'min:0'],
                 'intro_video_url' => ['nullable', 'string'],
                 'delete_intro_video' => ['nullable', 'boolean'],
@@ -399,6 +401,8 @@ class ProfileController extends Controller
                 'bio' => ['nullable', 'string', 'max:600'],
                 'target_overall_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
                 'target_speaking_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
+                'country_code' => ['nullable', 'string', 'max:10'],
+                'city' => ['nullable', 'string', 'max:100'],
                 'labels' => ['nullable', 'array'],
                 'labels.*' => ['string', 'in:freestyle conversation,practice q&a,ielts speaking mock,job interview prep,vocabulary expansion,business english'],
             ]);

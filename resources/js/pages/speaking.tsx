@@ -154,9 +154,20 @@ export default function Speaking() {
         partnerId: string | number;
         partnerName: string;
         topic: string;
+        talkTimeRatio?: number;
     } | null>(null);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [isSubmittingEndorsement, setIsSubmittingEndorsement] = useState<boolean>(false);
+
+    // 50/50 Talk-Time Meter Refs & State
+    const remoteStreamRef = useRef<MediaStream | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const localAnalyserRef = useRef<AnalyserNode | null>(null);
+    const remoteAnalyserRef = useRef<AnalyserNode | null>(null);
+    const talkMeterIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const localTalkUnitsRef = useRef<number>(0);
+    const remoteTalkUnitsRef = useRef<number>(0);
+    const [talkRatio, setTalkRatio] = useState<{ local: number; remote: number }>({ local: 50, remote: 50 });
 
     const activePartnerIdRef = useRef<string | number | null>(null);
     const activePartnerNameRef = useRef<string>('');
@@ -316,16 +327,126 @@ export default function Speaking() {
         };
     }, [status]);
 
-    // Handle call timer
+    // 50/50 Client-Side Talk-Time Meter (Web Audio API)
+    const setupTalkMeter = () => {
+        try {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (!AudioContextClass) return;
+
+            if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+                audioContextRef.current = new AudioContextClass();
+            }
+            const ctx = audioContextRef.current;
+            if (ctx.state === 'suspended') {
+                ctx.resume().catch(() => {});
+            }
+
+            if (localStreamRef.current && localStreamRef.current.getAudioTracks().length > 0) {
+                try {
+                    const localSource = ctx.createMediaStreamSource(localStreamRef.current);
+                    const localAnalyser = ctx.createAnalyser();
+                    localAnalyser.fftSize = 256;
+                    localSource.connect(localAnalyser);
+                    localAnalyserRef.current = localAnalyser;
+                } catch (e) {
+                    console.warn('[TalkMeter] Local analyser error:', e);
+                }
+            }
+
+            if (remoteStreamRef.current && remoteStreamRef.current.getAudioTracks().length > 0) {
+                try {
+                    const remoteSource = ctx.createMediaStreamSource(remoteStreamRef.current);
+                    const remoteAnalyser = ctx.createAnalyser();
+                    remoteAnalyser.fftSize = 256;
+                    remoteSource.connect(remoteAnalyser);
+                    remoteAnalyserRef.current = remoteAnalyser;
+                } catch (e) {
+                    console.warn('[TalkMeter] Remote analyser error:', e);
+                }
+            }
+
+            localTalkUnitsRef.current = 0;
+            remoteTalkUnitsRef.current = 0;
+            setTalkRatio({ local: 50, remote: 50 });
+
+            const localData = new Uint8Array(128);
+            const remoteData = new Uint8Array(128);
+
+            if (talkMeterIntervalRef.current) {
+                clearInterval(talkMeterIntervalRef.current);
+            }
+
+            talkMeterIntervalRef.current = setInterval(() => {
+                let localActive = false;
+                let remoteActive = false;
+
+                if (localAnalyserRef.current && !isMuted) {
+                    localAnalyserRef.current.getByteFrequencyData(localData);
+                    let sum = 0;
+                    for (let i = 0; i < localData.length; i++) {
+                        sum += localData[i];
+                    }
+                    const avg = sum / localData.length;
+                    if (avg > 15) {
+                        localActive = true;
+                    }
+                }
+
+                if (remoteAnalyserRef.current) {
+                    remoteAnalyserRef.current.getByteFrequencyData(remoteData);
+                    let sum = 0;
+                    for (let i = 0; i < remoteData.length; i++) {
+                        sum += remoteData[i];
+                    }
+                    const avg = sum / remoteData.length;
+                    if (avg > 15) {
+                        remoteActive = true;
+                    }
+                }
+
+                if (localActive) localTalkUnitsRef.current += 1;
+                if (remoteActive) remoteTalkUnitsRef.current += 1;
+
+                const total = localTalkUnitsRef.current + remoteTalkUnitsRef.current;
+                if (total > 0) {
+                    const localPct = Math.min(95, Math.max(5, Math.round((localTalkUnitsRef.current / total) * 100)));
+                    setTalkRatio({ local: localPct, remote: 100 - localPct });
+                }
+            }, 400);
+        } catch (err) {
+            console.warn('[TalkMeter] Setup failed:', err);
+        }
+    };
+
+    const cleanupTalkMeter = () => {
+        if (talkMeterIntervalRef.current) {
+            clearInterval(talkMeterIntervalRef.current);
+            talkMeterIntervalRef.current = null;
+        }
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+            try {
+                audioContextRef.current.close().catch(() => {});
+            } catch (e) {
+                // Ignore
+            }
+            audioContextRef.current = null;
+        }
+        localAnalyserRef.current = null;
+        remoteAnalyserRef.current = null;
+    };
+
+    // Handle call timer & talk-time meter
     useEffect(() => {
         if (status === 'connected') {
             callTimerRef.current = setInterval(() => {
                 setCallTime((prev) => prev + 1);
             }, 1000);
+            setupTalkMeter();
         } else {
             if (callTimerRef.current) {
                 clearInterval(callTimerRef.current);
             }
+            cleanupTalkMeter();
             setCallTime(0);
         }
 
@@ -333,6 +454,7 @@ export default function Speaking() {
             if (callTimerRef.current) {
                 clearInterval(callTimerRef.current);
             }
+            cleanupTalkMeter();
         };
     }, [status]);
 
@@ -560,8 +682,20 @@ export default function Speaking() {
                     '[WebRTC] Remote track received! Stream details:',
                     event.streams[0],
                 );
+                remoteStreamRef.current = event.streams[0];
                 if (remoteAudioRef.current && event.streams[0]) {
                     remoteAudioRef.current.srcObject = event.streams[0];
+                }
+                if (audioContextRef.current && audioContextRef.current.state !== 'closed' && event.streams[0]) {
+                    try {
+                        const remoteSource = audioContextRef.current.createMediaStreamSource(event.streams[0]);
+                        const remoteAnalyser = audioContextRef.current.createAnalyser();
+                        remoteAnalyser.fftSize = 256;
+                        remoteSource.connect(remoteAnalyser);
+                        remoteAnalyserRef.current = remoteAnalyser;
+                    } catch (e) {
+                        console.warn('[TalkMeter] Remote analyser error:', e);
+                    }
                 }
             };
 
@@ -725,6 +859,7 @@ export default function Speaking() {
         const finalPartnerName =
             partnerName || activePartnerNameRef.current || 'Speaking Partner';
         const finalTopic = conversationTopic;
+        const finalRatio = talkRatio.local;
 
         try {
             axios.post('/matchmaking/leave');
@@ -740,6 +875,7 @@ export default function Speaking() {
                 partnerId: finalPartnerId,
                 partnerName: finalPartnerName,
                 topic: finalTopic,
+                talkTimeRatio: finalRatio,
             });
             setSelectedTags([]);
             setShowEndorsementModal(true);
@@ -762,15 +898,23 @@ export default function Speaking() {
 
         try {
             setIsSubmittingEndorsement(true);
-            await axios.post('/matchmaking/endorse', {
+            const response = await axios.post('/matchmaking/endorse', {
                 receiver_id: lastCallSummary.partnerId,
                 tags: selectedTags,
                 duration_seconds: lastCallSummary.duration,
+                talk_time_ratio: lastCallSummary.talkTimeRatio,
             });
-            toast.success(
-                t('speaking.endorsement_submitted') ||
-                    'Endorsement submitted! +2 Karma earned.',
-            );
+            if (response.data?.balanced_bonus) {
+                toast.success(
+                    t('speaking.balanced_bonus_earned') ||
+                        'Balanced dialogue achieved! +20 XP bonus awarded!',
+                );
+            } else {
+                toast.success(
+                    t('speaking.endorsement_submitted') ||
+                        'Endorsement submitted! +2 Karma earned.',
+                );
+            }
         } catch (err) {
             console.error('Failed to submit endorsement:', err);
         } finally {
@@ -867,6 +1011,7 @@ export default function Speaking() {
         if (remoteAudioRef.current) {
             remoteAudioRef.current.srcObject = null;
         }
+        remoteStreamRef.current = null;
     };
 
     // Stop local microphone stream tracks and release resource
@@ -887,6 +1032,7 @@ export default function Speaking() {
         setIsCueCardCollapsed(false);
 
         cleanupWebRTC();
+        cleanupTalkMeter();
 
         // Leave presence channel
         if (matchedRoomChannelRef.current) {
@@ -976,6 +1122,36 @@ export default function Speaking() {
                                 <p className="font-mono text-xl font-bold text-brand-navy dark:text-white">
                                     {formatTime(callTime)}
                                 </p>
+                            </div>
+
+                            {/* Live Talk-Time Balance Pill */}
+                            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-2.5 backdrop-blur-xs dark:border-white/10 dark:bg-white/5">
+                                <div className="flex items-center justify-between gap-4 text-xs font-semibold text-slate-700 dark:text-slate-200 w-full max-w-[280px]">
+                                    <span className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-bold">
+                                        <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                                        {t('speaking.talk_you') || 'You'} {talkRatio.local}%
+                                    </span>
+                                    {talkRatio.local >= 40 && talkRatio.local <= 60 && (
+                                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                                            {t('speaking.balanced_badge') || '⚖️ Balanced (+20 XP)'}
+                                        </span>
+                                    )}
+                                    <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold">
+                                        {t('speaking.talk_partner') || 'Partner'} {talkRatio.remote}%
+                                        <span className="h-2 w-2 rounded-full bg-slate-400" />
+                                    </span>
+                                </div>
+                                <div className="relative h-2 w-full max-w-[280px] overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                                    <div
+                                        className={`h-full transition-all duration-500 ${
+                                            talkRatio.local >= 40 && talkRatio.local <= 60
+                                                ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                                                : 'bg-indigo-500'
+                                        }`}
+                                        style={{ width: `${talkRatio.local}%` }}
+                                    />
+                                    <div className="absolute top-0 bottom-0 left-1/2 w-0.5 -translate-x-1/2 bg-white/70 dark:bg-black/50" />
+                                </div>
                             </div>
 
                             {/* Conversation Cue Card */}
@@ -1581,7 +1757,7 @@ export default function Speaking() {
                             </div>
 
                             {/* Rewards Banner */}
-                            <div className="mt-3 flex items-center justify-center gap-3 rounded-2xl bg-emerald-500/10 px-4 py-2.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                            <div className="mt-3 flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-emerald-500/10 px-4 py-2.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
                                 <span className="flex items-center gap-1">
                                     <Star className="h-3.5 w-3.5 fill-current" />
                                     +15 XP
@@ -1591,7 +1767,61 @@ export default function Speaking() {
                                     <Shield className="h-3.5 w-3.5" />
                                     {lastCallSummary.duration >= 60 ? '+2 Karma Earned' : 'Healthy Session'}
                                 </span>
+                                {lastCallSummary.duration >= 60 &&
+                                    lastCallSummary.talkTimeRatio !== undefined &&
+                                    lastCallSummary.talkTimeRatio >= 40 &&
+                                    lastCallSummary.talkTimeRatio <= 60 && (
+                                        <>
+                                            <span>•</span>
+                                            <span className="flex items-center gap-1 text-emerald-800 dark:text-emerald-300 font-extrabold">
+                                                ⚖️ +20 XP Balanced
+                                            </span>
+                                        </>
+                                    )}
                             </div>
+
+                            {/* Dialogue Mirror (Talk-Time Balance) */}
+                            {lastCallSummary.talkTimeRatio !== undefined && (
+                                <div className="mt-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5 text-left dark:border-white/10 dark:bg-white/5">
+                                    <div className="flex items-center justify-between text-xs font-bold">
+                                        <span className="text-[#1E2A5A] dark:text-white flex items-center gap-1.5">
+                                            <span>🪞</span>
+                                            <span>{t('speaking.dialogue_mirror') || 'Dialogue Mirror'}</span>
+                                        </span>
+                                        {lastCallSummary.talkTimeRatio >= 40 && lastCallSummary.talkTimeRatio <= 60 && (
+                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                                                {t('speaking.balanced_badge') || '⚖️ Balanced (+20 XP)'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-[#6B7394] dark:text-[#A0A0B0]">
+                                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">
+                                            {t('speaking.talk_you') || 'You'}: {lastCallSummary.talkTimeRatio}%
+                                        </span>
+                                        <span>
+                                            {t('speaking.talk_partner') || 'Partner'}: {100 - lastCallSummary.talkTimeRatio}%
+                                        </span>
+                                    </div>
+                                    <div className="relative mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                                        <div
+                                            className={`h-full transition-all duration-500 ${
+                                                lastCallSummary.talkTimeRatio >= 40 && lastCallSummary.talkTimeRatio <= 60
+                                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                                                    : 'bg-indigo-500'
+                                            }`}
+                                            style={{ width: `${lastCallSummary.talkTimeRatio}%` }}
+                                        />
+                                        <div className="absolute top-0 bottom-0 left-1/2 w-0.5 -translate-x-1/2 bg-white/70 dark:bg-black/50" />
+                                    </div>
+                                    <p className="mt-2 text-[11px] leading-relaxed text-[#6B7394] dark:text-[#A0A0B0]">
+                                        {lastCallSummary.talkTimeRatio >= 40 && lastCallSummary.talkTimeRatio <= 60
+                                            ? (t('speaking.tip_balanced') || 'Excellent 50/50 balance! You gave each other equal room to speak and listen.')
+                                            : lastCallSummary.talkTimeRatio < 40
+                                                ? (t('speaking.tip_listened_more') || 'You were an attentive listener! Next time, try sharing a bit more of your thoughts.')
+                                                : (t('speaking.tip_talked_more') || 'You were very expressive! Try asking open-ended questions next time to give your partner room.')}
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Endorsement Tags */}
                             <div className="mt-5 text-left">

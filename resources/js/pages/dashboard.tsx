@@ -36,6 +36,8 @@ import WeeklyLeaderboardCard from '@/components/gamification/WeeklyLeaderboardCa
 import DailySpeakingSparkCard from '@/components/gamification/DailySpeakingSparkCard';
 import SessionCelebrationModal from '@/components/gamification/SessionCelebrationModal';
 import WeeklyMomentumRingCard from '@/components/gamification/WeeklyMomentumRingCard';
+import SpeakingPassportCard from '@/components/gamification/SpeakingPassportCard';
+import MilestoneBadgesCard from '@/components/gamification/MilestoneBadgesCard';
 
 function PupilMeetingButton({
     apt,
@@ -460,6 +462,12 @@ function PupilDashboard({
                                 <WeeklyLeaderboardCard leaderboard={gamification.leaderboard} />
                             )}
                         </div>
+                        {gamification.passport && (
+                            <SpeakingPassportCard passport={gamification.passport} />
+                        )}
+                        {gamification.badges && (
+                            <MilestoneBadgesCard badges={gamification.badges} />
+                        )}
                     </div>
                 ) : null;
 

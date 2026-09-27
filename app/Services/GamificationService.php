@@ -4,12 +4,39 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\Conversation;
+use App\Models\ConversationEndorsement;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class GamificationService
 {
+    /**
+     * Country catalog with flags for the Speaking Passport.
+     */
+    public const COUNTRIES = [
+        'UZ' => ['name_key' => 'countries.uz', 'default_name' => 'Uzbekistan', 'flag' => '🇺🇿'],
+        'KZ' => ['name_key' => 'countries.kz', 'default_name' => 'Kazakhstan', 'flag' => '🇰🇿'],
+        'KG' => ['name_key' => 'countries.kg', 'default_name' => 'Kyrgyzstan', 'flag' => '🇰🇬'],
+        'TJ' => ['name_key' => 'countries.tj', 'default_name' => 'Tajikistan', 'flag' => '🇹🇯'],
+        'TM' => ['name_key' => 'countries.tm', 'default_name' => 'Turkmenistan', 'flag' => '🇹🇲'],
+        'TR' => ['name_key' => 'countries.tr', 'default_name' => 'Turkey', 'flag' => '🇹🇷'],
+        'GB' => ['name_key' => 'countries.gb', 'default_name' => 'United Kingdom', 'flag' => '🇬🇧'],
+        'US' => ['name_key' => 'countries.us', 'default_name' => 'United States', 'flag' => '🇺🇸'],
+        'CA' => ['name_key' => 'countries.ca', 'default_name' => 'Canada', 'flag' => '🇨🇦'],
+        'AU' => ['name_key' => 'countries.au', 'default_name' => 'Australia', 'flag' => '🇦🇺'],
+        'DE' => ['name_key' => 'countries.de', 'default_name' => 'Germany', 'flag' => '🇩🇪'],
+        'FR' => ['name_key' => 'countries.fr', 'default_name' => 'France', 'flag' => '🇫🇷'],
+        'KR' => ['name_key' => 'countries.kr', 'default_name' => 'South Korea', 'flag' => '🇰🇷'],
+        'JP' => ['name_key' => 'countries.jp', 'default_name' => 'Japan', 'flag' => '🇯🇵'],
+        'CN' => ['name_key' => 'countries.cn', 'default_name' => 'China', 'flag' => '🇨🇳'],
+        'IN' => ['name_key' => 'countries.in', 'default_name' => 'India', 'flag' => '🇮🇳'],
+        'AE' => ['name_key' => 'countries.ae', 'default_name' => 'United Arab Emirates', 'flag' => '🇦🇪'],
+        'SA' => ['name_key' => 'countries.sa', 'default_name' => 'Saudi Arabia', 'flag' => '🇸🇦'],
+        'RU' => ['name_key' => 'countries.ru', 'default_name' => 'Russian Federation', 'flag' => '🇷🇺'],
+        'GL' => ['name_key' => 'countries.gl', 'default_name' => 'Global Citizen', 'flag' => '🌐'],
+    ];
+
     /**
      * Fluency Level Thresholds.
      */
@@ -108,8 +135,13 @@ class GamificationService
         $totalMinutes = (int) ($appointmentMinutes + $conversationMinutes);
         $totalSessions = (int) ($completedAppointmentsCount + $completedConversationsCount);
 
-        // XP formula: 10 XP per minute + 50 XP per completed session
-        $totalXp = ($totalMinutes * 10) + ($totalSessions * 50);
+        // Balanced talk bonus count (+20 XP each)
+        $balancedBonusCount = ConversationEndorsement::where(function ($q) use ($userId) {
+            $q->where('giver_id', $userId)->orWhere('receiver_id', $userId);
+        })->where('balanced_bonus_awarded', true)->count();
+
+        // XP formula: 10 XP per minute + 50 XP per completed session + 20 XP per balanced dialogue bonus
+        $totalXp = ($totalMinutes * 10) + ($totalSessions * 50) + ($balancedBonusCount * 20);
 
         return self::resolveLevelFromXp($totalXp, $totalMinutes, $totalSessions);
     }
@@ -318,6 +350,188 @@ class GamificationService
             'karma_score' => $karmaScore,
             'karma_tier' => $karmaTier,
             'momentum_weeks' => $momentumWeeks,
+        ];
+    }
+
+    /**
+     * Get Speaking Passport stamps and global connector progress for a user.
+     *
+     * @return array<string, mixed>
+     */
+    public static function getSpeakingPassport(?User $user): array
+    {
+        if (! $user) {
+            return [
+                'unique_partners_count' => 0,
+                'countries_count' => 0,
+                'passport_rank_key' => 'gamification.passport_rank_1',
+                'passport_rank_default' => 'Novice Voyager 🧭',
+                'stamps' => [],
+            ];
+        }
+
+        $userId = $user->id;
+
+        // 1. Gather partner IDs from peer conversations
+        $peerPartnerIds = Conversation::where('pupil_id', $userId)
+            ->whereNotNull('teacher_id')
+            ->pluck('teacher_id')
+            ->concat(
+                Conversation::where('teacher_id', $userId)
+                    ->whereNotNull('pupil_id')
+                    ->pluck('pupil_id')
+            );
+
+        // 2. Gather partner IDs from teacher appointments
+        $teacherPartnerIds = Appointment::where('pupil_id', $userId)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereNotNull('teacher_id')
+            ->pluck('teacher_id');
+
+        $uniquePartnerIds = $peerPartnerIds->concat($teacherPartnerIds)->filter()->unique()->values();
+
+        // 3. Look up partner profiles to aggregate countries
+        $partners = User::with(['pupilProfile', 'teacherProfile'])->whereIn('id', $uniquePartnerIds)->get();
+
+        $countryCounts = [];
+        foreach ($partners as $partner) {
+            $code = $partner->pupilProfile?->country_code
+                ?? $partner->teacherProfile?->country_code
+                ?? 'UZ';
+            $code = strtoupper(trim($code));
+            if (! isset(self::COUNTRIES[$code])) {
+                $code = 'GL';
+            }
+            $countryCounts[$code] = ($countryCounts[$code] ?? 0) + 1;
+        }
+
+        $stamps = [];
+        foreach ($countryCounts as $code => $count) {
+            $info = self::COUNTRIES[$code];
+            $stamps[] = [
+                'country_code' => $code,
+                'name_key' => $info['name_key'],
+                'default_name' => $info['default_name'],
+                'flag' => $info['flag'],
+                'partner_count' => $count,
+            ];
+        }
+
+        // Sort stamps descending by partner count
+        usort($stamps, fn ($a, $b) => $b['partner_count'] <=> $a['partner_count']);
+
+        $uniquePartnersCount = $uniquePartnerIds->count();
+        $countriesCount = count($stamps);
+
+        // Calculate Passport Rank
+        if ($uniquePartnersCount >= 10 || $countriesCount >= 5) {
+            $rankKey = 'gamification.passport_rank_4';
+            $rankDefault = 'Citizen of the World 🌍';
+        } elseif ($uniquePartnersCount >= 5 || $countriesCount >= 3) {
+            $rankKey = 'gamification.passport_rank_3';
+            $rankDefault = 'Continental Connector ✈️';
+        } elseif ($uniquePartnersCount >= 2 || $countriesCount >= 2) {
+            $rankKey = 'gamification.passport_rank_2';
+            $rankDefault = 'Regional Explorer 🗺️';
+        } else {
+            $rankKey = 'gamification.passport_rank_1';
+            $rankDefault = 'Novice Voyager 🧭';
+        }
+
+        return [
+            'unique_partners_count' => $uniquePartnersCount,
+            'countries_count' => $countriesCount,
+            'passport_rank_key' => $rankKey,
+            'passport_rank_default' => $rankDefault,
+            'stamps' => $stamps,
+        ];
+    }
+
+    /**
+     * Get Milestone Badges with unlocked status and criteria progress.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function getMilestoneBadges(?User $user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $fluency = self::calculateFluency($user);
+        $momentum = self::getWeeklyMomentum($user);
+        $passport = self::getSpeakingPassport($user);
+
+        $balancedCount = ConversationEndorsement::where(function ($q) use ($user) {
+            $q->where('giver_id', $user->id)->orWhere('receiver_id', $user->id);
+        })->where('balanced_bonus_awarded', true)->count();
+
+        $totalSessions = (int) ($fluency['total_sessions'] ?? 0);
+        $totalMinutes = (int) ($fluency['total_minutes'] ?? 0);
+        $karmaScore = (int) ($user->pupilProfile?->karma_score ?? 100);
+        $uniquePartners = (int) ($passport['unique_partners_count'] ?? 0);
+
+        return [
+            [
+                'id' => 'first_spark',
+                'name_key' => 'gamification.badge_first_spark',
+                'default_name' => 'First Spark',
+                'desc_key' => 'gamification.badge_first_spark_desc',
+                'default_desc' => 'Completed your first live English speaking session.',
+                'icon' => '🚀',
+                'unlocked' => $totalSessions >= 1,
+                'progress_percent' => min(100, $totalSessions >= 1 ? 100 : 0),
+            ],
+            [
+                'id' => 'habit_builder',
+                'name_key' => 'gamification.badge_habit_builder',
+                'default_name' => 'Habit Builder',
+                'desc_key' => 'gamification.badge_habit_builder_desc',
+                'default_desc' => 'Achieved your weekly speaking goal (3+ sessions).',
+                'icon' => '🎯',
+                'unlocked' => $momentum['target_met'] || $momentum['momentum_weeks'] >= 1,
+                'progress_percent' => (int) ($momentum['progress_percent'] ?? 0),
+            ],
+            [
+                'id' => 'balanced_voice',
+                'name_key' => 'gamification.badge_balanced_voice',
+                'default_name' => 'Balanced Voice',
+                'desc_key' => 'gamification.badge_balanced_voice_desc',
+                'default_desc' => 'Maintained a healthy 40-60% talk-time balance in a live dialogue.',
+                'icon' => '⚖️',
+                'unlocked' => $balancedCount >= 1,
+                'progress_percent' => min(100, $balancedCount >= 1 ? 100 : 0),
+            ],
+            [
+                'id' => 'reliable_anchor',
+                'name_key' => 'gamification.badge_reliable_anchor',
+                'default_name' => 'Reliable Anchor',
+                'desc_key' => 'gamification.badge_reliable_anchor_desc',
+                'default_desc' => 'Maintained an exemplary 95+ Karma reliability rating.',
+                'icon' => '🛡️',
+                'unlocked' => $karmaScore >= 95 && $totalSessions >= 3,
+                'progress_percent' => min(100, (int) round(($karmaScore / 95) * 100)),
+            ],
+            [
+                'id' => 'global_explorer',
+                'name_key' => 'gamification.badge_global_explorer',
+                'default_name' => 'World Explorer',
+                'desc_key' => 'gamification.badge_global_explorer_desc',
+                'default_desc' => 'Connected and conversed with 3 or more unique speaking partners.',
+                'icon' => '🌍',
+                'unlocked' => $uniquePartners >= 3,
+                'progress_percent' => min(100, (int) round(($uniquePartners / 3) * 100)),
+            ],
+            [
+                'id' => 'century_club',
+                'name_key' => 'gamification.badge_century_club',
+                'default_name' => 'Century Club',
+                'desc_key' => 'gamification.badge_century_club_desc',
+                'default_desc' => 'Spoken for 100+ total minutes in live conversation.',
+                'icon' => '💯',
+                'unlocked' => $totalMinutes >= 100,
+                'progress_percent' => min(100, (int) round(($totalMinutes / 100) * 100)),
+            ],
         ];
     }
 

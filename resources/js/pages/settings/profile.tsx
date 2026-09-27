@@ -27,6 +27,43 @@ import {
 import { CertificatePreviewModal } from '@/components/certificates/CertificatePreviewModal';
 import { getDefaultLanguageForExam } from '@/config/certificates';
 
+export const COUNTRY_OPTIONS = [
+    { code: 'UZ', flag: '🇺🇿', nameKey: 'countries.uz', defaultName: 'Uzbekistan' },
+    { code: 'KZ', flag: '🇰🇿', nameKey: 'countries.kz', defaultName: 'Kazakhstan' },
+    { code: 'KG', flag: '🇰🇬', nameKey: 'countries.kg', defaultName: 'Kyrgyzstan' },
+    { code: 'TJ', flag: '🇹🇯', nameKey: 'countries.tj', defaultName: 'Tajikistan' },
+    { code: 'TM', flag: '🇹🇲', nameKey: 'countries.tm', defaultName: 'Turkmenistan' },
+    { code: 'TR', flag: '🇹🇷', nameKey: 'countries.tr', defaultName: 'Turkey' },
+    { code: 'GB', flag: '🇬🇧', nameKey: 'countries.gb', defaultName: 'United Kingdom' },
+    { code: 'US', flag: '🇺🇸', nameKey: 'countries.us', defaultName: 'United States' },
+    { code: 'CA', flag: '🇨🇦', nameKey: 'countries.ca', defaultName: 'Canada' },
+    { code: 'AU', flag: '🇦🇺', nameKey: 'countries.au', defaultName: 'Australia' },
+    { code: 'DE', flag: '🇩🇪', nameKey: 'countries.de', defaultName: 'Germany' },
+    { code: 'FR', flag: '🇫🇷', nameKey: 'countries.fr', defaultName: 'France' },
+    { code: 'KR', flag: '🇰🇷', nameKey: 'countries.kr', defaultName: 'South Korea' },
+    { code: 'JP', flag: '🇯🇵', nameKey: 'countries.jp', defaultName: 'Japan' },
+    { code: 'CN', flag: '🇨🇳', nameKey: 'countries.cn', defaultName: 'China' },
+    { code: 'IN', flag: '🇮🇳', nameKey: 'countries.in', defaultName: 'India' },
+    { code: 'AE', flag: '🇦🇪', nameKey: 'countries.ae', defaultName: 'United Arab Emirates' },
+    { code: 'SA', flag: '🇸🇦', nameKey: 'countries.sa', defaultName: 'Saudi Arabia' },
+    { code: 'RU', flag: '🇷🇺', nameKey: 'countries.ru', defaultName: 'Russian Federation' },
+    { code: 'GL', flag: '🌐', nameKey: 'countries.gl', defaultName: 'Global Citizen' },
+];
+
+export const getSmartDefaultCountry = (existing?: string): string => {
+    if (existing) return existing;
+    if (typeof navigator !== 'undefined' && navigator.language) {
+        const lang = navigator.language.toLowerCase();
+        if (lang.includes('uz')) return 'UZ';
+        if (lang.includes('ru')) return 'RU';
+        if (lang.includes('en-us')) return 'US';
+        if (lang.includes('en-gb')) return 'GB';
+        if (lang.includes('tr')) return 'TR';
+        if (lang.includes('kz')) return 'KZ';
+    }
+    return 'UZ';
+};
+
 type PageProps = {
     auth: Auth & {
         user: {
@@ -41,6 +78,8 @@ type PageProps = {
                 workplace?: string;
                 overall_level?: string;
                 speaking_band?: number;
+                country_code?: string;
+                city?: string;
                 certificates?:
                     | Array<{
                           title: string;
@@ -59,6 +98,8 @@ type PageProps = {
                 age?: number;
                 phone_number?: string;
                 level?: string;
+                country_code?: string;
+                city?: string;
                 certificates?:
                     | Array<{
                           title: string;
@@ -199,6 +240,12 @@ export default function Profile({
     );
     const [pupilBio, setPupilBio] = React.useState(
         auth.user.pupil_profile?.bio ?? '',
+    );
+    const [pupilCountryCode, setPupilCountryCode] = React.useState(
+        getSmartDefaultCountry(auth.user.pupil_profile?.country_code),
+    );
+    const [pupilCity, setPupilCity] = React.useState(
+        auth.user.pupil_profile?.city ?? '',
     );
     const [targetOverallBand, setTargetOverallBand] = React.useState(
         auth.user.pupil_profile?.target_overall_band ?? '',
@@ -404,6 +451,12 @@ export default function Profile({
         auth.user.teacher_profile?.headline ?? '',
     );
     const [bio, setBio] = React.useState(auth.user.teacher_profile?.bio ?? '');
+    const [countryCode, setCountryCode] = React.useState(
+        getSmartDefaultCountry(auth.user.teacher_profile?.country_code),
+    );
+    const [city, setCity] = React.useState(
+        auth.user.teacher_profile?.city ?? '',
+    );
 
     // Video Upload Preview
     const [videoPreview, setVideoPreview] = React.useState(
@@ -821,6 +874,39 @@ export default function Profile({
                                                 <InputError
                                                     message={errors.bio}
                                                 />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                        {t('settings.country_label') || 'Country / Nationality'}
+                                                    </label>
+                                                    <select
+                                                        name="country_code"
+                                                        value={countryCode}
+                                                        onChange={(e) => setCountryCode(e.target.value)}
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                    >
+                                                        {COUNTRY_OPTIONS.map((c) => (
+                                                            <option key={c.code} value={c.code}>
+                                                                {c.flag} {t(c.nameKey) || c.defaultName}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                        {t('settings.city_label') || 'City'}
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="city"
+                                                        value={city}
+                                                        onChange={(e) => setCity(e.target.value)}
+                                                        placeholder={t('settings.city_placeholder') || 'e.g. Tashkent, Samarkand, London'}
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1538,6 +1624,35 @@ export default function Profile({
                                                     message={errors.bio}
                                                     className="mt-1"
                                                 />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                                <div className="field">
+                                                    <label>{t('settings.country_label') || 'Country / Nationality'}</label>
+                                                    <select
+                                                        name="country_code"
+                                                        value={pupilCountryCode}
+                                                        onChange={(e) => setPupilCountryCode(e.target.value)}
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                    >
+                                                        {COUNTRY_OPTIONS.map((c) => (
+                                                            <option key={c.code} value={c.code}>
+                                                                {c.flag} {t(c.nameKey) || c.defaultName}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="field">
+                                                    <label>{t('settings.city_label') || 'City'}</label>
+                                                    <input
+                                                        type="text"
+                                                        name="city"
+                                                        placeholder={t('settings.city_placeholder') || 'e.g. Tashkent, Samarkand, London'}
+                                                        maxLength={100}
+                                                        value={pupilCity}
+                                                        onChange={(e) => setPupilCity(e.target.value)}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

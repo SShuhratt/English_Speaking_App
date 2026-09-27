@@ -25,6 +25,8 @@ class TeacherProfile extends Model
         'intro_video_url',
         'price',
         'is_verified',
+        'country_code',
+        'city',
     ];
 
     protected $casts = [

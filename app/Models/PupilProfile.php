@@ -24,6 +24,8 @@ class PupilProfile extends Model
         'weekly_goals',
         'karma_score',
         'streak_shields',
+        'country_code',
+        'city',
     ];
 
     protected $casts = [

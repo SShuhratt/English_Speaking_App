@@ -84,6 +84,8 @@ class DashboardController extends Controller
                 'momentum' => GamificationService::getWeeklyMomentum($user),
                 'leaderboard' => GamificationService::getWeeklyLeaderboard($user),
                 'daily_spark' => GamificationService::getDailySpark(),
+                'passport' => GamificationService::getSpeakingPassport($user),
+                'badges' => GamificationService::getMilestoneBadges($user),
             ];
 
             return Inertia::render('dashboard', [

@@ -108,16 +108,21 @@ class MatchmakingController extends Controller
         $tags = (array) $request->input('tags', []);
         $durationSeconds = (int) $request->input('duration_seconds', 0);
         $conversationId = $request->input('conversation_id');
+        $talkTimeRatio = $request->has('talk_time_ratio') ? (int) $request->input('talk_time_ratio') : null;
 
         if (! $receiverId || $giverId === $receiverId) {
             return response()->json(['error' => 'Invalid endorsement.'], 400);
         }
+
+        $balancedBonus = ($durationSeconds >= 60 && $talkTimeRatio !== null && $talkTimeRatio >= 40 && $talkTimeRatio <= 60);
 
         ConversationEndorsement::create([
             'conversation_id' => $conversationId,
             'giver_id' => $giverId,
             'receiver_id' => $receiverId,
             'tags' => $tags,
+            'talk_time_ratio' => $talkTimeRatio,
+            'balanced_bonus_awarded' => $balancedBonus,
         ]);
 
         // Karma logic: if call was healthy (>= 60s), award +2 Karma up to 100 max
@@ -135,7 +140,10 @@ class MatchmakingController extends Controller
             }
         }
 
-        return response()->json(['status' => 'endorsed']);
+        return response()->json([
+            'status' => 'endorsed',
+            'balanced_bonus' => $balancedBonus,
+        ]);
     }
 
     /**
