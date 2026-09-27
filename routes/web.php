@@ -109,10 +109,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return Inertia\Inertia::render('speaking');
         })->name('speaking');
 
+        Route::get('/matchmaking/topics', [MatchmakingController::class, 'topics'])->name('matchmaking.topics');
         Route::post('/matchmaking/join', [MatchmakingController::class, 'join'])->name('matchmaking.join');
         Route::post('/matchmaking/leave', [MatchmakingController::class, 'leave'])->name('matchmaking.leave');
         Route::get('/matchmaking/active-session', [MatchmakingController::class, 'activeSession'])->name('matchmaking.active-session');
         Route::post('/matchmaking/heartbeat', [MatchmakingController::class, 'heartbeat'])->name('matchmaking.heartbeat');
+        Route::post('/matchmaking/endorse', [MatchmakingController::class, 'endorse'])->name('matchmaking.endorse');
         Route::post('/matchmaking/request', [MatchmakingController::class, 'sendRequest'])->name('matchmaking.request');
         Route::post('/matchmaking/accept', [MatchmakingController::class, 'acceptRequest'])->name('matchmaking.accept');
         Route::post('/matchmaking/decline', [MatchmakingController::class, 'declineRequest'])->name('matchmaking.decline');

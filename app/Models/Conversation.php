@@ -14,6 +14,7 @@ class Conversation extends Model
         'pupil_id',
         'teacher_id',
         'recording_url',
+        'topic',
         'started_at',
         'ended_at',
         'appointment_id',

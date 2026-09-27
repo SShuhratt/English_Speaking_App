@@ -35,6 +35,7 @@ import StreakFlameBadge from '@/components/gamification/StreakFlameBadge';
 import WeeklyLeaderboardCard from '@/components/gamification/WeeklyLeaderboardCard';
 import DailySpeakingSparkCard from '@/components/gamification/DailySpeakingSparkCard';
 import SessionCelebrationModal from '@/components/gamification/SessionCelebrationModal';
+import WeeklyMomentumRingCard from '@/components/gamification/WeeklyMomentumRingCard';
 
 function PupilMeetingButton({
     apt,
@@ -447,13 +448,18 @@ function PupilDashboard({
             {/* Gamification & Upcoming Sessions Sections (Upcoming sessions placed above when appointments > 0) */}
             {(() => {
                 const gamificationSection = gamification ? (
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        {gamification.daily_spark && (
-                            <DailySpeakingSparkCard spark={gamification.daily_spark} />
+                    <div className="space-y-6">
+                        {gamification.momentum && (
+                            <WeeklyMomentumRingCard momentum={gamification.momentum} />
                         )}
-                        {gamification.leaderboard && (
-                            <WeeklyLeaderboardCard leaderboard={gamification.leaderboard} />
-                        )}
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                            {gamification.daily_spark && (
+                                <DailySpeakingSparkCard spark={gamification.daily_spark} />
+                            )}
+                            {gamification.leaderboard && (
+                                <WeeklyLeaderboardCard leaderboard={gamification.leaderboard} />
+                            )}
+                        </div>
                     </div>
                 ) : null;
 

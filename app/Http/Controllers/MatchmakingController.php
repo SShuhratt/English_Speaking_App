@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConversationEndorsement;
+use App\Models\PupilProfile;
 use App\Models\User;
 use App\Services\MatchmakingService;
+use App\Services\TopicService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
@@ -18,12 +21,21 @@ class MatchmakingController extends Controller
     ) {}
 
     /**
+     * Get available matchmaking topics.
+     */
+    public function topics(): JsonResponse
+    {
+        return response()->json(TopicService::getAll());
+    }
+
+    /**
      * Join the matchmaking queue.
      */
     public function join(Request $request): JsonResponse
     {
         $userId = (string) auth()->id();
-        $result = $this->matchmakingService->enterQueue($userId);
+        $topic = (string) $request->input('topic', 'free_talk');
+        $result = $this->matchmakingService->enterQueue($userId, $topic);
 
         return response()->json($result);
     }
@@ -82,7 +94,48 @@ class MatchmakingController extends Controller
             'room_id' => $session['room_id'],
             'partner_id' => $partnerId,
             'partner_name' => $partner->full_name ?: 'Speaking Partner',
+            'topic' => $session['topic'] ?? 'free_talk',
         ]);
+    }
+
+    /**
+     * Endorse speaking partner and submit karma tags.
+     */
+    public function endorse(Request $request): JsonResponse
+    {
+        $giverId = (string) auth()->id();
+        $receiverId = (string) $request->input('receiver_id');
+        $tags = (array) $request->input('tags', []);
+        $durationSeconds = (int) $request->input('duration_seconds', 0);
+        $conversationId = $request->input('conversation_id');
+
+        if (! $receiverId || $giverId === $receiverId) {
+            return response()->json(['error' => 'Invalid endorsement.'], 400);
+        }
+
+        ConversationEndorsement::create([
+            'conversation_id' => $conversationId,
+            'giver_id' => $giverId,
+            'receiver_id' => $receiverId,
+            'tags' => $tags,
+        ]);
+
+        // Karma logic: if call was healthy (>= 60s), award +2 Karma up to 100 max
+        if ($durationSeconds >= 60) {
+            $receiverProfile = PupilProfile::where('user_id', $receiverId)->first();
+            if ($receiverProfile) {
+                $newScore = min(100, ($receiverProfile->karma_score ?? 100) + 2);
+                $receiverProfile->update(['karma_score' => $newScore]);
+            }
+
+            $giverProfile = PupilProfile::where('user_id', $giverId)->first();
+            if ($giverProfile) {
+                $newScore = min(100, ($giverProfile->karma_score ?? 100) + 2);
+                $giverProfile->update(['karma_score' => $newScore]);
+            }
+        }
+
+        return response()->json(['status' => 'endorsed']);
     }
 
     /**

@@ -19,7 +19,8 @@ class UserMatched implements ShouldBroadcastNow
     public function __construct(
         public string $userId,
         public string $partnerId,
-        public string $roomId
+        public string $roomId,
+        public ?string $topic = 'free_talk'
     ) {}
 
     /**

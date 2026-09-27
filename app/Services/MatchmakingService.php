@@ -14,23 +14,42 @@ class MatchmakingService
     /**
      * Enter the matchmaking queue.
      */
-    public function enterQueue(string $userId): array
+    public function enterQueue(string $userId, ?string $topicKey = null): array
     {
-        // Prevent duplicate instances of this user in the queue
+        // Prevent duplicate instances of this user in both queues
         Redis::lrem(self::QUEUE_KEY, 0, $userId);
+        Redis::lrem(self::QUEUE_KEY.'_low', 0, $userId);
 
-        // Retrieve the first partner in queue
-        $partnerId = Redis::lpop(self::QUEUE_KEY);
+        if ($topicKey) {
+            Redis::setex("speaking_queue_topic:{$userId}", 300, $topicKey);
+        } else {
+            Redis::del("speaking_queue_topic:{$userId}");
+        }
+
+        // Retrieve partner: first from standard/high-priority queue, then from low-priority queue
+        $partnerId = Redis::lpop(self::QUEUE_KEY) ?: Redis::lpop(self::QUEUE_KEY.'_low');
 
         if ($partnerId) {
             $partnerId = (string) $partnerId;
 
             // Prevent self-matching
             if ($partnerId === $userId) {
-                Redis::rpush(self::QUEUE_KEY, $userId);
+                $karma = (int) (User::find($userId)?->pupilProfile?->karma_score ?? 100);
+                if ($karma < 70) {
+                    Redis::rpush(self::QUEUE_KEY.'_low', $userId);
+                } else {
+                    Redis::rpush(self::QUEUE_KEY, $userId);
+                }
 
                 return ['status' => 'waiting'];
             }
+
+            // Determine active conversation topic
+            $partnerTopic = Redis::get("speaking_queue_topic:{$partnerId}");
+            Redis::del("speaking_queue_topic:{$partnerId}");
+            Redis::del("speaking_queue_topic:{$userId}");
+
+            $activeTopic = ($topicKey && $topicKey !== 'free_talk') ? $topicKey : ($partnerTopic ?: 'free_talk');
 
             // Create a unique matching room identifier (sorted alphabetically)
             $ids = [$userId, $partnerId];
@@ -38,8 +57,8 @@ class MatchmakingService
             $roomId = "room_{$ids[0]}_{$ids[1]}";
 
             // Save active session for both matched users in Redis
-            $session1 = json_encode(['room_id' => $roomId, 'partner_id' => $partnerId]);
-            $session2 = json_encode(['room_id' => $roomId, 'partner_id' => $userId]);
+            $session1 = json_encode(['room_id' => $roomId, 'partner_id' => $partnerId, 'topic' => $activeTopic]);
+            $session2 = json_encode(['room_id' => $roomId, 'partner_id' => $userId, 'topic' => $activeTopic]);
 
             Redis::setex("active_speaking_session:{$userId}", 3600, $session1);
             Redis::setex("active_speaking_session:{$partnerId}", 3600, $session2);
@@ -53,6 +72,7 @@ class MatchmakingService
                 Conversation::create([
                     'pupil_id' => $userId,
                     'teacher_id' => $partnerId,
+                    'topic' => $activeTopic,
                     'started_at' => now(),
                 ]);
             } catch (\Exception $e) {
@@ -61,8 +81,8 @@ class MatchmakingService
 
             // Broadcast matching status immediately
             try {
-                broadcast(new UserMatched($userId, $partnerId, $roomId));
-                broadcast(new UserMatched($partnerId, $userId, $roomId));
+                broadcast(new UserMatched($userId, $partnerId, $roomId, $activeTopic));
+                broadcast(new UserMatched($partnerId, $userId, $roomId, $activeTopic));
             } catch (\Exception $e) {
                 logger()->error("Matchmaking broadcast failed for users {$userId} & {$partnerId}: ".$e->getMessage());
             }
@@ -71,11 +91,17 @@ class MatchmakingService
                 'status' => 'matched',
                 'room_id' => $roomId,
                 'partner_id' => $partnerId,
+                'topic' => $activeTopic,
             ];
         }
 
-        // Add the current user to the queue
-        Redis::rpush(self::QUEUE_KEY, $userId);
+        // Add the current user to queue based on karma score (lower priority if < 70)
+        $karma = (int) (User::find($userId)?->pupilProfile?->karma_score ?? 100);
+        if ($karma < 70) {
+            Redis::rpush(self::QUEUE_KEY.'_low', $userId);
+        } else {
+            Redis::rpush(self::QUEUE_KEY, $userId);
+        }
 
         return ['status' => 'waiting'];
     }
@@ -86,6 +112,8 @@ class MatchmakingService
     public function leaveQueue(string $userId): void
     {
         Redis::lrem(self::QUEUE_KEY, 0, $userId);
+        Redis::lrem(self::QUEUE_KEY.'_low', 0, $userId);
+        Redis::del("speaking_queue_topic:{$userId}");
 
         $sessionJson = Redis::get("active_speaking_session:{$userId}");
         if ($sessionJson) {

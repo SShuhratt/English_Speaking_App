@@ -81,6 +81,7 @@ class DashboardController extends Controller
             $gamification = [
                 'fluency' => GamificationService::calculateFluency($user),
                 'streak' => GamificationService::getStreakInfo($user),
+                'momentum' => GamificationService::getWeeklyMomentum($user),
                 'leaderboard' => GamificationService::getWeeklyLeaderboard($user),
                 'daily_spark' => GamificationService::getDailySpark(),
             ];

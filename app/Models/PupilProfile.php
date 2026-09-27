@@ -22,12 +22,17 @@ class PupilProfile extends Model
         'labels',
         'weekly_goal',
         'weekly_goals',
+        'karma_score',
+        'streak_shields',
     ];
 
     protected $casts = [
         'certificates' => 'array',
         'labels' => 'array',
         'weekly_goals' => 'array',
+        'weekly_goal' => 'integer',
+        'karma_score' => 'integer',
+        'streak_shields' => 'integer',
     ];
 
     public function user()

@@ -216,6 +216,112 @@ class GamificationService
     }
 
     /**
+     * Calculate Weekly Speaking Momentum (sessions vs. weekly goal, streak shields, and karma).
+     *
+     * @return array<string, mixed>
+     */
+    public static function getWeeklyMomentum(?User $user): array
+    {
+        if (! $user) {
+            return [
+                'weekly_target' => 3,
+                'sessions_this_week' => 0,
+                'progress_percent' => 0,
+                'target_met' => false,
+                'streak_shields' => 1,
+                'karma_score' => 100,
+                'karma_tier' => 'trusted',
+                'momentum_weeks' => 0,
+            ];
+        }
+
+        $userId = $user->id;
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+
+        // 1. Appointments completed this week
+        $appointmentSessions = Appointment::where('pupil_id', $userId)
+            ->whereBetween('start_at', [$startOfWeek, $endOfWeek])
+            ->where(function ($q) {
+                $q->whereIn('status', ['confirmed', 'completed'])
+                    ->orWhere('meeting_started', true);
+            })
+            ->count();
+
+        // 2. Peer conversations this week
+        $conversationSessions = Conversation::where(function ($q) use ($userId) {
+            $q->where('pupil_id', $userId)->orWhere('teacher_id', $userId);
+        })
+            ->whereBetween('started_at', [$startOfWeek, $endOfWeek])
+            ->count();
+
+        $sessionsThisWeek = $appointmentSessions + $conversationSessions;
+        $profile = $user->pupilProfile;
+        $weeklyTarget = (int) ($profile?->weekly_goal ?? 3);
+        if ($weeklyTarget <= 0) {
+            $weeklyTarget = 3;
+        }
+
+        $targetMet = $sessionsThisWeek >= $weeklyTarget;
+        $progressPercent = min(100, (int) round(($sessionsThisWeek / $weeklyTarget) * 100));
+
+        $karmaScore = (int) ($profile?->karma_score ?? 100);
+        $streakShields = (int) ($profile?->streak_shields ?? 1);
+
+        if ($karmaScore >= 90) {
+            $karmaTier = 'trusted';
+        } elseif ($karmaScore >= 70) {
+            $karmaTier = 'active';
+        } else {
+            $karmaTier = 'developing';
+        }
+
+        // Calculate consecutive active momentum weeks
+        $momentumWeeks = 0;
+        $checkDate = Carbon::now()->startOfWeek()->subWeek();
+        for ($i = 0; $i < 12; $i++) {
+            $wStart = $checkDate->copy()->startOfWeek();
+            $wEnd = $checkDate->copy()->endOfWeek();
+
+            $wApts = Appointment::where('pupil_id', $userId)
+                ->whereBetween('start_at', [$wStart, $wEnd])
+                ->where(function ($q) {
+                    $q->whereIn('status', ['confirmed', 'completed'])
+                        ->orWhere('meeting_started', true);
+                })
+                ->count();
+
+            $wConvs = Conversation::where(function ($q) use ($userId) {
+                $q->where('pupil_id', $userId)->orWhere('teacher_id', $userId);
+            })
+                ->whereBetween('started_at', [$wStart, $wEnd])
+                ->count();
+
+            if (($wApts + $wConvs) >= $weeklyTarget) {
+                $momentumWeeks++;
+                $checkDate->subWeek();
+            } else {
+                break;
+            }
+        }
+
+        if ($targetMet) {
+            $momentumWeeks++;
+        }
+
+        return [
+            'weekly_target' => $weeklyTarget,
+            'sessions_this_week' => $sessionsThisWeek,
+            'progress_percent' => $progressPercent,
+            'target_met' => $targetMet,
+            'streak_shields' => $streakShields,
+            'karma_score' => $karmaScore,
+            'karma_tier' => $karmaTier,
+            'momentum_weeks' => $momentumWeeks,
+        ];
+    }
+
+    /**
      * Get Weekly Top Speakers Leaderboard.
      *
      * @return array<string, mixed>
