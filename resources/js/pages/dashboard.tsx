@@ -20,6 +20,7 @@ import {
     X,
     Send,
     Loader2,
+    Award,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import type { Auth } from '@/types';

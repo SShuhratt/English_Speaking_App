@@ -33,6 +33,8 @@ interface TopicItem {
     default_prompt: string;
     bullets_keys: string[];
     default_bullets: string[];
+    is_challenge?: boolean;
+    challenge_bonus_xp?: number;
 }
 
 const DEFAULT_TOPICS: TopicItem[] = [
