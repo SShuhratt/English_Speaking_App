@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\AppointmentAssessment;
+use App\Services\GamificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -40,8 +42,43 @@ class PupilProgressController extends Controller
             'weekly_goals' => $weeklyGoals,
         ];
 
+        $gamification = [
+            'fluency' => GamificationService::calculateFluency($user),
+            'streak' => GamificationService::getStreakInfo($user),
+            'momentum' => GamificationService::getWeeklyMomentum($user),
+            'passport' => GamificationService::getSpeakingPassport($user),
+            'badges' => GamificationService::getMilestoneBadges($user),
+            'xp_store' => GamificationService::getXpStoreCatalog($user),
+            'credential' => GamificationService::getVerifiedFluencyCredential($user),
+        ];
+
+        $assessments = AppointmentAssessment::where('pupil_id', $user->id)
+            ->with(['teacher'])
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($assessment) {
+                return [
+                    'id' => $assessment->id,
+                    'overall_score' => (float) $assessment->overall_score,
+                    'fluency_score' => (float) $assessment->fluency_score,
+                    'lexical_score' => (float) $assessment->lexical_score,
+                    'grammar_score' => (float) $assessment->grammar_score,
+                    'pronunciation_score' => (float) $assessment->pronunciation_score,
+                    'teacher_notes' => $assessment->teacher_notes,
+                    'assessed_at' => $assessment->created_at->format('M d, Y'),
+                    'teacher' => [
+                        'id' => $assessment->teacher?->id,
+                        'name' => $assessment->teacher?->name ?: 'Verified Instructor',
+                        'avatar' => $assessment->teacher?->avatar,
+                    ],
+                ];
+            });
+
         return Inertia::render('pupil/progress', [
             'progress' => $progress,
+            'gamification' => $gamification,
+            'assessments' => $assessments,
         ]);
     }
 
