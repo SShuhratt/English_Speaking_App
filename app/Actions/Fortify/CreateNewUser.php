@@ -4,8 +4,10 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Models\ReferralRecord;
 use App\Models\User;
 use App\Notifications\WelcomeNotification;
+use App\Services\GamificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -110,7 +112,10 @@ class CreateNewUser implements CreatesNewUsers
 
         Validator::make($input, $rules, $messages)->validate();
 
-        $user = DB::transaction(function () use ($input, $role) {
+        $refCode = $input['ref'] ?? request()->query('ref') ?? request()->input('ref') ?? session('referral_code');
+        $referrer = ! empty($refCode) ? User::where('referral_code', strtoupper(trim((string) $refCode)))->first() : null;
+
+        $user = DB::transaction(function () use ($input, $role, $referrer) {
             $user = User::create([
                 'name' => $input['name'],
                 'full_name' => $input['name'],
@@ -118,7 +123,23 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => Hash::make($input['password']),
                 'role' => $role,
                 'gender' => $input['gender'] ?? 'prefer_not_to_say',
+                'referred_by_id' => $referrer?->id,
             ]);
+
+            $user->referral_code = GamificationService::generateReferralCode($user);
+            $user->save();
+
+            if ($referrer && $referrer->id !== $user->id) {
+                ReferralRecord::firstOrCreate(
+                    ['referred_user_id' => $user->id],
+                    [
+                        'referrer_id' => $referrer->id,
+                        'reward_granted' => false,
+                    ]
+                );
+            }
+
+            session()->forget('referral_code');
 
             if (session()->has('google_register')) {
                 $googleData = session()->get('google_register');

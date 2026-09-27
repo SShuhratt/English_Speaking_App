@@ -24,6 +24,7 @@ class PupilProfile extends Model
         'weekly_goals',
         'karma_score',
         'streak_shields',
+        'last_acknowledged_level',
         'country_code',
         'city',
     ];
@@ -35,6 +36,7 @@ class PupilProfile extends Model
         'weekly_goal' => 'integer',
         'karma_score' => 'integer',
         'streak_shields' => 'integer',
+        'last_acknowledged_level' => 'integer',
     ];
 
     public function user()

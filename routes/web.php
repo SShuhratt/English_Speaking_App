@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\GamificationController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MatchmakingController;
 use App\Http\Controllers\ProfileViewController;
@@ -118,6 +119,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/matchmaking/request', [MatchmakingController::class, 'sendRequest'])->name('matchmaking.request');
         Route::post('/matchmaking/accept', [MatchmakingController::class, 'acceptRequest'])->name('matchmaking.accept');
         Route::post('/matchmaking/decline', [MatchmakingController::class, 'declineRequest'])->name('matchmaking.decline');
+
+        Route::post('/gamification/acknowledge-level', [GamificationController::class, 'acknowledgeLevel'])->name('gamification.acknowledge-level');
+        Route::get('/gamification/referrals', [GamificationController::class, 'referralStats'])->name('gamification.referrals');
     });
 });
 

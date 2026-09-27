@@ -86,6 +86,8 @@ class DashboardController extends Controller
                 'daily_spark' => GamificationService::getDailySpark(),
                 'passport' => GamificationService::getSpeakingPassport($user),
                 'badges' => GamificationService::getMilestoneBadges($user),
+                'referrals' => GamificationService::getReferralStats($user),
+                'new_level_up' => GamificationService::getNewLevelUp($user),
             ];
 
             return Inertia::render('dashboard', [

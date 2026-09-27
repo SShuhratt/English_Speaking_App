@@ -38,6 +38,8 @@ import SessionCelebrationModal from '@/components/gamification/SessionCelebratio
 import WeeklyMomentumRingCard from '@/components/gamification/WeeklyMomentumRingCard';
 import SpeakingPassportCard from '@/components/gamification/SpeakingPassportCard';
 import MilestoneBadgesCard from '@/components/gamification/MilestoneBadgesCard';
+import ReferralCard from '@/components/gamification/ReferralCard';
+import LevelUpCelebrationModal from '@/components/gamification/LevelUpCelebrationModal';
 
 function PupilMeetingButton({
     apt,
@@ -140,6 +142,18 @@ function PupilDashboard({
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
     const [copiedCard, setCopiedCard] = useState(false);
     const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
+    const [activeLevelUp, setActiveLevelUp] = useState<any | null>(
+        gamification?.new_level_up || null
+    );
+
+    const handleAcknowledgeLevel = async (level: number) => {
+        try {
+            await axios.post('/gamification/acknowledge-level', { level });
+            setActiveLevelUp(null);
+        } catch {
+            setActiveLevelUp(null);
+        }
+    };
 
     const handleConnectTelegram = async () => {
         setIsConnectingTelegram(true);
@@ -467,6 +481,9 @@ function PupilDashboard({
                         )}
                         {gamification.badges && (
                             <MilestoneBadgesCard badges={gamification.badges} />
+                        )}
+                        {gamification.referrals && (
+                            <ReferralCard referral={gamification.referrals} />
                         )}
                     </div>
                 ) : null;
@@ -807,6 +824,12 @@ function PupilDashboard({
                     </div>
                 </div>
             )}
+
+            {/* Level-Up Celebration Ceremony Modal */}
+            <LevelUpCelebrationModal
+                levelUp={activeLevelUp}
+                onAcknowledge={handleAcknowledgeLevel}
+            />
         </div>
     );
 }

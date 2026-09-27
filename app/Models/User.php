@@ -40,6 +40,8 @@ class User extends Authenticatable implements PasskeyUser
         'has_password',
         'telegram_chat_id',
         'telegram_username',
+        'referral_code',
+        'referred_by_id',
 
         // Google OAuth
         'google_connected',
@@ -197,5 +199,20 @@ class User extends Authenticatable implements PasskeyUser
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function referredBy()
+    {
+        return $this->belongsTo(User::class, 'referred_by_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referred_by_id');
+    }
+
+    public function referralRecords()
+    {
+        return $this->hasMany(ReferralRecord::class, 'referrer_id');
     }
 }

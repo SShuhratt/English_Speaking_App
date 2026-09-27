@@ -72,6 +72,8 @@ const DEFAULT_TOPICS: TopicItem[] = [
         category_key: 'topics.cat_ielts_part3',
         title_key: 'topics.tech_title',
         default_title: 'IELTS Part 3: AI & The Future of Work',
+        is_challenge: true,
+        challenge_bonus_xp: 25,
         prompt_key: 'topics.tech_prompt',
         default_prompt: 'How will artificial intelligence and automation change careers and human communication over the next decade?',
         bullets_keys: ['topics.tech_b1', 'topics.tech_b2', 'topics.tech_b3'],
@@ -903,8 +905,13 @@ export default function Speaking() {
                 tags: selectedTags,
                 duration_seconds: lastCallSummary.duration,
                 talk_time_ratio: lastCallSummary.talkTimeRatio,
+                topic: conversationTopic || selectedTopicKey,
             });
-            if (response.data?.balanced_bonus) {
+            if (response.data?.challenge_bonus) {
+                toast.success(
+                    '🔥 Weekly Challenge completed! +25 bonus XP awarded!',
+                );
+            } else if (response.data?.balanced_bonus) {
                 toast.success(
                     t('speaking.balanced_bonus_earned') ||
                         'Balanced dialogue achieved! +20 XP bonus awarded!',
@@ -1452,6 +1459,11 @@ export default function Speaking() {
                                                                 <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[8px] font-bold text-emerald-600 dark:text-emerald-400">
                                                                     {t(selectedTopicObj.category_key) || selectedTopicObj.category}
                                                                 </span>
+                                                                {selectedTopicObj.is_challenge && (
+                                                                    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-white shadow-xs">
+                                                                        🔥 {t('topics.challenge_badge', 'Weekly Challenge (+25 XP)')}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <p className="mt-0.5 truncate text-xs font-extrabold text-[#1E2A5A] dark:text-white">
                                                                 {t(selectedTopicObj.title_key) || selectedTopicObj.default_title}
@@ -1697,9 +1709,16 @@ export default function Speaking() {
                                             }`}
                                         >
                                             <div className="flex items-center justify-between gap-2">
-                                                <span className="rounded-full bg-[#1E2A5A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#1E2A5A] dark:bg-[#F7DE8B]/20 dark:text-[#F7DE8B]">
-                                                    {t(item.category_key) || item.category}
-                                                </span>
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className="rounded-full bg-[#1E2A5A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#1E2A5A] dark:bg-[#F7DE8B]/20 dark:text-[#F7DE8B]">
+                                                        {t(item.category_key) || item.category}
+                                                    </span>
+                                                    {item.is_challenge && (
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-xs">
+                                                            🔥 {t('topics.challenge_badge', 'Weekly Challenge (+25 XP)')}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 {isSelected && (
                                                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1E2A5A] text-white dark:bg-[#F7DE8B] dark:text-[#1E2A5A]">
                                                         <Check className="h-3 w-3 stroke-[3]" />

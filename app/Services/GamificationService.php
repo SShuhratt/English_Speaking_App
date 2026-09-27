@@ -5,9 +5,12 @@ namespace App\Services;
 use App\Models\Appointment;
 use App\Models\Conversation;
 use App\Models\ConversationEndorsement;
+use App\Models\PupilProfile;
+use App\Models\ReferralRecord;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class GamificationService
 {
@@ -140,8 +143,22 @@ class GamificationService
             $q->where('giver_id', $userId)->orWhere('receiver_id', $userId);
         })->where('balanced_bonus_awarded', true)->count();
 
-        // XP formula: 10 XP per minute + 50 XP per completed session + 20 XP per balanced dialogue bonus
-        $totalXp = ($totalMinutes * 10) + ($totalSessions * 50) + ($balancedBonusCount * 20);
+        // Challenge session bonus count (+25 XP each)
+        $challengeBonusCount = ConversationEndorsement::where(function ($q) use ($userId) {
+            $q->where('giver_id', $userId)->orWhere('receiver_id', $userId);
+        })->where('challenge_bonus_awarded', true)->count();
+
+        // Referral reward bonus count (+100 XP each)
+        $referralBonusCount = ReferralRecord::where(function ($q) use ($userId) {
+            $q->where('referrer_id', $userId)->orWhere('referred_user_id', $userId);
+        })->where('reward_granted', true)->count();
+
+        // XP formula: 10 XP per minute + 50 XP per completed session + 20 XP per balanced dialogue bonus + 25 XP per challenge + 100 XP per referral
+        $totalXp = ($totalMinutes * 10)
+            + ($totalSessions * 50)
+            + ($balancedBonusCount * 20)
+            + ($challengeBonusCount * 25)
+            + ($referralBonusCount * 100);
 
         return self::resolveLevelFromXp($totalXp, $totalMinutes, $totalSessions);
     }
@@ -730,6 +747,161 @@ class GamificationService
         $selectedPrompt = $prompts[$dayOfYear % count($prompts)];
 
         return $selectedPrompt;
+    }
+
+    /**
+     * Check if user reached a new fluency level that hasn't been acknowledged yet.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function getNewLevelUp(?User $user): ?array
+    {
+        if (! $user || ! $user->pupilProfile) {
+            return null;
+        }
+
+        $fluency = self::calculateFluency($user);
+        $currentLevel = (int) ($fluency['level'] ?? 1);
+        $lastAckLevel = (int) ($user->pupilProfile->last_acknowledged_level ?? 1);
+
+        if ($currentLevel > $lastAckLevel) {
+            return [
+                'previous_level' => $lastAckLevel,
+                'new_level' => $currentLevel,
+                'title_key' => $fluency['title_key'],
+                'default_title' => $fluency['default_title'],
+                'badge' => $fluency['badge'],
+                'total_xp' => $fluency['total_xp'],
+                'celebration_active' => true,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Acknowledge level-up ceremony to avoid repeated popups.
+     */
+    public static function acknowledgeLevelUp(User $user, int $level): bool
+    {
+        if (! $user->pupilProfile) {
+            return false;
+        }
+
+        $currentAcknowledged = (int) ($user->pupilProfile->last_acknowledged_level ?? 1);
+        if ($level > $currentAcknowledged) {
+            $user->pupilProfile->update(['last_acknowledged_level' => $level]);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Generate a unique alphanumeric referral code for a user (e.g. AZIZ78 or CONVO1234).
+     */
+    public static function generateReferralCode(User $user): string
+    {
+        $cleanName = strtoupper(preg_replace('/[^A-Za-z]/', '', $user->name ?: 'CONVO'));
+        if (strlen($cleanName) < 3) {
+            $cleanName = 'CONVO';
+        }
+        $prefix = substr($cleanName, 0, 4);
+
+        do {
+            $suffix = (string) rand(1000, 9999);
+            $candidate = $prefix.$suffix;
+        } while (User::where('referral_code', $candidate)->exists());
+
+        return $candidate;
+    }
+
+    /**
+     * Ensure a user has an alphanumeric referral code.
+     */
+    public static function ensureReferralCode(User $user): string
+    {
+        if (! empty($user->referral_code)) {
+            return $user->referral_code;
+        }
+
+        $code = self::generateReferralCode($user);
+        $user->update(['referral_code' => $code]);
+
+        return $code;
+    }
+
+    /**
+     * Get Referral stats for a user (code, share link, invited count, completed count, rewards).
+     *
+     * @return array<string, mixed>
+     */
+    public static function getReferralStats(?User $user): array
+    {
+        if (! $user) {
+            return [
+                'referral_code' => '',
+                'share_url' => '',
+                'friends_invited' => 0,
+                'friends_completed' => 0,
+                'streak_shields_earned' => 0,
+                'xp_earned' => 0,
+            ];
+        }
+
+        $code = self::ensureReferralCode($user);
+        $invitedCount = ReferralRecord::where('referrer_id', $user->id)->count();
+        $completedCount = ReferralRecord::where('referrer_id', $user->id)
+            ->where('reward_granted', true)
+            ->count();
+
+        return [
+            'referral_code' => $code,
+            'share_url' => url('/register?ref='.$code),
+            'friends_invited' => $invitedCount,
+            'friends_completed' => $completedCount,
+            'streak_shields_earned' => $completedCount,
+            'xp_earned' => $completedCount * 100,
+        ];
+    }
+
+    /**
+     * Check if user was referred and award +100 XP & +1 Streak Shield to both referrer & referred user.
+     * Guaranteed atomic via DB transaction & lock.
+     */
+    public static function checkAndAwardReferralReward(string $userId, ?string $conversationId = null): bool
+    {
+        return DB::transaction(function () use ($userId, $conversationId) {
+            $record = ReferralRecord::where('referred_user_id', $userId)
+                ->where('reward_granted', false)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $record) {
+                return false;
+            }
+
+            $record->update([
+                'reward_granted' => true,
+                'reward_granted_at' => now(),
+                'first_conversation_id' => $conversationId,
+            ]);
+
+            // Award +1 Streak Shield to Referrer Pupil Profile (if exists)
+            $referrerProfile = PupilProfile::where('user_id', $record->referrer_id)->lockForUpdate()->first();
+            if ($referrerProfile) {
+                $referrerProfile->increment('streak_shields');
+            }
+
+            // Award +1 Streak Shield to Referred User Pupil Profile (if exists)
+            $referredProfile = PupilProfile::where('user_id', $record->referred_user_id)->lockForUpdate()->first();
+            if ($referredProfile) {
+                $referredProfile->increment('streak_shields');
+            }
+
+            return true;
+        });
     }
 
     /**

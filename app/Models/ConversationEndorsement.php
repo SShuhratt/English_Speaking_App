@@ -17,12 +17,16 @@ class ConversationEndorsement extends Model
         'tags',
         'talk_time_ratio',
         'balanced_bonus_awarded',
+        'is_challenge_session',
+        'challenge_bonus_awarded',
     ];
 
     protected $casts = [
         'tags' => 'array',
         'talk_time_ratio' => 'integer',
         'balanced_bonus_awarded' => 'boolean',
+        'is_challenge_session' => 'boolean',
+        'challenge_bonus_awarded' => 'boolean',
     ];
 
     public function giver()

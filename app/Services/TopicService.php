@@ -52,6 +52,10 @@ class TopicService
             'category_key' => 'topics.cat_ielts_part3',
             'title_key' => 'topics.tech_title',
             'default_title' => 'IELTS Part 3: AI & The Future of Work',
+            'is_challenge' => true,
+            'challenge_bonus_xp' => 25,
+            'challenge_badge_key' => 'topics.challenge_badge',
+            'challenge_badge_default' => 'Weekly Challenge (+25 XP)',
             'prompt_key' => 'topics.tech_prompt',
             'default_prompt' => 'How will artificial intelligence and automation change careers and human communication over the next decade?',
             'bullets_keys' => [
@@ -127,5 +131,33 @@ class TopicService
         }
 
         return self::TOPICS['free_talk'];
+    }
+
+    /**
+     * Check if a given topic key is a challenge topic.
+     */
+    public static function isChallenge(?string $key): bool
+    {
+        if (! $key) {
+            return false;
+        }
+
+        $topic = self::find($key);
+
+        return ! empty($topic['is_challenge']);
+    }
+
+    /**
+     * Get challenge bonus XP for a topic.
+     */
+    public static function getChallengeBonus(?string $key): int
+    {
+        if (! self::isChallenge($key)) {
+            return 0;
+        }
+
+        $topic = self::find($key);
+
+        return (int) ($topic['challenge_bonus_xp'] ?? 25);
     }
 }

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Conversation;
 use App\Models\ConversationEndorsement;
 use App\Models\PupilProfile;
 use App\Models\User;
+use App\Services\GamificationService;
 use App\Services\MatchmakingService;
 use App\Services\TopicService;
 use Illuminate\Http\JsonResponse;
@@ -114,7 +116,15 @@ class MatchmakingController extends Controller
             return response()->json(['error' => 'Invalid endorsement.'], 400);
         }
 
+        $topic = $request->input('topic');
+        if (! $topic && $conversationId) {
+            $conv = Conversation::find($conversationId);
+            $topic = $conv?->topic;
+        }
+
+        $isChallengeTopic = TopicService::isChallenge($topic);
         $balancedBonus = ($durationSeconds >= 60 && $talkTimeRatio !== null && $talkTimeRatio >= 40 && $talkTimeRatio <= 60);
+        $challengeBonus = ($durationSeconds >= 60 && $isChallengeTopic);
 
         ConversationEndorsement::create([
             'conversation_id' => $conversationId,
@@ -123,9 +133,11 @@ class MatchmakingController extends Controller
             'tags' => $tags,
             'talk_time_ratio' => $talkTimeRatio,
             'balanced_bonus_awarded' => $balancedBonus,
+            'is_challenge_session' => $isChallengeTopic,
+            'challenge_bonus_awarded' => $challengeBonus,
         ]);
 
-        // Karma logic: if call was healthy (>= 60s), award +2 Karma up to 100 max
+        // Karma & Referral logic: if call was healthy (>= 60s)
         if ($durationSeconds >= 60) {
             $receiverProfile = PupilProfile::where('user_id', $receiverId)->first();
             if ($receiverProfile) {
@@ -138,11 +150,16 @@ class MatchmakingController extends Controller
                 $newScore = min(100, ($giverProfile->karma_score ?? 100) + 2);
                 $giverProfile->update(['karma_score' => $newScore]);
             }
+
+            // Award referral rewards for newly completed first sessions
+            GamificationService::checkAndAwardReferralReward($giverId, $conversationId);
+            GamificationService::checkAndAwardReferralReward($receiverId, $conversationId);
         }
 
         return response()->json([
             'status' => 'endorsed',
             'balanced_bonus' => $balancedBonus,
+            'challenge_bonus' => $challengeBonus,
         ]);
     }
 
