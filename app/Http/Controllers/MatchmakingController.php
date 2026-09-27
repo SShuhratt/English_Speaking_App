@@ -49,16 +49,39 @@ class MatchmakingController extends Controller
         $sessionJson = Redis::get("active_speaking_session:{$userId}");
 
         if (! $sessionJson) {
-            return response()->json(null);
+            return response()->json(['active' => false]);
         }
 
         $session = json_decode($sessionJson, true);
-        $partner = User::find($session['partner_id']);
+
+        if (! is_array($session) || empty($session['room_id']) || empty($session['partner_id'])) {
+            Redis::del("active_speaking_session:{$userId}");
+
+            return response()->json(['active' => false]);
+        }
+
+        $partnerId = (string) $session['partner_id'];
+
+        // Automatically clean up stale sessions if partner has disconnected (>30s)
+        if (! Redis::exists("speaking_heartbeat:{$partnerId}")) {
+            Redis::del("active_speaking_session:{$userId}");
+            Redis::del("active_speaking_session:{$partnerId}");
+
+            return response()->json(['active' => false]);
+        }
+
+        $partner = User::find($partnerId);
+        if (! $partner) {
+            Redis::del("active_speaking_session:{$userId}");
+
+            return response()->json(['active' => false]);
+        }
 
         return response()->json([
+            'active' => true,
             'room_id' => $session['room_id'],
-            'partner_id' => $session['partner_id'],
-            'partner_name' => $partner ? $partner->full_name : 'Speaking Partner',
+            'partner_id' => $partnerId,
+            'partner_name' => $partner->full_name ?: 'Speaking Partner',
         ]);
     }
 

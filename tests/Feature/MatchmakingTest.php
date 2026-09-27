@@ -91,18 +91,70 @@ class MatchmakingTest extends TestCase
         $user1 = User::factory()->create(['role' => 'pupil', 'full_name' => 'Alice']);
         $user2 = User::factory()->create(['role' => 'pupil', 'full_name' => 'Bob']);
 
-        // Directly seed active session in Redis
+        // Directly seed active session and partner heartbeat in Redis
         $session = json_encode(['room_id' => 'room_1_2', 'partner_id' => $user2->id]);
+        Redis::set("active_speaking_session:{$user1->id}", $session);
+        Redis::setex("speaking_heartbeat:{$user2->id}", 30, 'active');
+
+        $response = $this->actingAs($user1)->getJson(route('matchmaking.active-session'));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'active' => true,
+            'room_id' => 'room_1_2',
+            'partner_id' => $user2->id,
+            'partner_name' => 'Bob',
+        ]);
+    }
+
+    public function test_active_session_returns_false_when_no_session_exists(): void
+    {
+        $user = User::factory()->create(['role' => 'pupil']);
+
+        $response = $this->actingAs($user)->getJson(route('matchmaking.active-session'));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'active' => false,
+        ]);
+    }
+
+    public function test_active_session_cleans_up_when_partner_heartbeat_is_expired(): void
+    {
+        $user1 = User::factory()->create(['role' => 'pupil']);
+        $user2 = User::factory()->create(['role' => 'pupil']);
+
+        $session = json_encode(['room_id' => 'room_1_2', 'partner_id' => $user2->id]);
+        Redis::set("active_speaking_session:{$user1->id}", $session);
+
+        // Partner has no active heartbeat
+        Redis::del("speaking_heartbeat:{$user2->id}");
+
+        $response = $this->actingAs($user1)->getJson(route('matchmaking.active-session'));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'active' => false,
+        ]);
+
+        $this->assertNull(Redis::get("active_speaking_session:{$user1->id}"));
+    }
+
+    public function test_active_session_cleans_up_when_partner_does_not_exist(): void
+    {
+        $user1 = User::factory()->create(['role' => 'pupil']);
+
+        $session = json_encode(['room_id' => 'room_1_2', 'partner_id' => '00000000-0000-0000-0000-000000000000']);
         Redis::set("active_speaking_session:{$user1->id}", $session);
 
         $response = $this->actingAs($user1)->getJson(route('matchmaking.active-session'));
 
         $response->assertStatus(200);
         $response->assertJson([
-            'room_id' => 'room_1_2',
-            'partner_id' => $user2->id,
-            'partner_name' => 'Bob',
+            'active' => false,
         ]);
+
+        $this->assertNull(Redis::get("active_speaking_session:{$user1->id}"));
     }
 
     public function test_heartbeat_keeps_session_alive_or_terminates_if_partner_offline(): void

@@ -10,6 +10,7 @@ import {
     Loader2,
     ArrowLeft,
     User,
+    Users,
     Check,
     X,
     PhoneCall,
@@ -30,7 +31,7 @@ export default function Speaking() {
     const [isMuted, setIsMuted] = useState<boolean>(false);
     const [activeSessionData, setActiveSessionData] = useState<{
         room_id: string;
-        partner_id: number;
+        partner_id: string | number;
         partner_name: string;
     } | null>(null);
 
@@ -63,11 +64,23 @@ export default function Speaking() {
         const checkActiveSession = async () => {
             try {
                 const response = await axios.get('/matchmaking/active-session');
-                if (response.data) {
-                    setActiveSessionData(response.data);
+                if (
+                    response.data &&
+                    response.data.active &&
+                    response.data.room_id &&
+                    response.data.partner_name
+                ) {
+                    setActiveSessionData({
+                        room_id: response.data.room_id,
+                        partner_id: response.data.partner_id,
+                        partner_name: response.data.partner_name,
+                    });
+                } else {
+                    setActiveSessionData(null);
                 }
             } catch (err) {
                 console.error('Failed to check active session:', err);
+                setActiveSessionData(null);
             }
         };
 
@@ -181,7 +194,10 @@ export default function Speaking() {
     }, [status]);
 
     // Match found handler
-    const handleMatchFound = async (roomId: string, partnerId: number) => {
+    const handleMatchFound = async (
+        roomId: string,
+        partnerId: string | number,
+    ) => {
         console.log(
             '[WebRTC] handleMatchFound triggered. Room ID:',
             roomId,
@@ -762,109 +778,132 @@ export default function Speaking() {
                     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
                         {/* Left Column: Online Pupils */}
                         <div className="space-y-4 lg:col-span-3">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xs font-black tracking-widest text-[#1E2A5A] uppercase dark:text-[#F7DE8B]">
-                                    {t('speaking.available_for_speaking') ||
-                                        'Available for Speaking'}
-                                </h2>
-                                <span className="rounded-md border border-[#E6E9F2] bg-white px-2 py-0.5 text-[10px] font-black text-[#1E2A5A]">
-                                    {t('speaking.online_count', {
-                                        count: onlinePupils.length,
-                                    }) || `${onlinePupils.length} Online`}
-                                </span>
-                            </div>
-                            <div className="max-h-[500px] space-y-3 overflow-y-auto pr-1">
-                                {onlinePupils.length === 0 ? (
-                                    <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6 text-center text-xs text-[#6B7394] select-none">
-                                        {t('speaking.no_online_pupils') ||
-                                            'No other pupils are online right now. Keep this page open to show up!'}
+                            {onlinePupils.length === 0 ? (
+                                <div className="space-y-3">
+                                    <h2 className="text-sm font-extrabold text-[#1E2A5A] md:text-base dark:text-[#F7DE8B]">
+                                        {t('speaking.nobody_available_title') ||
+                                            'Nobody is available for speaking now'}
+                                    </h2>
+                                    <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6 text-center shadow-xs select-none dark:border-white/10 dark:bg-[#12131e]">
+                                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/5 dark:text-[#F7DE8B]">
+                                            <Users className="h-6 w-6 opacity-80" />
+                                        </div>
+                                        <p className="text-xs leading-relaxed text-[#6B7394] dark:text-[#A0A0B0]">
+                                            {t('speaking.nobody_available_desc') ||
+                                                'Keep this page open or start speaking to wait in the queue for a partner.'}
+                                        </p>
                                     </div>
-                                ) : (
-                                    onlinePupils.map((pupil) => {
-                                        const hasRequested =
-                                            requestedUserIds.includes(pupil.id);
-                                        return (
-                                            <div
-                                                key={pupil.id}
-                                                className="flex flex-col gap-3 rounded-[22px] border border-[#E6E9F2] bg-white p-4 shadow-sm transition hover:border-[#A9C6E8]"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <Link
-                                                        href={`/profile/${pupil.id}`}
-                                                        className="shrink-0"
-                                                    >
-                                                        {pupil.avatar_url ? (
-                                                            <img
-                                                                src={
-                                                                    pupil.avatar_url
-                                                                }
-                                                                className="h-10 w-10 rounded-xl object-cover transition hover:opacity-85"
-                                                                alt="avatar"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-sm font-extrabold text-[#1E2A5A] transition hover:opacity-85">
-                                                                {getInitials(
-                                                                    pupil.name,
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </Link>
-                                                    <div className="min-w-0 flex-1">
-                                                        <h3 className="truncate text-xs font-bold text-[#22284A]">
-                                                            <Link
-                                                                href={`/profile/${pupil.id}`}
-                                                                className="hover:underline"
-                                                            >
-                                                                {pupil.name}
-                                                            </Link>
-                                                        </h3>
-                                                        {pupil.headline && (
-                                                            <p className="truncate text-[10px] text-[#6B7394]">
-                                                                {pupil.headline}
-                                                            </p>
-                                                        )}
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xs font-black tracking-widest text-[#1E2A5A] uppercase dark:text-[#F7DE8B]">
+                                            {t(
+                                                'speaking.available_for_speaking',
+                                            ) || 'Available for Speaking'}
+                                        </h2>
+                                        <span className="rounded-md border border-[#E6E9F2] bg-white px-2 py-0.5 text-[10px] font-black text-[#1E2A5A] dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                            {t('speaking.online_count', {
+                                                count: onlinePupils.length,
+                                            }) ||
+                                                `${onlinePupils.length} Online`}
+                                        </span>
+                                    </div>
+                                    <div className="max-h-[500px] space-y-3 overflow-y-auto pr-1">
+                                        {onlinePupils.map((pupil) => {
+                                            const hasRequested =
+                                                requestedUserIds.includes(
+                                                    pupil.id,
+                                                );
+                                            return (
+                                                <div
+                                                    key={pupil.id}
+                                                    className="flex flex-col gap-3 rounded-[22px] border border-[#E6E9F2] bg-white p-4 shadow-sm transition hover:border-[#A9C6E8]"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Link
+                                                            href={`/profile/${pupil.id}`}
+                                                            className="shrink-0"
+                                                        >
+                                                            {pupil.avatar_url ? (
+                                                                <img
+                                                                    src={
+                                                                        pupil.avatar_url
+                                                                    }
+                                                                    className="h-10 w-10 rounded-xl object-cover transition hover:opacity-85"
+                                                                    alt="avatar"
+                                                                />
+                                                            ) : (
+                                                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-sm font-extrabold text-[#1E2A5A] transition hover:opacity-85">
+                                                                    {getInitials(
+                                                                        pupil.name,
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </Link>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h3 className="truncate text-xs font-bold text-[#22284A]">
+                                                                <Link
+                                                                    href={`/profile/${pupil.id}`}
+                                                                    className="hover:underline"
+                                                                >
+                                                                    {pupil.name}
+                                                                </Link>
+                                                            </h3>
+                                                            {pupil.headline && (
+                                                                <p className="truncate text-[10px] text-[#6B7394]">
+                                                                    {
+                                                                        pupil.headline
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-2 border-t border-[#FAFBFD] pt-2">
+                                                        <div className="flex gap-1.5">
+                                                            {pupil.target_speaking_band ? (
+                                                                <span className="rounded bg-[#EEF4FB] px-1.5 py-0.5 text-[9px] font-bold text-[#1E2A5A]">
+                                                                    IELTS{' '}
+                                                                    {
+                                                                        pupil.target_speaking_band
+                                                                    }
+                                                                </span>
+                                                            ) : (
+                                                                <span />
+                                                            )}
+                                                        </div>
+                                                        <button
+                                                            onClick={() =>
+                                                                sendDirectRequest(
+                                                                    pupil.id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                hasRequested
+                                                            }
+                                                            className={`cursor-pointer rounded-full border-0 px-3 py-1.5 text-[10px] font-bold transition ${
+                                                                hasRequested
+                                                                    ? 'cursor-default bg-[#EEF4FB] text-[#6B7394]'
+                                                                    : 'bg-[#1E2A5A] text-white hover:bg-[#1E2A5A]/90'
+                                                            }`}
+                                                        >
+                                                            {hasRequested
+                                                                ? t(
+                                                                      'speaking.requested',
+                                                                  ) ||
+                                                                  'Requested'
+                                                                : t(
+                                                                      'speaking.request_btn',
+                                                                  ) ||
+                                                                  'Request'}
+                                                        </button>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between gap-2 border-t border-[#FAFBFD] pt-2">
-                                                    <div className="flex gap-1.5">
-                                                        {pupil.target_speaking_band ? (
-                                                            <span className="rounded bg-[#EEF4FB] px-1.5 py-0.5 text-[9px] font-bold text-[#1E2A5A]">
-                                                                IELTS{' '}
-                                                                {
-                                                                    pupil.target_speaking_band
-                                                                }
-                                                            </span>
-                                                        ) : (
-                                                            <span />
-                                                        )}
-                                                    </div>
-                                                    <button
-                                                        onClick={() =>
-                                                            sendDirectRequest(
-                                                                pupil.id,
-                                                            )
-                                                        }
-                                                        disabled={hasRequested}
-                                                        className={`cursor-pointer rounded-full border-0 px-3 py-1.5 text-[10px] font-bold transition ${
-                                                            hasRequested
-                                                                ? 'cursor-default bg-[#EEF4FB] text-[#6B7394]'
-                                                                : 'bg-[#1E2A5A] text-white hover:bg-[#1E2A5A]/90'
-                                                        }`}
-                                                    >
-                                                        {hasRequested
-                                                            ? t(
-                                                                  'speaking.requested',
-                                                              ) || 'Requested'
-                                                            : t(
-                                                                  'speaking.request_btn',
-                                                              ) || 'Request'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Middle Column: Matchmaking Controls */}
@@ -889,10 +928,13 @@ export default function Speaking() {
                                                     {t(
                                                         'speaking.active_session_desc',
                                                         {
-                                                            name: activeSessionData.partner_name,
+                                                            name:
+                                                                activeSessionData.partner_name ||
+                                                                t('speaking.partner') ||
+                                                                'Partner',
                                                         },
                                                     ) ||
-                                                        `We found an active conversation with ${activeSessionData.partner_name}. Would you like to resume it?`}
+                                                        `We found an active conversation with ${activeSessionData.partner_name || 'Partner'}. Would you like to resume it?`}
                                                 </p>
                                             </div>
                                             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">

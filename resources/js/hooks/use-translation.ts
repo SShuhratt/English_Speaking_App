@@ -53,6 +53,9 @@ const dictionary = {
             'Microphone access denied or audio device not found.',
         'speaking.available_for_speaking': 'Available for Speaking',
         'speaking.online_count': ':count Online',
+        'speaking.nobody_available_title': 'Nobody is available for speaking now',
+        'speaking.nobody_available_desc':
+            'Keep this page open or start speaking to wait in the queue for a partner.',
         'speaking.no_online_pupils':
             'No other pupils are online right now. Keep this page open to show up!',
         'speaking.requested': 'Requested',
@@ -1192,6 +1195,9 @@ const dictionary = {
             'Mikrofon ruxsati rad etildi yoki audio qurilma topilmadi.',
         'speaking.available_for_speaking': 'Suhbat uchun faol foydalanuvchilar',
         'speaking.online_count': ':count ta online',
+        'speaking.nobody_available_title': 'Hozircha suhbatlashish uchun hech kim yo‘q',
+        'speaking.nobody_available_desc':
+            'Ushbu sahifada qoling yoki navbatda suhbatdosh kutish uchun boshlashni bosing.',
         'speaking.no_online_pupils':
             'Hozircha boshqa online foydalanuvchilar yo‘q. Faol bo‘lib ko‘rinish uchun ushbu sahifani ochiq qoldiring!',
         'speaking.requested': 'So‘rov yuborildi',
@@ -2357,6 +2363,9 @@ const dictionary = {
             'Доступ к микрофону запрещен или аудиоустройство не найдено.',
         'speaking.available_for_speaking': 'Доступны для разговора',
         'speaking.online_count': ':count онлайн',
+        'speaking.nobody_available_title': 'Сейчас никого нет для разговора',
+        'speaking.nobody_available_desc':
+            'Оставайтесь на этой странице или начните разговор, чтобы найти собеседника.',
         'speaking.no_online_pupils':
             'Сейчас нет других пользователей онлайн. Держите эту страницу открытой, чтобы появиться в списке!',
         'speaking.requested': 'Запрос отправлен',
