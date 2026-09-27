@@ -46,7 +46,7 @@ export default function SpeakingPassportCard({ passport, compact = false }: Prop
                                 {t('gamification.passport_title') || 'Speaking Passport'}
                             </span>
                             <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-400/30">
-                                Official
+                                {t('gamification.passport_official')}
                             </span>
                         </div>
                         <h3 className="text-lg font-black tracking-tight text-white">
@@ -111,7 +111,7 @@ export default function SpeakingPassportCard({ passport, compact = false }: Prop
                                         {countryName}
                                     </span>
                                     <span className="mt-0.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300 border border-amber-400/20">
-                                        {stamp.partner_count} {stamp.partner_count === 1 ? 'connection' : 'connections'}
+                                        {stamp.partner_count} {stamp.partner_count === 1 ? t('gamification.passport_connection') : t('gamification.passport_connections')}
                                     </span>
                                 </div>
                             );

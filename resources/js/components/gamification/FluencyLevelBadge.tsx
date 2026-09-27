@@ -50,7 +50,7 @@ export default function FluencyLevelBadge({ fluency }: { fluency: FluencyData })
                         <span className="text-[11px] font-medium text-amber-200/90">
                             {t('gamification.xp_to_next', {
                                 xp: fluency.xp_to_next_level,
-                                title: `Level ${fluency.level + 1}`,
+                                title: t('gamification.level_indicator', { level: fluency.level + 1 }) || `Level ${fluency.level + 1}`,
                             })}
                         </span>
                     </div>
