@@ -88,6 +88,8 @@ class DashboardController extends Controller
                 'badges' => GamificationService::getMilestoneBadges($user),
                 'referrals' => GamificationService::getReferralStats($user),
                 'new_level_up' => GamificationService::getNewLevelUp($user),
+                'xp_store' => GamificationService::getXpStoreCatalog($user),
+                'credential' => GamificationService::getVerifiedFluencyCredential($user),
             ];
 
             return Inertia::render('dashboard', [

@@ -29,6 +29,7 @@ class BookingController extends Controller
             'topics.*' => ['required', 'string', 'max:255'],
             'is_trial' => ['nullable', 'boolean'],
             'duration_minutes' => ['nullable', 'integer', 'in:20,30,45,60,90,120'],
+            'voucher_id' => ['nullable', 'uuid', 'exists:user_discount_vouchers,id'],
         ]);
 
         try {
@@ -42,6 +43,7 @@ class BookingController extends Controller
                     'topics' => $validated['topics'],
                     'is_trial' => $validated['is_trial'] ?? false,
                     'duration_minutes' => $validated['duration_minutes'] ?? null,
+                    'discount_voucher_id' => $validated['voucher_id'] ?? null,
                 ]
             );
 

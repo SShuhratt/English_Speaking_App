@@ -14,6 +14,7 @@ import {
     User,
     BookOpen,
     Sparkles,
+    Ticket,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ import { Input } from '@/components/ui/input';
 
 interface Props {
     teacher: any;
+    vouchers?: any[];
 }
 
 const weeksShortMap = {
@@ -83,7 +85,7 @@ const localeMap = {
     ru: 'ru-RU',
 };
 
-export default function Booking({ teacher }: Props) {
+export default function Booking({ teacher, vouchers = [] }: Props) {
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
 
@@ -98,6 +100,7 @@ export default function Booking({ teacher }: Props) {
     const [slotsByDate, setSlotsByDate] = useState<Record<string, any[]>>({});
     const [loading, setLoading] = useState(false);
     const [booking, setBooking] = useState(false);
+    const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(null);
     const [customStartTime, setCustomStartTime] = useState('');
     const [customEndTime, setCustomEndTime] = useState('');
     const [confirmingSlot, setConfirmingSlot] = useState<any | null>(null);
@@ -417,6 +420,7 @@ export default function Booking({ teacher }: Props) {
                 start_at: slot.start_at,
                 end_at: slot.end_at,
                 topics: slot.topics,
+                voucher_id: selectedVoucherId,
             });
             setShowRequestSentModal(true);
             fetchSlots();
@@ -481,6 +485,7 @@ export default function Booking({ teacher }: Props) {
                 start_at: startAt,
                 end_at: endAt,
                 topics: finalTopics,
+                voucher_id: selectedVoucherId,
             });
             setShowRequestSentModal(true);
             fetchSlots();
@@ -1308,6 +1313,27 @@ export default function Booking({ teacher }: Props) {
                                 )}
 
                                 {renderTopicSelection()}
+
+                                {vouchers.length > 0 && (
+                                    <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-3.5">
+                                        <label className="block text-xs font-bold text-indigo-950 mb-1.5 flex items-center gap-1.5">
+                                            <Ticket className="h-4 w-4 text-indigo-600" />
+                                            <span>Apply Lesson Discount Voucher</span>
+                                        </label>
+                                        <select
+                                            value={selectedVoucherId || ''}
+                                            onChange={(e) => setSelectedVoucherId(e.target.value || null)}
+                                            className="w-full rounded-xl border border-indigo-200 bg-white p-2.5 text-xs text-indigo-950 font-medium focus:border-indigo-500 focus:outline-none"
+                                        >
+                                            <option value="">No voucher applied</option>
+                                            {vouchers.map((v: any) => (
+                                                <option key={v.id} value={v.id}>
+                                                    {v.voucher_code} — {v.discount_percent}% Discount
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
 
                                 <div className="mt-6 flex items-center justify-end gap-3">
                                     <button

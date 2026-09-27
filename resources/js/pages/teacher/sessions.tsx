@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslation } from '@/hooks/use-translation';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
+import TeacherAssessmentSliderModal, { AssessmentData } from '@/components/teachers/TeacherAssessmentSliderModal';
 
 interface Props {
     appointments: {
@@ -34,13 +35,20 @@ export default function Sessions({ appointments }: Props) {
     const { auth } = usePage().props as any;
     const [isOpen, setIsOpen] = useState(false);
     const [selectedApt, setSelectedApt] = useState<any>(null);
+    const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
+    const [assessmentApt, setAssessmentApt] = useState<any>(null);
+    const [itemsList, setItemsList] = useState<any[]>(appointments.data || []);
     const [activeTab, setActiveTab] = useState<
         'all' | 'upcoming' | 'completed'
     >('all');
     const { t } = useTranslation();
 
+    React.useEffect(() => {
+        setItemsList(appointments.data || []);
+    }, [appointments]);
+
     const now = new Date();
-    const allItems = appointments.data || [];
+    const allItems = itemsList;
 
     const filteredAppointments = allItems.filter((apt) => {
         const isPast = new Date(apt.end_at) < now;
@@ -88,6 +96,22 @@ export default function Sessions({ appointments }: Props) {
         clearErrors();
         setSelectedApt(apt);
         setIsOpen(true);
+    };
+
+    const handleOpenAssessmentModal = (apt: any) => {
+        setAssessmentApt(apt);
+        setIsAssessmentOpen(true);
+    };
+
+    const handleAssessmentSaved = (assessment: AssessmentData) => {
+        setItemsList((prev) =>
+            prev.map((item) =>
+                item.id === assessmentApt?.id
+                    ? { ...item, assessment }
+                    : item
+            )
+        );
+        toast.success(t('assessment.success', 'Assessment saved successfully!'));
     };
 
     const handleStartSession = async (apt: any) => {
@@ -369,6 +393,27 @@ export default function Sessions({ appointments }: Props) {
                                                             {t('sessions.feedback_btn')}
                                                         </button>
                                                     )}
+
+                                                {/* Rate Fluency Assessment Button (for completed or past confirmed lessons) */}
+                                                {(apt.status === 'completed' || new Date(apt.end_at) < now) && (
+                                                    <button
+                                                        onClick={() => handleOpenAssessmentModal(apt)}
+                                                        className={`rounded-full px-3.5 py-2 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                                            apt.assessment
+                                                                ? 'bg-amber-50 border border-amber-300 text-amber-800 hover:bg-amber-100'
+                                                                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                                                        }`}
+                                                    >
+                                                        <Sparkles className="h-3.5 w-3.5" />
+                                                        <span>
+                                                            {apt.assessment
+                                                                ? t('assessment.already_assessed', {
+                                                                      band: Number(apt.assessment.overall_score).toFixed(1),
+                                                                  })
+                                                                : t('assessment.rate_pupil_btn', 'Rate Fluency')}
+                                                        </span>
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
@@ -378,6 +423,26 @@ export default function Sessions({ appointments }: Props) {
                                                     {t('sessions.your_feedback_prefix')}
                                                 </b>{' '}
                                                 "{teacherFeedback.comment}"
+                                            </div>
+                                        )}
+
+                                        {apt.assessment && (
+                                            <div className="mt-2.5 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/70 to-orange-50/40 p-3 text-xs text-amber-950">
+                                                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-black px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 text-[11px]">
+                                                            Band {Number(apt.assessment.overall_score).toFixed(1)}
+                                                        </span>
+                                                        <span className="text-slate-600 font-medium">
+                                                            Fluency {apt.assessment.fluency_score} · Lexical {apt.assessment.lexical_score} · Grammar {apt.assessment.grammar_score} · Pronunciation {apt.assessment.pronunciation_score}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {apt.assessment.teacher_notes && (
+                                                    <div className="mt-1.5 text-slate-600 italic">
+                                                        "{apt.assessment.teacher_notes}"
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -564,6 +629,17 @@ export default function Sessions({ appointments }: Props) {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Stage 4 Teacher Assessment Modal */}
+            <TeacherAssessmentSliderModal
+                isOpen={isAssessmentOpen}
+                onClose={() => setIsAssessmentOpen(false)}
+                appointmentId={assessmentApt?.id || ''}
+                pupilName={assessmentApt?.pupil?.full_name || assessmentApt?.pupil?.name || t('sessions.student_fallback', 'Student')}
+                pupilAvatar={assessmentApt?.pupil?.avatar}
+                initialData={assessmentApt?.assessment}
+                onSaved={handleAssessmentSaved}
+            />
         </>
     );
 }

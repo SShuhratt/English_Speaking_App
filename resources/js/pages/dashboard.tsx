@@ -40,6 +40,8 @@ import SpeakingPassportCard from '@/components/gamification/SpeakingPassportCard
 import MilestoneBadgesCard from '@/components/gamification/MilestoneBadgesCard';
 import ReferralCard from '@/components/gamification/ReferralCard';
 import LevelUpCelebrationModal from '@/components/gamification/LevelUpCelebrationModal';
+import XpStoreModal from '@/components/gamification/XpStoreModal';
+import VerifiedFluencyCardModal from '@/components/gamification/VerifiedFluencyCardModal';
 
 function PupilMeetingButton({
     apt,
@@ -145,6 +147,8 @@ function PupilDashboard({
     const [activeLevelUp, setActiveLevelUp] = useState<any | null>(
         gamification?.new_level_up || null
     );
+    const [isXpStoreOpen, setIsXpStoreOpen] = useState(false);
+    const [isCredentialOpen, setIsCredentialOpen] = useState(false);
 
     const handleAcknowledgeLevel = async (level: number) => {
         try {
@@ -465,6 +469,46 @@ function PupilDashboard({
             {(() => {
                 const gamificationSection = gamification ? (
                     <div className="space-y-6">
+                        {/* Stage 4: XP Store & Credential Actions Banner */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-gradient-to-r from-indigo-50/90 via-purple-50/60 to-amber-50/70 p-5 border border-indigo-100/90 shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20">
+                                    <Sparkles className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-black text-slate-900">
+                                            {gamification.xp_store?.available_xp?.toLocaleString() ?? 0} XP
+                                        </span>
+                                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 border border-amber-300/40">
+                                            {t('gamification.available_xp_label', 'Available XP')}
+                                        </span>
+                                    </div>
+                                    <div className="text-xs text-slate-500 mt-0.5">
+                                        {t('gamification.store_subtitle', 'Turn your practice XP into valuable rewards and lesson discounts')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2.5">
+                                <button
+                                    onClick={() => setIsXpStoreOpen(true)}
+                                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer"
+                                >
+                                    <span>🛍️</span>
+                                    <span>{t('gamification.open_store_btn', 'XP Rewards Store')}</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setIsCredentialOpen(true)}
+                                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer"
+                                >
+                                    <Award className="h-4 w-4" />
+                                    <span>{t('credential.view_public_btn', 'View Credential')}</span>
+                                </button>
+                            </div>
+                        </div>
+
                         {gamification.momentum && (
                             <WeeklyMomentumRingCard momentum={gamification.momentum} />
                         )}
@@ -829,6 +873,20 @@ function PupilDashboard({
             <LevelUpCelebrationModal
                 levelUp={activeLevelUp}
                 onAcknowledge={handleAcknowledgeLevel}
+            />
+
+            {/* Stage 4: XP Rewards Store Modal */}
+            <XpStoreModal
+                isOpen={isXpStoreOpen}
+                onClose={() => setIsXpStoreOpen(false)}
+                catalog={gamification?.xp_store}
+            />
+
+            {/* Stage 4: Verified Fluency Credential Modal */}
+            <VerifiedFluencyCardModal
+                isOpen={isCredentialOpen}
+                onClose={() => setIsCredentialOpen(false)}
+                credential={gamification?.credential}
             />
         </div>
     );

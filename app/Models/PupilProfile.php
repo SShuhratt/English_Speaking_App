@@ -23,6 +23,7 @@ class PupilProfile extends Model
         'weekly_goal',
         'weekly_goals',
         'karma_score',
+        'spent_xp',
         'streak_shields',
         'last_acknowledged_level',
         'country_code',
@@ -35,6 +36,7 @@ class PupilProfile extends Model
         'weekly_goals' => 'array',
         'weekly_goal' => 'integer',
         'karma_score' => 'integer',
+        'spent_xp' => 'integer',
         'streak_shields' => 'integer',
         'last_acknowledged_level' => 'integer',
     ];

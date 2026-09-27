@@ -6,6 +6,7 @@ use App\Models\PupilPackage;
 use App\Models\TeacherPackage;
 use App\Models\TeacherProfile;
 use App\Models\User;
+use App\Models\UserDiscountVoucher;
 use App\Services\SlotService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -154,8 +155,16 @@ class TeacherController extends Controller
             return redirect()->route('pupil.teachers.index');
         }
 
+        $vouchers = $currentUser
+            ? UserDiscountVoucher::where('user_id', $currentUser->id)
+                ->where('is_redeemed', false)
+                ->latest()
+                ->get()
+            : [];
+
         return Inertia::render('pupil/booking', [
             'teacher' => $teacher,
+            'vouchers' => $vouchers,
         ]);
     }
 

@@ -70,6 +70,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/appointments/{id}/approve', [TeacherAppointmentController::class, 'approve'])->name('appointments.approve');
         Route::post('/appointments/{id}/reject', [TeacherAppointmentController::class, 'reject'])->name('appointments.reject');
         Route::post('/appointments/{id}/start', [TeacherAppointmentController::class, 'start'])->name('appointments.start');
+        Route::post('/appointments/{id}/assess', [TeacherAppointmentController::class, 'assess'])->name('appointments.assess');
 
         Route::get('/schedule', [TeacherAppointmentController::class, 'schedule'])->name('schedule');
         Route::get('/availability', [TeacherAvailabilityController::class, 'index'])->name('availability.index');
@@ -122,6 +123,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('/gamification/acknowledge-level', [GamificationController::class, 'acknowledgeLevel'])->name('gamification.acknowledge-level');
         Route::get('/gamification/referrals', [GamificationController::class, 'referralStats'])->name('gamification.referrals');
+        Route::get('/gamification/store/catalog', [GamificationController::class, 'storeCatalog'])->name('gamification.store.catalog');
+        Route::post('/gamification/store/redeem', [GamificationController::class, 'redeem'])->name('gamification.store.redeem');
+        Route::post('/appointments/{id}/apply-voucher', [GamificationController::class, 'applyVoucher'])->name('appointments.apply-voucher');
     });
 });
 
@@ -136,6 +140,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('signed')
         ->name('telegram.connect');
 });
+
+Route::get('/credential/{id}', [GamificationController::class, 'showCredential'])->name('credential.show');
 
 Route::get('/auth/google', [GoogleOAuthController::class, 'redirect']);
 Route::get('/auth/google/callback', [GoogleOAuthController::class, 'callback']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\BookingUpdated;
 use App\Models\Appointment;
 use App\Services\BookingService;
+use App\Services\GamificationService;
 use App\Services\GoogleCalendarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -61,13 +62,40 @@ class TeacherAppointmentController extends Controller
     {
         $appointments = Appointment::where('teacher_id', $request->user()->id)
             ->where('status', '!=', 'pending')
-            ->with(['pupil', 'feedbacks', 'cancelledBy'])
+            ->with(['pupil', 'feedbacks', 'cancelledBy', 'assessment'])
             ->latest()
             ->paginate();
 
         return Inertia::render('teacher/sessions', [
             'appointments' => $appointments,
         ]);
+    }
+
+    /**
+     * Submit 30-second post-lesson assessment (4 rubric sliders: Fluency, Lexical, Grammar, Pronunciation).
+     */
+    public function assess(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'fluency_score' => ['required', 'numeric', 'min:1.0', 'max:9.0'],
+            'lexical_score' => ['required', 'numeric', 'min:1.0', 'max:9.0'],
+            'grammar_score' => ['required', 'numeric', 'min:1.0', 'max:9.0'],
+            'pronunciation_score' => ['required', 'numeric', 'min:1.0', 'max:9.0'],
+            'teacher_notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $assessment = GamificationService::submitAppointmentAssessment($request->user(), $id, $validated);
+
+            return response()->json([
+                'message' => 'Assessment submitted successfully.',
+                'assessment' => $assessment,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**

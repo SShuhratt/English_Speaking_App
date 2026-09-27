@@ -3,14 +3,17 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\AppointmentAssessment;
 use App\Models\Conversation;
 use App\Models\ConversationEndorsement;
 use App\Models\PupilProfile;
 use App\Models\ReferralRecord;
 use App\Models\User;
+use App\Models\UserDiscountVoucher;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class GamificationService
 {
@@ -160,7 +163,9 @@ class GamificationService
             + ($challengeBonusCount * 25)
             + ($referralBonusCount * 100);
 
-        return self::resolveLevelFromXp($totalXp, $totalMinutes, $totalSessions);
+        $spentXp = (int) (PupilProfile::where('user_id', $userId)->value('spent_xp') ?? ($user->pupilProfile?->spent_xp ?? 0));
+
+        return self::resolveLevelFromXp($totalXp, $totalMinutes, $totalSessions, $spentXp);
     }
 
     /**
@@ -168,7 +173,7 @@ class GamificationService
      *
      * @return array<string, mixed>
      */
-    public static function resolveLevelFromXp(int $totalXp, int $totalMinutes = 0, int $totalSessions = 0): array
+    public static function resolveLevelFromXp(int $totalXp, int $totalMinutes = 0, int $totalSessions = 0, int $spentXp = 0): array
     {
         $currentLevelData = self::LEVELS[1];
 
@@ -187,6 +192,7 @@ class GamificationService
         $xpInCurrentLevel = max(0, $totalXp - $minXp);
         $progressPercent = $isMaxLevel ? 100 : min(100, (int) round(($xpInCurrentLevel / max(1, $range)) * 100));
         $xpToNextLevel = $isMaxLevel ? 0 : max(0, $maxXp - $totalXp);
+        $availableXp = max(0, $totalXp - $spentXp);
 
         return [
             'level' => $level,
@@ -194,6 +200,8 @@ class GamificationService
             'default_title' => $currentLevelData['default_title'],
             'badge' => $currentLevelData['badge'],
             'total_xp' => $totalXp,
+            'spent_xp' => $spentXp,
+            'available_xp' => $availableXp,
             'current_level_xp' => $xpInCurrentLevel,
             'next_level_target_xp' => $range,
             'progress_percent' => $progressPercent,
@@ -905,6 +913,283 @@ class GamificationService
     }
 
     /**
+     * Get XP Store catalog with items, costs, user's available XP, and active vouchers.
+     *
+     * @return array<string, mixed>
+     */
+    public static function getXpStoreCatalog(?User $user): array
+    {
+        $fluency = self::calculateFluency($user);
+        $availableXp = (int) ($fluency['available_xp'] ?? 0);
+
+        $items = [
+            [
+                'key' => 'streak_shield',
+                'title_key' => 'gamification.store_shield_title',
+                'default_title' => 'Streak Shield (+1 🛡️)',
+                'desc_key' => 'gamification.store_shield_desc',
+                'default_desc' => 'Protects your speaking streak if you miss a scheduled day.',
+                'cost_xp' => 500,
+                'icon' => '🛡️',
+                'can_afford' => $availableXp >= 500,
+            ],
+            [
+                'key' => 'voucher_10',
+                'title_key' => 'gamification.store_voucher_10_title',
+                'default_title' => '10% Lesson Discount Voucher',
+                'desc_key' => 'gamification.store_voucher_10_desc',
+                'default_desc' => 'Redeem 10% off any upcoming live 1-on-1 teacher lesson.',
+                'cost_xp' => 1000,
+                'discount_percent' => 10,
+                'icon' => '🎟️',
+                'can_afford' => $availableXp >= 1000,
+            ],
+            [
+                'key' => 'voucher_25',
+                'title_key' => 'gamification.store_voucher_25_title',
+                'default_title' => '25% Lesson Discount Voucher',
+                'desc_key' => 'gamification.store_voucher_25_desc',
+                'default_desc' => 'Redeem 25% off any upcoming live 1-on-1 teacher lesson.',
+                'cost_xp' => 2500,
+                'discount_percent' => 25,
+                'icon' => '🌟',
+                'can_afford' => $availableXp >= 2500,
+            ],
+        ];
+
+        $activeVouchers = [];
+        if ($user) {
+            $activeVouchers = UserDiscountVoucher::where('user_id', $user->id)
+                ->where('is_redeemed', false)
+                ->latest()
+                ->get()
+                ->toArray();
+        }
+
+        return [
+            'available_xp' => $availableXp,
+            'total_xp' => (int) ($fluency['total_xp'] ?? 0),
+            'spent_xp' => (int) ($fluency['spent_xp'] ?? 0),
+            'items' => $items,
+            'active_vouchers' => $activeVouchers,
+        ];
+    }
+
+    /**
+     * Redeem an item from the XP store atomically.
+     *
+     * @return array<string, mixed>
+     */
+    public static function redeemStoreItem(User $user, string $itemKey): array
+    {
+        $costs = [
+            'streak_shield' => 500,
+            'voucher_10' => 1000,
+            'voucher_25' => 2500,
+        ];
+
+        if (! isset($costs[$itemKey])) {
+            return [
+                'success' => false,
+                'message' => 'Invalid store item selected.',
+            ];
+        }
+
+        $cost = $costs[$itemKey];
+
+        return DB::transaction(function () use ($user, $itemKey, $cost) {
+            $profile = PupilProfile::where('user_id', $user->id)->lockForUpdate()->first();
+            if (! $profile) {
+                return [
+                    'success' => false,
+                    'message' => 'Pupil profile not found.',
+                ];
+            }
+
+            $fluency = self::calculateFluency($user);
+            $availableXp = (int) ($fluency['available_xp'] ?? 0);
+
+            if ($availableXp < $cost) {
+                return [
+                    'success' => false,
+                    'message' => 'Insufficient XP balance.',
+                ];
+            }
+
+            $profile->increment('spent_xp', $cost);
+
+            if ($itemKey === 'streak_shield') {
+                $profile->increment('streak_shields');
+
+                return [
+                    'success' => true,
+                    'type' => 'shield',
+                    'message' => 'Streak Shield acquired successfully!',
+                    'new_available_xp' => max(0, $availableXp - $cost),
+                    'streak_shields' => $profile->fresh()->streak_shields,
+                ];
+            }
+
+            $discountPercent = $itemKey === 'voucher_25' ? 25 : 10;
+            $code = 'CONVO-'.$discountPercent.'-'.strtoupper(Str::random(4));
+
+            $voucher = UserDiscountVoucher::create([
+                'user_id' => $user->id,
+                'voucher_code' => $code,
+                'discount_percent' => $discountPercent,
+                'xp_spent' => $cost,
+                'is_redeemed' => false,
+            ]);
+
+            return [
+                'success' => true,
+                'type' => 'voucher',
+                'message' => "{$discountPercent}% Discount Voucher unlocked!",
+                'voucher' => $voucher,
+                'new_available_xp' => max(0, $availableXp - $cost),
+            ];
+        });
+    }
+
+    /**
+     * Submit a 30-second post-lesson rubric assessment by a teacher.
+     */
+    public static function submitAppointmentAssessment(User $teacher, string $appointmentId, array $data): AppointmentAssessment
+    {
+        $appointment = Appointment::where('id', $appointmentId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $fluency = min(9.0, max(1.0, (float) ($data['fluency_score'] ?? 5.0)));
+        $lexical = min(9.0, max(1.0, (float) ($data['lexical_score'] ?? 5.0)));
+        $grammar = min(9.0, max(1.0, (float) ($data['grammar_score'] ?? 5.0)));
+        $pronunciation = min(9.0, max(1.0, (float) ($data['pronunciation_score'] ?? 5.0)));
+
+        $overall = round((($fluency + $lexical + $grammar + $pronunciation) / 4) * 2) / 2;
+
+        return AppointmentAssessment::updateOrCreate(
+            ['appointment_id' => $appointment->id],
+            [
+                'teacher_id' => $teacher->id,
+                'pupil_id' => $appointment->pupil_id,
+                'fluency_score' => $fluency,
+                'lexical_score' => $lexical,
+                'grammar_score' => $grammar,
+                'pronunciation_score' => $pronunciation,
+                'overall_score' => $overall,
+                'teacher_notes' => ! empty($data['teacher_notes']) ? trim($data['teacher_notes']) : null,
+            ]
+        );
+    }
+
+    /**
+     * Get verified shareable fluency credential for a user.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function getVerifiedFluencyCredential(User|string $userOrId): ?array
+    {
+        $user = $userOrId instanceof User ? $userOrId : User::with('pupilProfile')->find($userOrId);
+        if (! $user) {
+            return null;
+        }
+
+        $fluency = self::calculateFluency($user);
+        $passport = self::getSpeakingPassport($user);
+        $latestAssessment = AppointmentAssessment::with('teacher')
+            ->where('pupil_id', $user->id)
+            ->latest()
+            ->first();
+
+        return [
+            'user' => [
+                'id' => $user->id,
+                'short_id' => $user->short_id,
+                'name' => $user->name,
+                'avatar' => $user->avatar,
+                'country_code' => $user->pupilProfile?->country_code ?? 'UZ',
+                'city' => $user->pupilProfile?->city,
+            ],
+            'fluency' => $fluency,
+            'passport' => [
+                'countries_count' => $passport['countries_count'],
+                'unique_partners_count' => $passport['unique_partners_count'],
+                'rank_default' => $passport['passport_rank_default'],
+                'rank_key' => $passport['passport_rank_key'],
+                'stamps' => array_slice($passport['stamps'], 0, 8),
+            ],
+            'latest_assessment' => $latestAssessment ? [
+                'overall_score' => $latestAssessment->overall_score,
+                'fluency_score' => $latestAssessment->fluency_score,
+                'lexical_score' => $latestAssessment->lexical_score,
+                'grammar_score' => $latestAssessment->grammar_score,
+                'pronunciation_score' => $latestAssessment->pronunciation_score,
+                'teacher_name' => $latestAssessment->teacher?->name ?: 'Verified Instructor',
+                'teacher_notes' => $latestAssessment->teacher_notes,
+                'assessed_at' => $latestAssessment->created_at->format('M d, Y'),
+            ] : null,
+            'verification_url' => url('/credential/'.$user->id),
+            'verified_at' => now()->format('M d, Y'),
+        ];
+    }
+
+    /**
+     * Apply an unredeemed discount voucher to an appointment.
+     *
+     * @return array<string, mixed>
+     */
+    public static function applyVoucherToAppointment(User $pupil, string $voucherId, string $appointmentId): array
+    {
+        return DB::transaction(function () use ($pupil, $voucherId, $appointmentId) {
+            $voucher = UserDiscountVoucher::where('id', $voucherId)
+                ->where('user_id', $pupil->id)
+                ->where('is_redeemed', false)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $voucher) {
+                return [
+                    'success' => false,
+                    'message' => 'Discount voucher is invalid or has already been redeemed.',
+                ];
+            }
+
+            $appointment = Appointment::where('id', $appointmentId)
+                ->where('pupil_id', $pupil->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $appointment) {
+                return [
+                    'success' => false,
+                    'message' => 'Appointment not found.',
+                ];
+            }
+
+            $price = $appointment->price ?? 0;
+            $discountAmount = (int) round(($price * $voucher->discount_percent) / 100);
+
+            $voucher->update([
+                'is_redeemed' => true,
+                'redeemed_at' => now(),
+                'appointment_id' => $appointment->id,
+            ]);
+
+            $appointment->update([
+                'discount_voucher_id' => $voucher->id,
+                'discount_amount' => $discountAmount,
+            ]);
+
+            return [
+                'success' => true,
+                'discount_amount' => $discountAmount,
+                'new_price' => max(0, $price - $discountAmount),
+                'voucher' => $voucher,
+            ];
+        });
+    }
+
+    /**
      * Fallback for empty/guest fluency state.
      *
      * @return array<string, mixed>
@@ -917,6 +1202,8 @@ class GamificationService
             'default_title' => 'Hesitant Explorer',
             'badge' => '🐣',
             'total_xp' => 0,
+            'spent_xp' => 0,
+            'available_xp' => 0,
             'current_level_xp' => 0,
             'next_level_target_xp' => 300,
             'progress_percent' => 0,

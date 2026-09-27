@@ -10,6 +10,7 @@ use App\Models\Appointment;
 use App\Models\PupilPackage;
 use App\Models\TeacherAvailability;
 use App\Models\User;
+use App\Models\UserDiscountVoucher;
 use App\Notifications\AdminConfirmedNotification;
 use App\Notifications\AppointmentCancelledNotification;
 use App\Notifications\AppointmentRejectedNotification;
@@ -127,6 +128,29 @@ class BookingService
                 'google_meet_link' => null,
                 'provider' => 'google',
             ]);
+
+            // Apply discount voucher if provided
+            if (! $isPackageBooking && ! empty($meta['discount_voucher_id'])) {
+                $voucher = UserDiscountVoucher::where('id', $meta['discount_voucher_id'])
+                    ->where('user_id', $pupil->id)
+                    ->where('is_redeemed', false)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($voucher) {
+                    $discountAmount = (int) round(($price * $voucher->discount_percent) / 100);
+                    $voucher->update([
+                        'is_redeemed' => true,
+                        'redeemed_at' => now(),
+                        'appointment_id' => $appointment->id,
+                    ]);
+
+                    $appointment->update([
+                        'discount_voucher_id' => $voucher->id,
+                        'discount_amount' => $discountAmount,
+                    ]);
+                }
+            }
 
             // 4. Clear slot cache
             $startTz = $start->copy()->setTimezone('Asia/Tashkent');

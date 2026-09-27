@@ -215,4 +215,19 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(ReferralRecord::class, 'referrer_id');
     }
+
+    public function givenAssessments()
+    {
+        return $this->hasMany(AppointmentAssessment::class, 'teacher_id');
+    }
+
+    public function receivedAssessments()
+    {
+        return $this->hasMany(AppointmentAssessment::class, 'pupil_id');
+    }
+
+    public function discountVouchers()
+    {
+        return $this->hasMany(UserDiscountVoucher::class, 'user_id');
+    }
 }

@@ -35,6 +35,8 @@ class Appointment extends Model
         'reminder_started_sent_at',
         'pupil_package_id',
         'is_package_booking',
+        'discount_voucher_id',
+        'discount_amount',
     ];
 
     protected $casts = [
@@ -46,6 +48,7 @@ class Appointment extends Model
         'is_trial' => 'boolean',
         'duration_minutes' => 'integer',
         'price' => 'integer',
+        'discount_amount' => 'integer',
         'is_package_booking' => 'boolean',
     ];
 
@@ -93,5 +96,15 @@ class Appointment extends Model
     public function pupilPackage()
     {
         return $this->belongsTo(PupilPackage::class, 'pupil_package_id');
+    }
+
+    public function assessment()
+    {
+        return $this->hasOne(AppointmentAssessment::class, 'appointment_id');
+    }
+
+    public function discountVoucher()
+    {
+        return $this->belongsTo(UserDiscountVoucher::class, 'discount_voucher_id');
     }
 }
