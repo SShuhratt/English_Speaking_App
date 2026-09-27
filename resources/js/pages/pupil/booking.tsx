@@ -197,6 +197,9 @@ export default function Booking({ teacher }: Props) {
                 <div className="flex flex-wrap gap-2">
                     {labels.map((lbl: string) => {
                         const isChecked = selectedTopics.includes(lbl);
+                        const labelKey = `labels.${lbl.toLowerCase().trim()}`;
+                        const translatedLabel = t(labelKey);
+                        const displayLabel = translatedLabel && translatedLabel !== labelKey ? translatedLabel : lbl;
                         return (
                             <button
                                 key={lbl}
@@ -221,7 +224,7 @@ export default function Booking({ teacher }: Props) {
                                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                 }`}
                             >
-                                {lbl}
+                                {displayLabel}
                             </button>
                         );
                     })}

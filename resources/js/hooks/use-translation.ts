@@ -597,6 +597,15 @@ const dictionary = {
         'dashboard.active_unit': 'active',
         'dashboard.level': 'Level :level',
         'dashboard.streak': '🔥 :count Day Streak!',
+        'dashboard.telegram_reminder_title': 'Connect Telegram for Lesson Alerts',
+        'dashboard.telegram_reminder_desc':
+            'Connect our official Telegram bot to receive instant reminders 5 minutes before your speaking sessions and direct Google Meet room links.',
+        'dashboard.telegram_recommended_badge': 'Recommended',
+        'dashboard.connect_telegram_btn': 'Connect Telegram Bot',
+        'dashboard.telegram_settings_btn': 'Settings',
+        'dashboard.status_accepted': 'Accepted',
+        'dashboard.awaiting_payment_desc':
+            'Awaiting payment & admin confirmation',
 
         'dashboard.teacher_title': 'Teacher Dashboard',
         'dashboard.teacher_subtitle':
@@ -686,6 +695,19 @@ const dictionary = {
         'teacher.reason_length_validation':
             'Reason must be between 3 and 1000 characters',
         'teacher.action_failed': 'Action failed',
+        'teacher.session_management': 'Session Management',
+        'teacher.rejected_by_you': 'Rejected by You',
+        'teacher.cancelled': 'Cancelled',
+        'teacher.no_appointments_sub':
+            'Student booking requests will appear here.',
+        'teacher.quick_stats': 'Quick Stats',
+        'teacher.pending_review': 'Pending Review',
+        'teacher.upcoming': 'Upcoming',
+        'teacher.completed': 'Completed',
+        'teacher.marketplace_tip': 'Marketplace Tip',
+        'teacher.marketplace_tip_desc':
+            'Respond to booking requests within 2 hours to increase your acceptance rate and ranking on the platform.',
+        'teacher.popular_times': 'Popular Times',
         'schedule.title': 'My Schedule',
         'schedule.desc': 'Your upcoming confirmed sessions.',
         'schedule.scheduled': 'Scheduled',
@@ -749,6 +771,16 @@ const dictionary = {
         'labels.lessons': 'Structured Lessons',
         'labels.business english': 'Business English',
         'labels.practice q&a': 'Practice Q&A',
+        'labels.ielts': 'IELTS Prep',
+        'labels.toefl': 'TOEFL Prep',
+        'labels.cefr': 'CEFR Exam',
+        'labels.grammar': 'Grammar Practice',
+        'labels.pronunciation': 'Pronunciation',
+        'labels.vocabulary': 'Vocabulary',
+        'labels.speaking': 'Speaking Practice',
+        'labels.general english': 'General English',
+        'labels.kids': 'English for Kids',
+        'labels.interview': 'Job Interview',
         'bookings.title': 'My Bookings',
         'bookings.desc': 'Manage your upcoming and pending lesson requests.',
         'bookings.teacher_label': 'Teacher: :name',
@@ -1719,6 +1751,15 @@ const dictionary = {
         'dashboard.active_unit': 'ta faol',
         'dashboard.level': 'Level :level',
         'dashboard.streak': '🔥 :count kunlik seriya!',
+        'dashboard.telegram_reminder_title':
+            'Dars xabarnomalari uchun Telegram-ni ulang',
+        'dashboard.telegram_reminder_desc':
+            'Suhbat darslaringizdan 5 daqiqa oldin eslatmalar va to‘g‘ridan-to‘g‘ri Google Meet havolalarini olish uchun rasmiy Telegram botimizni ulang.',
+        'dashboard.telegram_recommended_badge': 'Tavsiya etiladi',
+        'dashboard.connect_telegram_btn': 'Telegram botni ulash',
+        'dashboard.telegram_settings_btn': 'Sozlamalar',
+        'dashboard.status_accepted': 'Qabul qilingan',
+        'dashboard.awaiting_payment_desc': 'To‘lov va admin tasdig‘i kutilmoqda',
 
         'dashboard.teacher_title': "O'qituvchi boshqaruv paneli",
         'dashboard.teacher_subtitle':
@@ -1811,6 +1852,19 @@ const dictionary = {
         'teacher.reason_length_validation':
             "Sabab 3 tadan 1000 tagacha belgidan iborat bo'lishi kerak",
         'teacher.action_failed': 'Amal bajarilmadi',
+        'teacher.session_management': 'Darslarni boshqarish',
+        'teacher.rejected_by_you': 'Siz tomondan rad etilgan',
+        'teacher.cancelled': 'Bekor qilingan',
+        'teacher.no_appointments_sub':
+            "O'quvchilarning dars band qilish so'rovlari shu yerda ko'rinadi.",
+        'teacher.quick_stats': 'Tezkor statistika',
+        'teacher.pending_review': 'Kutilmoqda',
+        'teacher.upcoming': 'Kelgusi',
+        'teacher.completed': 'Yakunlangan',
+        'teacher.marketplace_tip': 'Platforma maslahati',
+        'teacher.marketplace_tip_desc':
+            "Qabul qilish ko'rsatkichi va reytingingizni oshirish uchun dars so'rovlariga 2 soat ichida javob bering.",
+        'teacher.popular_times': 'Talab yuqori vaqtlar',
         'schedule.title': 'Mening jadvalim',
         'schedule.desc': 'Kelgusi tasdiqlangan darslaringiz.',
         'schedule.scheduled': 'Rejalashtirilgan',
@@ -1875,6 +1929,16 @@ const dictionary = {
         'labels.lessons': 'Tizimli darslar',
         'labels.business english': 'Biznes ingliz tili',
         'labels.practice q&a': 'Mashq Q&A',
+        'labels.ielts': 'IELTS tayyorgarlik',
+        'labels.toefl': 'TOEFL tayyorgarlik',
+        'labels.cefr': 'CEFR imtihoni',
+        'labels.grammar': 'Grammatika amaliyoti',
+        'labels.pronunciation': 'Talaffuz',
+        'labels.vocabulary': 'Lug‘at boyligi',
+        'labels.speaking': 'So‘zlashuv amaliyoti',
+        'labels.general english': 'Umumiy ingliz tili',
+        'labels.kids': 'Bolalar uchun ingliz tili',
+        'labels.interview': 'Ish suhbati',
         'bookings.title': 'Mening buyurtmalarim',
         'bookings.desc':
             "Kelgusi va kutilayotgan dars so'rovlaringizni boshqaring.",
@@ -2847,6 +2911,16 @@ const dictionary = {
         'dashboard.active_unit': 'активно',
         'dashboard.level': 'Уровень :level',
         'dashboard.streak': '🔥 Серия дней: :count!',
+        'dashboard.telegram_reminder_title':
+            'Подключите Telegram для уведомлений об уроках',
+        'dashboard.telegram_reminder_desc':
+            'Подключите нашего официального Telegram-бота, чтобы получать напоминания за 5 минут до урока и прямые ссылки на Google Meet.',
+        'dashboard.telegram_recommended_badge': 'Рекомендуется',
+        'dashboard.connect_telegram_btn': 'Подключить Telegram-бота',
+        'dashboard.telegram_settings_btn': 'Настройки',
+        'dashboard.status_accepted': 'Принято',
+        'dashboard.awaiting_payment_desc':
+            'Ожидает оплаты и подтверждения администратора',
 
         'dashboard.teacher_title': 'Панель преподавателя',
         'dashboard.teacher_subtitle':
@@ -2936,6 +3010,19 @@ const dictionary = {
         'teacher.reason_length_validation':
             'Причина должна быть длиной от 3 до 1000 символов',
         'teacher.action_failed': 'Действие не удалось',
+        'teacher.session_management': 'Управление сессиями',
+        'teacher.rejected_by_you': 'Отклонено вами',
+        'teacher.cancelled': 'Отменено',
+        'teacher.no_appointments_sub':
+            'Здесь будут отображаться запросы учеников на бронирование.',
+        'teacher.quick_stats': 'Быстрая статистика',
+        'teacher.pending_review': 'На рассмотрении',
+        'teacher.upcoming': 'Предстоящие',
+        'teacher.completed': 'Завершенные',
+        'teacher.marketplace_tip': 'Совет платформы',
+        'teacher.marketplace_tip_desc':
+            'Отвечайте на запросы в течение 2 часов, чтобы повысить процент подтверждения и свой рейтинг на платформе.',
+        'teacher.popular_times': 'Популярное время',
         'schedule.title': 'Моё расписание',
         'schedule.desc': 'Ваши предстоящие подтвержденные занятия.',
         'schedule.scheduled': 'Запланировано',
@@ -3001,6 +3088,16 @@ const dictionary = {
         'labels.lessons': 'Структурированные уроки',
         'labels.business english': 'Деловой английский',
         'labels.practice q&a': 'Практика Q&A',
+        'labels.ielts': 'Подготовка к IELTS',
+        'labels.toefl': 'Подготовка к TOEFL',
+        'labels.cefr': 'Экзамен CEFR',
+        'labels.grammar': 'Практика грамматики',
+        'labels.pronunciation': 'Произношение',
+        'labels.vocabulary': 'Словарный запас',
+        'labels.speaking': 'Разговорная практика',
+        'labels.general english': 'Общий английский',
+        'labels.kids': 'Английский для детей',
+        'labels.interview': 'Собеседование',
         'bookings.title': 'Мои бронирования',
         'bookings.desc':
             'Управляйте вашими предстоящими и ожидающими запросами на уроки.',

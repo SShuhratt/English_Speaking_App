@@ -167,7 +167,7 @@ export default function Appointments() {
                 {/* Header Banner */}
                 <div className="mb-6 overflow-hidden rounded-2xl bg-[#061445] px-6 py-8 md:px-10">
                     <p className="text-xs font-black tracking-widest text-[#fae18e] uppercase">
-                        Session Management
+                        {t('teacher.session_management')}
                     </p>
                     <h1 className="mt-1 text-2xl font-black text-white md:text-3xl">
                         {t('teacher.booking_requests')}
@@ -275,19 +275,19 @@ export default function Appointments() {
                                                                 {apt.topics.map(
                                                                     (
                                                                         topic: string,
-                                                                    ) => (
-                                                                        <span
-                                                                            key={
-                                                                                topic
-                                                                            }
-                                                                            className="rounded-lg bg-[#d0e4ff]/30 px-2 py-0.5 text-[10px] font-bold text-[#061445]"
-                                                                        >
-                                                                            #
-                                                                            {
-                                                                                topic
-                                                                            }
-                                                                        </span>
-                                                                    ),
+                                                                    ) => {
+                                                                        const topicKey = `labels.${topic.toLowerCase().trim()}`;
+                                                                        const translated = t(topicKey);
+                                                                        const displayTopic = translated && translated !== topicKey ? translated : topic;
+                                                                        return (
+                                                                            <span
+                                                                                key={topic}
+                                                                                className="rounded-lg bg-[#d0e4ff]/30 px-2 py-0.5 text-[10px] font-bold text-[#061445]"
+                                                                            >
+                                                                                #{displayTopic}
+                                                                            </span>
+                                                                        );
+                                                                    },
                                                                 )}
                                                             </div>
                                                         )}
@@ -301,8 +301,8 @@ export default function Appointments() {
                                                                 <p className="font-bold text-red-700">
                                                                     {apt.status ===
                                                                     'rejected'
-                                                                        ? 'Rejected by You'
-                                                                        : 'Cancelled'}
+                                                                        ? t('teacher.rejected_by_you')
+                                                                        : t('teacher.cancelled')}
                                                                 </p>
                                                                 <p className="mt-0.5 text-slate-500 italic">
                                                                     "
@@ -413,8 +413,7 @@ export default function Appointments() {
                                         {t('teacher.no_appointments')}
                                     </p>
                                     <p className="mt-1 text-xs text-slate-300">
-                                        Student booking requests will appear
-                                        here.
+                                        {t('teacher.no_appointments_sub')}
                                     </p>
                                 </div>
                             )}
@@ -426,12 +425,12 @@ export default function Appointments() {
                         {/* Quick Stats */}
                         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                             <p className="mb-3 text-xs font-black tracking-widest text-slate-400 uppercase">
-                                Quick Stats
+                                {t('teacher.quick_stats')}
                             </p>
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between rounded-xl bg-[#fffbeb] px-4 py-3">
                                     <span className="text-xs font-bold text-[#92700a]">
-                                        Pending Review
+                                        {t('teacher.pending_review')}
                                     </span>
                                     <span className="text-lg font-black text-[#061445]">
                                         {pendingCount}
@@ -439,7 +438,7 @@ export default function Appointments() {
                                 </div>
                                 <div className="flex items-center justify-between rounded-xl bg-[#f0f8ff] px-4 py-3">
                                     <span className="text-xs font-bold text-[#061445]/60">
-                                        Upcoming
+                                        {t('teacher.upcoming')}
                                     </span>
                                     <span className="text-lg font-black text-[#061445]">
                                         {upcomingCount}
@@ -447,7 +446,7 @@ export default function Appointments() {
                                 </div>
                                 <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
                                     <span className="text-xs font-bold text-slate-400">
-                                        Completed
+                                        {t('teacher.completed')}
                                     </span>
                                     <span className="text-lg font-black text-[#061445]">
                                         {completedCount}
@@ -461,13 +460,11 @@ export default function Appointments() {
                             <div className="mb-2 flex items-center gap-2">
                                 <TrendingUp className="h-4 w-4 text-[#92700a]" />
                                 <p className="text-xs font-black tracking-widest text-[#92700a] uppercase">
-                                    Marketplace Tip
+                                    {t('teacher.marketplace_tip')}
                                 </p>
                             </div>
                             <p className="text-xs leading-relaxed text-[#92700a]/80">
-                                Respond to booking requests within 2 hours to
-                                increase your acceptance rate and ranking on the
-                                platform.
+                                {t('teacher.marketplace_tip_desc')}
                             </p>
                         </div>
 
@@ -476,7 +473,7 @@ export default function Appointments() {
                             <div className="mb-3 flex items-center gap-2">
                                 <BookOpen className="h-4 w-4 text-[#061445]" />
                                 <p className="text-xs font-black tracking-widest text-slate-400 uppercase">
-                                    Popular Times
+                                    {t('teacher.popular_times')}
                                 </p>
                             </div>
                             {[

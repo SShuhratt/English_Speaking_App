@@ -18,6 +18,8 @@ import {
     ExternalLink,
     ShieldAlert,
     X,
+    Send,
+    Loader2,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import type { Auth } from '@/types';
@@ -134,6 +136,30 @@ function PupilDashboard({
     const { t, locale } = useTranslation();
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
     const [copiedCard, setCopiedCard] = useState(false);
+    const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
+
+    const handleConnectTelegram = async () => {
+        setIsConnectingTelegram(true);
+        try {
+            const response = await fetch('/settings/telegram/deep-link', {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            const data = await response.json();
+            if (data.deep_link) {
+                window.open(data.deep_link, '_blank');
+            } else {
+                router.visit('/settings/profile#telegram');
+            }
+        } catch (error) {
+            console.error('Failed to get Telegram deep link:', error);
+            router.visit('/settings/profile#telegram');
+        } finally {
+            setIsConnectingTelegram(false);
+        }
+    };
 
     const handleCopyCardNumber = (cardNumber: string) => {
         navigator.clipboard.writeText(cardNumber);
@@ -283,6 +309,57 @@ function PupilDashboard({
                 )}
             </div>
 
+            {/* Telegram Bot Connection Reminder */}
+            {!user?.telegram_chat_id && (
+                <div className="relative overflow-hidden rounded-3xl border border-sky-200/90 bg-gradient-to-r from-sky-50 via-white to-blue-50/60 p-5 shadow-sm transition-all duration-200 sm:p-6">
+                    <div className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-sky-200/30 blur-2xl"></div>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2AABEE] text-white shadow-md shadow-sky-300/50">
+                                <Send className="h-6 w-6" />
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="text-base font-bold text-gray-900">
+                                        {t('dashboard.telegram_reminder_title')}
+                                    </h3>
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-100/90 px-2.5 py-0.5 text-xs font-bold text-sky-800">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+                                        {t('dashboard.telegram_recommended_badge')}
+                                    </span>
+                                </div>
+                                <p className="max-w-2xl text-xs leading-relaxed text-gray-600 sm:text-sm">
+                                    {t('dashboard.telegram_reminder_desc')}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
+                            <button
+                                type="button"
+                                onClick={handleConnectTelegram}
+                                disabled={isConnectingTelegram}
+                                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#2AABEE] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-400/20 transition-all hover:bg-[#229ED9] hover:shadow-lg active:scale-95 disabled:opacity-50 sm:text-sm"
+                            >
+                                {isConnectingTelegram ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Send className="h-4 w-4" />
+                                )}
+                                <span>{t('dashboard.connect_telegram_btn')}</span>
+                                <ExternalLink className="h-3.5 w-3.5 opacity-80" />
+                            </button>
+                            <Link
+                                href="/settings/profile#telegram"
+                                className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95 sm:text-sm"
+                            >
+                                <span>{t('dashboard.telegram_settings_btn')}</span>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Stats Cards Grid */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {/* Jami gapirish vaqti */}
@@ -367,189 +444,204 @@ function PupilDashboard({
                 </div>
             </div>
 
-            {/* Gamification & Student Retention Showcase */}
-            {gamification && (
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    {gamification.daily_spark && (
-                        <DailySpeakingSparkCard spark={gamification.daily_spark} />
-                    )}
-                    {gamification.leaderboard && (
-                        <WeeklyLeaderboardCard leaderboard={gamification.leaderboard} />
-                    )}
-                </div>
-            )}
+            {/* Gamification & Upcoming Sessions Sections (Upcoming sessions placed above when appointments > 0) */}
+            {(() => {
+                const gamificationSection = gamification ? (
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        {gamification.daily_spark && (
+                            <DailySpeakingSparkCard spark={gamification.daily_spark} />
+                        )}
+                        {gamification.leaderboard && (
+                            <WeeklyLeaderboardCard leaderboard={gamification.leaderboard} />
+                        )}
+                    </div>
+                ) : null;
 
-            {/* Upcoming Sessions List */}
-            <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-10">
-                <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f]">
-                    <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445]"></span>
-                    <span>{t('dashboard.upcoming_sessions')}</span>
-                </h2>
+                const upcomingSessionsSection = (
+                    <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-10">
+                        <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f]">
+                            <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445]"></span>
+                            <span>{t('dashboard.upcoming_sessions')}</span>
+                        </h2>
 
-                {appointments.length > 0 ? (
-                    <div className="flex flex-col gap-5">
-                        {appointments.map((apt) => (
-                            <div
-                                key={apt.id}
-                                className="group hover:shadow-ambient-md overflow-hidden rounded-3xl border border-[#c6c5d0]/35 bg-white shadow-sm transition-all duration-300 hover:border-[#061445]/20"
-                            >
-                                <div className="flex flex-col justify-between gap-4 border-b border-[#c6c5d0]/35 p-6 sm:flex-row sm:items-center">
-                                    <div className="flex items-center gap-4">
-                                        {apt.teacher ? (
-                                            <Link
-                                                href={`/profile/${apt.teacher.id}`}
-                                                className="shrink-0"
-                                            >
-                                                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105">
-                                                    {apt.teacher?.avatar ? (
-                                                        <img
-                                                            src={
-                                                                apt.teacher
-                                                                    .avatar
-                                                            }
-                                                            className="h-full w-full object-cover"
-                                                            alt="avatar"
-                                                        />
-                                                    ) : (
-                                                        <Mic className="h-6 w-6" />
-                                                    )}
-                                                </div>
-                                            </Link>
-                                        ) : (
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445]">
-                                                <Mic className="h-6 w-6" />
-                                            </div>
-                                        )}
-                                        <div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h4 className="text-base font-bold text-[#1b1b1f]">
-                                                    {t(
-                                                        'dashboard.speaking_practice',
-                                                    )}
-                                                </h4>
-                                                {apt.status === 'accepted' && (
-                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-amber-800 uppercase">
-                                                        STATUS ACCEPTED
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-sm font-medium text-[#45464f]">
-                                                {t('dashboard.with_teacher', {
-                                                    name: '',
-                                                })}
+                        {appointments.length > 0 ? (
+                            <div className="flex flex-col gap-5">
+                                {appointments.map((apt) => (
+                                    <div
+                                        key={apt.id}
+                                        className="group hover:shadow-ambient-md overflow-hidden rounded-3xl border border-[#c6c5d0]/35 bg-white shadow-sm transition-all duration-300 hover:border-[#061445]/20"
+                                    >
+                                        <div className="flex flex-col justify-between gap-4 border-b border-[#c6c5d0]/35 p-6 sm:flex-row sm:items-center">
+                                            <div className="flex items-center gap-4">
                                                 {apt.teacher ? (
                                                     <Link
                                                         href={`/profile/${apt.teacher.id}`}
-                                                        className="font-bold text-[#061445] hover:underline"
+                                                        className="shrink-0"
                                                     >
-                                                        {apt.teacher.full_name}
+                                                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105">
+                                                            {apt.teacher?.avatar ? (
+                                                                <img
+                                                                    src={
+                                                                        apt.teacher
+                                                                            .avatar
+                                                                    }
+                                                                    className="h-full w-full object-cover"
+                                                                    alt="avatar"
+                                                                />
+                                                            ) : (
+                                                                <Mic className="h-6 w-6" />
+                                                            )}
+                                                        </div>
                                                     </Link>
                                                 ) : (
-                                                    ''
+                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445]">
+                                                        <Mic className="h-6 w-6" />
+                                                    </div>
                                                 )}
-                                            </p>
+                                                <div>
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <h4 className="text-base font-bold text-[#1b1b1f]">
+                                                            {t(
+                                                                'dashboard.speaking_practice',
+                                                            )}
+                                                        </h4>
+                                                        {apt.status === 'accepted' && (
+                                                            <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-amber-800 uppercase">
+                                                                {t('dashboard.status_accepted') || 'Accepted'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm font-medium text-[#45464f]">
+                                                        {t('dashboard.with_teacher', {
+                                                            name: '',
+                                                        })}
+                                                        {apt.teacher ? (
+                                                            <Link
+                                                                href={`/profile/${apt.teacher.id}`}
+                                                                className="font-bold text-[#061445] hover:underline"
+                                                            >
+                                                                {apt.teacher.full_name}
+                                                            </Link>
+                                                        ) : (
+                                                            ''
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col sm:text-right">
+                                                <span className="font-bold text-[#061445]">
+                                                    {new Date(
+                                                        apt.start_at,
+                                                    ).toLocaleDateString(locale, {
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })}
+                                                </span>
+                                                <span className="mt-0.5 text-xs font-semibold text-[#45464f]">
+                                                    {new Date(
+                                                        apt.start_at,
+                                                    ).toLocaleTimeString(locale, {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}{' '}
+                                                    -{' '}
+                                                    {new Date(
+                                                        apt.end_at,
+                                                    ).toLocaleTimeString(locale, {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-end gap-3 bg-brand-lightblue/20 px-6 py-4">
+                                            {apt.status === 'accepted' ? (
+                                                <>
+                                                    <span className="mr-auto text-xs font-bold text-amber-800">
+                                                        {t('dashboard.awaiting_payment_desc') ||
+                                                            'Awaiting payment & admin confirmation'}
+                                                    </span>
+                                                    <button
+                                                        onClick={() =>
+                                                            setPaymentBooking(apt)
+                                                        }
+                                                        className="flex animate-pulse cursor-pointer items-center gap-2 rounded-full bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all hover:-translate-y-0.5 hover:bg-brand-button-hover"
+                                                    >
+                                                        💳{' '}
+                                                        {t('booking.pay_now') ||
+                                                            'Pay Now'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleCancel(apt.id)
+                                                        }
+                                                        className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
+                                                    >
+                                                        {t('dashboard.cancel_button')}
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleCancel(apt.id)
+                                                        }
+                                                        className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
+                                                    >
+                                                        {t('dashboard.cancel_button')}
+                                                    </button>
+                                                    <PupilMeetingButton
+                                                        apt={apt}
+                                                        handleJoin={handleJoin}
+                                                    />
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="flex flex-col sm:text-right">
-                                        <span className="font-bold text-[#061445]">
-                                            {new Date(
-                                                apt.start_at,
-                                            ).toLocaleDateString(locale, {
-                                                month: 'long',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                            })}
-                                        </span>
-                                        <span className="mt-0.5 text-xs font-semibold text-[#45464f]">
-                                            {new Date(
-                                                apt.start_at,
-                                            ).toLocaleTimeString(locale, {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            })}{' '}
-                                            -{' '}
-                                            {new Date(
-                                                apt.end_at,
-                                            ).toLocaleTimeString(locale, {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            })}
-                                        </span>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="mx-auto flex max-w-md flex-col items-center space-y-5 px-4 py-8 text-center">
+                                <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[#d0e4ff] text-4xl shadow-inner">
+                                    🎙️
+                                    <div className="absolute -right-1 -bottom-1 flex h-8 w-8 animate-bounce items-center justify-center rounded-full bg-amber-400 text-sm shadow-sm">
+                                        ✨
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-end gap-3 bg-brand-lightblue/20 px-6 py-4">
-                                    {apt.status === 'accepted' ? (
-                                        <>
-                                            <span className="mr-auto text-xs font-bold text-amber-800">
-                                                Awaiting payment & admin
-                                                confirmation
-                                            </span>
-                                            <button
-                                                onClick={() =>
-                                                    setPaymentBooking(apt)
-                                                }
-                                                className="flex animate-pulse cursor-pointer items-center gap-2 rounded-full bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all hover:-translate-y-0.5 hover:bg-brand-button-hover"
-                                            >
-                                                💳{' '}
-                                                {t('booking.pay_now') ||
-                                                    'Pay Now'}
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleCancel(apt.id)
-                                                }
-                                                className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
-                                            >
-                                                {t('dashboard.cancel_button')}
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button
-                                                onClick={() =>
-                                                    handleCancel(apt.id)
-                                                }
-                                                className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
-                                            >
-                                                {t('dashboard.cancel_button')}
-                                            </button>
-                                            <PupilMeetingButton
-                                                apt={apt}
-                                                handleJoin={handleJoin}
-                                            />
-                                        </>
-                                    )}
+
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-bold text-[#1b1b1f]">
+                                        {t('dashboard.no_upcoming')}
+                                    </h3>
+                                    <p className="text-sm leading-relaxed text-[#45464f]">
+                                        {t('dashboard.no_upcoming_sub')}
+                                    </p>
                                 </div>
+
+                                <Link
+                                    href="/pupil/teachers"
+                                    className="block rounded-full bg-[#061445] px-6 py-3 text-center font-bold text-white shadow-md shadow-[#061445]/10 transition-all duration-150 hover:scale-[1.01] hover:bg-[#061445]/90 active:scale-[0.99]"
+                                >
+                                    {t('dashboard.book_now')}
+                                </Link>
                             </div>
-                        ))}
+                        )}
                     </div>
+                );
+
+                return appointments.length > 0 ? (
+                    <>
+                        {upcomingSessionsSection}
+                        {gamificationSection}
+                    </>
                 ) : (
-                    <div className="mx-auto flex max-w-md flex-col items-center space-y-5 px-4 py-8 text-center">
-                        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[#d0e4ff] text-4xl shadow-inner">
-                            🎙️
-                            <div className="absolute -right-1 -bottom-1 flex h-8 w-8 animate-bounce items-center justify-center rounded-full bg-amber-400 text-sm shadow-sm">
-                                ✨
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h3 className="text-xl font-bold text-[#1b1b1f]">
-                                {t('dashboard.no_upcoming')}
-                            </h3>
-                            <p className="text-sm leading-relaxed text-[#45464f]">
-                                {t('dashboard.no_upcoming_sub')}
-                            </p>
-                        </div>
-
-                        <Link
-                            href="/pupil/teachers"
-                            className="block rounded-full bg-[#061445] px-6 py-3 text-center font-bold text-white shadow-md shadow-[#061445]/10 transition-all duration-150 hover:scale-[1.01] hover:bg-[#061445]/90 active:scale-[0.99]"
-                        >
-                            {t('dashboard.book_now')}
-                        </Link>
-                    </div>
-                )}
-            </div>
+                    <>
+                        {gamificationSection}
+                        {upcomingSessionsSection}
+                    </>
+                );
+            })()}
 
             {/* Payment Modal (Pop-up on Dashboard) */}
             {paymentBooking && (

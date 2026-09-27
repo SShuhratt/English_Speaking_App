@@ -217,14 +217,19 @@ export default function Schedule({ appointments }: Props) {
                                             apt.topics.length > 0 && (
                                                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                                                     {apt.topics.map(
-                                                        (topic: string) => (
-                                                            <span
-                                                                key={topic}
-                                                                className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown"
-                                                            >
-                                                                #{topic}
-                                                            </span>
-                                                        ),
+                                                        (topic: string) => {
+                                                            const topicKey = `labels.${topic.toLowerCase().trim()}`;
+                                                            const translated = t(topicKey);
+                                                            const displayTopic = translated && translated !== topicKey ? translated : topic;
+                                                            return (
+                                                                <span
+                                                                    key={topic}
+                                                                    className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown"
+                                                                >
+                                                                    #{displayTopic}
+                                                                </span>
+                                                            );
+                                                        },
                                                     )}
                                                 </div>
                                             )}

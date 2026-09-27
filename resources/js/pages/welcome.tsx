@@ -175,8 +175,8 @@ export default function Welcome() {
             <div className="min-h-screen bg-white text-[#232A45] antialiased">
                 {/* ── Main Header ── */}
                 <header className="sticky top-0 z-50 border-b border-[#EAE4D2] bg-white/95 backdrop-blur-md">
-                    <div className="wrap flex h-[76px] items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2.5">
+                    <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-6 lg:gap-8 lg:px-8">
+                        <Link href="/" className="flex shrink-0 items-center gap-2.5">
                             <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#1E2A5A]/10 bg-white p-1 shadow-md shadow-[#1E2A5A]/10 transition-transform hover:scale-105">
                                 <img
                                     src="/images/logo.png"
@@ -190,7 +190,7 @@ export default function Welcome() {
                             </span>
                         </Link>
 
-                        <nav className="hidden items-center gap-[30px] text-[15px] font-semibold text-[#5C6480] md:flex">
+                        <nav className="hidden items-center justify-center gap-6 text-[14px] font-semibold text-[#5C6480] whitespace-nowrap lg:flex xl:gap-8 xl:text-[15px]">
                             <a
                                 href="#why"
                                 className="transition-colors hover:text-[#1E2A5A]"
@@ -211,11 +211,11 @@ export default function Welcome() {
                             </a>
                         </nav>
 
-                        <div className="xs:gap-2 flex shrink-0 items-center gap-1.5 sm:gap-3 md:gap-4">
+                        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5">
                             {/* 1. Language Dropdown */}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border-2 border-[#EAE4D2] bg-white px-2 py-1 text-[11px] font-bold text-[#5C6480] sm:px-3 sm:py-1.5 sm:text-xs">
+                                    <button className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border-2 border-[#EAE4D2] bg-white px-2.5 py-1 text-[11px] font-bold text-[#5C6480] sm:px-3 sm:py-1.5 sm:text-xs">
                                         <Globe className="h-3.5 w-3.5 text-[#1E2A5A]" />
                                         <span className="font-extrabold uppercase">
                                             {locale}
@@ -259,7 +259,7 @@ export default function Welcome() {
                             {auth.user ? (
                                 <Link
                                     href="/dashboard"
-                                    className="btn-primary shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition-transform hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-[15px]"
+                                    className="btn-primary shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition-transform hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-sm"
                                 >
                                     {t('nav.dashboard')}
                                 </Link>
@@ -268,7 +268,7 @@ export default function Welcome() {
                                     {/* 2. Text Link: Log In */}
                                     <Link
                                         href="/login"
-                                        className="shrink-0 px-0.5 text-xs font-bold text-[#1E2A5A] hover:underline sm:px-1 sm:text-[15px]"
+                                        className="shrink-0 px-1 text-xs font-bold text-[#1E2A5A] hover:underline sm:text-sm"
                                     >
                                         {t('welcome.login')}
                                     </Link>
@@ -276,7 +276,7 @@ export default function Welcome() {
                                     {/* 3. Outlined Secondary Button: Be a teacher (Desktop: full label, Mobile: compact Teach badge) */}
                                     <Link
                                         href="/register?role=teacher"
-                                        className="inline-flex shrink-0 items-center rounded-full border border-[#1E2A5A]/30 px-2 py-1 text-[11px] font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB] sm:px-4 sm:py-2 sm:text-sm"
+                                        className="inline-flex shrink-0 items-center rounded-full border border-[#1E2A5A]/30 px-2.5 py-1 text-[11px] font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB] sm:px-4 sm:py-2 sm:text-xs md:text-sm"
                                     >
                                         <span className="hidden sm:inline">
                                             {t('welcome.be_teacher')}
@@ -287,7 +287,7 @@ export default function Welcome() {
                                     {/* 4. Solid Primary CTA: Book a lesson */}
                                     <Link
                                         href="/register"
-                                        className="btn-primary shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition-transform hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-[15px]"
+                                        className="btn-primary shrink-0 rounded-full px-3 py-1 text-[11px] font-bold transition-transform hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-xs md:text-sm"
                                     >
                                         <span className="hidden sm:inline">
                                             {t('welcome.book_lesson')}
@@ -302,7 +302,7 @@ export default function Welcome() {
                                 onClick={() =>
                                     setMobileMenuOpen(!mobileMenuOpen)
                                 }
-                                className="flex shrink-0 rounded-xl p-1 text-[#1E2A5A] transition-colors hover:bg-[#EEF4FB] md:hidden"
+                                className="flex shrink-0 rounded-xl p-1 text-[#1E2A5A] transition-colors hover:bg-[#EEF4FB] lg:hidden"
                                 aria-label="Toggle Menu"
                             >
                                 {mobileMenuOpen ? (
@@ -316,7 +316,7 @@ export default function Welcome() {
 
                     {/* Mobile Drawer Menu */}
                     {mobileMenuOpen && (
-                        <div className="animate-in border-t border-[#EAE4D2] bg-white px-6 py-5 shadow-lg duration-200 slide-in-from-top md:hidden">
+                        <div className="animate-in border-t border-[#EAE4D2] bg-white px-6 py-5 shadow-lg duration-200 slide-in-from-top lg:hidden">
                             <div className="flex flex-col gap-4 font-semibold text-[#5C6480]">
                                 <a
                                     href="#why"
