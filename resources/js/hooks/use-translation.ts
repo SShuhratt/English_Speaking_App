@@ -3772,7 +3772,7 @@ const dictionary = {
         'progress.goals_summary': 'Цели: Н1 (:w1) · Н2 (:w2) · Н3 (:w3) · Н4 (:w4)',
         'progress.week_done': ':week-я неделя пройдена',
         'progress.week_goal': 'Цель :week-й недели',
-        'progress.assessment_empty_title': 'Готовы к официальной оценке IELTS/CEFR?',
+        'progress.assessment_empty_title': 'Готовы к официальной оценке?',
         'progress.latest_official_evaluation': 'Последняя официальная оценка',
         'progress.previous_assessments': 'История предыдущих оценок',
         'progress.modal_goals_title': 'Цели практики на 4 недели',

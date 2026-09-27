@@ -230,7 +230,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                 {t('progress.my_progress') || 'My Progress'}
                             </span>
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-300">
-                                Comprehensive Hub
+                                {t('progress.hub_badge') || 'Progress Hub'}
                             </span>
                         </div>
 
@@ -252,7 +252,11 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                 className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-md shadow-amber-500/20 active:scale-95 cursor-pointer"
                             >
                                 <span>🛍️</span>
-                                <span>{gamification.xp_store.available_xp?.toLocaleString() ?? 0} XP Store</span>
+                                <span>
+                                    {t('progress.xp_store_btn', {
+                                        count: (gamification.xp_store.available_xp ?? 0).toLocaleString(),
+                                    }) || `${gamification.xp_store.available_xp?.toLocaleString() ?? 0} XP Store`}
+                                </span>
                             </button>
                         )}
 
@@ -273,7 +277,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                         <div className="flex items-center gap-2">
                             <span className="inline-block h-5 w-2 rounded-sm bg-[#1E2A5A]"></span>
                             <h2 className="text-lg font-bold text-[#1E2A5A]">
-                                4-Week Speaking Journey
+                                {t('progress.roadmap_title') || '4-Week Speaking Journey'}
                             </h2>
                         </div>
                         <button
@@ -286,7 +290,12 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                             }}
                             className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E8E4D8] px-3.5 py-1.5 text-xs font-semibold text-[#1E2A5A] transition hover:bg-[#FDF9EC]"
                         >
-                            Goals: W1 ({weeklyGoals[0]}) · W2 ({weeklyGoals[1]}) · W3 ({weeklyGoals[2]}) · W4 ({weeklyGoals[3]})
+                            {t('progress.goals_summary', {
+                                w1: String(weeklyGoals[0]),
+                                w2: String(weeklyGoals[1]),
+                                w3: String(weeklyGoals[2]),
+                                w4: String(weeklyGoals[3]),
+                            }) || `Goals: W1 (${weeklyGoals[0]}) · W2 (${weeklyGoals[1]}) · W3 (${weeklyGoals[2]}) · W4 (${weeklyGoals[3]})`}
                             <Pencil className="h-3 w-3 text-[#888780]" />
                         </button>
                     </div>
@@ -375,7 +384,9 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                                     fontSize="11"
                                                     fontWeight="600"
                                                 >
-                                                    Week {node.weekIndex + 1} {isDone ? 'done' : 'goal'}
+                                                    {isDone
+                                                        ? t('progress.week_done', { week: String(node.weekIndex + 1) }) || `Week ${node.weekIndex + 1} done`
+                                                        : t('progress.week_goal', { week: String(node.weekIndex + 1) }) || `Week ${node.weekIndex + 1} goal`}
                                                 </text>
                                                 {isNextUp && (
                                                     <text
@@ -386,7 +397,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                                         fontSize="10"
                                                         fontWeight="700"
                                                     >
-                                                        You are here
+                                                        {t('progress.you_are_here') || 'You are here'}
                                                     </text>
                                                 )}
                                             </g>
@@ -432,7 +443,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                                     fontSize="10"
                                                     fontWeight="700"
                                                 >
-                                                    You are here
+                                                    {t('progress.you_are_here') || 'You are here'}
                                                 </text>
                                             )}
                                         </g>
@@ -514,7 +525,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                         )}
                                         <div>
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
-                                                Latest Official Evaluation
+                                                {t('progress.latest_official_evaluation', 'Latest Official Evaluation')}
                                             </span>
                                             <h3 className="text-sm font-bold text-slate-900">
                                                 {latestAssessment.teacher.name}
@@ -598,7 +609,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                             {isAssessmentHistoryOpen && assessments.length > 1 && (
                                 <div className="space-y-3 pt-2">
                                     <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                                        Previous Rubric Assessments
+                                        {t('progress.previous_assessments', 'Previous Rubric Assessments')}
                                     </h4>
                                     <div className="space-y-3">
                                         {assessments.slice(1).map((record) => (
@@ -636,19 +647,19 @@ export default function Progress({ progress, gamification, assessments = [] }: P
 
                                                 <div className="grid grid-cols-4 gap-2 text-center text-xs mt-3">
                                                     <div className="bg-white rounded-lg p-1.5 border border-slate-100">
-                                                        <span className="text-[10px] text-slate-400 block">Fluency</span>
+                                                        <span className="text-[10px] text-slate-400 block">{t('assessment.fluency_short', 'Fluency')}</span>
                                                         <span className="font-bold text-indigo-900">{record.fluency_score.toFixed(1)}</span>
                                                     </div>
                                                     <div className="bg-white rounded-lg p-1.5 border border-slate-100">
-                                                        <span className="text-[10px] text-slate-400 block">Lexical</span>
+                                                        <span className="text-[10px] text-slate-400 block">{t('assessment.lexical_short', 'Lexical')}</span>
                                                         <span className="font-bold text-indigo-900">{record.lexical_score.toFixed(1)}</span>
                                                     </div>
                                                     <div className="bg-white rounded-lg p-1.5 border border-slate-100">
-                                                        <span className="text-[10px] text-slate-400 block">Grammar</span>
+                                                        <span className="text-[10px] text-slate-400 block">{t('assessment.grammar_short', 'Grammar')}</span>
                                                         <span className="font-bold text-indigo-900">{record.grammar_score.toFixed(1)}</span>
                                                     </div>
                                                     <div className="bg-white rounded-lg p-1.5 border border-slate-100">
-                                                        <span className="text-[10px] text-slate-400 block">Pronunciation</span>
+                                                        <span className="text-[10px] text-slate-400 block">{t('assessment.pronunciation_short', 'Pronunciation')}</span>
                                                         <span className="font-bold text-indigo-900">{record.pronunciation_score.toFixed(1)}</span>
                                                     </div>
                                                 </div>
@@ -670,7 +681,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                 <Award className="h-6 w-6" />
                             </div>
                             <h3 className="text-sm font-bold text-slate-900 mb-1">
-                                Ready for an Official Rubric Assessment?
+                                {t('progress.assessment_empty_title', 'Ready for an Official Rubric Assessment?')}
                             </h3>
                             <p className="text-xs text-slate-500 max-w-md mx-auto mb-4 leading-relaxed">
                                 {t(
@@ -719,7 +730,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                     <div className="relative mx-4 flex w-full max-w-md flex-col rounded-3xl border border-[#E8E4D8] bg-white p-6 shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#E8E4D8]/60 pb-3">
                             <h3 className="text-lg font-bold text-[#1E2A5A]">
-                                Set 4-Week Session Goals
+                                {t('progress.modal_goals_title', 'Set 4-Week Session Goals')}
                             </h3>
                             <button
                                 onClick={() => setIsGoalModalOpen(false)}
@@ -731,13 +742,16 @@ export default function Progress({ progress, gamification, assessments = [] }: P
 
                         <form onSubmit={handleSaveGoals} className="mt-4 space-y-4">
                             <p className="text-xs font-medium text-slate-500">
-                                Configure the number of session checkpoints for each week (1 to 350 sessions/week).
+                                {t(
+                                    'progress.modal_goals_desc',
+                                    'Configure the number of session checkpoints for each week (1 to 350 sessions/week).'
+                                )}
                             </p>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-xs font-bold text-[#1E2A5A]">
-                                        Week 1 Goal
+                                        {t('progress.week_n_goal', { week: '1' }) || 'Week 1 Goal'}
                                     </label>
                                     <input
                                         type="number"
@@ -751,7 +765,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-[#1E2A5A]">
-                                        Week 2 Goal
+                                        {t('progress.week_n_goal', { week: '2' }) || 'Week 2 Goal'}
                                     </label>
                                     <input
                                         type="number"
@@ -765,7 +779,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-[#1E2A5A]">
-                                        Week 3 Goal
+                                        {t('progress.week_n_goal', { week: '3' }) || 'Week 3 Goal'}
                                     </label>
                                     <input
                                         type="number"
@@ -779,7 +793,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-[#1E2A5A]">
-                                        Week 4 Goal
+                                        {t('progress.week_n_goal', { week: '4' }) || 'Week 4 Goal'}
                                     </label>
                                     <input
                                         type="number"
@@ -799,14 +813,16 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                                     onClick={() => setIsGoalModalOpen(false)}
                                     className="rounded-xl border border-[#E8E4D8] px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
                                 >
-                                    Cancel
+                                    {t('progress.cancel_btn', 'Cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submitting}
                                     className="rounded-xl bg-[#1E2A5A] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#061445] disabled:opacity-50"
                                 >
-                                    {submitting ? 'Saving...' : 'Save Goals'}
+                                    {submitting
+                                        ? t('progress.saving', 'Saving...')
+                                        : t('progress.save_goals', 'Save Goals')}
                                 </button>
                             </div>
                         </form>
