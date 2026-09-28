@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\SupportMessage;
 use App\Models\User;
+use App\Services\FileStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AdminUserController extends Controller
@@ -16,7 +18,7 @@ class AdminUserController extends Controller
     {
         $statusFilter = $request->query('status', 'all');
 
-        $query = User::where('role', 'teacher')->with(['teacherProfile']);
+        $query = User::where('role', 'teacher')->with(['teacherProfile:id,user_id,overall_level,speaking_band,price,is_verified,certificates,intro_video_url']);
 
         if ($statusFilter === 'verified') {
             $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
@@ -186,6 +188,42 @@ class AdminUserController extends Controller
         ]);
 
         return back()->with('success', 'Certificate status updated successfully.');
+    }
+
+    /**
+     * Download a teacher's intro video for the admin.
+     *
+     * For local/public disk videos the file is streamed with a
+     * Content-Disposition: attachment header so the browser saves it.
+     * For GCS (or any remote URL that is already publicly accessible)
+     * we redirect directly to the URL — the browser will download it.
+     */
+    public function downloadIntroVideo(string $id)
+    {
+        $user = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+        $profile = $user->teacherProfile;
+
+        if (! $profile || ! $profile->intro_video_url) {
+            abort(404, 'This teacher has no intro video uploaded.');
+        }
+
+        $videoUrl = $profile->intro_video_url;
+        $relativePath = FileStorageService::extractStoragePath($videoUrl);
+        $filename = 'intro-video-'.$user->id.'.'.pathinfo($videoUrl, PATHINFO_EXTENSION ?: 'mp4');
+
+        // Try to serve from the configured default disk first
+        $defaultDisk = config('filesystems.default', 'public');
+        if ($relativePath && Storage::disk($defaultDisk)->exists($relativePath)) {
+            return Storage::disk($defaultDisk)->download($relativePath, $filename);
+        }
+
+        // Fallback: try the public disk (local)
+        if ($relativePath && Storage::disk('public')->exists($relativePath)) {
+            return Storage::disk('public')->download($relativePath, $filename);
+        }
+
+        // For remote cloud URLs (GCS, S3, etc.) redirect so the browser downloads directly
+        return redirect()->away($videoUrl);
     }
 
     /**

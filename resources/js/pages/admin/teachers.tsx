@@ -24,6 +24,8 @@ import {
     Edit,
     Check,
     Trash2,
+    Download,
+    Video,
 } from 'lucide-react';
 import DeleteUserModal from '@/components/delete-user-modal';
 
@@ -34,6 +36,7 @@ interface TeacherProfile {
     price?: number;
     is_verified?: boolean;
     certificates?: any;
+    intro_video_url?: string | null;
 }
 
 interface Teacher {
@@ -429,6 +432,25 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                     ? 'Close'
                                                                     : 'Inspect & Edit Scores'}
                                                             </Button>
+
+                                                            {teacher.teacher_profile?.intro_video_url ? (
+                                                                <a
+                                                                    href={`/admin/teachers/${teacher.id}/download-video`}
+                                                                    className="inline-flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300"
+                                                                    title="Download teacher intro video"
+                                                                >
+                                                                    <Download className="h-3.5 w-3.5" />
+                                                                    Download Video
+                                                                </a>
+                                                            ) : (
+                                                                <span
+                                                                    className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700"
+                                                                    title="No intro video uploaded"
+                                                                >
+                                                                    <Video className="h-3.5 w-3.5" />
+                                                                    No Video
+                                                                </span>
+                                                            )}
 
                                                             <Button
                                                                 size="sm"

@@ -56,6 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/teachers/{id}/verify', [AdminUserController::class, 'verifyTeacher'])->name('teachers.verify');
         Route::post('/teachers/{id}/certificates', [AdminUserController::class, 'updateCertificates'])->name('teachers.certificates.update');
         Route::post('/teachers/{id}/certificates/{index}/verify', [AdminUserController::class, 'verifySingleCertificate'])->name('teachers.certificates.verify-single');
+        Route::get('/teachers/{id}/download-video', [AdminUserController::class, 'downloadIntroVideo'])->name('teachers.download-video');
         Route::get('/pupils', [AdminUserController::class, 'pupils'])->name('pupils');
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
