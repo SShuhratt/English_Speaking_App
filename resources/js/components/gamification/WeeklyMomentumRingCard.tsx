@@ -124,8 +124,8 @@ export default function WeeklyMomentumRingCard({ momentum }: { momentum: WeeklyM
                             )}
                         </div>
                         <p className="text-xs text-[#45464f] dark:text-[#A0A0B0]">
-                            {t('gamification.momentum_subtext') ||
-                                'Consistent practice builds natural speaking reflexes. Complete 3 sessions each week to maintain momentum.'}
+                            {t('gamification.momentum_subtext', { count: String(momentum.weekly_target) }) ||
+                                `Consistent practice builds natural speaking reflexes. Complete ${momentum.weekly_target} sessions each week to maintain momentum.`}
                         </p>
                     </div>
 

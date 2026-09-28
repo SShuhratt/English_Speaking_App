@@ -138,7 +138,7 @@ const dictionary = {
         'gamification.shield_ready': 'Shield Active',
         'gamification.sessions_label': 'Sessions',
         'gamification.progress_completed': 'Completed',
-        'gamification.momentum_subtext': 'Consistent practice builds natural speaking reflexes. Complete 3 sessions each week to maintain momentum.',
+        'gamification.momentum_subtext': 'Consistent practice builds natural speaking reflexes. Complete :count sessions each week to maintain momentum.',
         'gamification.momentum_streak_weeks': 'Weeks Consistent',
         'gamification.start_speaking_btn': 'Start Speaking',
 
@@ -1528,7 +1528,7 @@ const dictionary = {
         'gamification.shield_ready': 'Qalqon faol',
         'gamification.sessions_label': 'Suhbatlar',
         'gamification.progress_completed': 'Bajarildi',
-        'gamification.momentum_subtext': 'Muntazam mashq qilish tabiiy so‘zlashuv ko‘nikmasini shakllantiradi. Haftasiga 3 ta suhbat qiling.',
+        'gamification.momentum_subtext': 'Muntazam mashq qilish tabiiy so‘zlashuv ko‘nikmasini shakllantiradi. Haftasiga :count ta suhbat qiling.',
         'gamification.momentum_streak_weeks': 'Haftalik ketma-ketlik',
         'gamification.start_speaking_btn': 'Suhbatni boshlash',
 
@@ -2944,7 +2944,7 @@ const dictionary = {
         'gamification.shield_ready': 'Щит активен',
         'gamification.sessions_label': 'Сессий',
         'gamification.progress_completed': 'Выполнено',
-        'gamification.momentum_subtext': 'Регулярная практика формирует беглую речь. Проводите 3 сессии в неделю.',
+        'gamification.momentum_subtext': 'Регулярная практика формирует беглую речь. Проводите :count сессии в неделю.',
         'gamification.momentum_streak_weeks': 'Недель подряд',
         'gamification.start_speaking_btn': 'Начать разговор',
 

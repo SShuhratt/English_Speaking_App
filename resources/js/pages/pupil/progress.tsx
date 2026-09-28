@@ -75,10 +75,10 @@ export default function Progress({ progress, gamification, assessments = [] }: P
         progress.weekly_goals && progress.weekly_goals.length === 4
             ? progress.weekly_goals
             : [
-                  progress.weekly_goal || 2,
-                  progress.weekly_goal || 2,
-                  progress.weekly_goal || 2,
-                  progress.weekly_goal || 2,
+                  progress.weekly_goal || 3,
+                  progress.weekly_goal || 3,
+                  progress.weekly_goal || 3,
+                  progress.weekly_goal || 3,
               ];
 
     const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
