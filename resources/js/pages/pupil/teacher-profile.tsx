@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, setLayoutProps, usePage, router } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
@@ -27,6 +27,7 @@ import {
     Package,
     CheckCircle2,
     AlertCircle,
+    Share2,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -155,6 +156,15 @@ export default function TeacherProfile({
         price: number;
         teacherName: string;
     } | null>(null);
+    const [copiedProfile, setCopiedProfile] = useState(false);
+
+    const handleShareProfile = () => {
+        const url = `${window.location.origin}/profile/${teacher.id}`;
+        navigator.clipboard.writeText(url).then(() => {
+            setCopiedProfile(true);
+            setTimeout(() => setCopiedProfile(false), 2000);
+        });
+    };
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
@@ -870,6 +880,28 @@ export default function TeacherProfile({
                                     <Trash2 className="mr-1 h-3.5 w-3.5" />{' '}
                                     {t('admin.delete_teacher')}
                                 </Button>
+                                <button
+                                    type="button"
+                                    onClick={handleShareProfile}
+                                    title="Copy public profile link to clipboard"
+                                    className={`inline-flex h-7 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition ${
+                                        copiedProfile
+                                            ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                            : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300'
+                                    }`}
+                                >
+                                    {copiedProfile ? (
+                                        <>
+                                            <Check className="h-3.5 w-3.5" />
+                                            Copied!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Share2 className="h-3.5 w-3.5" />
+                                            Share Profile
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         )}
                         <p className="headline">
