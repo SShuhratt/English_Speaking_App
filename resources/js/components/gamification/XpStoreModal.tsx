@@ -109,7 +109,10 @@ export default function XpStoreModal({ isOpen, onClose, catalog, onRedeemed }: P
                 return;
             }
 
-            setSuccessMsg(data.message || t('gamification.redeem_success', 'Reward redeemed successfully!'));
+            setSuccessMsg(
+                t('gamification.store_item_unlocked', { title: t(item.title_key, item.default_title) }) ||
+                    t('gamification.redeem_success', 'Reward redeemed successfully!'),
+            );
 
             // Optimistically update localCatalog
             if (localCatalog) {

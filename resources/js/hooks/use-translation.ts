@@ -1344,6 +1344,7 @@ const dictionary = {
         'gamification.copied': 'Copied!',
         'gamification.insufficient_xp': 'Insufficient XP balance',
         'gamification.redeem_success': 'Reward redeemed successfully!',
+        'gamification.store_item_unlocked': ':title unlocked!',
 
         // Stage 4: Teacher Assessment Sliders
         'assessment.title': 'Post-Lesson Fluency Assessment',
@@ -2760,6 +2761,7 @@ const dictionary = {
         'gamification.copied': 'Nusxalandi!',
         'gamification.insufficient_xp': 'XP balansi yetarli emas',
         'gamification.redeem_success': 'Mukofot muvaffaqiyatli olindi!',
+        'gamification.store_item_unlocked': ':title faollashtirildi!',
 
         // Stage 4: Teacher Assessment Sliders
         'assessment.title': "Darsdan so'ng ravonlikni baholash",
@@ -4165,6 +4167,7 @@ const dictionary = {
         'gamification.copied': 'Скопировано!',
         'gamification.insufficient_xp': 'Недостаточно XP',
         'gamification.redeem_success': 'Награда успешно получена!',
+        'gamification.store_item_unlocked': ':title активировано!',
 
         // Stage 4: Teacher Assessment Sliders
         'assessment.title': 'Оценка беглости речи после урока',
