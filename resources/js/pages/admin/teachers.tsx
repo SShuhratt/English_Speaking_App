@@ -26,10 +26,9 @@ import {
     Trash2,
     Download,
     Video,
-    Share2,
-    Copy,
 } from 'lucide-react';
 import DeleteUserModal from '@/components/delete-user-modal';
+import ShareProfileDropdown from '@/components/ShareProfileDropdown';
 
 interface TeacherProfile {
     id: string;
@@ -71,15 +70,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
         id: string;
         name: string;
     } | null>(null);
-    const [copiedTeacherId, setCopiedTeacherId] = useState<string | null>(null);
 
-    const handleShareProfile = (teacherId: string) => {
-        const url = `${window.location.origin}/profile/${teacherId}`;
-        navigator.clipboard.writeText(url).then(() => {
-            setCopiedTeacherId(teacherId);
-            setTimeout(() => setCopiedTeacherId(null), 2000);
-        });
-    };
 
     const handleToggleVerify = (id: string, currentStatus?: boolean) => {
         router.post(`/admin/teachers/${id}/verify`, {
@@ -463,34 +454,10 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                 </span>
                                                             )}
 
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    handleShareProfile(
-                                                                        teacher.id,
-                                                                    )
-                                                                }
-                                                                title="Copy public profile link to clipboard"
-                                                                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition ${
-                                                                    copiedTeacherId ===
-                                                                    teacher.id
-                                                                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                                                        : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300'
-                                                                }`}
-                                                            >
-                                                                {copiedTeacherId ===
-                                                                teacher.id ? (
-                                                                    <>
-                                                                        <Check className="h-3.5 w-3.5" />
-                                                                        Copied!
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <Share2 className="h-3.5 w-3.5" />
-                                                                        Share Profile
-                                                                    </>
-                                                                )}
-                                                            </button>
+                                                            <ShareProfileDropdown
+                                                                profileId={teacher.id}
+                                                                name={teacher.full_name}
+                                                            />
 
 
                                                             <Button
