@@ -449,6 +449,7 @@ export default function Register({ passwordRules }: Props) {
                                     type="number"
                                     required
                                     name="age"
+                                    autoComplete="bday"
                                     placeholder={t('auth.age_placeholder')}
                                 />
                                 <InputError message={errors.age} />
@@ -463,6 +464,7 @@ export default function Register({ passwordRules }: Props) {
                                     type="tel"
                                     required
                                     name="phone_number"
+                                    autoComplete="tel"
                                     value={phone}
                                     onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
                                     placeholder="+998 90 123 45 67"
@@ -493,7 +495,7 @@ export default function Register({ passwordRules }: Props) {
                                 <InputError message={errors.gender} />
                             </div>
 
-                            {/* PUPIL SPECIFIC SECTION (Retains optional ielts_certificates[]) */}
+                            {/* PUPIL SPECIFIC SECTION */}
                             {role === 'pupil' && (
                                 <div className="space-y-4">
                                     <div className="grid gap-2">
@@ -549,7 +551,7 @@ export default function Register({ passwordRules }: Props) {
                                 </div>
                             )}
 
-                            {/* TEACHER SPECIFIC SECTION (Isolated inputs only rendered when role === teacher) */}
+                            {/* TEACHER SPECIFIC SECTION */}
                             {role === 'teacher' && (
                                 <>
                                     <div className="grid gap-2">
@@ -605,7 +607,8 @@ export default function Register({ passwordRules }: Props) {
                                                 onClick={addCertificate}
                                                 className="border-indigo-200 bg-white font-bold text-indigo-600 hover:bg-indigo-50 dark:bg-gray-800 dark:text-indigo-400"
                                             >
-                                                + {t('auth.add_certificate')}
+                                                {/* Only single '+' symbol */}
+                                                {t('auth.add_certificate')}
                                             </Button>
                                         </div>
 
