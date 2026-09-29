@@ -22,6 +22,8 @@ class PupilPackage extends Model
         'total_minutes',
         'remaining_minutes',
         'price_paid',
+        'discount_voucher_id',
+        'discount_amount',
         'payment_status',
         'payment_rejection_reason',
         'status',
@@ -31,6 +33,7 @@ class PupilPackage extends Model
         'total_minutes' => 'integer',
         'remaining_minutes' => 'integer',
         'price_paid' => 'integer',
+        'discount_amount' => 'integer',
     ];
 
     public function pupil(): BelongsTo
@@ -46,6 +49,11 @@ class PupilPackage extends Model
     public function teacherPackage(): BelongsTo
     {
         return $this->belongsTo(TeacherPackage::class, 'teacher_package_id');
+    }
+
+    public function discountVoucher(): BelongsTo
+    {
+        return $this->belongsTo(UserDiscountVoucher::class, 'discount_voucher_id');
     }
 
     public function appointments(): HasMany

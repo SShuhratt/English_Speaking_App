@@ -37,4 +37,23 @@ class UserDiscountVoucher extends Model
     {
         return $this->belongsTo(Appointment::class);
     }
+
+    /**
+     * Scope: vouchers belonging to a user that have not been redeemed yet.
+     */
+    public function scopeUnusedForUser($query, string $userId): mixed
+    {
+        return $query->where('user_id', $userId)->where('is_redeemed', false);
+    }
+
+    /**
+     * Look up an unused voucher by code for a specific user.
+     */
+    public static function findUnusedByCode(string $code, string $userId): ?self
+    {
+        return self::where('voucher_code', strtoupper(trim($code)))
+            ->where('user_id', $userId)
+            ->where('is_redeemed', false)
+            ->first();
+    }
 }

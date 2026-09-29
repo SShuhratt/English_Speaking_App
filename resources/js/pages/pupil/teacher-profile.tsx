@@ -122,6 +122,13 @@ interface Props {
     packages?: TeacherPackage[];
     activePupilPackage?: PupilPackage | null;
     pendingPupilPackage?: PupilPackage | null;
+    vouchers?: Voucher[];
+}
+
+interface Voucher {
+    id: string;
+    voucher_code: string;
+    discount_percent: number;
 }
 
 export default function TeacherProfile({
@@ -132,6 +139,7 @@ export default function TeacherProfile({
     packages = [],
     activePupilPackage = null,
     pendingPupilPackage = null,
+    vouchers = [],
 }: Props) {
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
@@ -156,6 +164,10 @@ export default function TeacherProfile({
         price: number;
         teacherName: string;
     } | null>(null);
+    const [voucherCode, setVoucherCode] = React.useState('');
+    const [appliedVoucher, setAppliedVoucher] = React.useState<Voucher | null>(null);
+    const [voucherValidating, setVoucherValidating] = React.useState(false);
+    const [voucherError, setVoucherError] = React.useState<string | null>(null);
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
@@ -521,6 +533,40 @@ export default function TeacherProfile({
           ? `${activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
           : "0 so'm";
 
+    const handleValidateVoucher = async () => {
+        const code = voucherCode.trim();
+        if (!code) return;
+        setVoucherValidating(true);
+        setVoucherError(null);
+        setAppliedVoucher(null);
+        try {
+            const res = await fetch('/voucher/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ voucher_code: code }),
+            });
+            const data = await res.json();
+            if (data.valid) {
+                setAppliedVoucher({
+                    id: data.voucher_id,
+                    voucher_code: data.voucher_code,
+                    discount_percent: data.discount_percent,
+                });
+                toast.success(`${data.discount_percent}% discount applied!`);
+            } else {
+                setVoucherError(data.message || 'Invalid voucher code.');
+            }
+        } catch {
+            setVoucherError('Could not validate voucher. Please try again.');
+        } finally {
+            setVoucherValidating(false);
+        }
+    };
+
     const handlePurchasePackage = () => {
         if (!purchasingPackage) return;
         if (!auth?.user) {
@@ -539,14 +585,21 @@ export default function TeacherProfile({
             '/pupil/packages/purchase',
             {
                 teacher_package_id: purchasingPackage.id,
+                voucher_code: appliedVoucher?.voucher_code ?? (voucherCode.trim() || undefined),
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     setPurchasingPackage(null);
+                    setVoucherCode('');
+                    setAppliedVoucher(null);
+                    setVoucherError(null);
+                    const finalPrice = appliedVoucher
+                        ? Math.max(0, packageToPay.price - Math.round((packageToPay.price * appliedVoucher.discount_percent) / 100))
+                        : packageToPay.price;
                     setPaymentModalPackage({
                         title: packageToPay.title,
-                        price: packageToPay.price,
+                        price: finalPrice,
                         teacherName: teacher.full_name,
                     });
                     toast.success(
@@ -2217,31 +2270,116 @@ export default function TeacherProfile({
                             </div>
                         </div>
 
-                        <div className="mt-5 space-y-3 rounded-2xl border border-[#E6E9F2] bg-[#FAFBFD] p-4 text-xs">
-                            <div className="flex justify-between py-1 border-b border-[#E6E9F2]">
-                                <span className="text-[#6B7394]">{t('packages.pack_hours') || 'Total Hours'}</span>
-                                <span className="font-bold text-[#1E2A5A]">{formatHours(purchasingPackage.total_hours, locale)}</span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-[#E6E9F2]">
-                                <span className="text-[#6B7394]">{t('packages.pack_price') || 'Total Price'}</span>
-                                <span className="font-extrabold text-base text-[#1E2A5A]">
-                                    {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
-                                </span>
-                            </div>
-                            {purchasingPackage.discount_percentage && purchasingPackage.discount_percentage > 0 ? (
-                                <div className="flex justify-between py-1 border-b border-[#E6E9F2]">
-                                    <span className="text-[#6B7394]">Discount</span>
-                                    <span className="font-bold text-emerald-600">
-                                        {purchasingPackage.discount_percentage}% OFF
+                        <div className="mt-4 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] p-3 text-xs">
+                            {appliedVoucher ? (
+                                <div className="space-y-1">
+                                    <div className="flex justify-between">
+                                        <span className="text-[#6B7394]">Original price</span>
+                                        <span className="font-semibold text-[#1E2A5A] line-through">
+                                            {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-emerald-600 font-semibold">Voucher discount ({appliedVoucher.discount_percent}% off)</span>
+                                        <span className="font-bold text-emerald-600">
+                                            −{Math.round((purchasingPackage.price * appliedVoucher.discount_percent) / 100).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between border-t border-[#E6E9F2] pt-1">
+                                        <span className="font-bold text-[#1E2A5A]">You pay</span>
+                                        <span className="font-extrabold text-base text-emerald-600">
+                                            {Math.max(0, purchasingPackage.price - Math.round((purchasingPackage.price * appliedVoucher.discount_percent) / 100)).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex justify-between">
+                                    <span className="text-[#6B7394]">{t('packages.pack_price') || 'Total Price'}</span>
+                                    <span className="font-extrabold text-base text-[#1E2A5A]">
+                                        {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
                                     </span>
                                 </div>
-                            ) : null}
-                            <div className="flex justify-between py-1">
-                                <span className="text-[#6B7394]">{t('packages.rate_per_hour') || 'Rate per hour'}</span>
-                                <span className="font-semibold text-[#1E2A5A]">
-                                    {Math.round(purchasingPackage.price / purchasingPackage.total_hours).toLocaleString('ru-RU').replace(/,/g, ' ')} {formatRateUnit(locale)}
-                                </span>
+                            )}
+                        </div>
+
+                        {/* Voucher / Discount Code */}
+                        <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3.5 dark:border-purple-900/30 dark:bg-purple-950/30">
+                            <p className="mb-2 text-[11px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                                <span>🎟</span> Have a discount voucher?
+                            </p>
+
+                            {/* Owned vouchers quick-select */}
+                            {vouchers.length > 0 && (
+                                <div className="mb-2">
+                                    <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
+                                        Select from your vouchers
+                                    </label>
+                                    <select
+                                        className="w-full rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1E2A5A] shadow-sm focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
+                                        value={appliedVoucher?.voucher_code ?? ''}
+                                        onChange={(e) => {
+                                            const selected = vouchers.find(v => v.voucher_code === e.target.value);
+                                            setAppliedVoucher(selected ?? null);
+                                            setVoucherCode(e.target.value);
+                                            setVoucherError(null);
+                                        }}
+                                        disabled={submittingPurchase}
+                                    >
+                                        <option value="">— No voucher —</option>
+                                        {vouchers.map((v) => (
+                                            <option key={v.id} value={v.voucher_code}>
+                                                {v.voucher_code} — {v.discount_percent}% off
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Manual code entry */}
+                            <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
+                                Or enter a code manually
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="e.g. CONVO-25-MRD1"
+                                    value={voucherCode}
+                                    onChange={(e) => {
+                                        setVoucherCode(e.target.value.toUpperCase());
+                                        setAppliedVoucher(null);
+                                        setVoucherError(null);
+                                    }}
+                                    disabled={submittingPurchase}
+                                    className="flex-1 rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 font-mono text-xs text-[#1E2A5A] placeholder:text-slate-400 focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleValidateVoucher}
+                                    disabled={!voucherCode.trim() || voucherValidating || submittingPurchase}
+                                    className="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 disabled:opacity-50"
+                                >
+                                    {voucherValidating ? '...' : 'Apply'}
+                                </button>
                             </div>
+
+                            {voucherError && (
+                                <p className="mt-1.5 text-[11px] font-semibold text-red-600">{voucherError}</p>
+                            )}
+
+                            {appliedVoucher && (
+                                <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-1.5 dark:bg-emerald-950/40">
+                                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                                        ✓ {appliedVoucher.discount_percent}% discount applied
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="text-[10px] font-semibold text-red-500 hover:underline"
+                                        onClick={() => { setAppliedVoucher(null); setVoucherCode(''); }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-[11.5px] leading-relaxed text-[#1E2A5A]">

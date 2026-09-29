@@ -117,6 +117,13 @@ class TeacherController extends Controller
                 ->first();
         }
 
+        $vouchers = $currentUser
+            ? UserDiscountVoucher::where('user_id', $currentUser->id)
+                ->where('is_redeemed', false)
+                ->latest()
+                ->get(['id', 'voucher_code', 'discount_percent'])
+            : [];
+
         return Inertia::render('pupil/teacher-profile', [
             'teacher' => $teacher,
             'hasEligibleTrial' => $hasEligibleTrial,
@@ -125,6 +132,7 @@ class TeacherController extends Controller
             'packages' => $packages,
             'activePupilPackage' => $activePupilPackage,
             'pendingPupilPackage' => $pendingPupilPackage,
+            'vouchers' => $vouchers,
         ]);
     }
 
