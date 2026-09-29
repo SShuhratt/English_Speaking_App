@@ -37,6 +37,8 @@ interface CertificateInputCardProps {
     onRemove?: () => void;
     canRemove?: boolean;
     readOnly?: boolean;
+    isRequiredUpload?: boolean;
+    fileFieldName?: string;
     onPreview?: (cert: CertificateData) => void;
 }
 
@@ -47,6 +49,8 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
     onRemove,
     canRemove = true,
     readOnly = false,
+    isRequiredUpload = false,
+    fileFieldName,
     onPreview,
 }) => {
     const { t } = useTranslation();
@@ -85,7 +89,6 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
         onChange({
             ...cert,
             type: newType,
-            // Keep overall and reset irrelevant skills if exam changes
         });
     };
 
@@ -107,7 +110,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
 
         onChange({
             ...cert,
-            [skillKey]: value, // Also set top-level for backward-compatibility with listening/reading/writing/speaking
+            [skillKey]: value,
             sub_scores: updatedSubScores,
         });
     };
@@ -197,7 +200,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                         <Award className="h-4 w-4" />
                     </span>
 
-                    {/* 1. Language Picker (BEFORE Certificate) */}
+                    {/* 1. Language Picker */}
                     <select
                         name={`certificates[${index}][language]`}
                         value={currentLanguage}
@@ -213,7 +216,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                         ))}
                     </select>
 
-                    {/* 2. Certificate / Exam Picker (Filtered by selected language) */}
+                    {/* 2. Certificate / Exam Picker */}
                     <select
                         name={`certificates[${index}][type]`}
                         value={cert.type || availableExams[0]?.id || 'ielts'}
@@ -250,7 +253,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                         type="button"
                         onClick={onRemove}
                         title={t('auth.remove_certificate', 'Remove')}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
                     >
                         <Trash2 className="h-4 w-4" />
                     </button>
@@ -261,7 +264,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
             {currentLanguage === 'other' && (
                 <div>
                     <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400">
-                        {t('auth.custom_language_label', 'Language Name')}
+                        {t('auth.custom_language_label', 'Language Name')} *
                     </label>
                     <input
                         type="text"
@@ -284,7 +287,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
             {definition.requiresCustomName && (
                 <div>
                     <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400">
-                        {t('auth.custom_cert_placeholder', 'Certificate Name')}
+                        {t('auth.custom_cert_placeholder', 'Certificate Name')} *
                     </label>
                     <input
                         type="text"
@@ -304,7 +307,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
             <div className="space-y-1">
                 <div className="flex items-center justify-between">
                     <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300">
-                        {t(definition.overall.labelKey, definition.overall.fallbackLabel)}
+                        {t(definition.overall.labelKey, definition.overall.fallbackLabel)} *
                     </label>
                     <span className="text-[10px] font-semibold text-gray-400">
                         {definition.overall.hint}
@@ -351,7 +354,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                             return (
                                 <div key={skill.key} className="min-w-0">
                                     <label className="block truncate text-[11px] font-bold text-gray-600 dark:text-gray-400">
-                                        {t(skill.labelKey, skill.fallbackLabel)}
+                                        {t(skill.labelKey, skill.fallbackLabel)} *
                                     </label>
                                     <input
                                         type={skill.step ? 'number' : 'text'}
@@ -380,14 +383,16 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
             {/* File Upload / Attachment Block */}
             <div className="space-y-1 pt-1">
                 <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400">
-                    {t('auth.cert_file_optional', 'Certificate file (optional)')}
+                    {isRequiredUpload
+                        ? `${t('auth.cert_file_required', 'Sertifikat fayli (majburiy)')} *`
+                        : t('auth.cert_file_optional', 'Sertifikat fayli (ixtiyoriy)')}
                 </label>
 
-                {/* Hidden File Input */}
+                {/* Form-bound File Input with backward-compatible fallback */}
                 <input
                     ref={fileInputRef}
                     type="file"
-                    name={`certificate_files[${index}]`}
+                    name={fileFieldName || `certificate_files[${index}]`}
                     accept=".pdf,.png,.jpg,.jpeg,.webp"
                     disabled={readOnly}
                     onChange={handleFileChange}
@@ -395,10 +400,8 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                 />
 
                 {hasFile ? (
-                    /* Attached File Card with Small Frame Preview, Replace and Delete */
                     <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
-                            {/* Small Frame Thumbnail / Preview Box */}
                             {effectiveUrl ? (
                                 <div
                                     role="button"
@@ -432,7 +435,6 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                                             className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105"
                                         />
                                     )}
-                                    {/* Hover expand overlay */}
                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-950/60 text-white opacity-0 backdrop-blur-[1px] transition-opacity duration-200 group-hover:opacity-100">
                                         <Maximize2 className="h-5 w-5 mb-1" />
                                         <span className="text-[11px] font-bold">
@@ -446,7 +448,6 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                                 </div>
                             )}
 
-                            {/* File Info and Action Buttons */}
                             <div className="flex min-w-0 flex-1 flex-col justify-between self-stretch py-0.5">
                                 <div>
                                     <p className="truncate text-xs font-bold text-gray-900 dark:text-white">
@@ -494,7 +495,6 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                         </div>
                     </div>
                 ) : (
-                    /* Dropzone when no file selected */
                     !readOnly && (
                         <div
                             onClick={() => fileInputRef.current?.click()}

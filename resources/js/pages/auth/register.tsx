@@ -1,6 +1,6 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { Upload } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import '@/types/telegram.d';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -37,6 +37,10 @@ export default function Register({ passwordRules }: Props) {
     const { google_register, telegram_register } = usePage<any>().props;
     const [isInsideTelegram, setIsInsideTelegram] = useState(Boolean(telegram_register));
     const [price, setPrice] = useState('');
+    const [certError, setCertError] = useState<string | null>(null);
+
+    // Delete confirmation popup state
+    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
     const formatPrice = (val: string) => {
         const clean = val.replace(/\D/g, '');
@@ -96,10 +100,47 @@ export default function Register({ passwordRules }: Props) {
             writing: '',
             speaking: '',
             file_name: '',
+            file: null,
         },
     ]);
 
+    // Validation helper to enforce score inputs AND mandatory file upload
+    const isCertificateComplete = (cert: CertificateData): boolean => {
+        if (!cert.language || !cert.type) return false;
+        if (cert.type === 'other' && !cert.custom_type_name?.trim()) return false;
+        if (!cert.overall?.toString().trim()) return false;
+
+        if (cert.type === 'ielts' || cert.type === 'cefr') {
+            if (
+                !cert.listening?.toString().trim() ||
+                !cert.reading?.toString().trim() ||
+                !cert.writing?.toString().trim() ||
+                !cert.speaking?.toString().trim()
+            ) {
+                return false;
+            }
+        }
+
+        // Strictly requires a file upload
+        const hasUploadedFile = Boolean(cert.file || (cert.file_name && cert.file_name.trim() !== '') || cert.file_url);
+        return hasUploadedFile;
+    };
+
     const addCertificate = () => {
+        const hasIncomplete = certificates.some((c) => !isCertificateComplete(c));
+
+        if (hasIncomplete) {
+            setCertError(
+                locale === 'uz'
+                    ? "Yangi sertifikat qo'shishdan oldin mavjud sertifikat ma'lumotlarini to'liq kiriting va faylini yuklang."
+                    : locale === 'ru'
+                        ? "Заполните все данные и загрузите файл текущего сертификата перед добавлением нового."
+                        : "Please complete all fields and upload the certificate file before adding another one."
+            );
+            return;
+        }
+
+        setCertError(null);
         setCertificates((prev) => [
             ...prev,
             {
@@ -112,13 +153,27 @@ export default function Register({ passwordRules }: Props) {
                 writing: '',
                 speaking: '',
                 file_name: '',
+                file: null,
             },
         ]);
     };
 
-    const removeCertificate = (index: number) => {
+    // Request deletion (opens verification modal if not the first and only one)
+    const requestRemoveCertificate = (index: number) => {
         if (certificates.length <= 1) return;
-        setCertificates((prev) => prev.filter((_, i) => i !== index));
+        setDeleteIndex(index);
+    };
+
+    // Confirm deletion handler
+    const confirmRemoveCertificate = () => {
+        if (deleteIndex === null || certificates.length <= 1) {
+            setDeleteIndex(null);
+            return;
+        }
+
+        setCertificates((prev) => prev.filter((_, i) => i !== deleteIndex));
+        setDeleteIndex(null);
+        setCertError(null);
     };
 
     const updateCertificate = (index: number, updated: CertificateData) => {
@@ -127,11 +182,56 @@ export default function Register({ passwordRules }: Props) {
             copy[index] = updated;
             return copy;
         });
+
+        if (certError) {
+            setCertError(null);
+        }
     };
 
     return (
         <>
             <Head title={t('auth.register')} />
+
+            {/* DELETE CONFIRMATION POPUP MODAL */}
+            {deleteIndex !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-150">
+                    <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-6 shadow-2xl">
+                        <div className="flex items-center gap-3 text-destructive">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                                <AlertTriangle className="h-5 w-5" />
+                            </div>
+                            <h4 className="text-base font-bold text-foreground">
+                                {locale === 'uz' ? "Sertifikatni o'chirish" : locale === 'ru' ? "Удалить сертификат" : "Delete Certificate"}
+                            </h4>
+                        </div>
+                        <p className="mt-3 text-sm text-muted-foreground">
+                            {locale === 'uz'
+                                ? "Ushbu sertifikat va yuklangan faylni o'chirib tashlamoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi."
+                                : locale === 'ru'
+                                    ? "Вы уверены, что хотите удалить этот сертификат и файл? Это действие нельзя отменить."
+                                    : "Are you sure you want to delete this certificate and uploaded file? This action cannot be undone."}
+                        </p>
+                        <div className="mt-6 flex items-center justify-end gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setDeleteIndex(null)}
+                            >
+                                {locale === 'uz' ? "Bekor qilish" : locale === 'ru' ? "Отмена" : "Cancel"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={confirmRemoveCertificate}
+                            >
+                                {locale === 'uz' ? "Ha, o'chirish" : locale === 'ru' ? "Да, удалить" : "Yes, Delete"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {google_register && (
                 <div className="mb-2 flex items-center gap-3 rounded-xl border border-brand-brown/10 bg-brand-cream/60 p-4 text-sm text-brand-brown">
@@ -225,9 +325,25 @@ export default function Register({ passwordRules }: Props) {
             <Form
                 action={typeof store.form === 'function' ? store.form().action : store.url()}
                 method="post"
+                encType="multipart/form-data"
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
+                onSubmit={(e: any) => {
+                    if (role === 'teacher') {
+                        const hasIncomplete = certificates.some((c) => !isCertificateComplete(c));
+                        if (hasIncomplete) {
+                            e.preventDefault();
+                            setCertError(
+                                locale === 'uz'
+                                    ? "Iltimos, barcha sertifikat ma'lumotlarini to'ldiring va fayllarni yuklang."
+                                    : locale === 'ru'
+                                        ? "Пожалуйста, заполните данные всех сертификатов и прикрепите файлы."
+                                        : "Please complete all certificate fields and attach the required files."
+                            );
+                        }
+                    }
+                }}
             >
                 {({ processing, errors }) => (
                     <>
@@ -286,12 +402,14 @@ export default function Register({ passwordRules }: Props) {
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
                                         type="button"
-                                        onClick={() => setRole('pupil')}
-                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
-                                            role === 'pupil'
-                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown'
-                                                : 'border-muted bg-transparent hover:border-muted-foreground'
-                                        }`}
+                                        onClick={() => {
+                                            setRole('pupil');
+                                            setCertError(null);
+                                        }}
+                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${role === 'pupil'
+                                            ? 'border-brand-orange bg-brand-orange/5 text-brand-brown'
+                                            : 'border-muted bg-transparent hover:border-muted-foreground'
+                                            }`}
                                     >
                                         <span className="text-sm font-semibold">
                                             {t('auth.role_pupil')}
@@ -303,11 +421,10 @@ export default function Register({ passwordRules }: Props) {
                                     <button
                                         type="button"
                                         onClick={() => setRole('teacher')}
-                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${
-                                            role === 'teacher'
-                                                ? 'border-brand-orange bg-brand-orange/5 text-brand-brown'
-                                                : 'border-muted bg-transparent hover:border-muted-foreground'
-                                        }`}
+                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${role === 'teacher'
+                                            ? 'border-brand-orange bg-brand-orange/5 text-brand-brown'
+                                            : 'border-muted bg-transparent hover:border-muted-foreground'
+                                            }`}
                                     >
                                         <span className="text-sm font-semibold">
                                             {t('auth.role_teacher')}
@@ -376,6 +493,7 @@ export default function Register({ passwordRules }: Props) {
                                 <InputError message={errors.gender} />
                             </div>
 
+                            {/* PUPIL SPECIFIC SECTION (Retains optional ielts_certificates[]) */}
                             {role === 'pupil' && (
                                 <div className="space-y-4">
                                     <div className="grid gap-2">
@@ -431,6 +549,7 @@ export default function Register({ passwordRules }: Props) {
                                 </div>
                             )}
 
+                            {/* TEACHER SPECIFIC SECTION (Isolated inputs only rendered when role === teacher) */}
                             {role === 'teacher' && (
                                 <>
                                     <div className="grid gap-2">
@@ -468,8 +587,7 @@ export default function Register({ passwordRules }: Props) {
                                         <InputError message={errors.price} />
                                     </div>
 
-
-                                    {/* Multi-Certificate & Scores Repeater Section */}
+                                    {/* Multi-Certificate Repeater Section */}
                                     <div className="mt-6 space-y-4 rounded-3xl border border-blue-100 bg-blue-50/30 p-5 dark:border-blue-900/40 dark:bg-blue-950/10">
                                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
@@ -487,9 +605,15 @@ export default function Register({ passwordRules }: Props) {
                                                 onClick={addCertificate}
                                                 className="border-indigo-200 bg-white font-bold text-indigo-600 hover:bg-indigo-50 dark:bg-gray-800 dark:text-indigo-400"
                                             >
-                                                {t('auth.add_certificate')}
+                                                + {t('auth.add_certificate')}
                                             </Button>
                                         </div>
+
+                                        {certError && (
+                                            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs font-semibold text-destructive">
+                                                {certError}
+                                            </div>
+                                        )}
 
                                         <div className="space-y-4">
                                             {certificates.map((cert, index) => (
@@ -497,11 +621,13 @@ export default function Register({ passwordRules }: Props) {
                                                     key={index}
                                                     index={index}
                                                     cert={cert}
+                                                    isRequiredUpload={true}
+                                                    fileFieldName={`certificates[${index}][file]`}
                                                     onChange={(updated) =>
                                                         updateCertificate(index, updated)
                                                     }
                                                     onRemove={() =>
-                                                        removeCertificate(index)
+                                                        requestRemoveCertificate(index)
                                                     }
                                                     canRemove={certificates.length > 1}
                                                 />
