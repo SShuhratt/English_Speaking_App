@@ -37,7 +37,11 @@ export default function Register({ passwordRules }: Props) {
     const { google_register, telegram_register } = usePage<any>().props;
     const [isInsideTelegram, setIsInsideTelegram] = useState(Boolean(telegram_register));
     const [price, setPrice] = useState('');
+    const [age, setAge] = useState('');
     const [certError, setCertError] = useState<string | null>(null);
+
+    // Dynamic age boundary: 8 for pupil, 18 for teacher
+    const minAge = role === 'teacher' ? 18 : 8;
 
     // Delete confirmation popup state
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
@@ -121,7 +125,6 @@ export default function Register({ passwordRules }: Props) {
             }
         }
 
-        // Strictly requires a file upload
         const hasUploadedFile = Boolean(cert.file || (cert.file_name && cert.file_name.trim() !== '') || cert.file_url);
         return hasUploadedFile;
     };
@@ -158,13 +161,11 @@ export default function Register({ passwordRules }: Props) {
         ]);
     };
 
-    // Request deletion (opens verification modal if not the first and only one)
     const requestRemoveCertificate = (index: number) => {
         if (certificates.length <= 1) return;
         setDeleteIndex(index);
     };
 
-    // Confirm deletion handler
     const confirmRemoveCertificate = () => {
         if (deleteIndex === null || certificates.length <= 1) {
             setDeleteIndex(null);
@@ -330,6 +331,21 @@ export default function Register({ passwordRules }: Props) {
                 disableWhileProcessing
                 className="flex flex-col gap-6"
                 onSubmit={(e: any) => {
+                    // 1. Age restriction check
+                    const numericAge = parseInt(age, 10);
+                    if (!numericAge || numericAge < minAge) {
+                        e.preventDefault();
+                        setCertError(
+                            locale === 'uz'
+                                ? `Minimal yosh talabi: ${role === 'teacher' ? "O'qituvchilar uchun 18 yosh" : "O'quvchilar uchun 8 yosh"}.`
+                                : locale === 'ru'
+                                    ? `Минимальный возраст: ${role === 'teacher' ? '18 лет для преподавателей' : '8 лет для учеников'}.`
+                                    : `Minimum age required: ${role === 'teacher' ? '18 years for teachers' : '8 years for pupils'}.`
+                        );
+                        return;
+                    }
+
+                    // 2. Teacher certificates check
                     if (role === 'teacher') {
                         const hasIncomplete = certificates.some((c) => !isCertificateComplete(c));
                         if (hasIncomplete) {
@@ -420,7 +436,10 @@ export default function Register({ passwordRules }: Props) {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setRole('teacher')}
+                                        onClick={() => {
+                                            setRole('teacher');
+                                            setCertError(null);
+                                        }}
                                         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${role === 'teacher'
                                             ? 'border-brand-orange bg-brand-orange/5 text-brand-brown'
                                             : 'border-muted bg-transparent hover:border-muted-foreground'
@@ -443,14 +462,26 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="age">{t('auth.age')}</Label>
+                                <Label htmlFor="age">
+                                    {t('auth.age')}{' '}
+                                    <span className="text-[11px] font-normal text-muted-foreground">
+                                        ({role === 'teacher' ? '18+' : '8+'})
+                                    </span>
+                                </Label>
                                 <Input
                                     id="age"
                                     type="number"
                                     required
                                     name="age"
+                                    min={minAge}
+                                    max={100}
+                                    value={age}
+                                    onChange={(e) => {
+                                        setAge(e.target.value);
+                                        if (certError) setCertError(null);
+                                    }}
                                     autoComplete="bday"
-                                    placeholder={t('auth.age_placeholder')}
+                                    placeholder={role === 'teacher' ? '18' : '8'}
                                 />
                                 <InputError message={errors.age} />
                             </div>
@@ -607,7 +638,6 @@ export default function Register({ passwordRules }: Props) {
                                                 onClick={addCertificate}
                                                 className="border-indigo-200 bg-white font-bold text-indigo-600 hover:bg-indigo-50 dark:bg-gray-800 dark:text-indigo-400"
                                             >
-                                                {/* Only single '+' symbol */}
                                                 {t('auth.add_certificate')}
                                             </Button>
                                         </div>
