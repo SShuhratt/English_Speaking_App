@@ -38,9 +38,10 @@ export default function Register({ passwordRules }: Props) {
     const [isInsideTelegram, setIsInsideTelegram] = useState(Boolean(telegram_register));
     const [price, setPrice] = useState('');
     const [age, setAge] = useState('');
+    const [ageError, setAgeError] = useState<string | null>(null);
     const [certError, setCertError] = useState<string | null>(null);
 
-    // Dynamic age boundary: 8 for pupil, 18 for teacher
+    // Dynamic minimum age: 18 for teachers, 8 for pupils
     const minAge = role === 'teacher' ? 18 : 8;
 
     // Delete confirmation popup state
@@ -108,7 +109,6 @@ export default function Register({ passwordRules }: Props) {
         },
     ]);
 
-    // Validation helper to enforce score inputs AND mandatory file upload
     const isCertificateComplete = (cert: CertificateData): boolean => {
         if (!cert.language || !cert.type) return false;
         if (cert.type === 'other' && !cert.custom_type_name?.trim()) return false;
@@ -327,25 +327,26 @@ export default function Register({ passwordRules }: Props) {
                 action={typeof store.form === 'function' ? store.form().action : store.url()}
                 method="post"
                 encType="multipart/form-data"
+                noValidate
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
                 onSubmit={(e: any) => {
-                    // 1. Age restriction check
+                    // 1. Age restriction validation
                     const numericAge = parseInt(age, 10);
-                    if (!numericAge || numericAge < minAge) {
+                    if (!age || isNaN(numericAge) || numericAge < minAge) {
                         e.preventDefault();
-                        setCertError(
+                        const message =
                             locale === 'uz'
                                 ? `Minimal yosh talabi: ${role === 'teacher' ? "O'qituvchilar uchun 18 yosh" : "O'quvchilar uchun 8 yosh"}.`
                                 : locale === 'ru'
                                     ? `Минимальный возраст: ${role === 'teacher' ? '18 лет для преподавателей' : '8 лет для учеников'}.`
-                                    : `Minimum age required: ${role === 'teacher' ? '18 years for teachers' : '8 years for pupils'}.`
-                        );
+                                    : `Minimum age required: ${role === 'teacher' ? '18 years for teachers' : '8 years for pupils'}.`;
+                        setAgeError(message);
                         return;
                     }
 
-                    // 2. Teacher certificates check
+                    // 2. Teacher certificates validation
                     if (role === 'teacher') {
                         const hasIncomplete = certificates.some((c) => !isCertificateComplete(c));
                         if (hasIncomplete) {
@@ -420,6 +421,7 @@ export default function Register({ passwordRules }: Props) {
                                         type="button"
                                         onClick={() => {
                                             setRole('pupil');
+                                            setAgeError(null);
                                             setCertError(null);
                                         }}
                                         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${role === 'pupil'
@@ -438,6 +440,7 @@ export default function Register({ passwordRules }: Props) {
                                         type="button"
                                         onClick={() => {
                                             setRole('teacher');
+                                            setAgeError(null);
                                             setCertError(null);
                                         }}
                                         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 p-4 text-center transition-all ${role === 'teacher'
@@ -478,12 +481,13 @@ export default function Register({ passwordRules }: Props) {
                                     value={age}
                                     onChange={(e) => {
                                         setAge(e.target.value);
+                                        if (ageError) setAgeError(null);
                                         if (certError) setCertError(null);
                                     }}
                                     autoComplete="bday"
                                     placeholder={role === 'teacher' ? '18' : '8'}
                                 />
-                                <InputError message={errors.age} />
+                                <InputError message={ageError || errors.age} />
                             </div>
 
                             <div className="grid gap-2">
