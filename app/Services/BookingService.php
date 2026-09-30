@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
@@ -130,26 +131,39 @@ class BookingService
             ]);
 
             // Apply discount voucher if provided
-            if (! $isPackageBooking && ! empty($meta['discount_voucher_id'])) {
-                $voucher = UserDiscountVoucher::where('id', $meta['discount_voucher_id'])
-                    ->where('user_id', $pupil->id)
+            if (! $isPackageBooking && (! empty($meta['discount_voucher_id']) || ! empty($meta['discount_voucher_code']))) {
+                $voucherQuery = UserDiscountVoucher::where('user_id', $pupil->id)
                     ->where('is_redeemed', false)
-                    ->lockForUpdate()
-                    ->first();
+                    ->lockForUpdate();
 
-                if ($voucher) {
-                    $discountAmount = (int) round(($price * $voucher->discount_percent) / 100);
-                    $voucher->update([
-                        'is_redeemed' => true,
-                        'redeemed_at' => now(),
-                        'appointment_id' => $appointment->id,
-                    ]);
+                if (! empty($meta['discount_voucher_code'])) {
+                    $voucherQuery->where('voucher_code', strtoupper(trim($meta['discount_voucher_code'])));
+                } else {
+                    $voucherQuery->where('id', $meta['discount_voucher_id']);
+                }
 
-                    $appointment->update([
-                        'discount_voucher_id' => $voucher->id,
-                        'discount_amount' => $discountAmount,
+                $voucher = $voucherQuery->first();
+
+                if (! $voucher) {
+                    throw ValidationException::withMessages([
+                        'voucher_code' => 'This voucher code is invalid or has already been used.',
                     ]);
                 }
+
+                $discountAmount = (int) round(($price * $voucher->discount_percent) / 100);
+                $finalPrice = max(0, $price - $discountAmount);
+
+                $voucher->update([
+                    'is_redeemed' => true,
+                    'redeemed_at' => now(),
+                    'appointment_id' => $appointment->id,
+                ]);
+
+                $appointment->update([
+                    'price' => $finalPrice,
+                    'discount_voucher_id' => $voucher->id,
+                    'discount_amount' => $discountAmount,
+                ]);
             }
 
             // 4. Clear slot cache

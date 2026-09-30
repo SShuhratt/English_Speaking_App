@@ -131,7 +131,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/slots/{teacherId}', [BookingController::class, 'slots']);
     Route::delete('/bookings/{id}', [BookingController::class, 'cancel']);
     Route::delete('/appointments/{id}', [BookingController::class, 'destroy']);

@@ -19,7 +19,7 @@ class TeacherProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory()->create(['role' => 'teacher'])->id,
+            'user_id' => User::factory()->state(['role' => 'teacher']),
             'age' => fake()->numberBetween(22, 55),
             'phone_number' => fake()->phoneNumber(),
             'overall_level' => fake()->randomElement(['B2', 'C1', 'C2']),

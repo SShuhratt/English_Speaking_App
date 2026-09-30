@@ -188,7 +188,7 @@ class AdminUserManagementTest extends TestCase
         );
     }
 
-    public function test_pupil_and_other_teachers_cannot_see_raw_certificate_file_urls(): void
+    public function test_pupil_and_other_teachers_can_see_verified_certificate_file_urls(): void
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $otherTeacher = User::factory()->create(['role' => 'teacher']);
@@ -205,25 +205,35 @@ class AdminUserManagementTest extends TestCase
                     'file_name' => 'secret_trf.pdf',
                     'status' => 'verified',
                 ],
+                [
+                    'type' => 'cefr',
+                    'title' => 'CEFR Certificate',
+                    'overall' => 'C1',
+                    'file_url' => '/storage/certificates/pending_cert.pdf',
+                    'file_name' => 'pending_cert.pdf',
+                    'status' => 'pending',
+                ],
             ],
         ]);
 
-        // 1. Pupil viewing teacher profile
+        // 1. Pupil viewing teacher profile: sees verified cert with file_url, pending is hidden
         $responsePupil = $this->actingAs($pupil)->get("/pupil/teachers/{$teacher->id}");
         $responsePupil->assertStatus(200);
         $responsePupil->assertInertia(fn ($page) => $page
             ->component('pupil/teacher-profile')
+            ->has('teacher.teacher_profile.certificates', 1)
             ->where('teacher.teacher_profile.certificates.0.overall', '8.0')
-            ->where('teacher.teacher_profile.certificates.0.file_url', null)
+            ->where('teacher.teacher_profile.certificates.0.file_url', '/storage/certificates/secret_trf.pdf')
         );
 
-        // 2. Other teacher viewing teacher profile
+        // 2. Other teacher viewing teacher profile: sees verified cert with file_url, pending is hidden
         $responseOther = $this->actingAs($otherTeacher)->get("/teacher/teachers/{$teacher->id}");
         $responseOther->assertStatus(200);
         $responseOther->assertInertia(fn ($page) => $page
             ->component('pupil/teacher-profile')
+            ->has('teacher.teacher_profile.certificates', 1)
             ->where('teacher.teacher_profile.certificates.0.overall', '8.0')
-            ->where('teacher.teacher_profile.certificates.0.file_url', null)
+            ->where('teacher.teacher_profile.certificates.0.file_url', '/storage/certificates/secret_trf.pdf')
         );
     }
 }

@@ -331,12 +331,10 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                     </select>
                 ) : (
                     <input
-                        type={definition.overall.step ? 'number' : 'text'}
+                        type="text"
+                        inputMode={definition.overall.step ? 'decimal' : 'text'}
                         name={`certificates[${index}][overall]`}
                         readOnly={readOnly}
-                        min={definition.overall.min}
-                        max={definition.overall.max}
-                        step={definition.overall.step}
                         value={cert.overall || ''}
                         onChange={(e) => onChange({ ...cert, overall: e.target.value })}
                         placeholder={definition.overall.placeholder}
@@ -357,12 +355,10 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                                         {t(skill.labelKey, skill.fallbackLabel)} *
                                     </label>
                                     <input
-                                        type={skill.step ? 'number' : 'text'}
+                                        type="text"
+                                        inputMode={skill.step ? 'decimal' : 'text'}
                                         name={`certificates[${index}][${skill.key}]`}
                                         readOnly={readOnly}
-                                        min={skill.min}
-                                        max={skill.max}
-                                        step={skill.step}
                                         value={val}
                                         onChange={(e) =>
                                             handleSkillChange(skill.key, e.target.value)

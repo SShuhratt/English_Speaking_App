@@ -25,7 +25,7 @@ class PupilJoinMeetingTest extends TestCase
 
         $response = $this->postJson(route('pupil.appointments.join', $appointment->id));
 
-        $response->assertRedirect(route('login'));
+        $response->assertUnauthorized();
     }
 
     public function test_unauthorized_user_cannot_join_meeting()

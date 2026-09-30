@@ -101,6 +101,10 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
     const [loading, setLoading] = useState(false);
     const [booking, setBooking] = useState(false);
     const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(null);
+    const [voucherCode, setVoucherCode] = useState('');
+    const [appliedVoucher, setAppliedVoucher] = useState<any | null>(null);
+    const [voucherValidating, setVoucherValidating] = useState(false);
+    const [voucherError, setVoucherError] = useState<string | null>(null);
     const [customStartTime, setCustomStartTime] = useState('');
     const [customEndTime, setCustomEndTime] = useState('');
     const [confirmingSlot, setConfirmingSlot] = useState<any | null>(null);
@@ -411,6 +415,45 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
         };
     }, [selectedDate, view, teacher.id]);
 
+    const handleValidateVoucher = async () => {
+        const code = voucherCode.trim();
+        if (!code) return;
+        setVoucherValidating(true);
+        setVoucherError(null);
+        setAppliedVoucher(null);
+        try {
+            const res = await fetch('/voucher/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN':
+                        (
+                            document.querySelector(
+                                'meta[name="csrf-token"]',
+                            ) as HTMLMetaElement
+                        )?.content || '',
+                },
+                body: JSON.stringify({ voucher_code: code }),
+            });
+            const data = await res.json();
+            if (res.ok && data.valid) {
+                setAppliedVoucher({
+                    id: data.voucher_id,
+                    voucher_code: data.voucher_code,
+                    discount_percent: data.discount_percent,
+                });
+                setSelectedVoucherId(data.voucher_id);
+            } else {
+                setVoucherError(data.message || 'Invalid voucher code.');
+            }
+        } catch {
+            setVoucherError('Could not validate voucher. Please try again.');
+        } finally {
+            setVoucherValidating(false);
+        }
+    };
+
     const handleBook = async (slot: any) => {
         setBooking(true);
         try {
@@ -420,7 +463,8 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                 start_at: slot.start_at,
                 end_at: slot.end_at,
                 topics: slot.topics,
-                voucher_id: selectedVoucherId,
+                voucher_id: appliedVoucher?.id ?? selectedVoucherId ?? undefined,
+                voucher_code: appliedVoucher?.voucher_code ?? (voucherCode.trim() || undefined),
             });
             setShowRequestSentModal(true);
             fetchSlots();
@@ -485,7 +529,8 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                 start_at: startAt,
                 end_at: endAt,
                 topics: finalTopics,
-                voucher_id: selectedVoucherId,
+                voucher_id: appliedVoucher?.id ?? selectedVoucherId ?? undefined,
+                voucher_code: appliedVoucher?.voucher_code ?? (voucherCode.trim() || undefined),
             });
             setShowRequestSentModal(true);
             fetchSlots();
@@ -1314,26 +1359,148 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
 
                                 {renderTopicSelection()}
 
-                                {vouchers.length > 0 && (
-                                    <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-3.5">
-                                        <label className="block text-xs font-bold text-indigo-950 mb-1.5 flex items-center gap-1.5">
-                                            <Ticket className="h-4 w-4 text-indigo-600" />
-                                            <span>Apply Lesson Discount Voucher</span>
-                                        </label>
-                                        <select
-                                            value={selectedVoucherId || ''}
-                                            onChange={(e) => setSelectedVoucherId(e.target.value || null)}
-                                            className="w-full rounded-xl border border-indigo-200 bg-white p-2.5 text-xs text-indigo-950 font-medium focus:border-indigo-500 focus:outline-none"
-                                        >
-                                            <option value="">No voucher applied</option>
-                                            {vouchers.map((v: any) => (
-                                                <option key={v.id} value={v.id}>
-                                                    {v.voucher_code} — {v.discount_percent}% Discount
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                )}
+                                {/* Voucher Discount Section */}
+                                {(() => {
+                                    const hourlyPrice = Number(teacher?.teacher_profile?.price ?? 0);
+                                    const slotDurMinutes = confirmingSlot
+                                        ? Math.max(
+                                              1,
+                                              Math.round(
+                                                  (new Date(confirmingSlot.end_at).getTime() -
+                                                      new Date(confirmingSlot.start_at).getTime()) /
+                                                      60000,
+                                              ),
+                                          )
+                                        : 60;
+                                    const baseLessonPrice = Math.round((hourlyPrice * slotDurMinutes) / 60);
+                                    const discountVal = appliedVoucher
+                                        ? Math.round((baseLessonPrice * appliedVoucher.discount_percent) / 100)
+                                        : 0;
+                                    const finalLessonPrice = Math.max(0, baseLessonPrice - discountVal);
+
+                                    return (
+                                        <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-3.5">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                                                    <Ticket className="h-4 w-4 text-indigo-600" />
+                                                    <span>Apply Lesson Discount Voucher</span>
+                                                </label>
+                                                {appliedVoucher && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setAppliedVoucher(null);
+                                                            setSelectedVoucherId(null);
+                                                            setVoucherCode('');
+                                                            setVoucherError(null);
+                                                        }}
+                                                        className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
+                                                    >
+                                                        ✕ Remove
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Quick-select from existing pupil vouchers */}
+                                            {vouchers.length > 0 && (
+                                                <div className="mb-2">
+                                                    <label className="mb-1 block text-[10px] font-semibold text-indigo-700 uppercase tracking-wide">
+                                                        Select from your vouchers
+                                                    </label>
+                                                    <select
+                                                        value={appliedVoucher?.voucher_code ?? selectedVoucherId ?? ''}
+                                                        onChange={(e) => {
+                                                            const sel = vouchers.find(
+                                                                (v: any) =>
+                                                                    v.voucher_code === e.target.value ||
+                                                                    v.id === e.target.value,
+                                                            );
+                                                            if (sel) {
+                                                                setAppliedVoucher(sel);
+                                                                setSelectedVoucherId(sel.id);
+                                                                setVoucherCode(sel.voucher_code);
+                                                            } else {
+                                                                setAppliedVoucher(null);
+                                                                setSelectedVoucherId(null);
+                                                                setVoucherCode('');
+                                                            }
+                                                            setVoucherError(null);
+                                                        }}
+                                                        disabled={booking}
+                                                        className="w-full rounded-xl border border-indigo-200 bg-white p-2.5 text-xs text-indigo-950 font-medium focus:border-indigo-500 focus:outline-none"
+                                                    >
+                                                        <option value="">— No voucher selected —</option>
+                                                        {vouchers.map((v: any) => (
+                                                            <option key={v.id} value={v.voucher_code}>
+                                                                {v.voucher_code} — {v.discount_percent}% off
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
+
+                                            {/* Manual voucher code entry */}
+                                            <label className="mb-1 block text-[10px] font-semibold text-indigo-700 uppercase tracking-wide">
+                                                Or enter code manually
+                                            </label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter promo/voucher code..."
+                                                    value={voucherCode}
+                                                    onChange={(e) => {
+                                                        setVoucherCode(e.target.value.toUpperCase());
+                                                        setVoucherError(null);
+                                                    }}
+                                                    disabled={booking}
+                                                    className="flex-1 rounded-xl border border-indigo-200 bg-white px-3 py-2 font-mono text-xs text-indigo-950 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleValidateVoucher}
+                                                    disabled={!voucherCode.trim() || voucherValidating || booking}
+                                                    className="rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
+                                                >
+                                                    {voucherValidating ? '...' : 'Apply'}
+                                                </button>
+                                            </div>
+
+                                            {voucherError && (
+                                                <p className="mt-1.5 text-[11px] font-semibold text-red-600">
+                                                    {voucherError}
+                                                </p>
+                                            )}
+
+                                            {appliedVoucher && (
+                                                <div className="mt-2.5 rounded-xl bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-800">
+                                                    <div className="flex items-center justify-between font-bold">
+                                                        <span>✓ {appliedVoucher.discount_percent}% discount applied</span>
+                                                        <span>
+                                                            −{discountVal.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Live Price Breakdown */}
+                                            {baseLessonPrice > 0 && (
+                                                <div className="mt-3 border-t border-indigo-100 pt-2 flex items-center justify-between text-xs">
+                                                    <span className="text-gray-500 font-medium">Total Lesson Price:</span>
+                                                    <div className="text-right">
+                                                        {appliedVoucher && (
+                                                            <span className="line-through text-gray-400 mr-2">
+                                                                {baseLessonPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                                            </span>
+                                                        )}
+                                                        <span className="font-bold text-indigo-950 text-sm">
+                                                            {finalLessonPrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
 
                                 <div className="mt-6 flex items-center justify-end gap-3">
                                     <button

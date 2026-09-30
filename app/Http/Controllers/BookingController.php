@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\BookingService;
 use App\Services\SlotService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
@@ -30,6 +31,7 @@ class BookingController extends Controller
             'is_trial' => ['nullable', 'boolean'],
             'duration_minutes' => ['nullable', 'integer', 'in:20,30,45,60,90,120'],
             'voucher_id' => ['nullable', 'uuid', 'exists:user_discount_vouchers,id'],
+            'voucher_code' => ['nullable', 'string', 'max:64'],
         ]);
 
         try {
@@ -44,6 +46,7 @@ class BookingController extends Controller
                     'is_trial' => $validated['is_trial'] ?? false,
                     'duration_minutes' => $validated['duration_minutes'] ?? null,
                     'discount_voucher_id' => $validated['voucher_id'] ?? null,
+                    'discount_voucher_code' => $validated['voucher_code'] ?? null,
                 ]
             );
 
@@ -51,6 +54,11 @@ class BookingController extends Controller
                 'message' => 'Appointment booked successfully',
                 'data' => $appointment,
             ], 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),

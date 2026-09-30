@@ -152,7 +152,7 @@ class ProfileViewTest extends TestCase
             ->has('teacher.teacher_profile.certificates', 1)
             ->where('teacher.teacher_profile.certificates.0.type', 'ielts')
             ->where('teacher.teacher_profile.certificates.0.status', 'verified')
-            ->where('teacher.teacher_profile.certificates.0.file_url', null)
+            ->where('teacher.teacher_profile.certificates.0.file_url', 'https://example.com/storage/certificates/ielts_cert.pdf')
             ->where('teacher.teacher_profile.certificates.0.file_name', 'ielts_cert.pdf')
         );
     }

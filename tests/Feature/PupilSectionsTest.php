@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Appointment;
 use App\Models\Conversation;
 use App\Models\Feedback;
+use App\Models\TeacherProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -45,6 +46,10 @@ class PupilSectionsTest extends TestCase
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::factory()->create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+        ]);
 
         $response = $this->actingAs($pupil)->get("/pupil/teachers/{$teacher->id}");
         $response->assertStatus(200);
@@ -54,6 +59,10 @@ class PupilSectionsTest extends TestCase
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
         $teacher = User::factory()->create(['role' => 'teacher']);
+        TeacherProfile::factory()->create([
+            'user_id' => $teacher->id,
+            'is_verified' => true,
+        ]);
 
         $otherPupil = User::factory()->create(['role' => 'pupil']);
         $otherTeacher = User::factory()->create(['role' => 'teacher']);
@@ -130,14 +139,19 @@ class PupilSectionsTest extends TestCase
             'role' => 'teacher',
             'full_name' => 'Javohir Toshmatov',
         ]);
+        TeacherProfile::factory()->create(['user_id' => $teacher1->id, 'is_verified' => true]);
+
         $teacher2 = User::factory()->create([
             'role' => 'teacher',
             'full_name' => 'Kamola Alieva',
         ]);
+        TeacherProfile::factory()->create(['user_id' => $teacher2->id, 'is_verified' => true]);
+
         $teacher3 = User::factory()->create([
             'role' => 'teacher',
             'full_name' => 'Dilnoza Karimova',
         ]);
+        TeacherProfile::factory()->create(['user_id' => $teacher3->id, 'is_verified' => true]);
 
         $response = $this->actingAs($pupil)->get('/pupil/teachers?search=Javohir');
 
@@ -158,6 +172,7 @@ class PupilSectionsTest extends TestCase
             'role' => 'teacher',
             'full_name' => 'Kamola Alieva',
         ]);
+        TeacherProfile::factory()->create(['user_id' => $teacher->id, 'is_verified' => true]);
 
         $response = $this->actingAs($pupil)->get('/pupil/teachers?search=kamola');
 
@@ -173,7 +188,10 @@ class PupilSectionsTest extends TestCase
     {
         $pupil = User::factory()->create(['role' => 'pupil']);
 
-        User::factory()->count(15)->create(['role' => 'teacher']);
+        $teachers = User::factory()->count(15)->create(['role' => 'teacher']);
+        foreach ($teachers as $t) {
+            TeacherProfile::factory()->create(['user_id' => $t->id, 'is_verified' => true]);
+        }
 
         $response = $this->actingAs($pupil)->get('/pupil/teachers');
 
