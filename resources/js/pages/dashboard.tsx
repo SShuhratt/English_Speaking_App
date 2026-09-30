@@ -21,6 +21,7 @@ import {
     Send,
     Loader2,
     Award,
+    Package,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import type { Auth } from '@/types';
@@ -134,12 +135,14 @@ function PupilDashboard({
     stats = {},
     recentFeedback = null,
     gamification = null,
+    activePackages = [],
 }: {
     user: any;
     appointments?: any[];
     stats?: any;
     recentFeedback?: any;
     gamification?: any;
+    activePackages?: any[];
 }) {
     const { t, locale } = useTranslation();
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
@@ -533,6 +536,107 @@ function PupilDashboard({
                     </div>
                 ) : null;
 
+                const activePacksSection = activePackages && activePackages.length > 0 ? (
+                    <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-8">
+                        <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                            <div>
+                                <h2 className="flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f]">
+                                    <span className="inline-block h-5 w-2.5 rounded-sm bg-emerald-600"></span>
+                                    <span>{t('packages.active_packs_title') || 'Active Conversation Packs'}</span>
+                                </h2>
+                                <p className="mt-1 text-xs text-[#6B7394]">
+                                    {t('packages.total_available_balance') || 'Total Available Balance'}:{' '}
+                                    <span className="font-bold text-emerald-700">
+                                        {formatDuration(
+                                            activePackages.reduce((acc: number, p: any) => acc + (p.remaining_minutes || 0), 0),
+                                            locale
+                                        )}
+                                    </span>
+                                </p>
+                            </div>
+                            <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+                                <Package className="h-3.5 w-3.5" />
+                                {activePackages.length === 1
+                                    ? t('packages.hour_remaining_across_packs', {
+                                          hours: formatDuration(activePackages[0].remaining_minutes, locale),
+                                          count: 1,
+                                      }) || `${formatDuration(activePackages[0].remaining_minutes, locale)} left`
+                                    : `${activePackages.length} active packs`}
+                            </span>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {activePackages.map((pack: any) => {
+                                const teacher = pack.teacher;
+                                const teacherName = teacher?.full_name || 'Teacher';
+                                const packHoursTotal = Math.round((pack.total_minutes || 0) / 60);
+                                const packHoursLeft = formatDuration(pack.remaining_minutes, locale);
+                                const percentLeft = pack.total_minutes > 0
+                                    ? Math.min(100, Math.max(0, Math.round((pack.remaining_minutes / pack.total_minutes) * 100)))
+                                    : 0;
+
+                                return (
+                                    <div
+                                        key={pack.id}
+                                        className="flex flex-col justify-between rounded-2xl border border-emerald-100 bg-[#FAFBFD] p-4 transition-all hover:border-emerald-300 hover:bg-white hover:shadow-md"
+                                    >
+                                        <div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-emerald-100 text-emerald-700 font-bold">
+                                                    {teacher?.avatar ? (
+                                                        <img
+                                                            src={teacher.avatar}
+                                                            alt={teacherName}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        teacherName.charAt(0)
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="truncate text-sm font-bold text-[#1E2A5A]">
+                                                        {teacherName}
+                                                    </h4>
+                                                    <p className="truncate text-xs font-medium text-[#6B7394]">
+                                                        {pack.package_title}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 space-y-1.5">
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <span className="font-semibold text-emerald-900">
+                                                        {packHoursLeft} left
+                                                    </span>
+                                                    <span className="text-[11px] text-[#6B7394]">
+                                                        of {packHoursTotal}h total
+                                                    </span>
+                                                </div>
+                                                <div className="h-2 w-full overflow-hidden rounded-full bg-emerald-100">
+                                                    <div
+                                                        className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                                                        style={{ width: `${percentLeft}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 pt-3 border-t border-emerald-50">
+                                            <Link
+                                                href={`/teachers/${pack.teacher_id}`}
+                                                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-emerald-700 active:scale-98"
+                                            >
+                                                <span>{t('packages.book_with_teacher', { name: teacherName }) || `Book with ${teacherName}`}</span>
+                                                <ChevronRight className="h-3.5 w-3.5" />
+                                            </Link>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : null;
+
                 const upcomingSessionsSection = (
                     <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-10">
                         <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f]">
@@ -708,11 +812,13 @@ function PupilDashboard({
 
                 return appointments.length > 0 ? (
                     <>
+                        {activePacksSection}
                         {upcomingSessionsSection}
                         {gamificationSection}
                     </>
                 ) : (
                     <>
+                        {activePacksSection}
                         {gamificationSection}
                         {upcomingSessionsSection}
                     </>
@@ -1357,11 +1463,13 @@ export default function Dashboard({
     stats = {},
     recentFeedback = null,
     gamification = null,
+    activePackages = [],
 }: {
     appointments?: any[];
     stats?: any;
     recentFeedback?: any;
     gamification?: any;
+    activePackages?: any[];
 }) {
     const { auth } = usePage<any>().props;
     const role = (auth.user?.role as string) || 'pupil';
@@ -1384,6 +1492,7 @@ export default function Dashboard({
                     stats={stats}
                     recentFeedback={recentFeedback}
                     gamification={gamification}
+                    activePackages={activePackages}
                 />
             )}
         </>

@@ -121,6 +121,8 @@ interface Props {
     };
     packages?: TeacherPackage[];
     activePupilPackage?: PupilPackage | null;
+    activePupilPackages?: PupilPackage[];
+    totalActivePackageMinutes?: number;
     pendingPupilPackage?: PupilPackage | null;
     vouchers?: Voucher[];
 }
@@ -138,14 +140,22 @@ export default function TeacherProfile({
     conversationStats,
     packages = [],
     activePupilPackage = null,
+    activePupilPackages = [],
+    totalActivePackageMinutes,
     pendingPupilPackage = null,
     vouchers = [],
 }: Props) {
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
 
+    const cumulativeRemainingMinutes =
+        totalActivePackageMinutes ??
+        (activePupilPackages && activePupilPackages.length > 0
+            ? activePupilPackages.reduce((acc, p) => acc + (p.remaining_minutes || 0), 0)
+            : activePupilPackage?.remaining_minutes ?? 0);
+
     const [lessonType, setLessonType] = React.useState<'trial' | 'full'>(
-        activePupilPackage && activePupilPackage.remaining_minutes > 0
+        cumulativeRemainingMinutes > 0
             ? 'full'
             : hasEligibleTrial
               ? 'trial'
@@ -557,14 +567,12 @@ export default function TeacherProfile({
 
     const isCoveredByPackage =
         lessonType !== 'trial' &&
-        !!activePupilPackage &&
-        activePupilPackage.remaining_minutes >= durMins;
+        cumulativeRemainingMinutes >= durMins;
 
     const hasPartialPackage =
         lessonType !== 'trial' &&
-        !!activePupilPackage &&
-        activePupilPackage.remaining_minutes > 0 &&
-        activePupilPackage.remaining_minutes < durMins;
+        cumulativeRemainingMinutes > 0 &&
+        cumulativeRemainingMinutes < durMins;
 
     const calculatedFullPrice = isCoveredByPackage
         ? 0
@@ -1390,28 +1398,71 @@ export default function TeacherProfile({
                                         'Purchase discounted conversation hours with this teacher in bulk and use them anytime for free bookings.'}
                                 </p>
 
-                                {activePupilPackage && activePupilPackage.remaining_minutes > 0 && (
-                                    <div className="mb-4 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-900">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                                                <CheckCircle2 className="h-4 w-4" />
+                                {cumulativeRemainingMinutes > 0 && (
+                                    <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-xs text-emerald-900 shadow-xs">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-emerald-950">
+                                                        {activePupilPackages.length > 1
+                                                            ? t('packages.active_packs_title') || 'Active Conversation Packs'
+                                                            : t('packages.active_package') || 'Active Conversation Pack'}
+                                                    </p>
+                                                    <p className="text-[12px] font-semibold text-emerald-700">
+                                                        {activePupilPackages.length > 1
+                                                            ? t('packages.hours_remaining_across_packs', {
+                                                                  hours: formatRemainingBalance(cumulativeRemainingMinutes, locale),
+                                                                  count: activePupilPackages.length,
+                                                              }) || `${formatRemainingBalance(cumulativeRemainingMinutes, locale)} across ${activePupilPackages.length} active packs`
+                                                            : `${activePupilPackages[0]?.package_title || activePupilPackage?.package_title || 'Pack'} · ${formatRemainingBalance(cumulativeRemainingMinutes, locale)}`}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-emerald-950">
-                                                    {t('packages.active_package') || 'Active Conversation Pack'}
-                                                </p>
-                                                <p className="text-[11.5px] text-emerald-700">
-                                                    {activePupilPackage.package_title} ·{' '}
-                                                    {t('packages.remaining_time', {
-                                                        time: formatDuration(activePupilPackage.remaining_minutes, locale),
-                                                    }) ||
-                                                        formatRemainingBalance(activePupilPackage.remaining_minutes, locale)}
-                                                </p>
-                                            </div>
+                                            <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white shadow-xs">
+                                                {t('packages.status_active') || 'Active'}
+                                            </span>
                                         </div>
-                                        <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white shadow-xs">
-                                            {t('packages.status_active') || 'Active'}
-                                        </span>
+
+                                        {/* Individual Active Packs Breakdown */}
+                                        {activePupilPackages.length > 0 && (
+                                            <div className="mt-3 space-y-2 border-t border-emerald-200/70 pt-3">
+                                                {activePupilPackages.map((pack) => {
+                                                    const packHoursTotal = Math.round((pack.total_minutes || 0) / 60);
+                                                    const packHoursLeft = formatDuration(pack.remaining_minutes, locale);
+                                                    const percentLeft = pack.total_minutes > 0
+                                                        ? Math.min(100, Math.max(0, Math.round((pack.remaining_minutes / pack.total_minutes) * 100)))
+                                                        : 0;
+
+                                                    return (
+                                                        <div
+                                                            key={pack.id}
+                                                            className="flex flex-col gap-1.5 rounded-xl border border-emerald-200/60 bg-white/80 p-2.5 shadow-2xs"
+                                                        >
+                                                            <div className="flex items-center justify-between text-[11px]">
+                                                                <span className="font-bold text-emerald-950">
+                                                                    {pack.package_title}
+                                                                </span>
+                                                                <span className="font-semibold text-emerald-800">
+                                                                    {t('packages.hours_left_of', {
+                                                                        left: packHoursLeft,
+                                                                        total: packHoursTotal,
+                                                                    }) || `${packHoursLeft} left of ${packHoursTotal}h`}
+                                                                </span>
+                                                            </div>
+                                                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-emerald-100">
+                                                                <div
+                                                                    className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                                                                    style={{ width: `${percentLeft}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -1456,8 +1507,14 @@ export default function TeacherProfile({
                                         const regularRate = hourlyPrice * pkg.total_hours;
                                         const savings = regularRate > pkg.price ? regularRate - pkg.price : 0;
                                         const isCurrentActive =
-                                            activePupilPackage?.teacher_package_id === pkg.id &&
-                                            activePupilPackage?.remaining_minutes > 0;
+                                            (activePupilPackages &&
+                                                activePupilPackages.some(
+                                                    (p) =>
+                                                        p.teacher_package_id === pkg.id &&
+                                                        p.remaining_minutes > 0,
+                                                )) ||
+                                            (activePupilPackage?.teacher_package_id === pkg.id &&
+                                                activePupilPackage?.remaining_minutes > 0);
 
                                         return (
                                             <div
@@ -1636,25 +1693,27 @@ export default function TeacherProfile({
                             </div>
 
                             {/* Active Package Banner in Rail */}
-                            {activePupilPackage && activePupilPackage.remaining_minutes > 0 && (
+                            {cumulativeRemainingMinutes > 0 && (
                                 <div className="mt-3.5 mb-1 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950">
                                     <div className="flex items-center justify-between font-bold">
                                         <span className="flex items-center gap-1.5 text-emerald-900">
                                             <Package className="h-4 w-4 text-emerald-600" />
-                                            {t('packages.active_package') || 'Active Pack'}
+                                            {activePupilPackages && activePupilPackages.length > 1
+                                                ? t('packages.active_packs_title') || 'Active Packs'
+                                                : t('packages.active_package') || 'Active Pack'}
                                         </span>
                                         <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-extrabold text-emerald-900">
-                                            {formatRemainingBalance(activePupilPackage.remaining_minutes, locale)}
+                                            {formatRemainingBalance(cumulativeRemainingMinutes, locale)}
                                         </span>
                                     </div>
                                     <p className="mt-1 text-[11.5px] leading-snug text-emerald-700">
                                         {isCoveredByPackage
                                             ? t('packages.covered_badge') || 'Covered by your Pack (Free Booking)'
                                             : t('packages.insufficient_minutes', {
-                                                  remaining: formatDuration(activePupilPackage.remaining_minutes, locale),
+                                                  remaining: formatDuration(cumulativeRemainingMinutes, locale),
                                                   duration: formatDuration(durMins, locale),
                                               }) ||
-                                              `Pack has ${formatDuration(activePupilPackage.remaining_minutes, locale)} left. Standard rate applies for this ${formatDuration(durMins, locale)} session.`}
+                                              `Pack has ${formatDuration(cumulativeRemainingMinutes, locale)} left. Standard rate applies for this ${formatDuration(durMins, locale)} session.`}
                                     </p>
                                 </div>
                             )}
@@ -2236,7 +2295,7 @@ export default function TeacherProfile({
                                             <p className="mt-0.5 text-[11.5px] text-emerald-700">
                                                 {t('packages.covered_session_desc', {
                                                     duration: formatDuration(durMins, locale),
-                                                    remaining: formatDuration(activePupilPackage ? Math.max(0, activePupilPackage.remaining_minutes - durMins) : 0, locale),
+                                                    remaining: formatDuration(Math.max(0, cumulativeRemainingMinutes - durMins), locale),
                                                 })}
                                             </p>
                                         </div>
@@ -2252,7 +2311,7 @@ export default function TeacherProfile({
                                             </p>
                                             <p className="mt-0.5 text-[11.5px] text-amber-700">
                                                 {t('packages.insufficient_minutes', {
-                                                    remaining: formatDuration(activePupilPackage?.remaining_minutes ?? 0, locale),
+                                                    remaining: formatDuration(cumulativeRemainingMinutes, locale),
                                                     duration: formatDuration(durMins, locale),
                                                 })}
                                             </p>

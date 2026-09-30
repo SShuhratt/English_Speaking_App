@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\PupilPackage;
 use App\Notifications\PackagePaymentConfirmedNotification;
 use App\Notifications\PackagePaymentRejectedNotification;
+use App\Notifications\TeacherPackagePurchasedNotification;
 use App\Services\BookingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -139,6 +140,7 @@ class AdminDashboardController extends Controller
 
             $package->load(['teacher.teacherProfile', 'pupil.pupilProfile']);
             $package->pupil?->notify(new PackagePaymentConfirmedNotification($package));
+            $package->teacher?->notify(new TeacherPackagePurchasedNotification($package));
 
             return back()->with('success', 'Package payment confirmed successfully. Minutes are now active for the student.');
         } catch (\Throwable $e) {

@@ -72,16 +72,27 @@ class ProfileViewController extends Controller
                 ->get();
 
             $activePupilPackage = null;
+            $activePupilPackages = [];
+            $totalActivePackageMinutes = 0;
             $pendingPupilPackage = null;
 
             if ($currentUser && $currentUser->role === 'pupil') {
-                $activePupilPackage = PupilPackage::where('pupil_id', $currentUser->id)
+                $activePupilPackages = PupilPackage::where('pupil_id', $currentUser->id)
                     ->where('teacher_id', $teacher->id)
                     ->where('status', 'active')
                     ->where('payment_status', 'paid')
                     ->where('remaining_minutes', '>', 0)
                     ->orderBy('created_at', 'asc')
-                    ->first();
+                    ->get();
+
+                $totalActivePackageMinutes = $activePupilPackages->sum('remaining_minutes');
+
+                if ($activePupilPackages->isNotEmpty()) {
+                    $firstPackage = $activePupilPackages->first();
+                    $activePupilPackage = clone $firstPackage;
+                    $activePupilPackage->remaining_minutes = $totalActivePackageMinutes;
+                    $activePupilPackage->total_packages_count = $activePupilPackages->count();
+                }
 
                 $pendingPupilPackage = PupilPackage::where('pupil_id', $currentUser->id)
                     ->where('teacher_id', $teacher->id)
@@ -97,6 +108,8 @@ class ProfileViewController extends Controller
                 'conversationStats' => $conversationStats,
                 'packages' => $packages,
                 'activePupilPackage' => $activePupilPackage,
+                'activePupilPackages' => $activePupilPackages,
+                'totalActivePackageMinutes' => $totalActivePackageMinutes,
                 'pendingPupilPackage' => $pendingPupilPackage,
             ]);
         }

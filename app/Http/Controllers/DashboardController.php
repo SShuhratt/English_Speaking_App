@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Feedback;
+use App\Models\PupilPackage;
 use App\Models\TeacherProfile;
 use App\Services\GamificationService;
 use Illuminate\Http\Request;
@@ -92,6 +93,14 @@ class DashboardController extends Controller
                 'credential' => GamificationService::getVerifiedFluencyCredential($user),
             ];
 
+            $activePackages = PupilPackage::where('pupil_id', $user->id)
+                ->where('status', 'active')
+                ->where('payment_status', 'paid')
+                ->where('remaining_minutes', '>', 0)
+                ->with(['teacher.teacherProfile'])
+                ->orderBy('created_at', 'asc')
+                ->get();
+
             return Inertia::render('dashboard', [
                 'appointments' => $appointments,
                 'stats' => [
@@ -100,6 +109,7 @@ class DashboardController extends Controller
                 ],
                 'recentFeedback' => $recentFeedback,
                 'gamification' => $gamification,
+                'activePackages' => $activePackages,
             ]);
         }
     }

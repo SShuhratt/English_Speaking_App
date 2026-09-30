@@ -78,28 +78,47 @@ class BookingService
                 $price = $hourlyRate > 0 ? (int) (round(($hourlyRate * $duration / 60) / 1000) * 1000) : 0;
             }
 
-            // Check if pupil has an active paid package for this teacher with enough remaining minutes
+            // Check if pupil has active paid packages for this teacher with enough cumulative remaining minutes
             $isPackageBooking = false;
             $pupilPackageId = null;
 
             if (! $isTrial) {
-                $activePackage = PupilPackage::where('pupil_id', $pupil->id)
+                $activePackages = PupilPackage::where('pupil_id', $pupil->id)
                     ->where('teacher_id', $teacher->id)
                     ->where('status', 'active')
                     ->where('payment_status', 'paid')
-                    ->where('remaining_minutes', '>=', $duration)
+                    ->where('remaining_minutes', '>', 0)
                     ->orderBy('created_at', 'asc')
                     ->lockForUpdate()
-                    ->first();
+                    ->get();
 
-                if ($activePackage) {
+                $totalAvailableMinutes = $activePackages->sum('remaining_minutes');
+
+                if ($totalAvailableMinutes >= $duration) {
                     $isPackageBooking = true;
-                    $pupilPackageId = $activePackage->id;
                     $price = 0;
-                    $activePackage->decrement('remaining_minutes', $duration);
-                    if ($activePackage->fresh()->remaining_minutes <= 0) {
-                        $activePackage->update(['status' => 'exhausted']);
+                    $minutesToDeduct = $duration;
+                    $primaryPackageId = null;
+
+                    foreach ($activePackages as $pkg) {
+                        if ($minutesToDeduct <= 0) {
+                            break;
+                        }
+
+                        if (! $primaryPackageId) {
+                            $primaryPackageId = $pkg->id;
+                        }
+
+                        $deductFromThis = min($pkg->remaining_minutes, $minutesToDeduct);
+                        $pkg->decrement('remaining_minutes', $deductFromThis);
+                        $minutesToDeduct -= $deductFromThis;
+
+                        if ($pkg->fresh()->remaining_minutes <= 0) {
+                            $pkg->update(['status' => 'exhausted']);
+                        }
                     }
+
+                    $pupilPackageId = $primaryPackageId;
                 }
             }
 

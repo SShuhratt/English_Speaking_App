@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Jobs\TranscodeIntroVideoJob;
+use App\Models\PupilPackage;
 use App\Services\FileStorageService;
 use App\Services\GoogleOAuthService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -26,15 +27,25 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         $user = $request->user();
+        $activePackages = [];
+
         if ($user->role === 'teacher') {
             $user->load('teacherProfile');
         } elseif ($user->role === 'pupil') {
             $user->load('pupilProfile');
+            $activePackages = PupilPackage::where('pupil_id', $user->id)
+                ->where('status', 'active')
+                ->where('payment_status', 'paid')
+                ->where('remaining_minutes', '>', 0)
+                ->with(['teacher.teacherProfile'])
+                ->orderBy('created_at', 'asc')
+                ->get();
         }
 
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'activePackages' => $activePackages,
         ]);
     }
 
