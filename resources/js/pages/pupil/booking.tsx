@@ -1383,7 +1383,7 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                                             <div className="flex items-center justify-between mb-2">
                                                 <label className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
                                                     <Ticket className="h-4 w-4 text-indigo-600" />
-                                                    <span>Apply Lesson Discount Voucher</span>
+                                                    <span>{t('voucher.apply_lesson_voucher')}</span>
                                                 </label>
                                                 {appliedVoucher && (
                                                     <button
@@ -1396,7 +1396,7 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                                                         }}
                                                         className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
                                                     >
-                                                        ✕ Remove
+                                                        ✕ {t('voucher.remove')}
                                                     </button>
                                                 )}
                                             </div>
@@ -1405,7 +1405,7 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                                             {vouchers.length > 0 && (
                                                 <div className="mb-2">
                                                     <label className="mb-1 block text-[10px] font-semibold text-indigo-700 uppercase tracking-wide">
-                                                        Select from your vouchers
+                                                        {t('voucher.select_from_vouchers')}
                                                     </label>
                                                     <select
                                                         value={appliedVoucher?.voucher_code ?? selectedVoucherId ?? ''}
@@ -1429,10 +1429,10 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                                                         disabled={booking}
                                                         className="w-full rounded-xl border border-indigo-200 bg-white p-2.5 text-xs text-indigo-950 font-medium focus:border-indigo-500 focus:outline-none"
                                                     >
-                                                        <option value="">— No voucher selected —</option>
+                                                        <option value="">{t('voucher.no_voucher_selected')}</option>
                                                         {vouchers.map((v: any) => (
                                                             <option key={v.id} value={v.voucher_code}>
-                                                                {v.voucher_code} — {v.discount_percent}% off
+                                                                {v.voucher_code} — {v.discount_percent}{t('voucher.off')}
                                                             </option>
                                                         ))}
                                                     </select>
@@ -1441,12 +1441,12 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
 
                                             {/* Manual voucher code entry */}
                                             <label className="mb-1 block text-[10px] font-semibold text-indigo-700 uppercase tracking-wide">
-                                                Or enter code manually
+                                                {t('voucher.enter_code_manually')}
                                             </label>
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
-                                                    placeholder="Enter promo/voucher code..."
+                                                    placeholder={t('voucher.code_input_placeholder')}
                                                     value={voucherCode}
                                                     onChange={(e) => {
                                                         setVoucherCode(e.target.value.toUpperCase());
@@ -1461,7 +1461,7 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                                                     disabled={!voucherCode.trim() || voucherValidating || booking}
                                                     className="rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
                                                 >
-                                                    {voucherValidating ? '...' : 'Apply'}
+                                                    {voucherValidating ? t('voucher.applying') : t('voucher.apply')}
                                                 </button>
                                             </div>
 
@@ -1474,7 +1474,7 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                                             {appliedVoucher && (
                                                 <div className="mt-2.5 rounded-xl bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-800">
                                                     <div className="flex items-center justify-between font-bold">
-                                                        <span>✓ {appliedVoucher.discount_percent}% discount applied</span>
+                                                        <span>{t('voucher.discount_applied', { percent: appliedVoucher.discount_percent })}</span>
                                                         <span>
                                                             −{discountVal.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
                                                         </span>
@@ -1485,7 +1485,7 @@ export default function Booking({ teacher, vouchers = [] }: Props) {
                                             {/* Live Price Breakdown */}
                                             {baseLessonPrice > 0 && (
                                                 <div className="mt-3 border-t border-indigo-100 pt-2 flex items-center justify-between text-xs">
-                                                    <span className="text-gray-500 font-medium">Total Lesson Price:</span>
+                                                    <span className="text-gray-500 font-medium">{t('voucher.final_price')}:</span>
                                                     <div className="text-right">
                                                         {appliedVoucher && (
                                                             <span className="line-through text-gray-400 mr-2">

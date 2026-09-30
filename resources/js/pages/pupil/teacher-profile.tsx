@@ -2264,7 +2264,7 @@ export default function TeacherProfile({
                                     <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3.5 dark:border-purple-900/30 dark:bg-purple-950/30">
                                         <div className="flex items-center justify-between mb-2">
                                             <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
-                                                <span>🎟</span> Have a discount voucher?
+                                                <span>🎟</span> {t('voucher.have_discount')}
                                             </p>
                                             {appliedSlotVoucher && (
                                                 <button
@@ -2276,7 +2276,7 @@ export default function TeacherProfile({
                                                     }}
                                                     className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
                                                 >
-                                                    ✕ Remove
+                                                    ✕ {t('voucher.remove')}
                                                 </button>
                                             )}
                                         </div>
@@ -2285,7 +2285,7 @@ export default function TeacherProfile({
                                         {vouchers.length > 0 && (
                                             <div className="mb-2">
                                                 <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                                    Select from your vouchers
+                                                    {t('voucher.select_from_vouchers')}
                                                 </label>
                                                 <select
                                                     className="w-full rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1E2A5A] shadow-sm focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
@@ -2300,10 +2300,10 @@ export default function TeacherProfile({
                                                     }}
                                                     disabled={booking}
                                                 >
-                                                    <option value="">— No voucher selected —</option>
+                                                    <option value="">{t('voucher.no_voucher_selected')}</option>
                                                     {vouchers.map((v) => (
                                                         <option key={v.id} value={v.voucher_code}>
-                                                            {v.voucher_code} — {v.discount_percent}% off
+                                                            {v.voucher_code} — {v.discount_percent}{t('voucher.off')}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -2312,12 +2312,12 @@ export default function TeacherProfile({
 
                                         {/* Manual code entry */}
                                         <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                            Or enter code manually
+                                            {t('voucher.enter_code_manually')}
                                         </label>
                                         <div className="flex gap-2">
                                             <input
                                                 type="text"
-                                                placeholder="e.g. CONVO-25-MRD1"
+                                                placeholder={t('voucher.code_placeholder')}
                                                 value={slotVoucherCode}
                                                 onChange={(e) => {
                                                     setSlotVoucherCode(e.target.value.toUpperCase());
@@ -2332,7 +2332,7 @@ export default function TeacherProfile({
                                                 disabled={!slotVoucherCode.trim() || slotVoucherValidating || booking}
                                                 className="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 disabled:opacity-50 cursor-pointer"
                                             >
-                                                {slotVoucherValidating ? '...' : 'Apply'}
+                                                {slotVoucherValidating ? t('voucher.applying') : t('voucher.apply')}
                                             </button>
                                         </div>
 
@@ -2345,7 +2345,7 @@ export default function TeacherProfile({
                                         {appliedSlotVoucher && (
                                             <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-1.5 dark:bg-emerald-950/40">
                                                 <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                                                    ✓ {appliedSlotVoucher.discount_percent}% discount applied
+                                                    {t('voucher.discount_applied', { percent: appliedSlotVoucher.discount_percent })}
                                                 </span>
                                                 <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
                                                     −
@@ -2486,14 +2486,14 @@ export default function TeacherProfile({
                         {/* Voucher / Discount Code */}
                         <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3.5 dark:border-purple-900/30 dark:bg-purple-950/30">
                             <p className="mb-2 text-[11px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
-                                <span>🎟</span> Have a discount voucher?
+                                <span>🎟</span> {t('voucher.have_discount')}
                             </p>
 
                             {/* Owned vouchers quick-select */}
                             {vouchers.length > 0 && (
                                 <div className="mb-2">
                                     <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                        Select from your vouchers
+                                        {t('voucher.select_from_vouchers')}
                                     </label>
                                     <select
                                         className="w-full rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1E2A5A] shadow-sm focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
@@ -2506,10 +2506,10 @@ export default function TeacherProfile({
                                         }}
                                         disabled={submittingPurchase}
                                     >
-                                        <option value="">— No voucher —</option>
+                                        <option value="">{t('voucher.no_voucher')}</option>
                                         {vouchers.map((v) => (
                                             <option key={v.id} value={v.voucher_code}>
-                                                {v.voucher_code} — {v.discount_percent}% off
+                                                {v.voucher_code} — {v.discount_percent}{t('voucher.off')}
                                             </option>
                                         ))}
                                     </select>
@@ -2518,12 +2518,12 @@ export default function TeacherProfile({
 
                             {/* Manual code entry */}
                             <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                Or enter a code manually
+                                {t('voucher.enter_code_manually')}
                             </label>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    placeholder="e.g. CONVO-25-MRD1"
+                                    placeholder={t('voucher.code_placeholder')}
                                     value={voucherCode}
                                     onChange={(e) => {
                                         setVoucherCode(e.target.value.toUpperCase());
@@ -2539,7 +2539,7 @@ export default function TeacherProfile({
                                     disabled={!voucherCode.trim() || voucherValidating || submittingPurchase}
                                     className="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 disabled:opacity-50"
                                 >
-                                    {voucherValidating ? '...' : 'Apply'}
+                                    {voucherValidating ? t('voucher.applying') : t('voucher.apply')}
                                 </button>
                             </div>
 
@@ -2550,14 +2550,14 @@ export default function TeacherProfile({
                             {appliedVoucher && (
                                 <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-1.5 dark:bg-emerald-950/40">
                                     <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                                        ✓ {appliedVoucher.discount_percent}% discount applied
+                                        {t('voucher.discount_applied', { percent: appliedVoucher.discount_percent })}
                                     </span>
                                     <button
                                         type="button"
-                                        className="text-[10px] font-semibold text-red-500 hover:underline"
+                                        className="text-[10px] font-semibold text-red-500 hover:underline cursor-pointer"
                                         onClick={() => { setAppliedVoucher(null); setVoucherCode(''); }}
                                     >
-                                        Remove
+                                        {t('voucher.remove')}
                                     </button>
                                 </div>
                             )}
@@ -2566,9 +2566,9 @@ export default function TeacherProfile({
                         <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-[11.5px] leading-relaxed text-[#1E2A5A]">
                             <div className="flex items-center gap-1.5 font-bold mb-0.5">
                                 <Info className="h-3.5 w-3.5 text-blue-600" />
-                                <span>How it works</span>
+                                <span>{t('voucher.how_it_works_title')}</span>
                             </div>
-                            Once submitted, the administrator verifies your payment. After verification, your hours become available immediately, allowing you to book conversations with {teacher.full_name} for free until your hours are completely used!
+                            {t('voucher.how_it_works_desc', { name: teacher.full_name })}
                         </div>
 
                         <div className="mt-6 flex items-center justify-end gap-3">

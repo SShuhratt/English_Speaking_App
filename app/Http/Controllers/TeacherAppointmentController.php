@@ -47,7 +47,7 @@ class TeacherAppointmentController extends Controller
             ->where('status', 'confirmed')
             ->where('end_at', '>', now())
             ->with(['pupil', 'cancelledBy'])
-            ->orderByDesc('start_at')
+            ->orderBy('start_at', 'asc')
             ->get();
 
         return Inertia::render('teacher/schedule', [

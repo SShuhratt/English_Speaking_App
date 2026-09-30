@@ -692,4 +692,55 @@ class TeacherSectionsTest extends TestCase
         $this->assertDatabaseMissing('teacher_availabilities', ['id' => $custom1->id]);
         $this->assertDatabaseMissing('teacher_availabilities', ['id' => $custom2->id]);
     }
+
+    public function test_teacher_schedule_returns_confirmed_upcoming_appointments_in_chronological_order()
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $otherTeacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        // Past confirmed session (should be excluded)
+        Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'status' => 'confirmed',
+            'start_at' => now()->subHours(2),
+            'end_at' => now()->subHour(),
+        ]);
+
+        // Future session 2 days ahead
+        $aptLater = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'status' => 'confirmed',
+            'start_at' => now()->addDays(2),
+            'end_at' => now()->addDays(2)->addHour(),
+        ]);
+
+        // Future session 1 day ahead (should come first)
+        $aptEarlier = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'status' => 'confirmed',
+            'start_at' => now()->addDay(),
+            'end_at' => now()->addDay()->addHour(),
+        ]);
+
+        // Other teacher's session (should be excluded)
+        Appointment::create([
+            'teacher_id' => $otherTeacher->id,
+            'pupil_id' => $pupil->id,
+            'status' => 'confirmed',
+            'start_at' => now()->addDay(),
+            'end_at' => now()->addDay()->addHour(),
+        ]);
+
+        $response = $this->actingAs($teacher)->get('/teacher/schedule');
+        $response->assertStatus(200);
+
+        $appointments = $response->viewData('page')['props']['appointments'];
+        $this->assertCount(2, $appointments);
+        $this->assertEquals($aptEarlier->id, $appointments[0]['id']);
+        $this->assertEquals($aptLater->id, $appointments[1]['id']);
+    }
 }
