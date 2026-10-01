@@ -980,11 +980,29 @@ export default function Profile({
                                                     <select
                                                         name="gender"
                                                         defaultValue={String(
-                                                            auth.user.gender ||
-                                                                'prefer_not_to_say',
+                                                            auth.user.gender ===
+                                                                'prefer_not_to_say'
+                                                                ? ''
+                                                                : auth.user
+                                                                      .gender ||
+                                                                      '',
                                                         )}
+                                                        required
                                                         className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     >
+                                                        {(!auth.user.gender ||
+                                                            auth.user.gender ===
+                                                                'prefer_not_to_say') && (
+                                                            <option
+                                                                value=""
+                                                                disabled
+                                                                hidden
+                                                            >
+                                                                {t(
+                                                                    'auth.select_gender',
+                                                                )}
+                                                            </option>
+                                                        )}
                                                         <option value="male">
                                                             {t(
                                                                 'auth.gender_male',
@@ -993,11 +1011,6 @@ export default function Profile({
                                                         <option value="female">
                                                             {t(
                                                                 'auth.gender_female',
-                                                            )}
-                                                        </option>
-                                                        <option value="prefer_not_to_say">
-                                                            {t(
-                                                                'auth.gender_prefer_not_to_say',
                                                             )}
                                                         </option>
                                                     </select>
@@ -1726,11 +1739,29 @@ export default function Profile({
                                                     <select
                                                         name="gender"
                                                         defaultValue={String(
-                                                            auth.user.gender ||
-                                                                'prefer_not_to_say',
+                                                            auth.user.gender ===
+                                                                'prefer_not_to_say'
+                                                                ? ''
+                                                                : auth.user
+                                                                      .gender ||
+                                                                      '',
                                                         )}
+                                                        required
                                                         className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
                                                     >
+                                                        {(!auth.user.gender ||
+                                                            auth.user.gender ===
+                                                                'prefer_not_to_say') && (
+                                                            <option
+                                                                value=""
+                                                                disabled
+                                                                hidden
+                                                            >
+                                                                {t(
+                                                                    'auth.select_gender',
+                                                                )}
+                                                            </option>
+                                                        )}
                                                         <option value="male">
                                                             {t(
                                                                 'auth.gender_male',
@@ -1739,11 +1770,6 @@ export default function Profile({
                                                         <option value="female">
                                                             {t(
                                                                 'auth.gender_female',
-                                                            )}
-                                                        </option>
-                                                        <option value="prefer_not_to_say">
-                                                            {t(
-                                                                'auth.gender_prefer_not_to_say',
                                                             )}
                                                         </option>
                                                     </select>

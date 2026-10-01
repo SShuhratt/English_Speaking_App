@@ -463,12 +463,7 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="age">
-                                    {t('auth.age')}{' '}
-                                    <span className="text-[11px] font-normal text-muted-foreground">
-                                        ({role === 'teacher' ? '18+' : '8+'})
-                                    </span>
-                                </Label>
+                                <Label htmlFor="age">{t('auth.age')}</Label>
                                 <Input
                                     id="age"
                                     type="number"
@@ -480,7 +475,7 @@ export default function Register({ passwordRules }: Props) {
                                         if (ageError) setAgeError(null);
                                     }}
                                     autoComplete="bday"
-                                    placeholder={role === 'teacher' ? '18' : '8'}
+                                    placeholder=""
                                 />
                                 <InputError message={ageError || errors.age} />
                             </div>
@@ -505,12 +500,15 @@ export default function Register({ passwordRules }: Props) {
                                 <select
                                     id="gender"
                                     name="gender"
-                                    defaultValue="prefer_not_to_say"
+                                    defaultValue=""
+                                    required
                                     className="mt-1 block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
+                                    <option value="" disabled hidden>
+                                        {t('auth.select_gender')}
+                                    </option>
                                     <option value="male">{t('auth.gender_male')}</option>
                                     <option value="female">{t('auth.gender_female')}</option>
-                                    <option value="prefer_not_to_say">{t('auth.gender_prefer_not_to_say')}</option>
                                 </select>
                                 <InputError message={errors.gender} />
                             </div>
