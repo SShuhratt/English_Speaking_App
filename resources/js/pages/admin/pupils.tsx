@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Users, MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
 import DeleteUserModal from '@/components/delete-user-modal';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface PupilProfile {
     id: string;
@@ -38,6 +39,7 @@ interface Props {
 }
 
 export default function AdminPupils({ pupils }: Props) {
+    const { t } = useTranslation();
     const [deletingUser, setDeletingUser] = useState<{
         id: string;
         name: string;
@@ -45,7 +47,7 @@ export default function AdminPupils({ pupils }: Props) {
 
     return (
         <>
-            <Head title="Admin - Pupil Management" />
+            <Head title={t('admin.pupils_title')} />
 
             <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8">
                 {/* Header Banner */}
@@ -56,11 +58,10 @@ export default function AdminPupils({ pupils }: Props) {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold md:text-3xl">
-                                Pupil Directory
+                                {t('admin.pupils_heading')}
                             </h1>
                             <p className="mt-1 text-sm text-emerald-100">
-                                View registered pupils, check support inquiries,
-                                and inspect pupil profiles.
+                                {t('admin.pupils_desc')}
                             </p>
                         </div>
                     </div>
@@ -69,11 +70,10 @@ export default function AdminPupils({ pupils }: Props) {
                 <Card className="shadow-md">
                     <CardHeader>
                         <CardTitle className="text-lg">
-                            Registered Pupils
+                            {t('admin.pupils_list_title')}
                         </CardTitle>
                         <CardDescription>
-                            Full list of pupils with unread message status and
-                            profile access.
+                            {t('admin.pupils_list_desc')}
                         </CardDescription>
                     </CardHeader>
 
@@ -83,19 +83,19 @@ export default function AdminPupils({ pupils }: Props) {
                                 <thead className="border-b bg-gray-50 text-xs text-gray-700 uppercase dark:bg-gray-800 dark:text-gray-300">
                                     <tr>
                                         <th className="px-4 py-3">
-                                            Pupil Info
+                                            {t('admin.col_pupil_info')}
                                         </th>
                                         <th className="px-4 py-3">
-                                            English Level
+                                            {t('admin.col_english_level')}
                                         </th>
                                         <th className="px-4 py-3">
-                                            Joined Date
+                                            {t('admin.col_joined_date')}
                                         </th>
                                         <th className="px-4 py-3">
-                                            Unread Support
+                                            {t('admin.col_unread_support')}
                                         </th>
                                         <th className="px-4 py-3 text-right">
-                                            Actions
+                                            {t('admin.col_actions')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -153,7 +153,7 @@ export default function AdminPupils({ pupils }: Props) {
                                                     className="capitalize"
                                                 >
                                                     {pupil.pupil_profile
-                                                        ?.level || 'Not set'}
+                                                        ?.level || t('admin.not_set')}
                                                 </Badge>
                                             </td>
 
@@ -163,7 +163,7 @@ export default function AdminPupils({ pupils }: Props) {
                                                 ).toLocaleDateString()}
                                             </td>
 
-                                            <td className="px-4 py-4">
+                                             <td className="px-4 py-4">
                                                 {(pupil.unread_messages_count ||
                                                     0) > 0 ? (
                                                     <Link
@@ -174,19 +174,14 @@ export default function AdminPupils({ pupils }: Props) {
                                                             className="flex w-fit items-center gap-1"
                                                         >
                                                             <MessageSquare className="h-3 w-3" />
-                                                            {
-                                                                pupil.unread_messages_count
-                                                            }{' '}
-                                                            Unread Message
-                                                            {pupil.unread_messages_count! >
-                                                            1
-                                                                ? 's'
-                                                                : ''}
+                                                            {pupil.unread_messages_count! > 1
+                                                                ? t('admin.unread_message_plural', { count: pupil.unread_messages_count })
+                                                                : t('admin.unread_message_singular', { count: pupil.unread_messages_count })}
                                                         </Badge>
                                                     </Link>
                                                 ) : (
                                                     <span className="text-xs text-gray-400">
-                                                        No unread messages
+                                                        {t('admin.no_unread_messages')}
                                                     </span>
                                                 )}
                                             </td>
@@ -200,7 +195,7 @@ export default function AdminPupils({ pupils }: Props) {
                                                             size="sm"
                                                             variant="outline"
                                                         >
-                                                            View Profile
+                                                            {t('admin.btn_view_profile')}
                                                         </Button>
                                                     </Link>
 
@@ -216,7 +211,7 @@ export default function AdminPupils({ pupils }: Props) {
                                                         className="bg-red-600 font-bold text-white hover:bg-red-700"
                                                     >
                                                         <Trash2 className="mr-1 h-3.5 w-3.5" />
-                                                        Delete
+                                                        {t('admin.delete_user')}
                                                     </Button>
                                                 </div>
                                             </td>
@@ -238,3 +233,7 @@ export default function AdminPupils({ pupils }: Props) {
         </>
     );
 }
+
+AdminPupils.layout = {
+    breadcrumbs: [{ title: 'Manage Pupils', href: '/admin/pupils' }],
+};

@@ -34,6 +34,14 @@ export function Breadcrumbs({
             settings: 'nav.settings',
             support: 'support.title',
             'convomate support': 'support.title',
+            teachers: 'nav.teachers',
+            pupils: 'nav.pupils',
+            'manage teachers': 'nav.manage_teachers',
+            'manage pupils': 'nav.manage_pupils',
+            'payment confirmations': 'nav.payment_confirmations',
+            'admin control center': 'admin.dashboard_title',
+            'pupil directory': 'admin.pupils_title',
+            'teacher directory & verification': 'admin.teachers_title',
         };
 
         const key =

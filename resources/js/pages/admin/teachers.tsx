@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import DeleteUserModal from '@/components/delete-user-modal';
 import ShareProfileDropdown from '@/components/ShareProfileDropdown';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface TeacherProfile {
     id: string;
@@ -65,6 +66,7 @@ interface Props {
 }
 
 export default function AdminTeachers({ teachers, currentFilter }: Props) {
+    const { t } = useTranslation();
     const [editingTeacherId, setEditingTeacherId] = useState<string | null>(
         null,
     );
@@ -164,7 +166,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
 
     return (
         <>
-            <Head title="Admin - Teacher Management" />
+            <Head title={t('admin.teachers_title')} />
 
             <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8">
                 {/* Header Banner */}
@@ -175,11 +177,10 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold md:text-3xl">
-                                Teacher Directory & Verification
+                                {t('admin.teachers_heading')}
                             </h1>
                             <p className="mt-1 text-sm text-blue-100">
-                                Verify profiles, inspect uploaded certificate
-                                files (Admin exclusive), and adjust band scores.
+                                {t('admin.teachers_desc')}
                             </p>
                         </div>
                     </div>
@@ -190,11 +191,10 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                     <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <CardTitle className="text-lg">
-                                Registered Teachers
+                                {t('admin.teachers_list_title')}
                             </CardTitle>
                             <CardDescription>
-                                Filter by status, inspect documents, and edit
-                                certificate scores.
+                                {t('admin.teachers_list_desc')}
                             </CardDescription>
                         </div>
                         <div className="flex flex-wrap gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
@@ -212,7 +212,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                         : ''
                                 }
                             >
-                                All Teachers
+                                {t('admin.filter_all_teachers')}
                             </Button>
                             <Button
                                 size="sm"
@@ -228,7 +228,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                         : ''
                                 }
                             >
-                                Verified
+                                {t('admin.filter_verified_teachers')}
                             </Button>
                             <Button
                                 size="sm"
@@ -244,7 +244,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                         : ''
                                 }
                             >
-                                New (7 Days)
+                                {t('admin.filter_new_teachers')}
                             </Button>
                             <Button
                                 size="sm"
@@ -260,7 +260,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                         : ''
                                 }
                             >
-                                Unverified
+                                {t('admin.filter_unverified_teachers')}
                             </Button>
                         </div>
                     </CardHeader>
@@ -271,19 +271,19 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                 <thead className="border-b bg-gray-50 text-xs text-gray-700 uppercase dark:bg-gray-800 dark:text-gray-300">
                                     <tr>
                                         <th className="px-4 py-3">
-                                            Teacher Info
+                                            {t('admin.col_teacher_info')}
                                         </th>
                                         <th className="px-4 py-3">
-                                            Qualification / Level
+                                            {t('admin.col_qualification')}
                                         </th>
                                         <th className="px-4 py-3">
-                                            Status Badges
+                                            {t('admin.col_status_badges')}
                                         </th>
                                         <th className="px-4 py-3">
-                                            Unread Support
+                                            {t('admin.col_unread_support')}
                                         </th>
                                         <th className="px-4 py-3 text-right">
-                                            Actions
+                                            {t('admin.col_actions')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -356,7 +356,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                             </a>
                                                                         ) : (
                                                                             <span className="text-[11px] text-gray-400 italic">
-                                                                                No phone recorded
+                                                                                {t('admin.no_phone_recorded')}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -373,11 +373,11 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                             </a>
                                                                         ) : teacher.telegram_chat_id ? (
                                                                             <span className="text-[11px] font-medium text-sky-700 dark:text-sky-300">
-                                                                                Linked (ID: {teacher.telegram_chat_id})
+                                                                                {t('admin.telegram_linked', { id: String(teacher.telegram_chat_id) })}
                                                                             </span>
                                                                         ) : (
                                                                             <span className="text-[11px] text-gray-400 italic">
-                                                                                Telegram not linked
+                                                                                {t('admin.telegram_not_linked')}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -388,26 +388,21 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
 
                                                     <td className="px-4 py-4 text-xs text-gray-600 dark:text-gray-300">
                                                         <div>
-                                                            Level:{' '}
-                                                            {teacher
-                                                                .teacher_profile
-                                                                ?.overall_level ||
-                                                                'Not set'}
+                                                            {t('admin.level_label', {
+                                                                level: teacher.teacher_profile?.overall_level || t('admin.not_set'),
+                                                            })}
                                                         </div>
                                                         <div>
-                                                            Speaking:{' '}
-                                                            {teacher
-                                                                .teacher_profile
-                                                                ?.speaking_band ||
-                                                                'N/A'}
+                                                            {t('admin.speaking_label', {
+                                                                score: teacher.teacher_profile?.speaking_band || 'N/A',
+                                                            })}
                                                         </div>
                                                         <div>
-                                                            Hourly Rate:{' '}
-                                                            {teacher
-                                                                .teacher_profile
-                                                                ?.price
-                                                                ? `${Number(teacher.teacher_profile.price).toLocaleString()} so'm`
-                                                                : "0 so'm"}
+                                                            {t('admin.rate_label', {
+                                                                rate: teacher.teacher_profile?.price
+                                                                    ? Number(teacher.teacher_profile.price).toLocaleString()
+                                                                    : '0',
+                                                            })}
                                                         </div>
                                                     </td>
 
@@ -416,7 +411,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                             {isVerified ? (
                                                                 <Badge className="flex items-center gap-1 bg-emerald-600 text-white">
                                                                     <ShieldCheck className="h-3 w-3" />{' '}
-                                                                    Verified
+                                                                    {t('admin.badge_verified')}
                                                                 </Badge>
                                                             ) : (
                                                                 <Badge
@@ -424,14 +419,14 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                     className="border-amber-300 bg-amber-50 text-amber-600 dark:bg-amber-950/40"
                                                                 >
                                                                     <ShieldAlert className="mr-1 h-3 w-3" />{' '}
-                                                                    Unverified
+                                                                    {t('admin.badge_unverified')}
                                                                 </Badge>
                                                             )}
 
                                                             {teacher.is_new && (
                                                                 <Badge className="flex items-center gap-1 bg-blue-600 text-white">
                                                                     <Sparkles className="h-3 w-3" />{' '}
-                                                                    New Teacher
+                                                                    {t('admin.badge_new_teacher')}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -448,16 +443,14 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                     className="flex w-fit items-center gap-1"
                                                                 >
                                                                     <MessageSquare className="h-3 w-3" />
-                                                                    {
-                                                                        teacher.unread_messages_count
-                                                                    }{' '}
-                                                                    Unread
+                                                                    {t('admin.unread_messages_count', {
+                                                                        count: teacher.unread_messages_count,
+                                                                    })}
                                                                 </Badge>
                                                             </Link>
                                                         ) : (
                                                             <span className="text-xs text-gray-400">
-                                                                No unread
-                                                                messages
+                                                                {t('admin.no_unread_messages')}
                                                             </span>
                                                         )}
                                                     </td>
@@ -480,26 +473,26 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                             >
                                                                 <Edit className="mr-1 h-3.5 w-3.5" />
                                                                 {isEditing
-                                                                    ? 'Close'
-                                                                    : 'Inspect & Edit Scores'}
+                                                                    ? t('admin.btn_close')
+                                                                    : t('admin.btn_inspect_scores')}
                                                             </Button>
 
                                                             {teacher.teacher_profile?.intro_video_url ? (
                                                                 <a
                                                                     href={`/admin/teachers/${teacher.id}/download-video`}
                                                                     className="inline-flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300"
-                                                                    title="Download teacher intro video"
+                                                                    title={t('admin.btn_download_video')}
                                                                 >
                                                                     <Download className="h-3.5 w-3.5" />
-                                                                    Download Video
+                                                                    {t('admin.btn_download_video')}
                                                                 </a>
                                                             ) : (
                                                                 <span
                                                                     className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700"
-                                                                    title="No intro video uploaded"
+                                                                    title={t('admin.btn_no_video')}
                                                                 >
                                                                     <Video className="h-3.5 w-3.5" />
-                                                                    No Video
+                                                                    {t('admin.btn_no_video')}
                                                                 </span>
                                                             )}
 
@@ -529,8 +522,8 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                 }
                                                             >
                                                                 {isVerified
-                                                                    ? 'Unverify'
-                                                                    : 'Verify Teacher'}
+                                                                    ? t('admin.unverify_teacher')
+                                                                    : t('admin.verify_teacher')}
                                                             </Button>
 
                                                             <Button
@@ -547,7 +540,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                 className="bg-red-600 font-bold text-white hover:bg-red-700"
                                                             >
                                                                 <Trash2 className="mr-1 h-3.5 w-3.5" />
-                                                                Delete
+                                                                {t('admin.delete_user')}
                                                             </Button>
                                                         </div>
                                                     </td>
@@ -564,14 +557,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                 <div className="flex items-center justify-between border-b pb-3">
                                                                     <h3 className="flex items-center gap-2 font-bold text-indigo-950 dark:text-indigo-200">
                                                                         <FileText className="h-4 w-4 text-indigo-600" />
-                                                                        Admin
-                                                                        Certificate
-                                                                        Inspection
-                                                                        & Score
-                                                                        Editor —{' '}
-                                                                        {
-                                                                            teacher.full_name
-                                                                        }
+                                                                        {t('admin.cert_inspector_title', { name: teacher.full_name })}
                                                                     </h3>
                                                                     <Button
                                                                         size="sm"
@@ -583,23 +569,14 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                         className="bg-indigo-600 font-bold text-white hover:bg-indigo-700"
                                                                     >
                                                                         <Check className="mr-1 h-4 w-4" />{' '}
-                                                                        Save
-                                                                        Changes
+                                                                        {t('admin.btn_save_changes')}
                                                                     </Button>
                                                                 </div>
 
                                                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                                     <div>
                                                                         <Label className="text-xs font-bold">
-                                                                            Overall
-                                                                            Level
-                                                                            Cache
-                                                                            (e.g.,
-                                                                            IELTS
-                                                                            8.5
-                                                                            /
-                                                                            CEFR
-                                                                            C1)
+                                                                            {t('admin.overall_level_cache')}
                                                                         </Label>
                                                                         <Input
                                                                             type="text"
@@ -620,11 +597,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                     </div>
                                                                     <div>
                                                                         <Label className="text-xs font-bold">
-                                                                            Speaking
-                                                                            Band
-                                                                            Cache
-                                                                            (e.g.,
-                                                                            8.5)
+                                                                            {t('admin.speaking_band_cache')}
                                                                         </Label>
                                                                         <Input
                                                                             type="text"
@@ -647,20 +620,12 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
 
                                                                 <div className="space-y-4 pt-2">
                                                                     <h4 className="text-xs font-extrabold tracking-wider text-gray-500 uppercase">
-                                                                        Certificates
-                                                                        &
-                                                                        Official
-                                                                        Files
+                                                                        {t('admin.certs_and_files')}
                                                                     </h4>
                                                                     {editingCerts.length ===
                                                                     0 ? (
                                                                         <p className="text-xs text-gray-500 italic">
-                                                                            No
-                                                                            certificates
-                                                                            submitted
-                                                                            by
-                                                                            this
-                                                                            teacher.
+                                                                            {t('admin.no_certs_submitted')}
                                                                         </p>
                                                                     ) : (
                                                                         editingCerts.map(
@@ -691,25 +656,17 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                                                     className="inline-flex items-center gap-1 rounded-md border bg-white px-2.5 py-1 text-xs font-bold text-indigo-600 hover:underline dark:bg-gray-900"
                                                                                                 >
                                                                                                     <ExternalLink className="h-3 w-3" />{' '}
-                                                                                                    View
-                                                                                                    Uploaded
-                                                                                                    Document
-                                                                                                    (
-                                                                                                    {cert.file_name ||
-                                                                                                        'File'}
-                                                                                                    )
+                                                                                                    {t('admin.view_uploaded_doc', { file: cert.file_name || 'File' })}
                                                                                                 </a>
                                                                                             ) : (
                                                                                                 <span className="text-xs text-gray-400">
-                                                                                                    No
-                                                                                                    document
-                                                                                                    attached
+                                                                                                    {t('admin.no_doc_attached')}
                                                                                                 </span>
                                                                                             )}
                                                                                         </div>
                                                                                         <div className="flex items-center gap-2">
                                                                                             <Label className="text-xs">
-                                                                                                Status:
+                                                                                                {t('admin.col_payment_status')}:
                                                                                             </Label>
                                                                                             <select
                                                                                                 value={
@@ -730,11 +687,10 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                                                 className="rounded border bg-white px-2 py-1 text-xs dark:bg-gray-900"
                                                                                             >
                                                                                                 <option value="pending">
-                                                                                                    Under
-                                                                                                    review
+                                                                                                    {t('admin.status_under_review')}
                                                                                                 </option>
                                                                                                 <option value="verified">
-                                                                                                    Verified
+                                                                                                    {t('admin.status_verified_cert')}
                                                                                                 </option>
                                                                                             </select>
                                                                                         </div>
@@ -743,7 +699,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                                                                                         <div>
                                                                                             <Label className="text-[11px] font-bold">
-                                                                                                Overall
+                                                                                                {t('admin.skill_overall')}
                                                                                             </Label>
                                                                                             <Input
                                                                                                 type="text"
@@ -767,7 +723,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                                         </div>
                                                                                         <div>
                                                                                             <Label className="text-[11px] font-bold">
-                                                                                                Listening
+                                                                                                {t('admin.skill_listening')}
                                                                                             </Label>
                                                                                             <Input
                                                                                                 type="text"
@@ -791,7 +747,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                                         </div>
                                                                                         <div>
                                                                                             <Label className="text-[11px] font-bold">
-                                                                                                Reading
+                                                                                                {t('admin.skill_reading')}
                                                                                             </Label>
                                                                                             <Input
                                                                                                 type="text"
@@ -815,7 +771,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                                         </div>
                                                                                         <div>
                                                                                             <Label className="text-[11px] font-bold">
-                                                                                                Writing
+                                                                                                {t('admin.skill_writing')}
                                                                                             </Label>
                                                                                             <Input
                                                                                                 type="text"
@@ -839,7 +795,7 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                                         </div>
                                                                                         <div>
                                                                                             <Label className="text-[11px] font-bold">
-                                                                                                Speaking
+                                                                                                {t('admin.skill_speaking')}
                                                                                             </Label>
                                                                                             <Input
                                                                                                 type="text"

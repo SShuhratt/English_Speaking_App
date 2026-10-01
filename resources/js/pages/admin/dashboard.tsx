@@ -1006,3 +1006,7 @@ export default function AdminDashboard({
         </>
     );
 }
+
+AdminDashboard.layout = {
+    breadcrumbs: [{ title: 'Payment Confirmations', href: '/admin/dashboard' }],
+};

@@ -88,18 +88,18 @@ export function AppSidebar() {
     } else if (role === 'admin') {
         mainNavItems = [
             {
-                title: 'Payment Confirmations',
+                title: t('nav.payment_confirmations'),
                 href: '/admin/dashboard',
                 icon: CreditCard,
                 badge: pendingVerificationsCount,
             },
             {
-                title: 'Teachers',
+                title: t('nav.teachers'),
                 href: '/admin/teachers',
                 icon: GraduationCap,
             },
             {
-                title: 'Pupils',
+                title: t('nav.pupils'),
                 href: '/admin/pupils',
                 icon: Users,
             },
