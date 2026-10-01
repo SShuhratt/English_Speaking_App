@@ -26,6 +26,8 @@ import {
     Trash2,
     Download,
     Video,
+    Phone,
+    Send,
 } from 'lucide-react';
 import DeleteUserModal from '@/components/delete-user-modal';
 import ShareProfileDropdown from '@/components/ShareProfileDropdown';
@@ -44,6 +46,9 @@ interface Teacher {
     id: string;
     full_name: string;
     email: string;
+    phone_number?: string | null;
+    telegram_username?: string | null;
+    telegram_chat_id?: string | number | null;
     avatar?: string;
     created_at: string;
     teacher_profile?: TeacherProfile;
@@ -333,6 +338,44 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                         teacher.email
                                                                     }
                                                                 </p>
+                                                                <div className="mt-1.5 flex flex-col gap-1 text-xs">
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Phone className="h-3 w-3 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                                        {teacher.phone_number ? (
+                                                                            <a
+                                                                                href={`tel:${teacher.phone_number}`}
+                                                                                className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+                                                                            >
+                                                                                {teacher.phone_number}
+                                                                            </a>
+                                                                        ) : (
+                                                                            <span className="text-[11px] text-gray-400 italic">
+                                                                                No phone recorded
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Send className="h-3 w-3 flex-shrink-0 text-sky-500" />
+                                                                        {teacher.telegram_username ? (
+                                                                            <a
+                                                                                href={`https://t.me/${teacher.telegram_username.replace(/^@/, '')}`}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="font-medium text-sky-600 hover:underline dark:text-sky-400"
+                                                                            >
+                                                                                @{teacher.telegram_username.replace(/^@/, '')}
+                                                                            </a>
+                                                                        ) : teacher.telegram_chat_id ? (
+                                                                            <span className="text-[11px] font-medium text-sky-700 dark:text-sky-300">
+                                                                                Linked (ID: {teacher.telegram_chat_id})
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-[11px] text-gray-400 italic">
+                                                                                Telegram not linked
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>

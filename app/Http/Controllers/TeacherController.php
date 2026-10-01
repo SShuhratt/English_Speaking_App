@@ -71,6 +71,10 @@ class TeacherController extends Controller
             abort(404);
         }
 
+        if (! $isPrivileged) {
+            $teacher->makeHidden(['phone_number', 'telegram_chat_id']);
+        }
+
         if (! $isPrivileged && $teacher->teacherProfile) {
             $certs = $teacher->teacherProfile->certificates;
             if (is_string($certs)) {

@@ -27,6 +27,9 @@ import {
     Package,
     CheckCircle2,
     AlertCircle,
+    Phone,
+    Send,
+    Mail,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -88,6 +91,12 @@ interface Feedback {
 interface Teacher {
     id: string;
     full_name: string;
+    email?: string;
+    phone_number?: string | null;
+    telegram_username?: string | null;
+    telegram_chat_id?: string | number | null;
+    google_connected?: boolean;
+    created_at?: string;
     avatar?: string;
     gender?: string;
     email_verified_at?: string;
@@ -947,52 +956,195 @@ export default function TeacherProfile({
                         </div>
 
                         {auth?.user?.role === 'admin' && (
-                            <div className="my-3 flex flex-wrap items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/80 p-2.5 shadow-sm dark:border-indigo-800 dark:bg-indigo-950/60">
-                                <span className="flex items-center gap-1 text-xs font-bold text-indigo-900 dark:text-indigo-200">
-                                    <ShieldCheck className="h-4 w-4 text-indigo-600" />{' '}
-                                    Admin Controls:
-                                </span>
-                                <Button
-                                    size="sm"
-                                    variant={
-                                        teacher.teacher_profile?.is_verified
-                                            ? 'outline'
-                                            : 'default'
-                                    }
-                                    onClick={() => {
-                                        router.post(
-                                            `/admin/teachers/${teacher.id}/verify`,
-                                            {
-                                                verified:
-                                                    !teacher.teacher_profile
-                                                        ?.is_verified,
-                                            },
-                                        );
-                                    }}
-                                    className={
-                                        !teacher.teacher_profile?.is_verified
-                                            ? 'h-7 bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700'
-                                            : 'h-7 text-xs font-bold'
-                                    }
-                                >
-                                    {teacher.teacher_profile?.is_verified
-                                        ? t('admin.unverify_teacher')
-                                        : t('admin.verify_teacher')}
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() =>
-                                        setDeletingUser({
-                                            id: teacher.id,
-                                            name: teacher.full_name,
-                                        })
-                                    }
-                                    className="h-7 bg-red-600 text-xs font-bold text-white hover:bg-red-700"
-                                >
-                                    <Trash2 className="mr-1 h-3.5 w-3.5" />{' '}
-                                    {t('admin.delete_teacher')}
-                                </Button>
+                            <div className="my-4 overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50/90 via-white to-blue-50/80 p-4 shadow-sm dark:border-indigo-800/60 dark:from-indigo-950/70 dark:via-gray-900 dark:to-blue-950/50">
+                                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 pb-3 dark:border-indigo-900/50">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs">
+                                            <ShieldCheck className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-sm font-bold text-indigo-950 dark:text-indigo-100">
+                                                    Admin Teacher Dossier
+                                                </h3>
+                                                <span className="rounded-md border border-indigo-200 bg-indigo-100/70 px-1.5 py-0.5 font-mono text-[10px] font-bold text-indigo-800 dark:border-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200">
+                                                    ID: {teacher.id}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                                                Privileged administrative view with full contact details & account records
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant={
+                                                teacher.teacher_profile?.is_verified
+                                                    ? 'outline'
+                                                    : 'default'
+                                            }
+                                            onClick={() => {
+                                                router.post(
+                                                    `/admin/teachers/${teacher.id}/verify`,
+                                                    {
+                                                        verified:
+                                                            !teacher.teacher_profile
+                                                                ?.is_verified,
+                                                    },
+                                                );
+                                            }}
+                                            className={
+                                                !teacher.teacher_profile?.is_verified
+                                                    ? 'h-8 bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700'
+                                                    : 'h-8 border-indigo-300 px-3 text-xs font-bold text-indigo-900 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-200'
+                                            }
+                                        >
+                                            {teacher.teacher_profile?.is_verified
+                                                ? t('admin.unverify_teacher')
+                                                : t('admin.verify_teacher')}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            onClick={() =>
+                                                setDeletingUser({
+                                                    id: teacher.id,
+                                                    name: teacher.full_name,
+                                                })
+                                            }
+                                            className="h-8 bg-red-600 px-3 text-xs font-bold text-white hover:bg-red-700"
+                                        >
+                                            <Trash2 className="mr-1 h-3.5 w-3.5" />{' '}
+                                            {t('admin.delete_teacher')}
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-3.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 text-xs">
+                                    {/* Phone Number */}
+                                    <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white/80 p-2.5 shadow-2xs dark:border-gray-800 dark:bg-gray-800/60">
+                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                                            <Phone className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                                                Phone Number
+                                            </div>
+                                            {teacher.phone_number ? (
+                                                <a
+                                                    href={`tel:${teacher.phone_number}`}
+                                                    className="truncate font-bold text-emerald-700 hover:underline dark:text-emerald-300 block"
+                                                >
+                                                    {teacher.phone_number}
+                                                </a>
+                                            ) : (
+                                                <span className="text-gray-400 italic">No phone recorded</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Telegram Account */}
+                                    <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white/80 p-2.5 shadow-2xs dark:border-gray-800 dark:bg-gray-800/60">
+                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
+                                            <Send className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                                                Telegram Account
+                                            </div>
+                                            {teacher.telegram_username ? (
+                                                <a
+                                                    href={`https://t.me/${teacher.telegram_username.replace(/^@/, '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="truncate font-bold text-sky-600 hover:underline dark:text-sky-300 block"
+                                                >
+                                                    @{teacher.telegram_username.replace(/^@/, '')}
+                                                </a>
+                                            ) : teacher.telegram_chat_id ? (
+                                                <span className="truncate font-semibold text-sky-700 dark:text-sky-300 block">
+                                                    Linked (Chat ID: {teacher.telegram_chat_id})
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400 italic">Not connected</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Email */}
+                                    <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white/80 p-2.5 shadow-2xs dark:border-gray-800 dark:bg-gray-800/60">
+                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                                            <Mail className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                                                Email Address
+                                            </div>
+                                            <a
+                                                href={`mailto:${teacher.email}`}
+                                                className="truncate font-bold text-indigo-700 hover:underline dark:text-indigo-300 block"
+                                            >
+                                                {teacher.email || 'N/A'}
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {/* Gender */}
+                                    <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white/80 p-2.5 shadow-2xs dark:border-gray-800 dark:bg-gray-800/60">
+                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                                            <User className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                                                Gender
+                                            </div>
+                                            <span className="font-semibold text-gray-800 dark:text-gray-200">
+                                                {teacher.gender === 'male'
+                                                    ? 'Male'
+                                                    : teacher.gender === 'female'
+                                                      ? 'Female'
+                                                      : 'Not specified'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Registered Date */}
+                                    <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white/80 p-2.5 shadow-2xs dark:border-gray-800 dark:bg-gray-800/60">
+                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+                                            <Calendar className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                                                Joined Date
+                                            </div>
+                                            <span className="font-semibold text-gray-800 dark:text-gray-200">
+                                                {teacher.created_at
+                                                    ? new Date(teacher.created_at).toLocaleDateString(undefined, {
+                                                          year: 'numeric',
+                                                          month: 'short',
+                                                          day: 'numeric',
+                                                      })
+                                                    : 'N/A'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Google Account */}
+                                    <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white/80 p-2.5 shadow-2xs dark:border-gray-800 dark:bg-gray-800/60">
+                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+                                            <Sparkles className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                                                Google Account
+                                            </div>
+                                            <span className="font-semibold text-gray-800 dark:text-gray-200">
+                                                {teacher.google_connected ? 'Connected' : 'Not connected'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                         <p className="headline">
