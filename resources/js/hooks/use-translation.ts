@@ -678,6 +678,11 @@ const dictionary = {
         'dashboard.telegram_recommended_badge': 'Recommended',
         'dashboard.connect_telegram_btn': 'Connect Telegram Bot',
         'dashboard.telegram_settings_btn': 'Settings',
+        'dashboard.phone_reminder_title': 'Add Your Phone Number',
+        'dashboard.phone_reminder_desc':
+            'Please add your phone number to receive lesson reminders and important updates from your teachers or pupils.',
+        'dashboard.phone_required_badge': 'Action Required',
+        'dashboard.add_phone_btn': 'Add Phone Number',
         'dashboard.status_accepted': 'Accepted',
         'dashboard.awaiting_payment_desc':
             'Awaiting payment & admin confirmation',
@@ -2128,6 +2133,11 @@ const dictionary = {
         'dashboard.telegram_recommended_badge': 'Tavsiya etiladi',
         'dashboard.connect_telegram_btn': 'Telegram botni ulash',
         'dashboard.telegram_settings_btn': 'Sozlamalar',
+        'dashboard.phone_reminder_title': 'Telefon raqamingizni kiriting',
+        'dashboard.phone_reminder_desc':
+            'Dars eslatmalari va muhim xabarlarni o‘tkazib yubormaslik uchun telefon raqamingizni kiriting.',
+        'dashboard.phone_required_badge': 'Kiritish zarur',
+        'dashboard.add_phone_btn': 'Raqamni kiritish',
         'dashboard.status_accepted': 'Qabul qilingan',
         'dashboard.awaiting_payment_desc': 'To‘lov va admin tasdig‘i kutilmoqda',
 
@@ -3583,6 +3593,11 @@ const dictionary = {
         'dashboard.telegram_recommended_badge': 'Рекомендуется',
         'dashboard.connect_telegram_btn': 'Подключить Telegram-бота',
         'dashboard.telegram_settings_btn': 'Настройки',
+        'dashboard.phone_reminder_title': 'Укажите номер телефона',
+        'dashboard.phone_reminder_desc':
+            'Пожалуйста, добавьте ваш номер телефона, чтобы получать напоминания об уроках и важные уведомления.',
+        'dashboard.phone_required_badge': 'Требуется действие',
+        'dashboard.add_phone_btn': 'Добавить номер',
         'dashboard.status_accepted': 'Принято',
         'dashboard.awaiting_payment_desc':
             'Ожидает оплаты и подтверждения администратора',

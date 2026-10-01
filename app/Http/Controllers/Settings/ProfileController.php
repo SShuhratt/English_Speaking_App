@@ -69,6 +69,24 @@ class ProfileController extends Controller
         // Update user basics
         $user->fill($request->only(['name', 'email', 'gender']));
 
+        // Handle phone number formatting & update
+        if ($request->has('phone_number')) {
+            $rawPhone = $request->input('phone_number');
+            if (is_string($rawPhone) && trim($rawPhone) !== '') {
+                $cleanedPhone = trim($rawPhone);
+                $digitsOnly = preg_replace('/\D/', '', $cleanedPhone);
+                if (str_starts_with($cleanedPhone, '+')) {
+                    $user->phone_number = '+'.$digitsOnly;
+                } elseif (strlen($digitsOnly) === 9) {
+                    $user->phone_number = '+998'.$digitsOnly;
+                } else {
+                    $user->phone_number = '+'.$digitsOnly;
+                }
+            } elseif ($rawPhone === null || trim($rawPhone) === '') {
+                $user->phone_number = null;
+            }
+        }
+
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
@@ -379,6 +397,8 @@ class ProfileController extends Controller
                 $profileData['overall_level'] = null;
             }
 
+            $profileData['phone_number'] = $user->phone_number;
+
             $savedTeacherProfile = $user->teacherProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData
@@ -510,12 +530,15 @@ class ProfileController extends Controller
                 }
             }
 
+            $profileData['phone_number'] = $user->phone_number;
+
             $user->pupilProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData
             );
         }
 
+        $user->save();
         $user->unsetRelation('teacherProfile');
         $user->unsetRelation('pupilProfile');
 

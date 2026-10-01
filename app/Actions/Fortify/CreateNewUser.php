@@ -63,18 +63,19 @@ class CreateNewUser implements CreatesNewUsers
             }
         }
 
-        $rules = array_merge(
-            $this->profileRules(),
-            [
-                'password' => $this->passwordRules(),
-            ]
-        );
-
         $phoneRule = [
             'required',
             'string',
             'regex:/^(\+998\d{9}|\+(?!998)[1-9]\d{6,14})$/',
         ];
+
+        $rules = array_merge(
+            $this->profileRules(),
+            [
+                'password' => $this->passwordRules(),
+                'phone_number' => $phoneRule,
+            ]
+        );
 
         // Add role-specific validation rules
         $role = $input['role'] ?? null;

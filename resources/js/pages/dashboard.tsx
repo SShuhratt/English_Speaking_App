@@ -32,6 +32,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { formatDuration, formatSpeakingTime } from '@/lib/duration';
 import AppLayout from '@/layouts/app-layout';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
+import PhoneNumberReminderBanner from '@/components/PhoneNumberReminderBanner';
 import FluencyLevelBadge from '@/components/gamification/FluencyLevelBadge';
 import StreakFlameBadge from '@/components/gamification/StreakFlameBadge';
 import WeeklyLeaderboardCard from '@/components/gamification/WeeklyLeaderboardCard';
@@ -333,6 +334,9 @@ function PupilDashboard({
                     </div>
                 )}
             </div>
+
+            {/* Phone Number Reminder Banner */}
+            <PhoneNumberReminderBanner user={user} />
 
             {/* Telegram Bot Connection Reminder */}
             {!user?.telegram_chat_id && (
@@ -1167,6 +1171,9 @@ function TeacherDashboard({
 
             {/* Google Meet status warning */}
             <GoogleCalendarWarningBanner user={user} />
+
+            {/* Phone Number Reminder Banner */}
+            <PhoneNumberReminderBanner user={user} />
 
             {/* Stats grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">

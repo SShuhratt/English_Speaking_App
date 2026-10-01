@@ -271,6 +271,22 @@ export default function Profile({
         });
     };
 
+    React.useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.hash === '#phone') {
+            const timer = setTimeout(() => {
+                const el = document.getElementById('phone');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const input = el.querySelector('input');
+                    if (input) {
+                        input.focus();
+                    }
+                }
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
     // --- Teacher specific logic ---
     const initialTeacherCerts: CertificateData[] = React.useMemo(() => {
         const rawCerts = auth.user.teacher_profile?.certificates ?? [];
@@ -946,9 +962,9 @@ export default function Profile({
                                                         message={errors.email}
                                                     />
                                                 </div>
-                                                <div className="space-y-1.5">
+                                                <div id="phone" className="space-y-1.5 scroll-mt-24">
                                                     <label className="flex items-center gap-2 text-sm font-bold text-[#22284A]">
-                                                        Phone number
+                                                        {t('auth.phone_number') || 'Phone number'}
                                                         <span className="inline-flex items-center gap-1 rounded-full bg-[#F1F3F8] px-2 py-0.5 text-[11px] font-bold text-[#6B7394]">
                                                             <Lock className="h-2.5 w-2.5" />{' '}
                                                             Private
@@ -958,11 +974,11 @@ export default function Profile({
                                                         type="tel"
                                                         name="phone_number"
                                                         defaultValue={
-                                                            auth.user
-                                                                .teacher_profile
-                                                                ?.phone_number ||
+                                                            auth.user.phone_number ||
+                                                            auth.user.teacher_profile?.phone_number ||
                                                             ''
                                                         }
+                                                        placeholder="+998 90 123 45 67"
                                                         className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
                                                     />
                                                     <InputError
@@ -1704,9 +1720,9 @@ export default function Profile({
                                                         className="mt-1"
                                                     />
                                                 </div>
-                                                <div className="field">
+                                                <div id="phone" className="field scroll-mt-24">
                                                     <label className="flex items-center gap-2">
-                                                        Phone number
+                                                        {t('auth.phone_number') || 'Phone number'}
                                                         <span className="private-tag">
                                                             <Lock className="h-2.5 w-2.5" />{' '}
                                                             Private
@@ -1716,12 +1732,11 @@ export default function Profile({
                                                         type="tel"
                                                         name="phone_number"
                                                         defaultValue={
-                                                            auth.user
-                                                                .pupil_profile
-                                                                ?.phone_number ||
+                                                            auth.user.phone_number ||
+                                                            auth.user.pupil_profile?.phone_number ||
                                                             ''
                                                         }
-                                                        placeholder="+998 90 123 4567"
+                                                        placeholder="+998 90 123 45 67"
                                                     />
                                                     <InputError
                                                         message={
