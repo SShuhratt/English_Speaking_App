@@ -42,8 +42,8 @@ class PackagePaymentConfirmedNotification extends Notification implements Should
         $orderId = 'PKG-'.strtoupper(substr((string) $this->pupilPackage->id, 0, 8));
         $formattedPrice = number_format((float) ($this->pupilPackage->price_paid ?? 0), 0, '.', ' ')." so'm";
         $teacherUrl = $this->pupilPackage->teacher_id
-            ? url("/teachers/{$this->pupilPackage->teacher_id}")
-            : url('/teachers');
+            ? url("/pupil/teachers/{$this->pupilPackage->teacher_id}")
+            : url('/pupil/teachers');
 
         $totalRemainingMinutes = PupilPackage::where('pupil_id', $this->pupilPackage->pupil_id)
             ->where('teacher_id', $this->pupilPackage->teacher_id)
@@ -86,8 +86,8 @@ class PackagePaymentConfirmedNotification extends Notification implements Should
         $orderId = 'PKG-'.strtoupper(substr((string) $this->pupilPackage->id, 0, 8));
         $formattedPrice = number_format((float) ($this->pupilPackage->price_paid ?? 0), 0, '.', ' ')." so'm";
         $teacherUrl = $this->pupilPackage->teacher_id
-            ? url("/teachers/{$this->pupilPackage->teacher_id}")
-            : url('/teachers');
+            ? url("/pupil/teachers/{$this->pupilPackage->teacher_id}")
+            : url('/pupil/teachers');
 
         $totalRemainingMinutes = PupilPackage::where('pupil_id', $this->pupilPackage->pupil_id)
             ->where('teacher_id', $this->pupilPackage->teacher_id)

@@ -39,6 +39,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile/{id}', [ProfileViewController::class, 'show'])->name('profile.show');
 
+    // Friendly top-level /teachers redirect routes
+    Route::get('/teachers', function () {
+        $role = auth()->user()?->role;
+        if ($role === 'admin') {
+            return redirect()->route('admin.teachers');
+        }
+        if ($role === 'teacher') {
+            return redirect()->route('teacher.teachers');
+        }
+
+        return redirect()->route('pupil.teachers.index');
+    })->name('teachers.redirect');
+
+    Route::get('/teachers/{id}', function (string $id) {
+        $role = auth()->user()?->role;
+        if ($role === 'admin') {
+            return redirect()->route('admin.teachers.show', ['id' => $id]);
+        }
+        if ($role === 'teacher') {
+            return redirect()->route('teacher.teachers.show', ['id' => $id]);
+        }
+
+        return redirect()->route('pupil.teachers.show', ['id' => $id]);
+    })->name('teachers.show.redirect');
+
     // Convomate Support Routes for Pupils & Teachers
     Route::get('/support', [SupportController::class, 'index'])->name('support.index');
     Route::post('/support', [SupportController::class, 'store'])->name('support.store');
