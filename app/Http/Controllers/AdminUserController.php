@@ -18,7 +18,7 @@ class AdminUserController extends Controller
     {
         $statusFilter = $request->query('status', 'all');
 
-        $query = User::where('role', 'teacher')->with(['teacherProfile:id,user_id,overall_level,speaking_band,price,is_verified,certificates,intro_video_url']);
+        $query = User::where('role', 'teacher')->with(['teacherProfile:id,user_id,phone_number,overall_level,speaking_band,price,is_verified,certificates,intro_video_url']);
 
         if ($statusFilter === 'verified') {
             $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
@@ -38,6 +38,7 @@ class AdminUserController extends Controller
                 ->where('is_read_by_admin', false)
                 ->count();
             $teacher->is_new = $teacher->created_at >= now()->subDays(7);
+            $teacher->phone_number = $teacher->phone_number ?: $teacher->teacherProfile?->phone_number;
 
             return $teacher;
         });
@@ -63,6 +64,7 @@ class AdminUserController extends Controller
             $pupil->unread_messages_count = SupportMessage::where('user_id', $pupil->id)
                 ->where('is_read_by_admin', false)
                 ->count();
+            $pupil->phone_number = $pupil->phone_number ?: $pupil->pupilProfile?->phone_number;
 
             return $pupil;
         });

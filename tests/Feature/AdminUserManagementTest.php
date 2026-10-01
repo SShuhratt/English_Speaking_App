@@ -236,4 +236,38 @@ class AdminUserManagementTest extends TestCase
             ->where('teacher.teacher_profile.certificates.0.file_url', '/storage/certificates/secret_trf.pdf')
         );
     }
+
+    public function test_admin_teachers_directory_includes_phone_numbers(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $teacherWithProfilePhone = User::factory()->create([
+            'role' => 'teacher',
+            'phone_number' => null,
+        ]);
+        TeacherProfile::create([
+            'user_id' => $teacherWithProfilePhone->id,
+            'phone_number' => '+998901112233',
+            'is_verified' => true,
+        ]);
+
+        $teacherWithDirectPhone = User::factory()->create([
+            'role' => 'teacher',
+            'phone_number' => '+998904445566',
+        ]);
+        TeacherProfile::create([
+            'user_id' => $teacherWithDirectPhone->id,
+            'phone_number' => '+998904445566',
+            'is_verified' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get('/admin/teachers');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('admin/teachers')
+            ->where('teachers.data.0.phone_number', '+998901112233')
+            ->where('teachers.data.1.phone_number', '+998904445566')
+        );
+    }
 }

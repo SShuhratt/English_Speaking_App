@@ -1031,12 +1031,16 @@ export default function TeacherProfile({
                                             <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
                                                 Phone Number
                                             </div>
-                                            {teacher.phone_number ? (
+                                            {teacher.phone_number ||
+                                            teacher.teacher_profile
+                                                ?.phone_number ? (
                                                 <a
-                                                    href={`tel:${teacher.phone_number}`}
+                                                    href={`tel:${teacher.phone_number || teacher.teacher_profile?.phone_number}`}
                                                     className="truncate font-bold text-emerald-700 hover:underline dark:text-emerald-300 block"
                                                 >
-                                                    {teacher.phone_number}
+                                                    {teacher.phone_number ||
+                                                        teacher.teacher_profile
+                                                            ?.phone_number}
                                                 </a>
                                             ) : (
                                                 <span className="text-gray-400 italic">No phone recorded</span>

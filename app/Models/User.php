@@ -73,13 +73,24 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Get the phone number with fallback to profile phone numbers.
+     */
+    public function getPhoneNumberAttribute(?string $value): ?string
+    {
+        if ($value !== null && trim($value) !== '') {
+            return $value;
+        }
+
+        return $this->teacherProfile?->phone_number
+            ?: $this->pupilProfile?->phone_number;
+    }
+
+    /**
      * Route notification for SMS channel.
      */
     public function routeNotificationForSms($notification = null): ?string
     {
-        return $this->phone_number
-            ?: $this->teacherProfile?->phone_number
-            ?: $this->pupilProfile?->phone_number;
+        return $this->phone_number;
     }
 
     /**

@@ -341,12 +341,18 @@ export default function AdminTeachers({ teachers, currentFilter }: Props) {
                                                                 <div className="mt-1.5 flex flex-col gap-1 text-xs">
                                                                     <div className="flex items-center gap-1.5">
                                                                         <Phone className="h-3 w-3 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                                                        {teacher.phone_number ? (
+                                                                        {teacher.phone_number ||
+                                                                        teacher
+                                                                            .teacher_profile
+                                                                            ?.phone_number ? (
                                                                             <a
-                                                                                href={`tel:${teacher.phone_number}`}
+                                                                                href={`tel:${teacher.phone_number || teacher.teacher_profile?.phone_number}`}
                                                                                 className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
                                                                             >
-                                                                                {teacher.phone_number}
+                                                                                {teacher.phone_number ||
+                                                                                    teacher
+                                                                                        .teacher_profile
+                                                                                        ?.phone_number}
                                                                             </a>
                                                                         ) : (
                                                                             <span className="text-[11px] text-gray-400 italic">
