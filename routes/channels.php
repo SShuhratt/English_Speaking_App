@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Appointment;
 use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('user.match.{userId}', function ($user, $userId) {
@@ -23,4 +24,14 @@ Broadcast::channel('teacher.{teacherId}', function ($user, $teacherId) {
 
 Broadcast::channel('pupil.{pupilId}', function ($user, $pupilId) {
     return (string) $user->id === (string) $pupilId;
+});
+
+Broadcast::channel('appointment.{appointmentId}', function ($user, $appointmentId) {
+    $appointment = Appointment::find($appointmentId);
+    if (! $appointment) {
+        return false;
+    }
+
+    return (string) $user->id === (string) $appointment->teacher_id
+        || (string) $user->id === (string) $appointment->pupil_id;
 });

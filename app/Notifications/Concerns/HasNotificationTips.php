@@ -56,6 +56,6 @@ trait HasNotificationTips
     {
         return Carbon::parse($dateTime)
             ->setTimezone('Asia/Tashkent')
-            ->format('F j, Y \a\t g:i A (Tashkent time)');
+            ->format('F j, Y \a\t g:i A').' (Tashkent time)';
     }
 }

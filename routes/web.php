@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminSupportController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AppointmentMaterialController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
@@ -166,6 +167,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('signed')
         ->name('telegram.connect');
     Route::post('/voucher/validate', [PupilPackageController::class, 'validateVoucher'])->name('voucher.validate');
+    Route::get('/appointments/{appointment}/materials', [AppointmentMaterialController::class, 'index'])->name('appointments.materials.index');
+    Route::post('/appointments/{appointment}/materials', [AppointmentMaterialController::class, 'store'])->name('appointments.materials.store');
 });
 
 Route::get('/credential/{id}', [GamificationController::class, 'showCredential'])->name('credential.show');

@@ -60,6 +60,97 @@ class TelegramService
     }
 
     /**
+     * Send document via Telegram Bot API with streaming.
+     */
+    public function sendDocument(string $chatId, string $filePath, string $filename, string $caption = '', string $parseMode = 'HTML'): bool
+    {
+        if (empty($this->token)) {
+            Log::info("Telegram document skipped (no token configured). Chat ID: {$chatId}, Filename: {$filename}");
+
+            return true;
+        }
+
+        try {
+            $handle = fopen($filePath, 'r');
+            if (! $handle) {
+                Log::error("Failed to open file for Telegram streaming: {$filePath}");
+
+                return false;
+            }
+
+            $response = Http::timeout(60)
+                ->attach('document', $handle, $filename)
+                ->post("https://api.telegram.org/bot{$this->token}/sendDocument", [
+                    'chat_id' => $chatId,
+                    'caption' => $caption,
+                    'parse_mode' => $parseMode,
+                ]);
+
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+
+            if ($response->successful()) {
+                return true;
+            }
+
+            Log::warning("Telegram sendDocument error: {$response->status()} - {$response->body()} for chat ID: {$chatId}");
+
+            return false;
+        } catch (\Throwable $e) {
+            Log::error("Failed to send Telegram document to chat {$chatId}: ".$e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
+     * Send photo via Telegram Bot API with streaming.
+     */
+    public function sendPhoto(string $chatId, string $filePath, string $filename, string $caption = '', string $parseMode = 'HTML'): bool
+    {
+        if (empty($this->token)) {
+            Log::info("Telegram photo skipped (no token configured). Chat ID: {$chatId}, Filename: {$filename}");
+
+            return true;
+        }
+
+        try {
+            $handle = fopen($filePath, 'r');
+            if (! $handle) {
+                Log::error("Failed to open photo for Telegram streaming: {$filePath}");
+
+                return false;
+            }
+
+            $response = Http::timeout(60)
+                ->attach('photo', $handle, $filename)
+                ->post("https://api.telegram.org/bot{$this->token}/sendPhoto", [
+                    'chat_id' => $chatId,
+                    'caption' => $caption,
+                    'parse_mode' => $parseMode,
+                ]);
+
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+
+            if ($response->successful()) {
+                return true;
+            }
+
+            Log::warning("Telegram sendPhoto error: {$response->status()} - {$response->body()} for chat ID: {$chatId}. Falling back to sendDocument.");
+
+            // Fallback to sendDocument if photo format rejected by Telegram
+            return $this->sendDocument($chatId, $filePath, $filename, $caption, $parseMode);
+        } catch (\Throwable $e) {
+            Log::error("Failed to send Telegram photo to chat {$chatId}: ".$e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
      * Generate a temporary signed web URL for Mechanism C (Magic Link).
      */
     public function generateSignedConnectUrl(string $chatId): string

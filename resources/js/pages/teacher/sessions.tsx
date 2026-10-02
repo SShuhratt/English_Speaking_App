@@ -10,6 +10,7 @@ import {
     Sparkles,
     Check,
     Info,
+    Paperclip,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ import {
 import { useTranslation } from '@/hooks/use-translation';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import TeacherAssessmentSliderModal, { AssessmentData } from '@/components/teachers/TeacherAssessmentSliderModal';
+import MeetingCompanion from '@/components/session/MeetingCompanion';
 
 interface Props {
     appointments: {
@@ -37,6 +39,9 @@ export default function Sessions({ appointments }: Props) {
     const [selectedApt, setSelectedApt] = useState<any>(null);
     const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
     const [assessmentApt, setAssessmentApt] = useState<any>(null);
+    const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
+    const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
+    const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
     const [itemsList, setItemsList] = useState<any[]>(appointments.data || []);
     const [activeTab, setActiveTab] = useState<
         'all' | 'upcoming' | 'completed'
@@ -115,16 +120,43 @@ export default function Sessions({ appointments }: Props) {
     };
 
     const handleStartSession = async (apt: any) => {
+        // Request Document Picture-in-Picture window immediately using direct user click gesture!
+        let pipWin: Window | null = null;
+        if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
+            try {
+                pipWin = await (window as any).documentPictureInPicture.requestWindow({
+                    width: 380,
+                    height: 560,
+                });
+            } catch (err) {
+                console.warn('PiP window request dismissed or unsupported:', err);
+            }
+        }
+        if (pipWin) {
+            setExternalPipWindow(pipWin);
+        }
+        setActiveCompanionAptId(apt.id);
+
         try {
             const res = await axios.post(
                 `/teacher/appointments/${apt.id}/start`,
             );
             if (res.data.google_meet_link) {
-                window.open(res.data.google_meet_link, '_blank');
+                setCompanionMeetLink(res.data.google_meet_link);
+                try {
+                    window.open(res.data.google_meet_link, '_blank');
+                } catch (e) {
+                    // Handled inside the always-on-top companion window
+                }
             } else {
                 toast.success(t('sessions.session_started'));
             }
         } catch (err: any) {
+            if (pipWin) {
+                pipWin.close();
+                setExternalPipWindow(null);
+            }
+            setActiveCompanionAptId(null);
             if (err.response?.data?.requires_google_calendar) {
                 toast.error(
                     err.response.data.message ||
@@ -379,6 +411,17 @@ export default function Sessions({ appointments }: Props) {
                                                         {t('sessions.join_lesson')}
                                                     </button>
                                                 )}
+
+                                                <button
+                                                    onClick={() =>
+                                                        setActiveCompanionAptId(apt.id)
+                                                    }
+                                                    className="rounded-full border border-indigo-200 bg-indigo-50/70 px-3.5 py-2 text-xs font-bold text-indigo-700 transition-all hover:bg-indigo-100 flex items-center gap-1.5"
+                                                    title="Open Lesson Materials & Live Companion"
+                                                >
+                                                    <Paperclip className="h-3.5 w-3.5 text-indigo-600" />
+                                                    <span>Materials</span>
+                                                </button>
 
                                                 {apt.status === 'confirmed' &&
                                                     !teacherFeedback && (
@@ -640,6 +683,20 @@ export default function Sessions({ appointments }: Props) {
                 initialData={assessmentApt?.assessment}
                 onSaved={handleAssessmentSaved}
             />
+
+            {activeCompanionAptId && (
+                <MeetingCompanion
+                    appointmentId={activeCompanionAptId}
+                    isOpen={!!activeCompanionAptId}
+                    onClose={() => {
+                        setActiveCompanionAptId(null);
+                        setExternalPipWindow(null);
+                        setCompanionMeetLink(null);
+                    }}
+                    externalPipWindow={externalPipWindow}
+                    initialMeetLink={companionMeetLink}
+                />
+            )}
         </>
     );
 }

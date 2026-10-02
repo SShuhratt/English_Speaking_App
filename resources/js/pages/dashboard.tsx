@@ -45,6 +45,7 @@ import ReferralCard from '@/components/gamification/ReferralCard';
 import LevelUpCelebrationModal from '@/components/gamification/LevelUpCelebrationModal';
 import XpStoreModal from '@/components/gamification/XpStoreModal';
 import VerifiedFluencyCardModal from '@/components/gamification/VerifiedFluencyCardModal';
+import MeetingCompanion from '@/components/session/MeetingCompanion';
 
 function PupilMeetingButton({
     apt,
@@ -154,6 +155,9 @@ function PupilDashboard({
     );
     const [isXpStoreOpen, setIsXpStoreOpen] = useState(false);
     const [isCredentialOpen, setIsCredentialOpen] = useState(false);
+    const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
+    const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
+    const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
 
     const handleAcknowledgeLevel = async (level: number) => {
         try {
@@ -247,12 +251,41 @@ function PupilDashboard({
     };
 
     const handleJoin = async (apt: any) => {
+        // Request Document Picture-in-Picture window immediately using direct user click gesture!
+        let pipWin: Window | null = null;
+        if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
+            try {
+                pipWin = await (window as any).documentPictureInPicture.requestWindow({
+                    width: 380,
+                    height: 560,
+                });
+            } catch (err) {
+                console.warn('PiP window request dismissed or unsupported:', err);
+            }
+        }
+        if (pipWin) {
+            setExternalPipWindow(pipWin);
+        }
+        setActiveCompanionAptId(apt.id);
+
         try {
             const response = await axios.post(
                 `/pupil/appointments/${apt.id}/join`,
             );
-            window.open(response.data.google_meet_link, '_blank');
+            if (response.data.google_meet_link) {
+                setCompanionMeetLink(response.data.google_meet_link);
+                try {
+                    window.open(response.data.google_meet_link, '_blank');
+                } catch (e) {
+                    // Handled inside the always-on-top companion window
+                }
+            }
         } catch (error: any) {
+            if (pipWin) {
+                pipWin.close();
+                setExternalPipWindow(null);
+            }
+            setActiveCompanionAptId(null);
             toast.error(
                 error.response?.data?.message || t('meeting.not_ready'),
             );
@@ -691,7 +724,7 @@ function PupilDashboard({
                                                         </h4>
                                                         {apt.status === 'accepted' && (
                                                             <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-amber-800 uppercase">
-                                                                {t('dashboard.status_accepted') || 'Accepted'}
+                                                                {t('bookings.status_accepted')}
                                                             </span>
                                                         )}
                                                     </div>
@@ -999,6 +1032,20 @@ function PupilDashboard({
                 onClose={() => setIsCredentialOpen(false)}
                 credential={gamification?.credential}
             />
+
+            {activeCompanionAptId && (
+                <MeetingCompanion
+                    appointmentId={activeCompanionAptId}
+                    isOpen={!!activeCompanionAptId}
+                    onClose={() => {
+                        setActiveCompanionAptId(null);
+                        setExternalPipWindow(null);
+                        setCompanionMeetLink(null);
+                    }}
+                    externalPipWindow={externalPipWindow}
+                    initialMeetLink={companionMeetLink}
+                />
+            )}
         </div>
     );
 }
@@ -1013,6 +1060,9 @@ function TeacherDashboard({
     stats?: any;
 }) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
+    const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
+    const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
+    const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
     const pendingCount = auth.pending_requests_count || 0;
@@ -1070,17 +1120,45 @@ function TeacherDashboard({
     };
 
     const handleStart = async (apt: any) => {
+        // Request Document Picture-in-Picture window immediately using direct user click gesture!
+        let pipWin: Window | null = null;
+        if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
+            try {
+                pipWin = await (window as any).documentPictureInPicture.requestWindow({
+                    width: 380,
+                    height: 560,
+                });
+            } catch (err) {
+                console.warn('PiP window request dismissed or unsupported:', err);
+            }
+        }
+        if (pipWin) {
+            setExternalPipWindow(pipWin);
+        }
+
         setStartingAptId(apt.id);
+        setActiveCompanionAptId(apt.id);
+
         try {
             const response = await axios.post(
                 `/teacher/appointments/${apt.id}/start`,
             );
             toast.success(t('dashboard.start_conversation_success'));
             if (response.data.google_meet_link) {
-                window.open(response.data.google_meet_link, '_blank');
+                setCompanionMeetLink(response.data.google_meet_link);
+                try {
+                    window.open(response.data.google_meet_link, '_blank');
+                } catch (e) {
+                    // Handled inside the always-on-top companion window
+                }
             }
-            router.reload();
+            router.reload({ only: ['appointments', 'stats'] });
         } catch (error: any) {
+            if (pipWin) {
+                pipWin.close();
+                setExternalPipWindow(null);
+            }
+            setActiveCompanionAptId(null);
             if (error.response?.data?.requires_google_calendar) {
                 toast.error(
                     error.response.data.message ||
@@ -1370,8 +1448,7 @@ function TeacherDashboard({
                                             <div className="flex flex-wrap items-center gap-2">
                                                 {apt.status === 'accepted' ? (
                                                     <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[10px] font-black tracking-wider text-amber-800 uppercase">
-                                                        STATUS ACCEPTED ·
-                                                        AWAITING PAYMENT
+                                                        {t('sessions.awaiting_payment')}
                                                     </span>
                                                 ) : (
                                                     <TeacherMeetingButton
@@ -1461,6 +1538,20 @@ function TeacherDashboard({
                     </Link>
                 </div>
             </div>
+
+            {activeCompanionAptId && (
+                <MeetingCompanion
+                    appointmentId={activeCompanionAptId}
+                    isOpen={!!activeCompanionAptId}
+                    onClose={() => {
+                        setActiveCompanionAptId(null);
+                        setExternalPipWindow(null);
+                        setCompanionMeetLink(null);
+                    }}
+                    externalPipWindow={externalPipWindow}
+                    initialMeetLink={companionMeetLink}
+                />
+            )}
         </div>
     );
 }

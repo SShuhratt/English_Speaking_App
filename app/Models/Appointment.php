@@ -107,4 +107,9 @@ class Appointment extends Model
     {
         return $this->belongsTo(UserDiscountVoucher::class, 'discount_voucher_id');
     }
+
+    public function materials()
+    {
+        return $this->hasMany(AppointmentMaterial::class, 'appointment_id')->latest();
+    }
 }
