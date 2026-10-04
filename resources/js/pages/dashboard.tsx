@@ -297,7 +297,14 @@ function PupilDashboard({
 
     const handleJoin = async (apt: any) => {
         // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        const pipWin = await requestCompanionPiPWindow();
+        const pipWin = await requestCompanionPiPWindow(() => {
+            toast.info(
+                t(
+                    'companion.unsupported_browser_pip',
+                    'Floating companion is optimized for Google Chrome and Edge. Your companion is active inside this tab.',
+                ),
+            );
+        });
         if (pipWin) {
             setExternalPipWindow(pipWin);
         }
@@ -1165,7 +1172,14 @@ function TeacherDashboard({
 
     const handleStart = async (apt: any) => {
         // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        const pipWin = await requestCompanionPiPWindow();
+        const pipWin = await requestCompanionPiPWindow(() => {
+            toast.info(
+                t(
+                    'companion.unsupported_browser_pip',
+                    'Floating companion is optimized for Google Chrome and Edge. Your companion is active inside this tab.',
+                ),
+            );
+        });
         if (pipWin) {
             setExternalPipWindow(pipWin);
         }

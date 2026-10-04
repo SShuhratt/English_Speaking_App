@@ -37,7 +37,9 @@ interface MaterialItem {
     created_at: string;
 }
 
-export async function requestCompanionPiPWindow(): Promise<Window | null> {
+export async function requestCompanionPiPWindow(
+    onUnsupported?: () => void,
+): Promise<Window | null> {
     if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
         try {
             const availWidth = window.screen.availWidth || window.innerWidth;
@@ -54,6 +56,10 @@ export async function requestCompanionPiPWindow(): Promise<Window | null> {
             console.warn('Document Picture-in-Picture window request failed or was dismissed:', err);
             return null;
         }
+    }
+
+    if (onUnsupported) {
+        onUnsupported();
     }
     return null;
 }
@@ -214,6 +220,29 @@ export default function MeetingCompanion({
     const [pipWindow, setPipWindow] = useState<Window | null>(externalPipWindow || null);
     const [isPiPSupported, setIsPiPSupported] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
+
+    const [isLinuxTipDismissed, setIsLinuxTipDismissed] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        try {
+            return sessionStorage.getItem(`pip_linux_tip_dismissed_${appointmentId}`) === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
+
+    const isLinuxDesktop = typeof navigator !== 'undefined'
+        && /Linux/i.test(navigator.userAgent || navigator.platform || '')
+        && !/Android/i.test(navigator.userAgent || '');
+
+    const isMobileDevice = typeof window !== 'undefined'
+        && (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') || window.innerWidth < 768);
+
+    const dismissLinuxTip = () => {
+        setIsLinuxTipDismissed(true);
+        try {
+            sessionStorage.setItem(`pip_linux_tip_dismissed_${appointmentId}`, 'true');
+        } catch (e) {}
+    };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -598,6 +627,42 @@ export default function MeetingCompanion({
                     </div>
                 )}
             </div>
+
+            {/* Linux Desktop Always-on-Top PiP Hint */}
+            {pipWindow && isLinuxDesktop && !isLinuxTipDismissed && (
+                <div className="bg-indigo-950/95 border-b border-indigo-700/60 px-3.5 py-1.5 flex items-center justify-between gap-2 text-[11px] text-indigo-200 select-none animate-in fade-in duration-200">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-amber-300 shrink-0">📌</span>
+                        <span className="truncate">
+                            {t(
+                                'companion.linux_pip_tip',
+                                "To keep above your call on Linux: Press Alt+Space → 'Always on Top'",
+                            )}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={dismissLinuxTip}
+                        className="p-0.5 text-indigo-300 hover:text-white rounded shrink-0 transition"
+                        title="Dismiss notice"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            {/* Mobile Picture-in-Picture / Telegram Hint */}
+            {!pipWindow && isMobileDevice && (
+                <div className="bg-slate-800/80 border-b border-slate-700/60 px-3.5 py-1.5 flex items-center gap-2 text-[11px] text-slate-300 select-none">
+                    <span className="text-sm shrink-0">📱</span>
+                    <span className="leading-snug">
+                        {t(
+                            'companion.mobile_pip_tip',
+                            'Tip: Keep Google Meet in Picture-in-Picture while viewing lesson materials here or in Telegram.',
+                        )}
+                    </span>
+                </div>
+            )}
 
             {/* Tabs */}
             <div className="flex items-center border-b border-slate-800 px-3 pt-2 bg-slate-900">
