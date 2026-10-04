@@ -67,7 +67,19 @@ function PupilMeetingButton({
 
     const start = new Date(apt.start_at);
     const hasStartedTime = currentTime >= start;
-    const isMeetingStarted = Boolean(apt.meeting_started);
+    const isMeetingStarted = Boolean(apt.meeting_started || apt.google_meet_link);
+
+    // If teacher has started the meeting, pupil can join immediately!
+    if (isMeetingStarted) {
+        return (
+            <button
+                onClick={() => handleJoin(apt)}
+                className="flex cursor-pointer items-center gap-2 rounded-full bg-[#061445] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-[#061445]/10 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            >
+                <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
+            </button>
+        );
+    }
 
     if (!hasStartedTime) {
         return (
@@ -80,18 +92,16 @@ function PupilMeetingButton({
         );
     }
 
-    if (!isMeetingStarted) {
-        return (
-            <button
-                disabled
-                title={t('meeting.not_ready')}
-                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-amber-300/40 bg-amber-50/80 dark:bg-amber-950/20 px-4 py-2.5 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-all select-none"
-            >
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
-                <span>{t('meeting.waiting_teacher')}</span>
-            </button>
-        );
-    }
+    return (
+        <button
+            disabled
+            title={t('meeting.not_ready')}
+            className="flex cursor-not-allowed items-center gap-2 rounded-full border border-amber-300/40 bg-amber-50/80 dark:bg-amber-950/20 px-4 py-2.5 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-all select-none"
+        >
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
+            <span>{t('meeting.waiting_teacher')}</span>
+        </button>
+    );
 
     return (
         <button
@@ -222,22 +232,39 @@ function PupilDashboard({
         const channel = window.Echo.private(`pupil.${user.id}`);
 
         channel.listen('.booking.updated', (e: any) => {
-            toast.info(`Booking status updated: ${e.appointment.status}`);
-            router.reload();
+            if (e?.appointment?.meeting_started) {
+                toast.info(t('meeting.teacher_started', 'Your teacher has started the lesson! You can join now.'));
+            }
+            router.reload({ only: ['appointments'] });
         });
         channel.listen('.ConversationApproved', (e: any) => {
             toast.info(
-                t('dashboard.booking_approved_toast') ||
-                    `Your session has been approved!`,
+                t('dashboard.booking_approved_toast', 'Your session has been approved!')
             );
-            router.reload();
+            router.reload({ only: ['appointments'] });
         });
 
+        // Background polling fallback every 4 seconds for upcoming or active sessions
+        const pollTimer = setInterval(() => {
+            const hasActiveOrUpcomingSession = appointments?.some((b: any) => {
+                if (b.status !== 'confirmed') return false;
+                if (b.meeting_started) return false;
+                const startTime = new Date(b.start_at).getTime();
+                const now = Date.now();
+                return startTime - now < 15 * 60 * 1000 && now - startTime < 60 * 60 * 1000;
+            });
+
+            if (hasActiveOrUpcomingSession) {
+                router.reload({ only: ['appointments'] });
+            }
+        }, 4000);
+
         return () => {
+            clearInterval(pollTimer);
             channel.stopListening('.booking.updated');
             channel.stopListening('.ConversationApproved');
         };
-    }, [user.id]);
+    }, [user?.id, appointments]);
 
     const handleCancel = async (id: string) => {
         const reason = prompt(

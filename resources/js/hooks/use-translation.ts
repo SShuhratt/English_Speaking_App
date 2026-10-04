@@ -651,6 +651,7 @@ const dictionary = {
         'meeting.start': 'Start Meeting',
         'meeting.not_ready': 'Teacher is not ready yet!',
         'meeting.starting': 'Starting...',
+        'meeting.teacher_started': 'Your teacher has started the lesson! You can join now.',
 
         // Dashboard
         'dashboard.welcome_back': 'Welcome, :name 👋',
@@ -2285,6 +2286,7 @@ const dictionary = {
         'meeting.start': 'Darsni boshlash',
         'meeting.not_ready': "O'qituvchi hali darsni boshlamadi!",
         'meeting.starting': 'Boshlanmoqda...',
+        'meeting.teacher_started': 'O‘qituvchingiz darsni boshladi! Hozir ulanishingiz mumkin.',
 
         // Dashboard
         'dashboard.welcome_back': 'Xush kelibsiz, :name 👋',
@@ -3929,6 +3931,7 @@ const dictionary = {
         'meeting.start': 'Начать урок',
         'meeting.not_ready': 'Учитель еще не готов!',
         'meeting.starting': 'Запуск...',
+        'meeting.teacher_started': 'Учитель начал урок! Вы можете подключиться сейчас.',
 
         // Dashboard
         'dashboard.welcome_back': 'Добро пожаловать, :name 👋',

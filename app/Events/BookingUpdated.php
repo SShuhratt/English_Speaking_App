@@ -5,6 +5,7 @@ namespace App\Events;
 use App\Models\Appointment;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -28,6 +29,8 @@ class BookingUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
+            new PrivateChannel('teacher.'.$this->appointment->teacher_id),
+            new PrivateChannel('pupil.'.$this->appointment->pupil_id),
             new Channel('teacher.'.$this->appointment->teacher_id),
             new Channel('pupil.'.$this->appointment->pupil_id),
         ];
