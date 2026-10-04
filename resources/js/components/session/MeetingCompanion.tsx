@@ -41,15 +41,10 @@ export async function requestCompanionPiPWindow(): Promise<Window | null> {
     if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
         try {
             const availWidth = window.screen.availWidth || window.innerWidth;
-            const availHeight = window.screen.availHeight || window.innerHeight;
             const isDesktop = availWidth >= 768;
-            // On desktop: 20% width (clamped between 320px and 420px) and full available height
-            const targetWidth = isDesktop
-                ? Math.min(420, Math.max(320, Math.floor(availWidth * 0.2)))
-                : 380;
-            const targetHeight = isDesktop
-                ? Math.max(560, availHeight - 30)
-                : 560;
+            // Comfortable companion floating dimensions for Windows and macOS
+            const targetWidth = isDesktop ? 360 : 340;
+            const targetHeight = isDesktop ? 560 : 500;
 
             return await (window as any).documentPictureInPicture.requestWindow({
                 width: targetWidth,
@@ -66,31 +61,23 @@ export async function requestCompanionPiPWindow(): Promise<Window | null> {
 export function openGoogleMeetSession(meetLink: string): Window | null {
     if (typeof window === 'undefined' || !meetLink) return null;
 
-    const availWidth = window.screen.availWidth || window.innerWidth;
-    const availHeight = window.screen.availHeight || window.innerHeight;
-    const screenLeft = (window.screen as any).availLeft ?? 0;
-    const screenTop = (window.screen as any).availTop ?? 0;
-    const isDesktop = availWidth >= 768;
-
-    if (isDesktop) {
-        // Desktop 80% Google Meet window positioning on the left
-        const companionWidth = Math.min(420, Math.max(320, Math.floor(availWidth * 0.2)));
-        const meetWidth = availWidth - companionWidth;
-        const features = `left=${screenLeft},top=${screenTop},width=${meetWidth},height=${availHeight},menubar=no,status=no,toolbar=no,location=yes,scrollbars=yes,resizable=yes`;
-
-        try {
-            return window.open(meetLink, '_blank', features);
-        } catch (e) {
-            return window.open(meetLink, '_blank');
+    // Launch Google Meet in a clean standard browser tab (no detached window popups).
+    // On Windows and macOS, the Document PiP window natively floats above this tab automatically.
+    try {
+        const meetWin = window.open(meetLink, '_blank');
+        if (meetWin) {
+            meetWin.focus();
         }
+        return meetWin;
+    } catch (e) {
+        window.location.href = meetLink;
+        return null;
     }
-
-    // Mobile / smaller viewports: standard launch (allows deep linking to Google Meet native app)
-    return window.open(meetLink, '_blank');
 }
 
 export function setupPipDocument(win: Window, onHide?: () => void) {
     try {
+        win.document.title = 'ConvoMate Companion';
         Array.from(document.styleSheets).forEach((styleSheet) => {
             try {
                 const cssRules = Array.from(styleSheet.cssRules)
