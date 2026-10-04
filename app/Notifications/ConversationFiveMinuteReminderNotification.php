@@ -47,14 +47,16 @@ class ConversationFiveMinuteReminderNotification extends Notification implements
             ? ($this->appointment->pupil?->full_name ?? 'your student')
             : ($this->appointment->teacher?->full_name ?? 'your teacher');
 
-        $meetLink = $this->appointment->google_meet_link ?? url('/dashboard');
+        $actionUrl = $isTeacher
+            ? ($this->appointment->google_meet_link ?? url('/teacher/schedule'))
+            : url('/pupil/bookings');
 
         $mail = (new MailMessage)
             ->subject('Your English Speaking Session Starts in 5 Minutes!')
             ->greeting("Hello {$notifiable->full_name}!")
             ->line("Your lesson with **{$partnerName}** starts in 5 minutes.")
             ->line('Please prepare your microphone, webcam, and quiet surroundings.')
-            ->action('Join Session Now', $meetLink)
+            ->action('Open Session Room', $actionUrl)
             ->line('If the button above does not work, visit your platform dashboard to enter the room.');
 
         $footerTip = $this->getEmailTipFooter($notifiable);
@@ -75,11 +77,15 @@ class ConversationFiveMinuteReminderNotification extends Notification implements
             ? ($this->appointment->pupil?->full_name ?? 'your student')
             : ($this->appointment->teacher?->full_name ?? 'your teacher');
 
-        $meetLink = $this->appointment->google_meet_link ?? url('/dashboard');
+        $actionUrl = $isTeacher
+            ? ($this->appointment->google_meet_link ?? url('/teacher/schedule'))
+            : url('/pupil/bookings');
+
+        $actionText = $isTeacher ? 'Start Meeting' : 'Open Bookings';
 
         $message = "⏳ <b>Starting in 5 Minutes!</b>\n\n".
             "Your English practice session with <b>{$partnerName}</b> begins in 5 minutes.\n\n".
-            "👉 <b>Join Meeting:</b> <a href=\"{$meetLink}\">Click here to join</a>\n\n".
+            "👉 <b>{$actionText}:</b> <a href=\"{$actionUrl}\">Click here</a>\n\n".
             'Please check your audio and video before entering the room.';
 
         $message .= $this->getTelegramTipFooter($notifiable);
@@ -92,8 +98,11 @@ class ConversationFiveMinuteReminderNotification extends Notification implements
      */
     public function toSms(object $notifiable): string
     {
-        $meetLink = $this->appointment->google_meet_link ?? url('/dashboard');
+        $isTeacher = $notifiable->id === $this->appointment->teacher_id;
+        $actionUrl = $isTeacher
+            ? ($this->appointment->google_meet_link ?? url('/teacher/schedule'))
+            : url('/pupil/bookings');
 
-        return "ConvoMate: Your speaking session starts in 5 minutes! Join here: {$meetLink}";
+        return "ConvoMate: Your speaking session starts in 5 minutes! Open here: {$actionUrl}";
     }
 }

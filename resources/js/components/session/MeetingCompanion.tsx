@@ -11,12 +11,8 @@ import {
     UploadCloud,
     X,
     ExternalLink,
-    Copy,
-    Check,
     Maximize2,
     Minimize2,
-    AlertCircle,
-    CheckCircle2,
     FileSpreadsheet,
     MessageCircle,
     ChevronDown,
@@ -100,6 +96,7 @@ interface CompanionProps {
     autoOpenPiP?: boolean;
     externalPipWindow?: Window | null;
     initialMeetLink?: string | null;
+    initialMeetWindow?: Window | null;
 }
 
 export default function MeetingCompanion({
@@ -109,6 +106,7 @@ export default function MeetingCompanion({
     autoOpenPiP = false,
     externalPipWindow,
     initialMeetLink,
+    initialMeetWindow,
 }: CompanionProps) {
     const { t } = useTranslation();
     const [materials, setMaterials] = useState<MaterialItem[]>([]);
@@ -118,6 +116,51 @@ export default function MeetingCompanion({
     const [botUsername, setBotUsername] = useState('EnglishSpeakingBot');
     const [activeTab, setActiveTab] = useState<'file' | 'link'>('file');
     const [meetLink, setMeetLink] = useState<string | null>(initialMeetLink || null);
+
+    // Meet window reference & live presence tracking
+    const meetWindowRef = useRef<Window | null>(initialMeetWindow || null);
+    const [isMeetingActive, setIsMeetingActive] = useState<boolean>(() => {
+        return Boolean(initialMeetWindow && !initialMeetWindow.closed);
+    });
+
+    useEffect(() => {
+        if (initialMeetWindow) {
+            meetWindowRef.current = initialMeetWindow;
+            setIsMeetingActive(!initialMeetWindow.closed);
+        }
+    }, [initialMeetWindow]);
+
+    // Periodically verify if Google Meet window is active or closed
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const win = meetWindowRef.current;
+            if (win) {
+                if (win.closed) {
+                    setIsMeetingActive(false);
+                } else {
+                    setIsMeetingActive(true);
+                }
+            } else {
+                setIsMeetingActive(false);
+            }
+        }, 1500);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleMeetAction = () => {
+        if (!meetLink) return;
+
+        const win = meetWindowRef.current;
+        if (win && !win.closed) {
+            win.focus();
+            toast.info(t('companion.meeting_live', 'Live in Meeting'));
+        } else {
+            const newWin = window.open(meetLink, '_blank');
+            meetWindowRef.current = newWin;
+            setIsMeetingActive(true);
+        }
+    };
 
     // Upload state
     const [uploading, setUploading] = useState(false);
@@ -133,7 +176,6 @@ export default function MeetingCompanion({
     const [pipWindow, setPipWindow] = useState<Window | null>(externalPipWindow || null);
     const [isPiPSupported, setIsPiPSupported] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
-    const [copiedLink, setCopiedLink] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -366,14 +408,6 @@ export default function MeetingCompanion({
         }
     };
 
-    const handleCopyBotLink = () => {
-        const link = `https://t.me/${botUsername}`;
-        navigator.clipboard.writeText(link);
-        setCopiedLink(true);
-        toast.success('Telegram bot link copied to clipboard!');
-        setTimeout(() => setCopiedLink(false), 2500);
-    };
-
     if (!isOpen) return null;
 
     const shortId = appointmentId ? appointmentId.replace(/-/g, '').slice(0, 8) : '';
@@ -466,10 +500,17 @@ export default function MeetingCompanion({
                         </div>
                         <div className="text-[11px] text-slate-400 truncate flex items-center gap-1.5">
                             {meetLink ? (
-                                <span className="text-emerald-400 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
-                                    {t('companion.room_ready', 'Video room ready')}
-                                </span>
+                                isMeetingActive ? (
+                                    <span className="text-emerald-400 flex items-center gap-1 font-medium">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                                        {t('companion.meeting_live', 'Live in Meeting')}
+                                    </span>
+                                ) : (
+                                    <span className="text-slate-300 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+                                        {t('companion.room_ready', 'Video room ready')}
+                                    </span>
+                                )
                             ) : (
                                 <span className="text-amber-300/90 flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block"></span>
@@ -481,16 +522,27 @@ export default function MeetingCompanion({
                 </div>
 
                 {meetLink ? (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            window.open(meetLink, '_blank');
-                        }}
-                        className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-lg shadow-md hover:shadow-emerald-500/20 transition flex items-center space-x-1.5 shrink-0"
-                    >
-                        <span>{t('companion.join_meet', 'Join Google Meet')}</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                    </button>
+                    isMeetingActive ? (
+                        <button
+                            type="button"
+                            onClick={handleMeetAction}
+                            className="px-3 py-1.5 text-xs font-semibold bg-emerald-600/25 hover:bg-emerald-600/35 text-emerald-300 border border-emerald-500/40 rounded-lg shadow-sm transition flex items-center space-x-1.5 shrink-0 group active:scale-95"
+                            title={t('companion.focus_meet', 'Focus Call')}
+                        >
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                            <span>{t('companion.focus_meet', 'Focus Call')}</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition" />
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={handleMeetAction}
+                            className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-lg shadow-md hover:shadow-emerald-500/20 transition flex items-center space-x-1.5 shrink-0"
+                        >
+                            <span>{t('companion.rejoin_meet', 'Rejoin Google Meet')}</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                    )
                 ) : (
                     <div className="flex items-center space-x-1.5 text-xs text-slate-400 px-2 py-1">
                         <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
@@ -498,37 +550,8 @@ export default function MeetingCompanion({
                 )}
             </div>
 
-            {/* Telegram Connection Alerts */}
-            <div className="px-3.5 py-2 bg-slate-950/60 border-b border-slate-800 text-[12px]">
-                        {partner?.telegram_connected ? (
-                            <div className="flex items-center space-x-1.5 text-emerald-400">
-                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                <span>Materials are delivered directly to Telegram</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-between gap-2 text-amber-300">
-                                <div className="flex items-center space-x-1.5">
-                                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-                                    <span>Partner has not linked Telegram yet</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={handleCopyBotLink}
-                                    className="px-2 py-0.5 text-[11px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 rounded border border-amber-500/30 font-medium transition flex items-center space-x-1 shrink-0"
-                                >
-                                    {copiedLink ? (
-                                        <Check className="w-3 h-3 text-emerald-400" />
-                                    ) : (
-                                        <Copy className="w-3 h-3" />
-                                    )}
-                                    <span>Copy Bot Link</span>
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="flex items-center border-b border-slate-800 px-3 pt-2 bg-slate-900">
+            {/* Tabs */}
+            <div className="flex items-center border-b border-slate-800 px-3 pt-2 bg-slate-900">
                         <button
                             type="button"
                             onClick={() => setActiveTab('file')}
@@ -741,11 +764,17 @@ export default function MeetingCompanion({
                 {meetLink && (
                     <button
                         type="button"
-                        onClick={() => {
-                            window.open(meetLink, '_blank');
-                        }}
-                        title={t('companion.join_meet', 'Join Google Meet')}
-                        className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/60 rounded-lg transition"
+                        onClick={handleMeetAction}
+                        title={
+                            isMeetingActive
+                                ? t('companion.focus_meet', 'Focus Call')
+                                : t('companion.rejoin_meet', 'Rejoin Google Meet')
+                        }
+                        className={`p-1.5 rounded-lg transition ${
+                            isMeetingActive
+                                ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/60'
+                                : 'text-amber-300 hover:text-amber-200 hover:bg-amber-950/60'
+                        }`}
                     >
                         <Video className="w-4 h-4" />
                     </button>

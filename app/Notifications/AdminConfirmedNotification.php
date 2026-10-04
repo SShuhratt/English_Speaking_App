@@ -50,7 +50,7 @@ class AdminConfirmedNotification extends Notification implements ShouldQueue
             ->line("Your upcoming English speaking session with **{$partnerName}** is officially confirmed.")
             ->line("**Scheduled Time:** {$timeStr}");
 
-        if ($this->appointment->google_meet_link) {
+        if ($isTeacher && $this->appointment->google_meet_link) {
             $mail->line("**Meeting Room:** [Join via Google Meet]({$this->appointment->google_meet_link})");
         }
 
@@ -82,7 +82,7 @@ class AdminConfirmedNotification extends Notification implements ShouldQueue
             "Your upcoming session with <b>{$partnerName}</b> is officially confirmed.\n\n".
             "📅 <b>Time:</b> {$timeStr}\n";
 
-        if ($this->appointment->google_meet_link) {
+        if ($isTeacher && $this->appointment->google_meet_link) {
             $message .= "🔗 <b>Meeting Link:</b> <a href=\"{$this->appointment->google_meet_link}\">Open Google Meet</a>\n\n";
         }
 

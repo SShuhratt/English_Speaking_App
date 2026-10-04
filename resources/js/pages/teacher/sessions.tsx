@@ -42,6 +42,7 @@ export default function Sessions({ appointments }: Props) {
     const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
     const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
     const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
+    const [companionMeetWindow, setCompanionMeetWindow] = useState<Window | null>(null);
     const [itemsList, setItemsList] = useState<any[]>(appointments.data || []);
     const [activeTab, setActiveTab] = useState<
         'all' | 'upcoming' | 'completed'
@@ -144,7 +145,10 @@ export default function Sessions({ appointments }: Props) {
             if (res.data.google_meet_link) {
                 setCompanionMeetLink(res.data.google_meet_link);
                 try {
-                    window.open(res.data.google_meet_link, '_blank');
+                    const meetWin = window.open(res.data.google_meet_link, '_blank');
+                    if (meetWin) {
+                        setCompanionMeetWindow(meetWin);
+                    }
                 } catch (e) {
                     // Handled inside the always-on-top companion window
                 }
@@ -157,6 +161,7 @@ export default function Sessions({ appointments }: Props) {
                 setExternalPipWindow(null);
             }
             setActiveCompanionAptId(null);
+            setCompanionMeetWindow(null);
             if (err.response?.data?.requires_google_calendar) {
                 toast.error(
                     err.response.data.message ||
@@ -692,9 +697,11 @@ export default function Sessions({ appointments }: Props) {
                         setActiveCompanionAptId(null);
                         setExternalPipWindow(null);
                         setCompanionMeetLink(null);
+                        setCompanionMeetWindow(null);
                     }}
                     externalPipWindow={externalPipWindow}
                     initialMeetLink={companionMeetLink}
+                    initialMeetWindow={companionMeetWindow}
                 />
             )}
         </>

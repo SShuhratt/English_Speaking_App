@@ -64,6 +64,7 @@ function PupilMeetingButton({
 
     const start = new Date(apt.start_at);
     const hasStartedTime = currentTime >= start;
+    const isMeetingStarted = Boolean(apt.meeting_started);
 
     if (!hasStartedTime) {
         return (
@@ -72,6 +73,19 @@ function PupilMeetingButton({
                 className="flex cursor-not-allowed items-center gap-2 rounded-full border border-brand-lightblue/50 bg-brand-lightblue/35 px-4 py-2.5 text-xs font-semibold text-brand-brown/80"
             >
                 <Clock className="h-3.5 w-3.5" /> {t('meeting.scheduled')}
+            </button>
+        );
+    }
+
+    if (!isMeetingStarted) {
+        return (
+            <button
+                disabled
+                title={t('meeting.not_ready')}
+                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-amber-300/40 bg-amber-50/80 dark:bg-amber-950/20 px-4 py-2.5 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-all select-none"
+            >
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
+                <span>{t('meeting.waiting_teacher')}</span>
             </button>
         );
     }
@@ -158,6 +172,7 @@ function PupilDashboard({
     const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
     const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
     const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
+    const [companionMeetWindow, setCompanionMeetWindow] = useState<Window | null>(null);
 
     const handleAcknowledgeLevel = async (level: number) => {
         try {
@@ -275,7 +290,13 @@ function PupilDashboard({
             if (response.data.google_meet_link) {
                 setCompanionMeetLink(response.data.google_meet_link);
                 try {
-                    window.open(response.data.google_meet_link, '_blank');
+                    const meetWin = window.open(
+                        response.data.google_meet_link,
+                        '_blank',
+                    );
+                    if (meetWin) {
+                        setCompanionMeetWindow(meetWin);
+                    }
                 } catch (e) {
                     // Handled inside the always-on-top companion window
                 }
@@ -286,6 +307,7 @@ function PupilDashboard({
                 setExternalPipWindow(null);
             }
             setActiveCompanionAptId(null);
+            setCompanionMeetWindow(null);
             toast.error(
                 error.response?.data?.message || t('meeting.not_ready'),
             );
@@ -1041,9 +1063,11 @@ function PupilDashboard({
                         setActiveCompanionAptId(null);
                         setExternalPipWindow(null);
                         setCompanionMeetLink(null);
+                        setCompanionMeetWindow(null);
                     }}
                     externalPipWindow={externalPipWindow}
                     initialMeetLink={companionMeetLink}
+                    initialMeetWindow={companionMeetWindow}
                 />
             )}
         </div>
@@ -1063,6 +1087,7 @@ function TeacherDashboard({
     const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
     const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
     const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
+    const [companionMeetWindow, setCompanionMeetWindow] = useState<Window | null>(null);
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
     const pendingCount = auth.pending_requests_count || 0;
@@ -1147,7 +1172,13 @@ function TeacherDashboard({
             if (response.data.google_meet_link) {
                 setCompanionMeetLink(response.data.google_meet_link);
                 try {
-                    window.open(response.data.google_meet_link, '_blank');
+                    const meetWin = window.open(
+                        response.data.google_meet_link,
+                        '_blank',
+                    );
+                    if (meetWin) {
+                        setCompanionMeetWindow(meetWin);
+                    }
                 } catch (e) {
                     // Handled inside the always-on-top companion window
                 }
@@ -1159,6 +1190,7 @@ function TeacherDashboard({
                 setExternalPipWindow(null);
             }
             setActiveCompanionAptId(null);
+            setCompanionMeetWindow(null);
             if (error.response?.data?.requires_google_calendar) {
                 toast.error(
                     error.response.data.message ||
@@ -1547,9 +1579,11 @@ function TeacherDashboard({
                         setActiveCompanionAptId(null);
                         setExternalPipWindow(null);
                         setCompanionMeetLink(null);
+                        setCompanionMeetWindow(null);
                     }}
                     externalPipWindow={externalPipWindow}
                     initialMeetLink={companionMeetLink}
+                    initialMeetWindow={companionMeetWindow}
                 />
             )}
         </div>

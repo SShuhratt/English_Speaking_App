@@ -242,4 +242,35 @@ class AppointmentMaterialSharingTest extends TestCase
             ->assertJsonPath('partner.role', 'teacher')
             ->assertJsonPath('partner.telegram_connected', true);
     }
+
+    public function test_materials_endpoint_hides_google_meet_link_from_pupil_until_meeting_started(): void
+    {
+        $this->appointment->update([
+            'google_meet_link' => 'https://meet.google.com/xyz-uvwx-rst',
+            'meeting_started' => false,
+        ]);
+
+        // Pupil should receive null google_meet_link if meeting_started is false
+        $pupilResponse = $this->actingAs($this->pupil)
+            ->getJson("/appointments/{$this->appointment->id}/materials");
+
+        $pupilResponse->assertStatus(200)
+            ->assertJsonPath('session.google_meet_link', null);
+
+        // Teacher can see the google_meet_link
+        $teacherResponse = $this->actingAs($this->teacher)
+            ->getJson("/appointments/{$this->appointment->id}/materials");
+
+        $teacherResponse->assertStatus(200)
+            ->assertJsonPath('session.google_meet_link', 'https://meet.google.com/xyz-uvwx-rst');
+
+        // Once meeting is started, pupil can see the google_meet_link
+        $this->appointment->update(['meeting_started' => true]);
+
+        $pupilResponseStarted = $this->actingAs($this->pupil)
+            ->getJson("/appointments/{$this->appointment->id}/materials");
+
+        $pupilResponseStarted->assertStatus(200)
+            ->assertJsonPath('session.google_meet_link', 'https://meet.google.com/xyz-uvwx-rst');
+    }
 }

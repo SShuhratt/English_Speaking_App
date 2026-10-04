@@ -199,16 +199,29 @@ class AppointmentReminderSchedulerTest extends TestCase
         $this->assertCount(3, $channels);
 
         // Verify payload contents for each channel
+        // Pupil is directed to /pupil/bookings to wait for teacher to start
         $mail = $notification->toMail($this->pupil);
         $this->assertEquals('Your English Speaking Session Starts in 5 Minutes!', $mail->subject);
-        $this->assertEquals('https://meet.google.com/abc-defg-hij', $mail->actionUrl);
+        $this->assertEquals(url('/pupil/bookings'), $mail->actionUrl);
 
         $telegram = $notification->toTelegram($this->pupil);
         $this->assertStringContainsString('Starting in 5 Minutes!', $telegram);
-        $this->assertStringContainsString('https://meet.google.com/abc-defg-hij', $telegram);
+        $this->assertStringContainsString(url('/pupil/bookings'), $telegram);
+        $this->assertStringNotContainsString('https://meet.google.com/abc-defg-hij', $telegram);
 
         $sms = $notification->toSms($this->pupil);
         $this->assertStringContainsString('starts in 5 minutes', $sms);
-        $this->assertStringContainsString('https://meet.google.com/abc-defg-hij', $sms);
+        $this->assertStringContainsString(url('/pupil/bookings'), $sms);
+        $this->assertStringNotContainsString('https://meet.google.com/abc-defg-hij', $sms);
+
+        // Teacher receives direct Google Meet link
+        $teacherMail = $notification->toMail($this->teacher);
+        $this->assertEquals('https://meet.google.com/abc-defg-hij', $teacherMail->actionUrl);
+
+        $teacherTelegram = $notification->toTelegram($this->teacher);
+        $this->assertStringContainsString('https://meet.google.com/abc-defg-hij', $teacherTelegram);
+
+        $teacherSms = $notification->toSms($this->teacher);
+        $this->assertStringContainsString('https://meet.google.com/abc-defg-hij', $teacherSms);
     }
 }

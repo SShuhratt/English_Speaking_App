@@ -61,7 +61,7 @@ class AppointmentMaterialController extends Controller
                 'status' => $appointment->status,
                 'start_at' => $appointment->start_at,
                 'end_at' => $appointment->end_at,
-                'google_meet_link' => $appointment->google_meet_link,
+                'google_meet_link' => ($isTeacher || $appointment->meeting_started) ? $appointment->google_meet_link : null,
             ],
             'partner' => [
                 'id' => $partner->id,
