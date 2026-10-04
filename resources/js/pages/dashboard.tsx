@@ -45,7 +45,10 @@ import ReferralCard from '@/components/gamification/ReferralCard';
 import LevelUpCelebrationModal from '@/components/gamification/LevelUpCelebrationModal';
 import XpStoreModal from '@/components/gamification/XpStoreModal';
 import VerifiedFluencyCardModal from '@/components/gamification/VerifiedFluencyCardModal';
-import MeetingCompanion from '@/components/session/MeetingCompanion';
+import MeetingCompanion, {
+    openGoogleMeetSession,
+    requestCompanionPiPWindow,
+} from '@/components/session/MeetingCompanion';
 
 function PupilMeetingButton({
     apt,
@@ -267,17 +270,7 @@ function PupilDashboard({
 
     const handleJoin = async (apt: any) => {
         // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        let pipWin: Window | null = null;
-        if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
-            try {
-                pipWin = await (window as any).documentPictureInPicture.requestWindow({
-                    width: 380,
-                    height: 560,
-                });
-            } catch (err) {
-                console.warn('PiP window request dismissed or unsupported:', err);
-            }
-        }
+        const pipWin = await requestCompanionPiPWindow();
         if (pipWin) {
             setExternalPipWindow(pipWin);
         }
@@ -290,9 +283,8 @@ function PupilDashboard({
             if (response.data.google_meet_link) {
                 setCompanionMeetLink(response.data.google_meet_link);
                 try {
-                    const meetWin = window.open(
+                    const meetWin = openGoogleMeetSession(
                         response.data.google_meet_link,
-                        '_blank',
                     );
                     if (meetWin) {
                         setCompanionMeetWindow(meetWin);
@@ -1146,17 +1138,7 @@ function TeacherDashboard({
 
     const handleStart = async (apt: any) => {
         // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        let pipWin: Window | null = null;
-        if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
-            try {
-                pipWin = await (window as any).documentPictureInPicture.requestWindow({
-                    width: 380,
-                    height: 560,
-                });
-            } catch (err) {
-                console.warn('PiP window request dismissed or unsupported:', err);
-            }
-        }
+        const pipWin = await requestCompanionPiPWindow();
         if (pipWin) {
             setExternalPipWindow(pipWin);
         }
@@ -1172,9 +1154,8 @@ function TeacherDashboard({
             if (response.data.google_meet_link) {
                 setCompanionMeetLink(response.data.google_meet_link);
                 try {
-                    const meetWin = window.open(
+                    const meetWin = openGoogleMeetSession(
                         response.data.google_meet_link,
-                        '_blank',
                     );
                     if (meetWin) {
                         setCompanionMeetWindow(meetWin);

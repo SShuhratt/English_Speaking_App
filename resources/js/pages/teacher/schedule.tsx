@@ -16,6 +16,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
+import { openGoogleMeetSession } from '@/components/session/MeetingCompanion';
 
 interface Props {
     appointments: any[];
@@ -237,7 +238,7 @@ export default function Schedule({ appointments }: Props) {
             );
             toast.success(t('schedule.start_success'));
             if (response.data.google_meet_link) {
-                window.open(response.data.google_meet_link, '_blank');
+                openGoogleMeetSession(response.data.google_meet_link);
             }
             router.reload();
         } catch (error: any) {

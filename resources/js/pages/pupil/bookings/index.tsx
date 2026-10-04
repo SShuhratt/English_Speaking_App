@@ -21,7 +21,10 @@ import {
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
-import MeetingCompanion from '@/components/session/MeetingCompanion';
+import MeetingCompanion, {
+    openGoogleMeetSession,
+    requestCompanionPiPWindow,
+} from '@/components/session/MeetingCompanion';
 
 interface Props {
     bookings: {
@@ -176,17 +179,7 @@ export default function Bookings({ bookings }: Props) {
 
     const handleJoin = async (apt: any) => {
         // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        let pipWin: Window | null = null;
-        if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
-            try {
-                pipWin = await (window as any).documentPictureInPicture.requestWindow({
-                    width: 380,
-                    height: 560,
-                });
-            } catch (err) {
-                console.warn('PiP window request dismissed or unsupported:', err);
-            }
-        }
+        const pipWin = await requestCompanionPiPWindow();
         if (pipWin) {
             setExternalPipWindow(pipWin);
         }
@@ -199,9 +192,8 @@ export default function Bookings({ bookings }: Props) {
             if (response.data.google_meet_link) {
                 setCompanionMeetLink(response.data.google_meet_link);
                 try {
-                    const meetWin = window.open(
+                    const meetWin = openGoogleMeetSession(
                         response.data.google_meet_link,
-                        '_blank',
                     );
                     if (meetWin) {
                         setCompanionMeetWindow(meetWin);

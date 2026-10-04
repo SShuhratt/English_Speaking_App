@@ -40,9 +40,20 @@ interface MaterialItem {
 export async function requestCompanionPiPWindow(): Promise<Window | null> {
     if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
         try {
+            const availWidth = window.screen.availWidth || window.innerWidth;
+            const availHeight = window.screen.availHeight || window.innerHeight;
+            const isDesktop = availWidth >= 768;
+            // On desktop: 20% width (clamped between 320px and 420px) and full available height
+            const targetWidth = isDesktop
+                ? Math.min(420, Math.max(320, Math.floor(availWidth * 0.2)))
+                : 380;
+            const targetHeight = isDesktop
+                ? Math.max(560, availHeight - 30)
+                : 560;
+
             return await (window as any).documentPictureInPicture.requestWindow({
-                width: 390,
-                height: 580,
+                width: targetWidth,
+                height: targetHeight,
             });
         } catch (err) {
             console.warn('Document Picture-in-Picture window request failed or was dismissed:', err);
@@ -50,6 +61,32 @@ export async function requestCompanionPiPWindow(): Promise<Window | null> {
         }
     }
     return null;
+}
+
+export function openGoogleMeetSession(meetLink: string): Window | null {
+    if (typeof window === 'undefined' || !meetLink) return null;
+
+    const availWidth = window.screen.availWidth || window.innerWidth;
+    const availHeight = window.screen.availHeight || window.innerHeight;
+    const screenLeft = (window.screen as any).availLeft ?? 0;
+    const screenTop = (window.screen as any).availTop ?? 0;
+    const isDesktop = availWidth >= 768;
+
+    if (isDesktop) {
+        // Desktop 80% Google Meet window positioning on the left
+        const companionWidth = Math.min(420, Math.max(320, Math.floor(availWidth * 0.2)));
+        const meetWidth = availWidth - companionWidth;
+        const features = `left=${screenLeft},top=${screenTop},width=${meetWidth},height=${availHeight},menubar=no,status=no,toolbar=no,location=yes,scrollbars=yes,resizable=yes`;
+
+        try {
+            return window.open(meetLink, '_blank', features);
+        } catch (e) {
+            return window.open(meetLink, '_blank');
+        }
+    }
+
+    // Mobile / smaller viewports: standard launch (allows deep linking to Google Meet native app)
+    return window.open(meetLink, '_blank');
 }
 
 export function setupPipDocument(win: Window, onHide?: () => void) {
@@ -123,12 +160,22 @@ export default function MeetingCompanion({
         return Boolean(initialMeetWindow && !initialMeetWindow.closed);
     });
 
+    // Session-persistent tracking of whether user has joined this lesson at least once
+    const [hasJoinedSession, setHasJoinedSession] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return false;
+        return sessionStorage.getItem(`meet_joined_${appointmentId}`) === 'true';
+    });
+
     useEffect(() => {
-        if (initialMeetWindow) {
+        if (initialMeetWindow && !initialMeetWindow.closed) {
             meetWindowRef.current = initialMeetWindow;
-            setIsMeetingActive(!initialMeetWindow.closed);
+            setIsMeetingActive(true);
+            setHasJoinedSession(true);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem(`meet_joined_${appointmentId}`, 'true');
+            }
         }
-    }, [initialMeetWindow]);
+    }, [initialMeetWindow, appointmentId]);
 
     // Periodically verify if Google Meet window is active or closed
     useEffect(() => {
@@ -156,9 +203,13 @@ export default function MeetingCompanion({
             win.focus();
             toast.info(t('companion.meeting_live', 'Live in Meeting'));
         } else {
-            const newWin = window.open(meetLink, '_blank');
+            const newWin = openGoogleMeetSession(meetLink);
             meetWindowRef.current = newWin;
             setIsMeetingActive(true);
+            setHasJoinedSession(true);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem(`meet_joined_${appointmentId}`, 'true');
+            }
         }
     };
 
@@ -533,13 +584,24 @@ export default function MeetingCompanion({
                             <span>{t('companion.focus_meet', 'Focus Call')}</span>
                             <ExternalLink className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition" />
                         </button>
+                    ) : hasJoinedSession ? (
+                        <button
+                            type="button"
+                            onClick={handleMeetAction}
+                            className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-lg shadow-md hover:shadow-emerald-500/20 transition flex items-center space-x-1.5 shrink-0"
+                            title={t('companion.rejoin_meet', 'Rejoin Google Meet')}
+                        >
+                            <span>{t('companion.rejoin_meet', 'Rejoin Google Meet')}</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
                     ) : (
                         <button
                             type="button"
                             onClick={handleMeetAction}
                             className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-lg shadow-md hover:shadow-emerald-500/20 transition flex items-center space-x-1.5 shrink-0"
+                            title={t('companion.join_meet', 'Join Google Meet')}
                         >
-                            <span>{t('companion.rejoin_meet', 'Rejoin Google Meet')}</span>
+                            <span>{t('companion.join_meet', 'Join Google Meet')}</span>
                             <ExternalLink className="w-3.5 h-3.5" />
                         </button>
                     )
@@ -768,7 +830,9 @@ export default function MeetingCompanion({
                         title={
                             isMeetingActive
                                 ? t('companion.focus_meet', 'Focus Call')
-                                : t('companion.rejoin_meet', 'Rejoin Google Meet')
+                                : hasJoinedSession
+                                  ? t('companion.rejoin_meet', 'Rejoin Google Meet')
+                                  : t('companion.join_meet', 'Join Google Meet')
                         }
                         className={`p-1.5 rounded-lg transition ${
                             isMeetingActive
@@ -812,17 +876,17 @@ export default function MeetingCompanion({
         );
     }
 
-    // Otherwise render as a fixed floating companion in the bottom-right corner
+    // Otherwise render as a fixed floating companion in the bottom-right corner (responsive for mobile)
     if (isMinimized) {
         return (
-            <div className="fixed bottom-5 right-5 z-50 w-72 max-w-[calc(100vw-2rem)]">
+            <div className="fixed inset-x-2 bottom-2 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-72 max-w-full z-50">
                 {miniContent}
             </div>
         );
     }
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 w-96 max-w-[calc(100vw-2rem)] h-[540px] max-h-[calc(100vh-2rem)]">
+        <div className="fixed inset-x-2 bottom-2 sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-96 max-w-full h-[540px] max-h-[calc(100dvh-4rem)] z-50">
             {companionContent}
         </div>
     );

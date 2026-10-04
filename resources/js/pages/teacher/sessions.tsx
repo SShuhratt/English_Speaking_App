@@ -25,7 +25,10 @@ import {
 import { useTranslation } from '@/hooks/use-translation';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import TeacherAssessmentSliderModal, { AssessmentData } from '@/components/teachers/TeacherAssessmentSliderModal';
-import MeetingCompanion from '@/components/session/MeetingCompanion';
+import MeetingCompanion, {
+    openGoogleMeetSession,
+    requestCompanionPiPWindow,
+} from '@/components/session/MeetingCompanion';
 
 interface Props {
     appointments: {
@@ -122,17 +125,7 @@ export default function Sessions({ appointments }: Props) {
 
     const handleStartSession = async (apt: any) => {
         // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        let pipWin: Window | null = null;
-        if (typeof window !== 'undefined' && 'documentPictureInPicture' in window) {
-            try {
-                pipWin = await (window as any).documentPictureInPicture.requestWindow({
-                    width: 380,
-                    height: 560,
-                });
-            } catch (err) {
-                console.warn('PiP window request dismissed or unsupported:', err);
-            }
-        }
+        const pipWin = await requestCompanionPiPWindow();
         if (pipWin) {
             setExternalPipWindow(pipWin);
         }
@@ -145,7 +138,7 @@ export default function Sessions({ appointments }: Props) {
             if (res.data.google_meet_link) {
                 setCompanionMeetLink(res.data.google_meet_link);
                 try {
-                    const meetWin = window.open(res.data.google_meet_link, '_blank');
+                    const meetWin = openGoogleMeetSession(res.data.google_meet_link);
                     if (meetWin) {
                         setCompanionMeetWindow(meetWin);
                     }
