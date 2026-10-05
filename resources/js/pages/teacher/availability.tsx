@@ -704,7 +704,13 @@ export default function Availability({
                 setIsEditing(false);
             },
             onError: (errors: any) => {
-                const msg = errors.range || errors.message || t.updateError;
+                const msg =
+                    errors.range ||
+                    errors.start_at ||
+                    errors.start_time ||
+                    errors.end_time ||
+                    errors.message ||
+                    t.updateError;
                 toast.error(msg);
             },
         });
@@ -2373,27 +2379,13 @@ export default function Availability({
                                     <Label className="text-xs font-semibold">
                                         {t.availabilityType}
                                     </Label>
-                                    <Select
-                                        value={editData.type}
-                                        onValueChange={(val) =>
-                                            setEditData((prev) => ({
-                                                ...prev,
-                                                type: val,
-                                            }))
-                                        }
-                                    >
-                                        <SelectTrigger className="mt-1">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="custom">
-                                                {t.singleDateOverride}
-                                            </SelectItem>
-                                            <SelectItem value="recurring">
-                                                {t.weeklyRecurring}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <div className="mt-1 flex h-9 w-full items-center justify-between rounded-md border border-input bg-muted/40 px-3 py-1 text-sm font-medium text-foreground shadow-xs">
+                                        <span>
+                                            {editData.type === 'custom'
+                                                ? t.singleDateOverride
+                                                : t.weeklyRecurring}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {editData.type === 'recurring' ? (

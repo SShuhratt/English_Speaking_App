@@ -101,6 +101,7 @@ interface Teacher {
     gender?: string;
     email_verified_at?: string;
     teacher_profile?: {
+        phone_number?: string | null;
         overall_level: string;
         speaking_band?: string | number;
         experience_years: string | number;

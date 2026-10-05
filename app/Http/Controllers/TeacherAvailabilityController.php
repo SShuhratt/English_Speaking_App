@@ -65,7 +65,7 @@ class TeacherAvailabilityController extends Controller
                 'date_format:H:i',
                 function ($attribute, $value, $fail) use ($request) {
                     if ($request->input('start_time') && $value <= $request->input('start_time')) {
-                        $fail('The end time must be a time after start time.');
+                        $fail(__('availability.end_time_after_start'));
                     }
                 },
             ],
@@ -89,11 +89,11 @@ class TeacherAvailabilityController extends Controller
                 : (! empty($validated['day_of_week']) ? [$validated['day_of_week']] : []);
 
             if (empty($days)) {
-                return back()->withErrors(['day_of_week' => 'Please select at least one day of the week.']);
+                return back()->withErrors(['day_of_week' => __('availability.select_at_least_one_day')]);
             }
 
             if (empty($validated['start_time']) || empty($validated['end_time'])) {
-                return back()->withErrors(['start_time' => 'Start time and end time are required.']);
+                return back()->withErrors(['start_time' => __('availability.start_end_dates_required')]);
             }
 
             $reqStart = $validated['start_time'];
@@ -110,14 +110,13 @@ class TeacherAvailabilityController extends Controller
                 foreach ($existingRecurring as $exRec) {
                     if ($reqStart < $exRec->end_time && $reqEnd > $exRec->start_time) {
                         return back()->withErrors([
-                            'start_time' => sprintf(
-                                'This time range (%s - %s) overlaps with an existing %s schedule (%s - %s). Please adjust or edit the existing schedule.',
-                                substr($reqStart, 0, 5),
-                                substr($reqEnd, 0, 5),
-                                ucfirst($day),
-                                substr($exRec->start_time, 0, 5),
-                                substr($exRec->end_time, 0, 5)
-                            ),
+                            'start_time' => __('availability.overlap_recurring', [
+                                'start' => substr($reqStart, 0, 5),
+                                'end' => substr($reqEnd, 0, 5),
+                                'day' => __('availability.days.'.strtolower($day)),
+                                'existing_start' => substr($exRec->start_time, 0, 5),
+                                'existing_end' => substr($exRec->end_time, 0, 5),
+                            ]),
                         ]);
                     }
                 }
@@ -141,12 +140,13 @@ class TeacherAvailabilityController extends Controller
 
                     if ($conflictingCustom) {
                         return back()->withErrors([
-                            'start_time' => sprintf(
-                                'This schedule (%s - %s) overlaps with an existing specific date availability on %s. Please adjust or clear that date first.',
-                                substr($reqStart, 0, 5),
-                                substr($reqEnd, 0, 5),
-                                $dayStr
-                            ),
+                            'start_time' => __('availability.overlap_recurring_custom', [
+                                'start' => substr($reqStart, 0, 5),
+                                'end' => substr($reqEnd, 0, 5),
+                                'date' => $dayStr,
+                                'existing_start' => PlatformTime::toLocal($conflictingCustom->start_at)->format('H:i'),
+                                'existing_end' => PlatformTime::toLocal($conflictingCustom->end_at)->format('H:i'),
+                            ]),
                         ]);
                     }
 
@@ -177,7 +177,7 @@ class TeacherAvailabilityController extends Controller
                 }
             }
 
-            return back()->with('success', 'Availability added successfully.');
+            return back()->with('success', __('availability.added_successfully'));
         }
 
         // Custom Availability
@@ -210,7 +210,7 @@ class TeacherAvailabilityController extends Controller
                 'error_key' => 'start_at',
             ];
         } else {
-            return back()->withErrors(['start_at' => 'Start date and end date are required.']);
+            return back()->withErrors(['start_at' => __('availability.start_end_dates_required')]);
         }
 
         // Validation across all days in custom range
@@ -242,39 +242,50 @@ class TeacherAvailabilityController extends Controller
 
                 if (! $isDateCleared) {
                     return back()->withErrors([
-                        $errKey => sprintf(
-                            'You already have a recurring weekly schedule on %s (%s - %s). Please clear %s first before adding custom availability.',
-                            ucfirst($dayName),
-                            substr($recurringRule->start_time, 0, 5),
-                            substr($recurringRule->end_time, 0, 5),
-                            $dayStr
-                        ),
+                        $errKey => __('availability.recurring_clear_required', [
+                            'day' => __('availability.days.'.$dayName),
+                            'start' => substr($recurringRule->start_time, 0, 5),
+                            'end' => substr($recurringRule->end_time, 0, 5),
+                            'date' => $dayStr,
+                        ]),
                     ]);
                 }
             }
 
-            // Check if another active custom availability overlaps with this range on that date
-            $overlappingCustom = TeacherAvailability::where('teacher_id', $teacherId)
+            // Check if any overlapping custom chunks have booked appointments outside the new window
+            $dayStartUtc = PlatformTime::toUtc($dayStart);
+            $dayEndUtc = PlatformTime::toUtc($dayEnd);
+
+            $overlappingCustoms = TeacherAvailability::where('teacher_id', $teacherId)
                 ->where('type', 'custom')
                 ->where('is_active', true)
-                ->where('start_at', '<', PlatformTime::toUtc($dayEnd))
-                ->where('end_at', '>', PlatformTime::toUtc($dayStart))
-                ->first();
+                ->where('start_at', '<', $dayEndUtc)
+                ->where('end_at', '>', $dayStartUtc)
+                ->get();
 
-            if ($overlappingCustom) {
-                $cStart = PlatformTime::toLocal($overlappingCustom->start_at)->format('H:i');
-                $cEnd = PlatformTime::toLocal($overlappingCustom->end_at)->format('H:i');
+            if ($overlappingCustoms->isNotEmpty()) {
+                $hasAppointmentsOutsideNewRange = Appointment::where('teacher_id', $teacherId)
+                    ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                    ->where('end_at', '>', PlatformTime::now())
+                    ->where(function ($q) use ($overlappingCustoms) {
+                        foreach ($overlappingCustoms as $chunk) {
+                            $q->orWhere(function ($sub) use ($chunk) {
+                                $sub->where('start_at', '<', $chunk->end_at)
+                                    ->where('end_at', '>', $chunk->start_at);
+                            });
+                        }
+                    })
+                    ->where(function ($q) use ($dayStartUtc, $dayEndUtc) {
+                        $q->where('start_at', '<', $dayStartUtc)
+                            ->orWhere('end_at', '>', $dayEndUtc);
+                    })
+                    ->exists();
 
-                return back()->withErrors([
-                    $errKey => sprintf(
-                        'This time (%s - %s) overlaps with your existing availability on %s (%s - %s). Please adjust or edit the existing schedule.',
-                        $dayStart->format('H:i'),
-                        $dayEnd->format('H:i'),
-                        $dayStr,
-                        $cStart,
-                        $cEnd
-                    ),
-                ]);
+                if ($hasAppointmentsOutsideNewRange) {
+                    return back()->withErrors([
+                        $errKey => __('availability.has_upcoming_appointments'),
+                    ]);
+                }
             }
         }
 
@@ -302,14 +313,12 @@ class TeacherAvailabilityController extends Controller
                 $dayStart = $effectiveStart;
             }
 
-            TeacherAvailability::create([
-                'teacher_id' => $teacherId,
-                'type' => 'custom',
-                'start_at' => PlatformTime::toUtc($dayStart),
-                'end_at' => PlatformTime::toUtc($dayEnd),
-                'slot_duration' => $slotDuration,
-                'is_active' => true,
-            ]);
+            $this->storeOrMergeCustomAvailability(
+                $teacherId,
+                PlatformTime::toUtc($dayStart),
+                PlatformTime::toUtc($dayEnd),
+                $slotDuration
+            );
 
             Cache::forget("teacher:{$teacherId}:slots:{$dayStr}");
             $createdCount++;
@@ -318,10 +327,10 @@ class TeacherAvailabilityController extends Controller
         if ($createdCount === 0) {
             $errKey = ! empty($validated['start_at']) ? 'start_at' : 'start_date';
 
-            return back()->withErrors([$errKey => 'The selected date and time range has already passed.']);
+            return back()->withErrors([$errKey => __('availability.range_passed')]);
         }
 
-        return back()->with('success', 'Availability added successfully.');
+        return back()->with('success', __('availability.added_successfully'));
     }
 
     public function update(Request $request, string $id)
@@ -329,7 +338,7 @@ class TeacherAvailabilityController extends Controller
         $availability = TeacherAvailability::where('teacher_id', $request->user()->id)->find($id);
 
         if (! $availability) {
-            return back()->withErrors(['range' => 'Availability record not found.']);
+            return back()->withErrors(['range' => __('availability.not_found')]);
         }
 
         $validated = $request->validate([
@@ -342,7 +351,7 @@ class TeacherAvailabilityController extends Controller
                 'date_format:H:i',
                 function ($attribute, $value, $fail) use ($request) {
                     if ($request->input('type') === 'recurring' && $request->input('start_time') && $value <= $request->input('start_time')) {
-                        $fail('The end time must be a time after start time.');
+                        $fail(__('availability.end_time_after_start'));
                     }
                 },
             ],
@@ -351,12 +360,18 @@ class TeacherAvailabilityController extends Controller
             'slot_duration' => ['nullable', 'integer', 'min:0', 'max:1440'],
         ]);
 
-        $teacherId = $request->user()->id;
+        if ($availability->type !== $validated['type']) {
+            return back()->withErrors(['range' => __('availability.type_change_not_allowed')]);
+        }
 
-        // Check if there are booked appointments in this availability before modifying
+        $teacherId = $request->user()->id;
+        $tz = 'Asia/Tashkent';
+
+        // Check if there are upcoming booked appointments in this availability before modifying
         if ($availability->type === 'custom' && $availability->start_at && $availability->end_at) {
             $hasBookings = Appointment::where('teacher_id', $teacherId)
-                ->whereIn('status', ['pending', 'confirmed'])
+                ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                ->where('end_at', '>', PlatformTime::now())
                 ->where(function ($query) use ($availability) {
                     $query->where('start_at', '<', $availability->end_at)
                         ->where('end_at', '>', $availability->start_at);
@@ -364,25 +379,29 @@ class TeacherAvailabilityController extends Controller
                 ->exists();
 
             if ($hasBookings) {
-                return back()->withErrors(['range' => 'Cannot update this availability because it has booked appointments.']);
+                return back()->withErrors(['range' => __('availability.has_upcoming_appointments')]);
             }
         } elseif ($availability->type === 'recurring' && $availability->day_of_week) {
-            $dayOfWeek = $availability->day_of_week;
+            $dayOfWeek = strtolower($availability->day_of_week);
+
             $appointments = Appointment::where('teacher_id', $teacherId)
-                ->whereIn('status', ['pending', 'confirmed'])
-                ->where('start_at', '>=', Carbon::now())
+                ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                ->where('end_at', '>', PlatformTime::now())
                 ->get();
 
-            $origStart = Carbon::parse($availability->start_time);
-            $origEnd = Carbon::parse($availability->end_time);
+            $origStart = Carbon::parse($availability->start_time, $tz);
+            $origEnd = Carbon::parse($availability->end_time, $tz);
             $startSecs = $origStart->hour * 3600 + $origStart->minute * 60 + $origStart->second;
             $endSecs = $origEnd->hour * 3600 + $origEnd->minute * 60 + $origEnd->second;
 
             $hasBookings = false;
             foreach ($appointments as $appt) {
-                if (strtolower($appt->start_at->format('l')) === strtolower($dayOfWeek)) {
-                    $apptOpen = $appt->start_at->hour * 3600 + $appt->start_at->minute * 60 + $appt->start_at->second;
-                    $apptClose = $appt->end_at->hour * 3600 + $appt->end_at->minute * 60 + $appt->end_at->second;
+                $apptStartLocal = PlatformTime::toLocal($appt->start_at);
+                $apptEndLocal = PlatformTime::toLocal($appt->end_at);
+
+                if (strtolower($apptStartLocal->format('l')) === $dayOfWeek) {
+                    $apptOpen = $apptStartLocal->hour * 3600 + $apptStartLocal->minute * 60 + $apptStartLocal->second;
+                    $apptClose = $apptEndLocal->hour * 3600 + $apptEndLocal->minute * 60 + $apptEndLocal->second;
                     if ($apptOpen < $endSecs && $apptClose > $startSecs) {
                         $hasBookings = true;
                         break;
@@ -391,15 +410,134 @@ class TeacherAvailabilityController extends Controller
             }
 
             if ($hasBookings) {
-                return back()->withErrors(['range' => 'Cannot update this availability because it has booked appointments.']);
+                return back()->withErrors(['range' => __('availability.has_upcoming_appointments')]);
             }
         }
 
-        if ($validated['type'] === 'custom' && ! empty($validated['start_at']) && ! empty($validated['end_at'])) {
+        // Overlap validation when modifying schedule
+        if ($validated['type'] === 'recurring') {
+            $otherRecurring = TeacherAvailability::where('teacher_id', $teacherId)
+                ->where('type', 'recurring')
+                ->where('is_active', true)
+                ->where('id', '!=', $availability->id)
+                ->where('day_of_week', $validated['day_of_week'])
+                ->where('start_time', '<', $validated['end_time'])
+                ->where('end_time', '>', $validated['start_time'])
+                ->first();
+
+            if ($otherRecurring) {
+                return back()->withErrors([
+                    'start_time' => __('availability.overlap_recurring', [
+                        'start' => substr($validated['start_time'], 0, 5),
+                        'end' => substr($validated['end_time'], 0, 5),
+                        'day' => __('availability.days.'.strtolower($validated['day_of_week'])),
+                        'existing_start' => substr($otherRecurring->start_time, 0, 5),
+                        'existing_end' => substr($otherRecurring->end_time, 0, 5),
+                    ]),
+                ]);
+            }
+        } elseif ($validated['type'] === 'custom' && ! empty($validated['start_at']) && ! empty($validated['end_at'])) {
+            $newStartUtc = PlatformTime::toUtc($validated['start_at']);
+            $newEndUtc = PlatformTime::toUtc($validated['end_at']);
+            $newStartLocal = PlatformTime::toLocal($newStartUtc);
+            $newEndLocal = PlatformTime::toLocal($newEndUtc);
+            $dayStr = $newStartLocal->format('Y-m-d');
+            $dayName = strtolower($newStartLocal->format('l'));
+
+            $recurringRule = TeacherAvailability::where('teacher_id', $teacherId)
+                ->where('type', 'recurring')
+                ->where('is_active', true)
+                ->where('day_of_week', $dayName)
+                ->first();
+
+            if ($recurringRule) {
+                $recStartUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->start_time}");
+                $recEndUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->end_time}");
+
+                $isDateCleared = TeacherAvailability::where('teacher_id', $teacherId)
+                    ->where('type', 'custom')
+                    ->where('is_active', false)
+                    ->where('start_at', '<=', $recStartUtc)
+                    ->where('end_at', '>=', $recEndUtc)
+                    ->exists();
+
+                if (! $isDateCleared) {
+                    return back()->withErrors([
+                        'start_at' => __('availability.recurring_clear_required', [
+                            'day' => __('availability.days.'.$dayName),
+                            'start' => substr($recurringRule->start_time, 0, 5),
+                            'end' => substr($recurringRule->end_time, 0, 5),
+                            'date' => $dayStr,
+                        ]),
+                    ]);
+                }
+            }
+
+            $overlappingCustoms = TeacherAvailability::where('teacher_id', $teacherId)
+                ->where('type', 'custom')
+                ->where('is_active', true)
+                ->where('id', '!=', $availability->id)
+                ->where('start_at', '<', $newEndUtc)
+                ->where('end_at', '>', $newStartUtc)
+                ->get();
+
+            if ($overlappingCustoms->isNotEmpty()) {
+                $hasAppointmentsOutsideNewRange = Appointment::where('teacher_id', $teacherId)
+                    ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                    ->where('end_at', '>', PlatformTime::now())
+                    ->where(function ($q) use ($overlappingCustoms) {
+                        foreach ($overlappingCustoms as $chunk) {
+                            $q->orWhere(function ($sub) use ($chunk) {
+                                $sub->where('start_at', '<', $chunk->end_at)
+                                    ->where('end_at', '>', $chunk->start_at);
+                            });
+                        }
+                    })
+                    ->where(function ($q) use ($newStartUtc, $newEndUtc) {
+                        $q->where('start_at', '<', $newStartUtc)
+                            ->orWhere('end_at', '>', $newEndUtc);
+                    })
+                    ->exists();
+
+                if ($hasAppointmentsOutsideNewRange) {
+                    return back()->withErrors([
+                        'start_at' => __('availability.has_upcoming_appointments'),
+                    ]);
+                }
+
+                // Absorb / clean up overlapping active custom chunks
+                foreach ($overlappingCustoms as $chunk) {
+                    $cStart = $chunk->start_at->copy()->utc();
+                    $cEnd = $chunk->end_at->copy()->utc();
+
+                    if ($cStart->gte($newStartUtc) && $cEnd->lte($newEndUtc)) {
+                        // Completely covered by new range -> delete
+                        $chunk->delete();
+                    } elseif ($cStart->lt($newStartUtc) && $cEnd->gt($newEndUtc)) {
+                        // Surrounds new range -> split
+                        $chunk->update(['end_at' => $newStartUtc]);
+                        TeacherAvailability::create([
+                            'teacher_id' => $teacherId,
+                            'type' => 'custom',
+                            'start_at' => $newEndUtc,
+                            'end_at' => $cEnd,
+                            'slot_duration' => $chunk->slot_duration,
+                            'is_active' => true,
+                        ]);
+                    } elseif ($cStart->lt($newStartUtc) && $cEnd->lte($newEndUtc)) {
+                        // Starts before, ends inside -> trim end
+                        $chunk->update(['end_at' => $newStartUtc]);
+                    } elseif ($cStart->gte($newStartUtc) && $cEnd->gt($newEndUtc)) {
+                        // Starts inside, ends after -> trim start
+                        $chunk->update(['start_at' => $newEndUtc]);
+                    }
+                }
+            }
+
             $this->resolveOverlappingBlackouts(
                 $teacherId,
-                PlatformTime::toUtc($validated['start_at']),
-                PlatformTime::toUtc($validated['end_at'])
+                $newStartUtc,
+                $newEndUtc
             );
         }
 
@@ -408,15 +546,15 @@ class TeacherAvailabilityController extends Controller
             'day_of_week' => $validated['type'] === 'recurring' ? $validated['day_of_week'] : null,
             'start_time' => $validated['type'] === 'recurring' ? $validated['start_time'] : null,
             'end_time' => $validated['type'] === 'recurring' ? $validated['end_time'] : null,
-            'start_at' => $validated['type'] === 'custom' ? Carbon::parse($validated['start_at']) : null,
-            'end_at' => $validated['type'] === 'custom' ? Carbon::parse($validated['end_at']) : null,
-            'slot_duration' => $validated['slot_duration'],
+            'start_at' => $validated['type'] === 'custom' ? PlatformTime::toUtc($validated['start_at']) : null,
+            'end_at' => $validated['type'] === 'custom' ? PlatformTime::toUtc($validated['end_at']) : null,
+            'slot_duration' => $validated['slot_duration'] ?? $availability->slot_duration,
         ]);
 
         // Clear slot cache
         if ($validated['type'] === 'custom' && ! empty($validated['start_at'])) {
-            $startDate = Carbon::parse($validated['start_at']);
-            $endDate = Carbon::parse($validated['end_at']);
+            $startDate = PlatformTime::toLocal($validated['start_at']);
+            $endDate = PlatformTime::toLocal($validated['end_at']);
             $current = $startDate->copy()->subDay();
             $limit = $endDate->copy()->addDay();
             while ($current->lte($limit)) {
@@ -426,7 +564,7 @@ class TeacherAvailabilityController extends Controller
             }
         } elseif ($validated['type'] === 'recurring' && ! empty($validated['day_of_week'])) {
             $dayOfWeek = $validated['day_of_week'];
-            $current = Carbon::now();
+            $current = Carbon::now($tz);
             if (strtolower($current->format('l')) !== strtolower($dayOfWeek)) {
                 $current->next($dayOfWeek);
             }
@@ -437,7 +575,7 @@ class TeacherAvailabilityController extends Controller
             }
         }
 
-        return back()->with('success', 'Availability updated successfully.');
+        return back()->with('success', __('availability.updated_successfully'));
     }
 
     public function destroy(Request $request, string $id)
@@ -446,7 +584,7 @@ class TeacherAvailabilityController extends Controller
         $availability = TeacherAvailability::where('teacher_id', $teacherId)->find($id);
 
         if (! $availability) {
-            return back()->withErrors(['range' => 'Availability record not found or already deleted.']);
+            return back()->withErrors(['range' => __('availability.not_found')]);
         }
 
         $deleteType = $request->input('delete_type', 'all');
@@ -480,6 +618,7 @@ class TeacherAvailabilityController extends Controller
 
             $bookedAppts = Appointment::where('teacher_id', $teacherId)
                 ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                ->where('end_at', '>', PlatformTime::now())
                 ->where(function ($q) use ($blackoutStart, $blackoutEnd) {
                     $q->where(function ($sub) use ($blackoutStart, $blackoutEnd) {
                         $sub->where('start_at', '<', $blackoutEnd->copy()->utc())
@@ -496,12 +635,12 @@ class TeacherAvailabilityController extends Controller
 
             if ($bookedAppts->isNotEmpty()) {
                 if ($isSingleSlot || ! $keepBooked) {
-                    return back()->withErrors(['range' => 'This slot has an active booking. Please cancel the booking before removing.']);
+                    return back()->withErrors(['range' => __('availability.slot_has_booking')]);
                 }
 
                 $freeIntervals = $this->computeFreeIntervals($blackoutStart, $blackoutEnd, $bookedAppts);
                 if (empty($freeIntervals)) {
-                    return back()->with('info', 'All slots in this range are already booked and preserved.');
+                    return back()->with('info', __('availability.unbooked_removed_booked_preserved'));
                 }
 
                 foreach ($freeIntervals as $interval) {
@@ -517,7 +656,7 @@ class TeacherAvailabilityController extends Controller
 
                 Cache::forget("teacher:{$teacherId}:slots:{$targetDateStr}");
 
-                return back()->with('success', 'Unbooked slots removed, and booked sessions preserved.');
+                return back()->with('success', __('availability.unbooked_removed_booked_preserved'));
             }
 
             TeacherAvailability::create([
@@ -531,7 +670,7 @@ class TeacherAvailabilityController extends Controller
 
             Cache::forget("teacher:{$teacherId}:slots:{$targetDateStr}");
 
-            return back()->with('success', 'Availability removed for this date successfully.');
+            return back()->with('success', __('availability.removed_date_successfully'));
         }
 
         if ($deleteType === 'range') {
@@ -557,7 +696,7 @@ class TeacherAvailabilityController extends Controller
             }
 
             if ($rangeEnd->lte($rangeStart)) {
-                return back()->withErrors(['range' => 'End time must be after start time.']);
+                return back()->withErrors(['range' => __('availability.end_time_after_start')]);
             }
 
             if ($availability->type === 'custom') {
@@ -570,6 +709,7 @@ class TeacherAvailabilityController extends Controller
 
                 $bookedAppts = Appointment::where('teacher_id', $teacherId)
                     ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                    ->where('end_at', '>', PlatformTime::now())
                     ->where('start_at', '<', PlatformTime::toUtc($effectiveEnd))
                     ->where('end_at', '>', PlatformTime::toUtc($effectiveStart))
                     ->get();
@@ -578,7 +718,7 @@ class TeacherAvailabilityController extends Controller
 
                 if ($bookedAppts->isNotEmpty()) {
                     if ($isSingleSlot || ! $keepBooked) {
-                        return back()->withErrors(['range' => 'This slot has an active booking. Please cancel the booking before removing.']);
+                        return back()->withErrors(['range' => __('availability.slot_has_booking')]);
                     }
 
                     $availability->delete();
@@ -596,7 +736,7 @@ class TeacherAvailabilityController extends Controller
                     $dateStr = $origStart->format('Y-m-d');
                     Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
 
-                    return back()->with('success', 'Unbooked slots removed, and booked sessions preserved.');
+                    return back()->with('success', __('availability.unbooked_removed_booked_preserved'));
                 }
 
                 if ($rangeStart->lte($origStart) && $rangeEnd->gte($origEnd)) {
@@ -640,7 +780,7 @@ class TeacherAvailabilityController extends Controller
 
                 if ($bookedAppts->isNotEmpty()) {
                     if (! $keepBooked) {
-                        return back()->withErrors(['range' => 'Cannot delete this range because it has booked appointments.']);
+                        return back()->withErrors(['range' => __('availability.cannot_delete_range_booked')]);
                     }
 
                     foreach ($bookedAppts as $fb) {
@@ -689,13 +829,14 @@ class TeacherAvailabilityController extends Controller
 
                 $bookedAppts = Appointment::where('teacher_id', $teacherId)
                     ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                    ->where('end_at', '>', PlatformTime::now())
                     ->where('start_at', '<', $availability->end_at)
                     ->where('end_at', '>', $availability->start_at)
                     ->get();
 
                 if ($bookedAppts->isNotEmpty()) {
                     if (! $keepBooked) {
-                        return back()->withErrors(['range' => 'Cannot delete this availability because it has booked appointments.']);
+                        return back()->withErrors(['range' => __('availability.cannot_delete_booked')]);
                     }
 
                     $availability->delete();
@@ -713,7 +854,7 @@ class TeacherAvailabilityController extends Controller
                     $dateStr = $origStart->format('Y-m-d');
                     Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
 
-                    return back()->with('success', 'Unbooked slots removed, and booked sessions preserved.');
+                    return back()->with('success', __('availability.unbooked_removed_booked_preserved'));
                 }
 
                 $availability->delete();
@@ -742,7 +883,7 @@ class TeacherAvailabilityController extends Controller
 
                 if ($bookedAppts->isNotEmpty()) {
                     if (! $keepBooked) {
-                        return back()->withErrors(['range' => 'Cannot delete this availability because it has booked appointments.']);
+                        return back()->withErrors(['range' => __('availability.cannot_delete_booked')]);
                     }
 
                     foreach ($bookedAppts as $fb) {
@@ -787,7 +928,7 @@ class TeacherAvailabilityController extends Controller
             }
         }
 
-        return back()->with('success', 'Availability deleted successfully.');
+        return back()->with('success', __('availability.deleted_successfully'));
     }
 
     public function clear(Request $request)
@@ -830,12 +971,13 @@ class TeacherAvailabilityController extends Controller
 
             $bookedAppts = Appointment::where('teacher_id', $teacherId)
                 ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+                ->where('end_at', '>', PlatformTime::now())
                 ->where('start_at', '<', PlatformTime::toUtc($windowEnd))
                 ->where('end_at', '>', PlatformTime::toUtc($windowStart))
                 ->get();
 
             if ($bookedAppts->isNotEmpty() && ! $keepBooked) {
-                return back()->withErrors(['range' => "Cannot clear {$dateStr} because it has booked appointments."]);
+                return back()->withErrors(['range' => __('availability.cannot_clear_booked', ['date' => $dateStr])]);
             }
 
             // Remove or trim active custom availabilities on that day
@@ -991,7 +1133,7 @@ class TeacherAvailabilityController extends Controller
 
                 if ($dayBookedAppts->isNotEmpty()) {
                     if (! $keepBooked) {
-                        return back()->withErrors(['range' => "Cannot clear {$dow} because it has booked appointments in upcoming weeks."]);
+                        return back()->withErrors(['range' => __('availability.cannot_clear_booked', ['date' => __('availability.days.'.strtolower($dow))])]);
                     }
 
                     foreach ($dayBookedAppts as $fb) {
@@ -1022,7 +1164,7 @@ class TeacherAvailabilityController extends Controller
             }
         }
 
-        return back()->with('success', 'Availability cleared successfully.');
+        return back()->with('success', __('availability.cleared_successfully'));
     }
 
     /**
