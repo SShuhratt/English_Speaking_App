@@ -1011,11 +1011,21 @@ export default function Availability({
         const dayName = getWeekdayName(date);
         const dateStr = formatDateString(date);
 
+        const hasActiveCustomOnDate = availabilities.some(
+            (avail) =>
+                avail.type === 'custom' &&
+                avail.is_active !== false &&
+                matchCustomAvailability(avail, dateStr),
+        );
+
         return availabilities.filter((avail) => {
             if (avail.is_active === false) return false;
             if (avail.type === 'custom') {
                 return showCustom && matchCustomAvailability(avail, dateStr);
             } else {
+                if (hasActiveCustomOnDate) {
+                    return false;
+                }
                 return showRecurring && avail.day_of_week === dayName;
             }
         });

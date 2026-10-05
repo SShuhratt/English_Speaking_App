@@ -96,20 +96,74 @@ class TeacherAvailabilityController extends Controller
                 return back()->withErrors(['start_time' => 'Start time and end time are required.']);
             }
 
+            $reqStart = $validated['start_time'];
+            $reqEnd = $validated['end_time'];
+
             foreach ($days as $day) {
-                TeacherAvailability::updateOrCreate(
-                    [
-                        'teacher_id' => $teacherId,
-                        'type' => 'recurring',
-                        'day_of_week' => $day,
-                        'start_time' => $validated['start_time'],
-                        'end_time' => $validated['end_time'],
-                    ],
-                    [
-                        'slot_duration' => $slotDuration,
-                        'is_active' => true,
-                    ]
-                );
+                // Strict validation: Reject if overlapping active recurring availability exists on this weekday
+                $existingRecurring = TeacherAvailability::where('teacher_id', $teacherId)
+                    ->where('type', 'recurring')
+                    ->where('is_active', true)
+                    ->where('day_of_week', $day)
+                    ->get();
+
+                foreach ($existingRecurring as $exRec) {
+                    if ($reqStart < $exRec->end_time && $reqEnd > $exRec->start_time) {
+                        return back()->withErrors([
+                            'start_time' => sprintf(
+                                'This time range (%s - %s) overlaps with an existing %s schedule (%s - %s). Please adjust or edit the existing schedule.',
+                                substr($reqStart, 0, 5),
+                                substr($reqEnd, 0, 5),
+                                ucfirst($day),
+                                substr($exRec->start_time, 0, 5),
+                                substr($exRec->end_time, 0, 5)
+                            ),
+                        ]);
+                    }
+                }
+
+                // Check upcoming custom dates for clashes
+                $checkDate = Carbon::now($tz);
+                if (strtolower($checkDate->format('l')) !== strtolower($day)) {
+                    $checkDate->next($day);
+                }
+                for ($w = 0; $w < 8; $w++) {
+                    $dayStr = $checkDate->format('Y-m-d');
+                    $dayStartUtc = PlatformTime::toUtc("{$dayStr} {$reqStart}");
+                    $dayEndUtc = PlatformTime::toUtc("{$dayStr} {$reqEnd}");
+
+                    $conflictingCustom = TeacherAvailability::where('teacher_id', $teacherId)
+                        ->where('type', 'custom')
+                        ->where('is_active', true)
+                        ->where('start_at', '<', $dayEndUtc)
+                        ->where('end_at', '>', $dayStartUtc)
+                        ->first();
+
+                    if ($conflictingCustom) {
+                        return back()->withErrors([
+                            'start_time' => sprintf(
+                                'This schedule (%s - %s) overlaps with an existing specific date availability on %s. Please adjust or clear that date first.',
+                                substr($reqStart, 0, 5),
+                                substr($reqEnd, 0, 5),
+                                $dayStr
+                            ),
+                        ]);
+                    }
+
+                    $checkDate->addWeek();
+                }
+            }
+
+            foreach ($days as $day) {
+                TeacherAvailability::create([
+                    'teacher_id' => $teacherId,
+                    'type' => 'recurring',
+                    'day_of_week' => $day,
+                    'start_time' => $validated['start_time'],
+                    'end_time' => $validated['end_time'],
+                    'slot_duration' => $slotDuration,
+                    'is_active' => true,
+                ]);
 
                 // Clear cache for next 8 weeks for this day of the week
                 $current = Carbon::now($tz);
@@ -126,99 +180,145 @@ class TeacherAvailabilityController extends Controller
             return back()->with('success', 'Availability added successfully.');
         }
 
-        // Custom Availability: Date Range
+        // Custom Availability
+        $customDays = [];
         if (! empty($validated['start_date']) && ! empty($validated['end_date'])) {
             $startDate = Carbon::parse($validated['start_date'], $tz)->startOfDay();
             $endDate = Carbon::parse($validated['end_date'], $tz)->startOfDay();
             $startTimeStr = $validated['start_time'] ?? '09:00';
             $endTimeStr = $validated['end_time'] ?? '17:00';
 
-            $createdCount = 0;
             $cursor = $startDate->copy();
-
             while ($cursor->lte($endDate)) {
                 $dayStr = $cursor->format('Y-m-d');
-                $dayStart = Carbon::parse("{$dayStr} {$startTimeStr}", $tz);
-                $dayEnd = Carbon::parse("{$dayStr} {$endTimeStr}", $tz);
-
-                // Skip if entire window on that day has passed
-                if ($dayEnd->lte($nowTz)) {
-                    $cursor->addDay();
-
-                    continue;
-                }
-
-                // If start time has already passed today, clamp start to current time forward
-                if ($dayStart->lt($nowTz)) {
-                    $minute = $nowTz->minute;
-                    $step = ($slotDuration > 0 && $slotDuration <= 60) ? $slotDuration : 15;
-                    $roundedMinute = ceil($minute / $step) * $step;
-                    $effectiveStart = $nowTz->copy()->minute(0)->second(0)->addMinutes($roundedMinute);
-
-                    if ($effectiveStart->gte($dayEnd)) {
-                        $cursor->addDay();
-
-                        continue;
-                    }
-                    $dayStart = $effectiveStart;
-                }
-
-                $this->storeOrMergeCustomAvailability(
-                    $teacherId,
-                    PlatformTime::toUtc($dayStart),
-                    PlatformTime::toUtc($dayEnd),
-                    $slotDuration
-                );
-
-                Cache::forget("teacher:{$teacherId}:slots:{$dayStr}");
-                $createdCount++;
+                $customDays[] = [
+                    'date_str' => $dayStr,
+                    'day_start' => Carbon::parse("{$dayStr} {$startTimeStr}", $tz),
+                    'day_end' => Carbon::parse("{$dayStr} {$endTimeStr}", $tz),
+                    'error_key' => 'start_date',
+                ];
                 $cursor->addDay();
             }
-
-            if ($createdCount === 0) {
-                return back()->withErrors(['start_date' => 'The selected date and time range has already passed.']);
-            }
-
-            return back()->with('success', 'Availability added successfully.');
-        }
-
-        // Custom Availability: Single Specific Timestamp Range
-        if (empty($validated['start_at']) || empty($validated['end_at'])) {
+        } elseif (! empty($validated['start_at']) && ! empty($validated['end_at'])) {
+            $startAt = Carbon::parse($validated['start_at'], $tz);
+            $endAt = Carbon::parse($validated['end_at'], $tz);
+            $dayStr = $startAt->format('Y-m-d');
+            $customDays[] = [
+                'date_str' => $dayStr,
+                'day_start' => $startAt,
+                'day_end' => $endAt,
+                'error_key' => 'start_at',
+            ];
+        } else {
             return back()->withErrors(['start_at' => 'Start date and end date are required.']);
         }
 
-        $startAt = Carbon::parse($validated['start_at'], $tz);
-        $endAt = Carbon::parse($validated['end_at'], $tz);
+        // Validation across all days in custom range
+        foreach ($customDays as $cDay) {
+            $dayStr = $cDay['date_str'];
+            $dayStart = $cDay['day_start'];
+            $dayEnd = $cDay['day_end'];
+            $errKey = $cDay['error_key'];
+            $dayName = strtolower(Carbon::parse($dayStr, $tz)->format('l'));
 
-        if ($endAt->lte($nowTz)) {
-            return back()->withErrors(['start_at' => 'Cannot create availability for time that has already passed.']);
-        }
+            // Check if there is an active recurring rule for this weekday
+            $recurringRule = TeacherAvailability::where('teacher_id', $teacherId)
+                ->where('type', 'recurring')
+                ->where('is_active', true)
+                ->where('day_of_week', $dayName)
+                ->first();
 
-        if ($startAt->lt($nowTz)) {
-            $minute = $nowTz->minute;
-            $step = ($slotDuration > 0 && $slotDuration <= 60) ? $slotDuration : 15;
-            $roundedMinute = ceil($minute / $step) * $step;
-            $effectiveStart = $nowTz->copy()->minute(0)->second(0)->addMinutes($roundedMinute);
+            if ($recurringRule) {
+                // Must be cleared for this date first (blackout covering the recurring window or whole day)
+                $recStartUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->start_time}");
+                $recEndUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->end_time}");
 
-            if ($effectiveStart->gte($endAt)) {
-                return back()->withErrors(['start_at' => 'The remaining time in this slot has already passed.']);
+                $isDateCleared = TeacherAvailability::where('teacher_id', $teacherId)
+                    ->where('type', 'custom')
+                    ->where('is_active', false)
+                    ->where('start_at', '<=', $recStartUtc)
+                    ->where('end_at', '>=', $recEndUtc)
+                    ->exists();
+
+                if (! $isDateCleared) {
+                    return back()->withErrors([
+                        $errKey => sprintf(
+                            'You already have a recurring weekly schedule on %s (%s - %s). Please clear %s first before adding custom availability.',
+                            ucfirst($dayName),
+                            substr($recurringRule->start_time, 0, 5),
+                            substr($recurringRule->end_time, 0, 5),
+                            $dayStr
+                        ),
+                    ]);
+                }
             }
-            $startAt = $effectiveStart;
+
+            // Check if another active custom availability overlaps with this range on that date
+            $overlappingCustom = TeacherAvailability::where('teacher_id', $teacherId)
+                ->where('type', 'custom')
+                ->where('is_active', true)
+                ->where('start_at', '<', PlatformTime::toUtc($dayEnd))
+                ->where('end_at', '>', PlatformTime::toUtc($dayStart))
+                ->first();
+
+            if ($overlappingCustom) {
+                $cStart = PlatformTime::toLocal($overlappingCustom->start_at)->format('H:i');
+                $cEnd = PlatformTime::toLocal($overlappingCustom->end_at)->format('H:i');
+
+                return back()->withErrors([
+                    $errKey => sprintf(
+                        'This time (%s - %s) overlaps with your existing availability on %s (%s - %s). Please adjust or edit the existing schedule.',
+                        $dayStart->format('H:i'),
+                        $dayEnd->format('H:i'),
+                        $dayStr,
+                        $cStart,
+                        $cEnd
+                    ),
+                ]);
+            }
         }
 
-        $this->storeOrMergeCustomAvailability(
-            $teacherId,
-            PlatformTime::toUtc($startAt),
-            PlatformTime::toUtc($endAt),
-            $slotDuration
-        );
+        $createdCount = 0;
+        foreach ($customDays as $cDay) {
+            $dayStr = $cDay['date_str'];
+            $dayStart = $cDay['day_start'];
+            $dayEnd = $cDay['day_end'];
 
-        $current = $startAt->copy()->subDay();
-        $limit = $endAt->copy()->addDay();
-        while ($current->lte($limit)) {
-            $dateStr = $current->format('Y-m-d');
-            Cache::forget("teacher:{$teacherId}:slots:{$dateStr}");
-            $current->addDay();
+            // Skip if entire window on that day has passed
+            if ($dayEnd->lte($nowTz)) {
+                continue;
+            }
+
+            // If start time has already passed today, clamp start to current time forward
+            if ($dayStart->lt($nowTz)) {
+                $minute = $nowTz->minute;
+                $step = ($slotDuration > 0 && $slotDuration <= 60) ? $slotDuration : 15;
+                $roundedMinute = ceil($minute / $step) * $step;
+                $effectiveStart = $nowTz->copy()->minute(0)->second(0)->addMinutes($roundedMinute);
+
+                if ($effectiveStart->gte($dayEnd)) {
+                    continue;
+                }
+                $dayStart = $effectiveStart;
+            }
+
+            TeacherAvailability::create([
+                'teacher_id' => $teacherId,
+                'type' => 'custom',
+                'start_at' => PlatformTime::toUtc($dayStart),
+                'end_at' => PlatformTime::toUtc($dayEnd),
+                'slot_duration' => $slotDuration,
+                'is_active' => true,
+            ]);
+
+            Cache::forget("teacher:{$teacherId}:slots:{$dayStr}");
+            $createdCount++;
+        }
+
+        if ($createdCount === 0) {
+            $errKey = ! empty($validated['start_at']) ? 'start_at' : 'start_date';
+
+            return back()->withErrors([$errKey => 'The selected date and time range has already passed.']);
         }
 
         return back()->with('success', 'Availability added successfully.');

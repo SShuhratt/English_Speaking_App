@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage, Link } from '@inertiajs/react';
+import { Head, usePage, Link, router } from '@inertiajs/react';
 import {
     Check,
     X,
@@ -54,9 +54,11 @@ export default function Appointments() {
         const channel = window.Echo.private(`teacher.${auth.user.id}`);
         channel.listen('.booking.updated', () => {
             fetchAppointments();
+            router.reload({ only: ['auth'] });
         });
         channel.listen('.ConversationBooked', () => {
             fetchAppointments();
+            router.reload({ only: ['auth'] });
         });
         return () => {
             channel.stopListening('.booking.updated');
@@ -69,6 +71,7 @@ export default function Appointments() {
             await axios.post(`/teacher/appointments/${id}/${action}`);
             toast.success(t(`teacher.${action}_success`));
             fetchAppointments();
+            router.reload({ only: ['auth'] });
         } catch (error) {
             toast.error(t(`teacher.${action}_failed`));
         }
@@ -104,6 +107,7 @@ export default function Appointments() {
             setModalAction(null);
             setActionReason('');
             fetchAppointments();
+            router.reload({ only: ['auth'] });
         } catch (error: any) {
             toast.error(
                 error.response?.data?.message ||

@@ -1,4 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { Link, usePage, router } from '@inertiajs/react';
 import {
     BookOpen,
     Calendar,
@@ -33,6 +34,20 @@ export function AppSidebar() {
     const pendingCount = auth.pending_requests_count || 0;
     const pendingVerificationsCount = auth.pending_verifications_count || 0;
     const unreadSupportCount = auth.unread_support_count || 0;
+
+    useEffect(() => {
+        if (!auth.user || auth.user.role !== 'teacher' || typeof window === 'undefined' || !window.Echo) return;
+        const channel = window.Echo.private(`teacher.${auth.user.id}`);
+        const handleUpdate = () => {
+            router.reload({ only: ['auth'] });
+        };
+        channel.listen('.booking.updated', handleUpdate);
+        channel.listen('.ConversationBooked', handleUpdate);
+        return () => {
+            channel.stopListening('.booking.updated', handleUpdate);
+            channel.stopListening('.ConversationBooked', handleUpdate);
+        };
+    }, [auth.user?.id, auth.user?.role]);
 
     const baseItems: NavItem[] = [
         {

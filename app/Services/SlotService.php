@@ -57,24 +57,24 @@ class SlotService
                 $day = Carbon::parse($date);
                 $slots = collect();
 
-                $slots = $slots->merge(
-                    $this->generateRecurringSlots(
-                        $teacherId,
-                        $day
-                    )
+                $recurringSlots = $this->generateRecurringSlots(
+                    $teacherId,
+                    $day
                 );
+
+                $recurringSlots = $this->removeBlackoutSlots(
+                    $teacherId,
+                    $day,
+                    $recurringSlots
+                );
+
+                $slots = $slots->merge($recurringSlots);
 
                 $slots = $slots->merge(
                     $this->generateCustomSlots(
                         $teacherId,
                         $day
                     )
-                );
-
-                $slots = $this->removeBlackoutSlots(
-                    $teacherId,
-                    $day,
-                    $slots
                 );
 
                 $allSlots = $this->removeBookedSlots(
@@ -131,6 +131,20 @@ class SlotService
 
         $slots = collect();
         $dateStr = $date->format('Y-m-d');
+        $dayRange = PlatformTime::localDayRangeInUtc($dateStr);
+
+        // If this specific date has active custom availability, custom hours override recurring rules
+        $hasActiveCustom = TeacherAvailability::query()
+            ->where('teacher_id', $teacherId)
+            ->where('type', 'custom')
+            ->where('is_active', true)
+            ->where('start_at', '<=', $dayRange['end'])
+            ->where('end_at', '>=', $dayRange['start'])
+            ->exists();
+
+        if ($hasActiveCustom) {
+            return collect();
+        }
 
         // Generate recurring slots for yesterday, today, and tomorrow to handle timezone shifts
         foreach ([$date->copy()->subDay(), $date, $date->copy()->addDay()] as $targetDate) {
