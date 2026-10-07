@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import DeleteUserModal from '@/components/delete-user-modal';
 import ShareProfileDropdown from '@/components/ShareProfileDropdown';
+import AdminPagination, { PaginationLink } from '@/components/AdminPagination';
 import {
     CertificatePreviewModal,
     CertificatePreviewData,
@@ -95,16 +96,24 @@ interface FilterCounts {
 interface Props {
     teachers: {
         data: Teacher[];
-        links: any[];
+        links: PaginationLink[];
+        from?: number | null;
+        to?: number | null;
+        total: number;
+        current_page?: number;
+        last_page?: number;
+        per_page?: number;
     };
     currentFilter: string;
     filterCounts?: FilterCounts;
+    perPage?: string | number;
 }
 
 export default function AdminTeachers({
     teachers,
     currentFilter,
     filterCounts,
+    perPage,
 }: Props) {
     const { t, locale } = useTranslation();
     const [editingTeacherId, setEditingTeacherId] = useState<string | null>(
@@ -158,9 +167,15 @@ export default function AdminTeachers({
     };
 
     const setFilter = (filter: string) => {
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.set('status', filter);
+        currentParams.set('page', '1');
+        if (perPage) {
+            currentParams.set('per_page', String(perPage));
+        }
         router.get(
-            '/admin/teachers',
-            { status: filter },
+            `${window.location.pathname}?${currentParams.toString()}`,
+            {},
             { preserveState: true },
         );
     };
@@ -1078,6 +1093,17 @@ export default function AdminTeachers({
                                 </tbody>
                             </table>
                         </div>
+
+                        <AdminPagination
+                            links={teachers.links}
+                            from={teachers.from}
+                            to={teachers.to}
+                            total={teachers.total}
+                            perPage={perPage || '15'}
+                            currentFilter={currentFilter}
+                            filterParamName="status"
+                            itemLabel={t('admin.filter_all_teachers')}
+                        />
                     </CardContent>
                 </Card>
             </div>

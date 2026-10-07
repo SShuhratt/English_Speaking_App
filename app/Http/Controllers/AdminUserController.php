@@ -50,7 +50,17 @@ class AdminUserController extends Controller
             $query->where('users.created_at', '>=', now()->subDays(7));
         }
 
-        $teachers = $query->latest('users.created_at')->paginate(15)->withQueryString();
+        $perPageParam = $request->query('per_page', '15');
+        if ($perPageParam === 'all') {
+            $perPage = max((clone $query)->count(), 1);
+        } elseif (is_numeric($perPageParam) && (int) $perPageParam > 0) {
+            $perPage = min(max((int) $perPageParam, 5), 100);
+        } else {
+            $perPageParam = '15';
+            $perPage = 15;
+        }
+
+        $teachers = $query->latest('users.created_at')->paginate($perPage)->withQueryString();
 
         $teachers->getCollection()->transform(function ($teacher) {
             $teacher->unread_messages_count = SupportMessage::where('user_id', $teacher->id)
@@ -66,6 +76,7 @@ class AdminUserController extends Controller
             'teachers' => $teachers,
             'currentFilter' => $statusFilter,
             'filterCounts' => $filterCounts,
+            'perPage' => $perPageParam,
         ]);
     }
 
@@ -74,11 +85,21 @@ class AdminUserController extends Controller
      */
     public function pupils(Request $request)
     {
-        $pupils = User::where('role', 'pupil')
+        $perPageParam = $request->query('per_page', '15');
+        $query = User::where('role', 'pupil')
             ->with(['pupilProfile'])
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+            ->latest();
+
+        if ($perPageParam === 'all') {
+            $perPage = max((clone $query)->count(), 1);
+        } elseif (is_numeric($perPageParam) && (int) $perPageParam > 0) {
+            $perPage = min(max((int) $perPageParam, 5), 100);
+        } else {
+            $perPageParam = '15';
+            $perPage = 15;
+        }
+
+        $pupils = $query->paginate($perPage)->withQueryString();
 
         $pupils->getCollection()->transform(function ($pupil) {
             $pupil->unread_messages_count = SupportMessage::where('user_id', $pupil->id)
@@ -91,6 +112,7 @@ class AdminUserController extends Controller
 
         return Inertia::render('admin/pupils', [
             'pupils' => $pupils,
+            'perPage' => $perPageParam,
         ]);
     }
 

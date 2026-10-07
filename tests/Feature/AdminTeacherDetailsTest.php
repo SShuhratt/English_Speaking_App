@@ -222,4 +222,92 @@ class AdminTeacherDetailsTest extends TestCase
             ->has('teachers.data', 3)
         );
     }
+
+    public function test_admin_teachers_list_paginates_and_supports_dynamic_per_page(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
+
+        // Create 35 teachers
+        User::factory()->count(35)->create([
+            'role' => 'teacher',
+            'email_verified_at' => now(),
+        ]);
+
+        // 1. Default pagination (15 per page)
+        $resDefault = $this->actingAs($admin)->get('/admin/teachers');
+        $resDefault->assertOk();
+        $resDefault->assertInertia(fn (Assert $page) => $page
+            ->component('admin/teachers')
+            ->where('perPage', '15')
+            ->has('teachers.data', 15)
+            ->where('teachers.total', 35)
+            ->where('teachers.last_page', 3)
+            ->where('teachers.current_page', 1)
+        );
+
+        // 2. Page 2 request
+        $resPage2 = $this->actingAs($admin)->get('/admin/teachers?page=2');
+        $resPage2->assertOk();
+        $resPage2->assertInertia(fn (Assert $page) => $page
+            ->has('teachers.data', 15)
+            ->where('teachers.current_page', 2)
+        );
+
+        // 3. Page 3 request (remaining 5)
+        $resPage3 = $this->actingAs($admin)->get('/admin/teachers?page=3');
+        $resPage3->assertOk();
+        $resPage3->assertInertia(fn (Assert $page) => $page
+            ->has('teachers.data', 5)
+            ->where('teachers.current_page', 3)
+        );
+
+        // 4. Per page = all (should fetch all 35 on page 1)
+        $resAll = $this->actingAs($admin)->get('/admin/teachers?per_page=all');
+        $resAll->assertOk();
+        $resAll->assertInertia(fn (Assert $page) => $page
+            ->where('perPage', 'all')
+            ->has('teachers.data', 35)
+            ->where('teachers.total', 35)
+            ->where('teachers.current_page', 1)
+        );
+
+        // 5. Per page = 30
+        $res30 = $this->actingAs($admin)->get('/admin/teachers?per_page=30');
+        $res30->assertOk();
+        $res30->assertInertia(fn (Assert $page) => $page
+            ->where('perPage', '30')
+            ->has('teachers.data', 30)
+            ->where('teachers.last_page', 2)
+        );
+    }
+
+    public function test_admin_pupils_list_paginates_and_supports_dynamic_per_page(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
+
+        // Create 20 pupils
+        User::factory()->count(20)->create([
+            'role' => 'pupil',
+            'email_verified_at' => now(),
+        ]);
+
+        // Default: 15 per page
+        $resDefault = $this->actingAs($admin)->get('/admin/pupils');
+        $resDefault->assertOk();
+        $resDefault->assertInertia(fn (Assert $page) => $page
+            ->component('admin/pupils')
+            ->where('perPage', '15')
+            ->has('pupils.data', 15)
+            ->where('pupils.total', 20)
+        );
+
+        // Per page = all (should fetch all 20)
+        $resAll = $this->actingAs($admin)->get('/admin/pupils?per_page=all');
+        $resAll->assertOk();
+        $resAll->assertInertia(fn (Assert $page) => $page
+            ->where('perPage', 'all')
+            ->has('pupils.data', 20)
+            ->where('pupils.total', 20)
+        );
+    }
 }

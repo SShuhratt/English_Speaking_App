@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Users, MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
 import DeleteUserModal from '@/components/delete-user-modal';
+import AdminPagination, { PaginationLink } from '@/components/AdminPagination';
 import { useTranslation } from '@/hooks/use-translation';
 
 interface PupilProfile {
@@ -34,11 +35,18 @@ interface Pupil {
 interface Props {
     pupils: {
         data: Pupil[];
-        links: any[];
+        links: PaginationLink[];
+        from?: number | null;
+        to?: number | null;
+        total: number;
+        current_page?: number;
+        last_page?: number;
+        per_page?: number;
     };
+    perPage?: string | number;
 }
 
-export default function AdminPupils({ pupils }: Props) {
+export default function AdminPupils({ pupils, perPage }: Props) {
     const { t } = useTranslation();
     const [deletingUser, setDeletingUser] = useState<{
         id: string;
@@ -220,6 +228,15 @@ export default function AdminPupils({ pupils }: Props) {
                                 </tbody>
                             </table>
                         </div>
+
+                        <AdminPagination
+                            links={pupils.links}
+                            from={pupils.from}
+                            to={pupils.to}
+                            total={pupils.total}
+                            perPage={perPage || '15'}
+                            itemLabel={t('admin.pupils_heading')}
+                        />
                     </CardContent>
                 </Card>
             </div>

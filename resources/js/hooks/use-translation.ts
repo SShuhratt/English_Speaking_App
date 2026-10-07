@@ -1258,6 +1258,11 @@ const dictionary = {
         'admin.no_headline': 'No headline provided yet.',
         'admin.verified_status': 'Verified Teacher',
         'admin.unverified_status': 'Under Review',
+        'admin.pagination_showing': 'Showing {from} to {to} of {total}',
+        'admin.pagination_per_page': 'Per page',
+        'admin.pagination_all': 'All',
+        'admin.pagination_previous': 'Previous',
+        'admin.pagination_next': 'Next',
 
         // admin pupils
         'admin.pupils_title': 'Pupil Directory',
@@ -2949,6 +2954,11 @@ const dictionary = {
         'admin.no_headline': 'Hozircha sarlavha kiritilmagan.',
         'admin.verified_status': 'Tasdiqlangan o\'qituvchi',
         'admin.unverified_status': 'Ko\'rib chiqilmoqda',
+        'admin.pagination_showing': '{total} tadan {from}–{to} ko‘rsatilmoqda',
+        'admin.pagination_per_page': 'Sahifada',
+        'admin.pagination_all': 'Barchasi',
+        'admin.pagination_previous': 'Oldingi',
+        'admin.pagination_next': 'Keyingi',
 
         // admin pupils
         'admin.pupils_title': 'O\'quvchilar ro\'yxati',
@@ -4629,6 +4639,11 @@ const dictionary = {
         'admin.no_headline': 'Заголовок еще не указан.',
         'admin.verified_status': 'Подтвержденный преподаватель',
         'admin.unverified_status': 'На рассмотрении',
+        'admin.pagination_showing': 'Показано с {from} по {to} из {total}',
+        'admin.pagination_per_page': 'На странице',
+        'admin.pagination_all': 'Все',
+        'admin.pagination_previous': 'Назад',
+        'admin.pagination_next': 'Вперед',
 
         // admin pupils
         'admin.pupils_title': 'Каталог учеников',
