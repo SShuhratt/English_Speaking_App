@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SupportMessage;
 use App\Models\User;
+use App\Services\CertificateValidationService;
 use App\Services\FileStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +19,25 @@ class AdminUserController extends Controller
     {
         $statusFilter = $request->query('status', 'all');
 
-        $query = User::where('role', 'teacher')->with(['teacherProfile:id,user_id,phone_number,overall_level,speaking_band,price,is_verified,certificates,intro_video_url']);
+        $baseQuery = User::where(function ($q) {
+            $q->where('role', 'teacher')
+                ->orWhereHas('teacherProfile');
+        });
+
+        // Compute filter counts before applying the active status filter
+        $filterCounts = [
+            'all' => (clone $baseQuery)->count(),
+            'verified' => (clone $baseQuery)->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true))->count(),
+            'unverified' => (clone $baseQuery)->where(function ($q) {
+                $q->whereDoesntHave('teacherProfile')
+                    ->orWhereHas('teacherProfile', fn ($q2) => $q2->where('is_verified', false));
+            })->count(),
+            'new' => (clone $baseQuery)->where('users.created_at', '>=', now()->subDays(7))->count(),
+        ];
+
+        $query = (clone $baseQuery)->with([
+            'teacherProfile:id,user_id,phone_number,overall_level,speaking_band,price,is_verified,certificates,intro_video_url,labels,headline,bio,experience_years,workplace,age,country_code,city',
+        ]);
 
         if ($statusFilter === 'verified') {
             $query->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true));
@@ -28,10 +47,10 @@ class AdminUserController extends Controller
                     ->orWhereHas('teacherProfile', fn ($q2) => $q2->where('is_verified', false));
             });
         } elseif ($statusFilter === 'new') {
-            $query->where('created_at', '>=', now()->subDays(7));
+            $query->where('users.created_at', '>=', now()->subDays(7));
         }
 
-        $teachers = $query->latest()->paginate(15)->withQueryString();
+        $teachers = $query->latest('users.created_at')->paginate(15)->withQueryString();
 
         $teachers->getCollection()->transform(function ($teacher) {
             $teacher->unread_messages_count = SupportMessage::where('user_id', $teacher->id)
@@ -46,6 +65,7 @@ class AdminUserController extends Controller
         return Inertia::render('admin/teachers', [
             'teachers' => $teachers,
             'currentFilter' => $statusFilter,
+            'filterCounts' => $filterCounts,
         ]);
     }
 
@@ -79,7 +99,11 @@ class AdminUserController extends Controller
      */
     public function verifyTeacher(Request $request, string $id)
     {
-        $user = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+        $user = User::where('id', $id)
+            ->where(function ($q) {
+                $q->where('role', 'teacher')->orWhereHas('teacherProfile');
+            })
+            ->firstOrFail();
 
         $profile = $user->teacherProfile;
         if (! $profile) {
@@ -123,7 +147,11 @@ class AdminUserController extends Controller
      */
     public function updateCertificates(Request $request, string $id)
     {
-        $user = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+        $user = User::where('id', $id)
+            ->where(function ($q) {
+                $q->where('role', 'teacher')->orWhereHas('teacherProfile');
+            })
+            ->firstOrFail();
 
         $profile = $user->teacherProfile;
         if (! $profile) {
@@ -140,6 +168,8 @@ class AdminUserController extends Controller
             'overall_level' => ['nullable', 'string', 'max:255'],
             'speaking_band' => ['nullable', 'numeric', 'min:0', 'max:9'],
         ]);
+
+        CertificateValidationService::assertValidCertificates($validated['certificates']);
 
         $updateData = [
             'certificates' => $validated['certificates'],
@@ -162,7 +192,11 @@ class AdminUserController extends Controller
      */
     public function verifySingleCertificate(Request $request, string $id, int $index)
     {
-        $user = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+        $user = User::where('id', $id)
+            ->where(function ($q) {
+                $q->where('role', 'teacher')->orWhereHas('teacherProfile');
+            })
+            ->firstOrFail();
         $profile = $user->teacherProfile;
 
         if (! $profile) {
@@ -202,7 +236,11 @@ class AdminUserController extends Controller
      */
     public function downloadIntroVideo(string $id)
     {
-        $user = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+        $user = User::where('id', $id)
+            ->where(function ($q) {
+                $q->where('role', 'teacher')->orWhereHas('teacherProfile');
+            })
+            ->firstOrFail();
         $profile = $user->teacherProfile;
 
         if (! $profile || ! $profile->intro_video_url) {

@@ -17,6 +17,7 @@ import {
     CertificateInputCard,
     CertificateData,
 } from '@/components/certificates/CertificateInputCard';
+import { validateCertificateScores } from '@/config/certificates';
 
 type Props = {
     passwordRules: string;
@@ -174,6 +175,23 @@ export default function Register({ passwordRules }: Props) {
                     });
                     return false;
                 }
+
+                const scoreErrors = validateCertificateScores(cert, t);
+                const firstError = Object.values(scoreErrors)[0];
+                if (firstError) {
+                    setCertError(
+                        locale === 'uz'
+                            ? `${i + 1}-sertifikatda xatolik: ${firstError}`
+                            : locale === 'ru'
+                                ? `Ошибка в сертификате №${i + 1}: ${firstError}`
+                                : `Error in certificate #${i + 1}: ${firstError}`
+                    );
+                    document.getElementById('certificates-section')?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                    });
+                    return false;
+                }
             }
         }
 
@@ -190,6 +208,20 @@ export default function Register({ passwordRules }: Props) {
                     : locale === 'ru'
                         ? "Заполните все данные и загрузите файл текущего сертификата перед добавлением нового."
                         : "Please complete all fields and upload the certificate file before adding another one."
+            );
+            return;
+        }
+
+        const hasScoreErrors = certificates.some(
+            (c) => Object.keys(validateCertificateScores(c, t)).length > 0
+        );
+        if (hasScoreErrors) {
+            setCertError(
+                locale === 'uz'
+                    ? "Yangi sertifikat qo'shishdan oldin mavjud sertifikat ballarini to'g'ri kiriting."
+                    : locale === 'ru'
+                        ? "Исправьте ошибки в баллах текущих сертификатов перед добавлением нового."
+                        : "Please fix score errors on current certificates before adding a new one."
             );
             return;
         }

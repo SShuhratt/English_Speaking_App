@@ -7,6 +7,7 @@ use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Jobs\TranscodeIntroVideoJob;
 use App\Models\PupilPackage;
+use App\Services\CertificateValidationService;
 use App\Services\FileStorageService;
 use App\Services\GoogleOAuthService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -175,6 +176,15 @@ class ProfileController extends Controller
 
             $uploadedFiles = $request->file('certificate_files') ?? $request->file('ielts_certificates') ?? [];
             $certsInput = $request->input('certificates', []);
+            if (is_string($certsInput)) {
+                $decoded = json_decode($certsInput, true);
+                if (is_array($decoded)) {
+                    $certsInput = $decoded;
+                }
+            }
+            if (is_array($certsInput) && ! empty($certsInput)) {
+                CertificateValidationService::assertValidCertificates($certsInput);
+            }
             $existingCerts = $teacherProfile->certificates ?? [];
             if (is_string($existingCerts)) {
                 $existingCerts = json_decode($existingCerts, true) ?? [];
@@ -448,6 +458,15 @@ class ProfileController extends Controller
 
             $uploadedFiles = $request->file('ielts_certificates') ?? [];
             $certsInput = $request->input('certificates', []);
+            if (is_string($certsInput)) {
+                $decoded = json_decode($certsInput, true);
+                if (is_array($decoded)) {
+                    $certsInput = $decoded;
+                }
+            }
+            if (is_array($certsInput) && ! empty($certsInput)) {
+                CertificateValidationService::assertValidCertificates($certsInput);
+            }
             $finalCertificates = [];
 
             if (is_string($certsInput)) {

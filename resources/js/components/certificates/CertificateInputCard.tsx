@@ -6,6 +6,7 @@ import {
     LANGUAGE_OPTIONS,
     getAvailableExamsForLanguage,
     getDefaultLanguageForExam,
+    validateCertificateScore,
 } from '@/config/certificates';
 import { useTranslation } from '@/hooks/use-translation';
 
@@ -113,6 +114,15 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
             [skillKey]: value,
             sub_scores: updatedSubScores,
         });
+    };
+
+    const overallError = React.useMemo(() => {
+        return validateCertificateScore(cert.type, 'overall', cert.overall, t);
+    }, [cert.type, cert.overall, t]);
+
+    const getSkillError = (skillKey: string): string | null => {
+        const val = getSkillValue(skillKey);
+        return validateCertificateScore(cert.type, skillKey, val, t);
     };
 
     // File selection
@@ -330,16 +340,27 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                         ))}
                     </select>
                 ) : (
-                    <input
-                        type="text"
-                        inputMode={definition.overall.step ? 'decimal' : 'text'}
-                        name={`certificates[${index}][overall]`}
-                        readOnly={readOnly}
-                        value={cert.overall || ''}
-                        onChange={(e) => onChange({ ...cert, overall: e.target.value })}
-                        placeholder={definition.overall.placeholder}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-900 focus:border-indigo-600 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    />
+                    <>
+                        <input
+                            type="text"
+                            inputMode={definition.overall.step ? 'decimal' : 'text'}
+                            name={`certificates[${index}][overall]`}
+                            readOnly={readOnly}
+                            value={cert.overall || ''}
+                            onChange={(e) => onChange({ ...cert, overall: e.target.value })}
+                            placeholder={definition.overall.placeholder}
+                            className={`w-full rounded-lg border px-3 py-1.5 text-xs font-bold text-gray-900 focus:outline-none dark:bg-gray-800 dark:text-white ${
+                                overallError
+                                    ? 'border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-500 dark:border-red-500'
+                                    : 'border-gray-300 focus:border-indigo-600 dark:border-gray-700'
+                            }`}
+                        />
+                        {overallError && (
+                            <p className="mt-1 text-[11px] font-semibold text-red-600 dark:text-red-400">
+                                {overallError}
+                            </p>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -349,6 +370,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                         {definition.skills.map((skill) => {
                             const val = getSkillValue(skill.key);
+                            const skillError = getSkillError(skill.key);
                             return (
                                 <div key={skill.key} className="min-w-0">
                                     <label className="block truncate text-[11px] font-bold text-gray-600 dark:text-gray-400">
@@ -364,11 +386,21 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                                             handleSkillChange(skill.key, e.target.value)
                                         }
                                         placeholder={skill.placeholder}
-                                        className="mt-1 w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-900 focus:border-indigo-600 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                        className={`mt-1 w-full rounded-lg border px-2.5 py-1.5 text-xs font-semibold text-gray-900 focus:outline-none dark:bg-gray-800 dark:text-white ${
+                                            skillError
+                                                ? 'border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-500 dark:border-red-500'
+                                                : 'border-gray-300 focus:border-indigo-600 dark:border-gray-700'
+                                        }`}
                                     />
-                                    <span className="mt-0.5 block truncate text-[9px] font-medium text-gray-400">
-                                        {skill.hint}
-                                    </span>
+                                    {skillError ? (
+                                        <span className="mt-0.5 block text-[9.5px] font-semibold text-red-600 dark:text-red-400">
+                                            {skillError}
+                                        </span>
+                                    ) : (
+                                        <span className="mt-0.5 block truncate text-[9px] font-medium text-gray-400">
+                                            {skill.hint}
+                                        </span>
+                                    )}
                                 </div>
                             );
                         })}

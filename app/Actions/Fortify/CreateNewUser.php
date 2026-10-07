@@ -7,6 +7,7 @@ use App\Concerns\ProfileValidationRules;
 use App\Models\ReferralRecord;
 use App\Models\User;
 use App\Notifications\WelcomeNotification;
+use App\Services\CertificateValidationService;
 use App\Services\GamificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -112,6 +113,14 @@ class CreateNewUser implements CreatesNewUsers
         ];
 
         Validator::make($input, $rules, $messages)->validate();
+
+        $certsInput = $input['certificates'] ?? request()->input('certificates');
+        if (is_string($certsInput)) {
+            $certsInput = json_decode($certsInput, true) ?? [];
+        }
+        if (is_array($certsInput) && ! empty($certsInput)) {
+            CertificateValidationService::assertValidCertificates($certsInput);
+        }
 
         $refCode = $input['ref'] ?? request()->query('ref') ?? request()->input('ref') ?? session('referral_code');
         $referrer = ! empty($refCode) ? User::where('referral_code', strtoupper(trim((string) $refCode)))->first() : null;

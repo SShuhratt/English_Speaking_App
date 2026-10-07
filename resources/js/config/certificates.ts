@@ -630,3 +630,143 @@ export function getDefaultLanguageForExam(examKey?: string): string {
             return 'english';
     }
 }
+
+export function validateCertificateScore(
+    examType: string,
+    skillKey: string,
+    value: string | number | null | undefined,
+    t?: (key: string, fallback?: string, params?: Record<string, any>) => string
+): string | null {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+
+    const trimmed = String(value).trim();
+    if (!trimmed) return null;
+
+    const def = CERTIFICATE_DEFINITIONS.find((d) => d.id === examType);
+    if (!def) return null;
+
+    let rule: { min?: number; max?: number; step?: number | string; placeholder?: string; hint?: string } | undefined;
+    if (skillKey === 'overall') {
+        if (def.overall.options) {
+            return null;
+        }
+        rule = def.overall;
+    } else {
+        rule = def.skills.find((s) => s.key === skillKey);
+    }
+
+    if (!rule || rule.min === undefined || rule.max === undefined) {
+        return null;
+    }
+
+    const examLabel = def.label;
+    const skillLabel = t ? t(`certificates.skills.${skillKey}`, skillKey) : skillKey;
+
+    let numVal = parseFloat(trimmed);
+    if (isNaN(numVal) || !isFinite(numVal) || !/^-?\d+(\.\d+)?$/.test(trimmed)) {
+        const parenMatch = trimmed.match(/\((\d+(?:\.\d+)?)\)/);
+        if (parenMatch) {
+            numVal = parseFloat(parenMatch[1]);
+        } else if (/^level\s*[1-6]$/i.test(trimmed)) {
+            return null;
+        } else {
+            return t
+                ? t('certificates.score_must_be_numeric', `The ${skillLabel} score for ${examLabel} must be a valid number.`, {
+                      exam: examLabel,
+                      skill: skillLabel,
+                  })
+                : `The ${skillLabel} score for ${examLabel} must be a valid number.`;
+        }
+    }
+
+    const min = rule.min;
+    const max = rule.max;
+    const step = typeof rule.step === 'number' ? rule.step : parseFloat(String(rule.step || '1'));
+
+    if (numVal < min) {
+        return t
+            ? t('certificates.score_min_exceeded', `The ${skillLabel} score for ${examLabel} cannot be less than ${min}.`, {
+                  exam: examLabel,
+                  skill: skillLabel,
+                  min: String(min),
+              })
+            : `The ${skillLabel} score for ${examLabel} cannot be less than ${min}.`;
+    }
+
+    if (numVal > max) {
+        return t
+            ? t('certificates.score_max_exceeded', `The ${skillLabel} score for ${examLabel} cannot exceed ${max}.`, {
+                  exam: examLabel,
+                  skill: skillLabel,
+                  max: String(max),
+              })
+            : `The ${skillLabel} score for ${examLabel} cannot exceed ${max}.`;
+    }
+
+    if (step && step > 0) {
+        let stepValid = false;
+        if (Math.abs(step - 0.5) < 0.001) {
+            const doubled = numVal * 2.0;
+            stepValid = Math.abs(Math.round(doubled) - doubled) < 0.0001;
+        } else if (Math.abs(step - 1.0) < 0.001) {
+            stepValid = Math.abs(Math.round(numVal) - numVal) < 0.0001;
+        } else if (Math.abs(step - 5.0) < 0.001) {
+            const divided = numVal / 5.0;
+            stepValid = Math.abs(Math.round(divided) - divided) < 0.0001;
+        } else {
+            const divided = numVal / step;
+            stepValid = Math.abs(Math.round(divided) - divided) < 0.0001;
+        }
+
+        if (!stepValid) {
+            const stepStr = String(step);
+            const example = rule.placeholder || '7.5';
+            return t
+                ? t('certificates.score_step_invalid', `The ${skillLabel} score for ${examLabel} must be in increments of ${stepStr} (e.g., ${example}).`, {
+                      exam: examLabel,
+                      skill: skillLabel,
+                      step: stepStr,
+                      example,
+                  })
+                : `The ${skillLabel} score for ${examLabel} must be in increments of ${stepStr} (e.g., ${example}).`;
+        }
+    }
+
+    return null;
+}
+
+export function validateCertificateScores(
+    cert: { type?: string; overall?: string; listening?: string; reading?: string; writing?: string; speaking?: string; sub_scores?: Record<string, string>; [key: string]: any },
+    t?: (key: string, fallback?: string, params?: Record<string, any>) => string
+): Record<string, string> {
+    const errors: Record<string, string> = {};
+    const type = cert.type || 'ielts';
+
+    if (cert.overall !== undefined && cert.overall !== '') {
+        const err = validateCertificateScore(type, 'overall', cert.overall, t);
+        if (err) errors['overall'] = err;
+    }
+
+    const standardSkills = ['listening', 'reading', 'writing', 'speaking'];
+    for (const skill of standardSkills) {
+        const val = cert[skill] !== undefined ? cert[skill] : cert.sub_scores?.[skill];
+        if (val !== undefined && val !== '') {
+            const err = validateCertificateScore(type, skill, val, t);
+            if (err) errors[skill] = err;
+        }
+    }
+
+    if (cert.sub_scores) {
+        for (const [subKey, subVal] of Object.entries(cert.sub_scores)) {
+            if (!standardSkills.includes(subKey) && subVal !== undefined && subVal !== '') {
+                const err = validateCertificateScore(type, subKey, subVal, t);
+                if (err) errors[subKey] = err;
+            }
+        }
+    }
+
+    return errors;
+}
+

@@ -25,7 +25,7 @@ import {
     CertificateData,
 } from '@/components/certificates/CertificateInputCard';
 import { CertificatePreviewModal } from '@/components/certificates/CertificatePreviewModal';
-import { getDefaultLanguageForExam } from '@/config/certificates';
+import { getDefaultLanguageForExam, validateCertificateScores } from '@/config/certificates';
 
 export const COUNTRY_OPTIONS = [
     { code: 'UZ', flag: '🇺🇿', nameKey: 'countries.uz', defaultName: 'Uzbekistan' },
@@ -386,6 +386,10 @@ export default function Profile({
     React.useEffect(() => {
         setCerts(initialTeacherCerts);
     }, [initialTeacherCerts]);
+
+    const hasCertScoreErrors = React.useMemo(() => {
+        return certs.some((c) => !c.isExisting && Object.keys(validateCertificateScores(c, t)).length > 0);
+    }, [certs, t]);
 
     const addCertificate = () => {
         setCerts((prev) => [
@@ -1133,6 +1137,16 @@ export default function Profile({
                                                         Add Certificate
                                                     </button>
                                                 </div>
+
+                                                {hasCertScoreErrors && (
+                                                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+                                                        {locale === 'uz'
+                                                            ? "Iltimos, sertifikatlardagi kiritilgan ballarni tekshiring (ballar maksimal limitdan oshmasligi kerak)."
+                                                            : locale === 'ru'
+                                                                ? "Пожалуйста, проверьте баллы в сертификатах (баллы не должны превышать установленный лимит)."
+                                                                : "Please review certificate scores (scores cannot exceed maximum band limits)."}
+                                                    </div>
+                                                )}
 
                                                 <div className="space-y-4">
                                                     {certs.map((c, index) => (
@@ -2155,7 +2169,7 @@ export default function Profile({
                                         </button>
                                         <button
                                             type="submit"
-                                            disabled={processing}
+                                            disabled={processing || hasCertScoreErrors}
                                             className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 bg-[#F7DE8B] px-12 py-4 text-sm font-bold text-[#1E2A5A] shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-50"
                                             data-test="update-profile-button"
                                         >

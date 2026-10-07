@@ -35,6 +35,8 @@ class TeacherProfile extends Model
         'labels' => 'array',
         'rating_cache' => 'float',
         'is_verified' => 'boolean',
+        'experience_years' => 'integer',
+        'age' => 'integer',
     ];
 
     public function user()
