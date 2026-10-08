@@ -65,6 +65,7 @@ interface RecentTransaction {
     teacher: string;
     amount: number;
     date: string;
+    raw_date?: number;
 }
 
 interface RecentUser {
@@ -100,7 +101,7 @@ export default function AdminOverview({
     recentUsers,
     pendingVerificationsCount,
 }: OverviewPageProps) {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const [chartMode, setChartMode] = useState<'revenue' | 'sessions' | 'users'>('revenue');
     const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
     const pickerRef = React.useRef<HTMLDivElement>(null);
@@ -124,7 +125,41 @@ export default function AdminOverview({
     }, [isMonthPickerOpen]);
 
     const formatCurrency = (val: number) => {
-        return `${Number(val || 0).toLocaleString('ru-RU').replace(/,/g, ' ')} UZS`;
+        const suffix = t('overview.currency_suffix', 'UZS');
+        return `${Number(val || 0).toLocaleString('ru-RU').replace(/,/g, ' ')} ${suffix}`;
+    };
+
+    const formatPointDate = (dateStr: string) => {
+        try {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            return dateObj.toLocaleDateString(
+                locale === 'ru' ? 'ru-RU' : locale === 'uz' ? 'uz-UZ' : 'en-US',
+                { month: 'short', day: '2-digit' }
+            );
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const formatTransactionDate = (tx: RecentTransaction) => {
+        try {
+            if (tx.raw_date) {
+                const d = new Date(tx.raw_date * 1000);
+                const datePart = d.toLocaleDateString(
+                    locale === 'ru' ? 'ru-RU' : locale === 'uz' ? 'uz-UZ' : 'en-US',
+                    { month: 'short', day: '2-digit' }
+                );
+                const timePart = d.toLocaleTimeString(
+                    locale === 'ru' ? 'ru-RU' : locale === 'uz' ? 'uz-UZ' : 'en-US',
+                    { hour: '2-digit', minute: '2-digit', hour12: false }
+                );
+                return `${datePart}, ${timePart}`;
+            }
+            return tx.date;
+        } catch {
+            return tx.date;
+        }
     };
 
     const handlePeriodChange = (newPeriod: string) => {
@@ -196,7 +231,7 @@ export default function AdminOverview({
                             </h1>
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-600/20 dark:bg-emerald-950/40 dark:text-emerald-400">
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                Live
+                                {t('overview.live_badge', 'Live')}
                             </span>
                         </div>
                         <p className="mt-1 text-xs text-gray-500 sm:text-sm dark:text-gray-400">
@@ -311,7 +346,7 @@ export default function AdminOverview({
                                     {t('overview.pending_verifications', 'Pending Payment Verifications')}
                                 </h2>
                                 <p className="text-xs text-amber-700 dark:text-amber-300/80">
-                                    {pendingVerificationsCount} transactions await receipt verification in the approval queue.
+                                    {t('overview.pending_verifications_desc', { count: pendingVerificationsCount }, `${pendingVerificationsCount} transactions await receipt verification in the approval queue.`)}
                                 </p>
                             </div>
                         </div>
@@ -365,8 +400,8 @@ export default function AdminOverview({
                             </div>
                             {/* Revenue Breakdown */}
                             <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between text-[11px] text-gray-400">
-                                <span>Packs: <strong className="text-gray-600 dark:text-gray-300">{formatCurrency(metrics.package_sales_revenue)}</strong></span>
-                                <span>Direct: <strong className="text-gray-600 dark:text-gray-300">{formatCurrency(metrics.direct_booking_revenue)}</strong></span>
+                                <span>{t('overview.packs_label', 'Packs')}: <strong className="text-gray-600 dark:text-gray-300">{formatCurrency(metrics.package_sales_revenue)}</strong></span>
+                                <span>{t('overview.direct_label', 'Direct')}: <strong className="text-gray-600 dark:text-gray-300">{formatCurrency(metrics.direct_booking_revenue)}</strong></span>
                             </div>
                         </CardContent>
                     </Card>
@@ -387,7 +422,7 @@ export default function AdminOverview({
                             </div>
                             <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500 dark:text-gray-400">
-                                    {t('overview.speaking_minutes', 'Speaking Minutes')}: <strong className="text-gray-700 dark:text-gray-200">{metrics.speaking_minutes.toLocaleString()} min</strong>
+                                    {t('overview.speaking_minutes', 'Speaking Minutes')}: <strong className="text-gray-700 dark:text-gray-200">{metrics.speaking_minutes.toLocaleString()} {t('overview.min_abbr', 'min')}</strong>
                                 </span>
                                 {trends.completed_sessions !== null && (
                                     <span
@@ -405,7 +440,7 @@ export default function AdminOverview({
                                 )}
                             </div>
                             <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between text-[11px] text-gray-400">
-                                <span>Upcoming: <strong className="text-indigo-600 dark:text-indigo-400">{metrics.upcoming_sessions_count} scheduled</strong></span>
+                                <span>{t('overview.upcoming_label', 'Upcoming')}: <strong className="text-indigo-600 dark:text-indigo-400">{metrics.upcoming_sessions_count} {t('overview.scheduled_label', 'scheduled')}</strong></span>
                             </div>
                         </CardContent>
                     </Card>
@@ -425,18 +460,18 @@ export default function AdminOverview({
                                 <span className="text-2xl font-black text-gray-900 dark:text-white">
                                     +{metrics.new_pupils_count}
                                 </span>
-                                <span className="text-xs font-bold text-gray-400">pupils</span>
+                                <span className="text-xs font-bold text-gray-400">{t('overview.pupils_label', 'pupils')}</span>
                                 <span className="text-gray-300 dark:text-gray-700">/</span>
                                 <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
                                     +{metrics.new_teachers_count}
                                 </span>
-                                <span className="text-xs font-bold text-gray-400">teachers</span>
+                                <span className="text-xs font-bold text-gray-400">{t('overview.teachers_label', 'teachers')}</span>
                             </div>
                             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                                <span>Active: <strong className="text-gray-700 dark:text-gray-200">{metrics.active_pupils_count} pupils · {metrics.active_teachers_count} teachers</strong></span>
+                                <span>{t('overview.active_label', 'Active')}: <strong className="text-gray-700 dark:text-gray-200">{metrics.active_pupils_count} {t('overview.pupils_label', 'pupils')} · {metrics.active_teachers_count} {t('overview.teachers_label', 'teachers')}</strong></span>
                             </div>
                             <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between text-[11px] text-gray-400">
-                                <span>Pupil trend: <strong className={trends.new_pupils && trends.new_pupils >= 0 ? 'text-emerald-600' : 'text-gray-500'}>{trends.new_pupils ? `${trends.new_pupils}%` : 'Stable'}</strong></span>
+                                <span>{t('overview.pupil_trend_label', 'Pupil trend')}: <strong className={trends.new_pupils && trends.new_pupils >= 0 ? 'text-emerald-600' : 'text-gray-500'}>{trends.new_pupils ? `${trends.new_pupils}%` : t('overview.stable_label', 'Stable')}</strong></span>
                             </div>
                         </CardContent>
                     </Card>
@@ -464,7 +499,7 @@ export default function AdminOverview({
                                 </span>
                             </div>
                             <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between text-[11px] text-gray-400">
-                                <span>Total Gross Orders: <strong className="text-gray-700 dark:text-gray-200">{metrics.paid_transactions_count}</strong></span>
+                                <span>{t('overview.total_gross_orders', 'Total Gross Orders')}: <strong className="text-gray-700 dark:text-gray-200">{metrics.paid_transactions_count}</strong></span>
                             </div>
                         </CardContent>
                     </Card>
@@ -479,7 +514,7 @@ export default function AdminOverview({
                                 {t('overview.activity_trend', 'Activity & Revenue Trends')}
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                Daily breakdown over the active window.
+                                {t('overview.activity_trend_desc', 'Daily breakdown over the active window.')}
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
@@ -492,7 +527,7 @@ export default function AdminOverview({
                                         : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'
                                 }`}
                             >
-                                Revenue
+                                {t('overview.chart_revenue', 'Revenue')}
                             </button>
                             <button
                                 type="button"
@@ -503,7 +538,7 @@ export default function AdminOverview({
                                         : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'
                                 }`}
                             >
-                                Sessions
+                                {t('overview.chart_sessions', 'Sessions')}
                             </button>
                             <button
                                 type="button"
@@ -514,14 +549,14 @@ export default function AdminOverview({
                                         : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'
                                 }`}
                             >
-                                New Users
+                                {t('overview.chart_new_users', 'New Users')}
                             </button>
                         </div>
                     </CardHeader>
                     <CardContent>
                         {timeline.length === 0 ? (
                             <div className="flex h-48 items-center justify-center text-xs text-gray-400 italic">
-                                No activity recorded for this period.
+                                {t('overview.no_activity', 'No activity recorded for this period.')}
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -530,6 +565,8 @@ export default function AdminOverview({
                                     {timeline.map((point) => {
                                         const currentVal = chartMode === 'revenue' ? point.revenue : chartMode === 'sessions' ? point.sessions : point.users;
                                         const heightPercent = Math.max(6, Math.round((currentVal / maxChartValue) * 100));
+                                        const modeLabel = chartMode === 'sessions' ? t('overview.chart_sessions', 'Sessions') : t('overview.chart_new_users', 'New Users');
+                                        const formattedDate = formatPointDate(point.date);
 
                                         return (
                                             <div
@@ -538,7 +575,7 @@ export default function AdminOverview({
                                             >
                                                 {/* Tooltip on hover */}
                                                 <div className="pointer-events-none absolute -top-10 z-20 hidden -translate-x-1/2 rounded-md bg-gray-900 px-2 py-1 text-[10px] font-bold text-white shadow-lg whitespace-nowrap group-hover:block dark:bg-gray-100 dark:text-gray-900">
-                                                    {point.label}: {chartMode === 'revenue' ? formatCurrency(currentVal) : `${currentVal} ${chartMode}`}
+                                                    {formattedDate}: {chartMode === 'revenue' ? formatCurrency(currentVal) : `${currentVal} ${modeLabel}`}
                                                 </div>
 
                                                 {/* Bar */}
@@ -553,7 +590,7 @@ export default function AdminOverview({
                                                     }`}
                                                 />
                                                 <span className="mt-2 block truncate text-[9px] font-medium text-gray-400">
-                                                    {point.label}
+                                                    {formattedDate}
                                                 </span>
                                             </div>
                                         );
@@ -572,7 +609,7 @@ export default function AdminOverview({
                             {t('overview.comparison_matrix', 'Multi-Period Cross Comparison')}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            Instant matrix benchmark comparing key metrics across all standard time horizons.
+                            {t('overview.comparison_matrix_desc', 'Instant matrix benchmark comparing key metrics across all standard time horizons.')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
@@ -680,12 +717,12 @@ export default function AdminOverview({
                                     {t('overview.recent_transactions', 'Recent Completed Transactions')}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    Verified package sales and confirmed single sessions.
+                                    {t('overview.recent_transactions_desc', 'Verified package sales and confirmed single sessions.')}
                                 </CardDescription>
                             </div>
                             <Button asChild variant="ghost" size="sm" className="text-xs text-indigo-600 dark:text-indigo-400">
                                 <Link href="/admin/dashboard?status=confirmed">
-                                    View all
+                                    {t('overview.view_all', 'View all')}
                                     <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
                                 </Link>
                             </Button>
@@ -711,7 +748,11 @@ export default function AdminOverview({
                                                 </div>
                                                 <div>
                                                     <div className="text-xs font-bold text-gray-900 dark:text-white">
-                                                        {tx.title}
+                                                        {tx.title === 'Single Session'
+                                                            ? t('overview.single_session', 'Single Session')
+                                                            : tx.title === 'Trial Session'
+                                                              ? t('overview.trial_session', 'Trial Session')
+                                                              : tx.title}
                                                     </div>
                                                     <div className="text-[11px] text-gray-400">
                                                         {tx.pupil} → {tx.teacher}
@@ -722,7 +763,7 @@ export default function AdminOverview({
                                                 <div className="text-xs font-black text-gray-900 dark:text-white">
                                                     {formatCurrency(tx.amount)}
                                                 </div>
-                                                <div className="text-[10px] text-gray-400">{tx.date}</div>
+                                                <div className="text-[10px] text-gray-400">{formatTransactionDate(tx)}</div>
                                             </div>
                                         </div>
                                     ))}
@@ -739,7 +780,7 @@ export default function AdminOverview({
                                     {t('overview.recent_users', 'New Platform Registrations')}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    Latest pupils and teachers who joined the community.
+                                    {t('overview.recent_users_desc', 'Latest pupils and teachers who joined the community.')}
                                 </CardDescription>
                             </div>
                             <Button asChild variant="ghost" size="sm" className="text-xs text-indigo-600 dark:text-indigo-400">
@@ -780,7 +821,11 @@ export default function AdminOverview({
                                                             : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
                                                     }`}
                                                 >
-                                                    {u.role}
+                                                    {u.role === 'teacher'
+                                                        ? t('admin.role_teacher', 'Teacher')
+                                                        : u.role === 'pupil'
+                                                          ? t('admin.role_pupil', 'Pupil')
+                                                          : t('admin.role_admin', 'Admin')}
                                                 </Badge>
                                             </div>
                                         </div>
