@@ -19,11 +19,22 @@ class AdminOverviewController extends Controller
     public function index(Request $request): Response
     {
         $period = $request->query('period', 'this_month');
-        if (! in_array($period, ['today', 'this_week', 'this_month', 'last_30_days', 'all_time'])) {
+        if (! in_array($period, ['today', 'this_week', 'this_month', 'last_30_days', 'all_time', 'custom_month'])) {
             $period = 'this_month';
         }
 
-        [$start, $end, $prevStart, $prevEnd] = $this->resolveDateRanges($period);
+        $now = Carbon::now();
+        $selectedYear = (int) $request->query('year', $now->year);
+        $selectedMonth = (int) $request->query('month', $now->month);
+
+        if ($selectedYear < 2024 || $selectedYear > 2035) {
+            $selectedYear = $now->year;
+        }
+        if ($selectedMonth < 1 || $selectedMonth > 12) {
+            $selectedMonth = $now->month;
+        }
+
+        [$start, $end, $prevStart, $prevEnd] = $this->resolveDateRanges($period, $selectedYear, $selectedMonth);
 
         $metrics = $this->calculateMetricsForRange($start, $end);
         $prevMetrics = $prevStart ? $this->calculateMetricsForRange($prevStart, $prevEnd) : null;
@@ -63,6 +74,8 @@ class AdminOverviewController extends Controller
 
         return Inertia::render('admin/overview', [
             'period' => $period,
+            'selectedYear' => $selectedYear,
+            'selectedMonth' => $selectedMonth,
             'metrics' => $metrics,
             'trends' => $trends,
             'matrix' => $matrix,
@@ -78,8 +91,17 @@ class AdminOverviewController extends Controller
      *
      * @return array{0: ?Carbon, 1: ?Carbon, 2: ?Carbon, 3: ?Carbon}
      */
-    protected function resolveDateRanges(string $period): array
+    protected function resolveDateRanges(string $period, int $year, int $month): array
     {
+        if ($period === 'custom_month') {
+            $start = Carbon::create($year, $month, 1)->startOfMonth();
+            $end = Carbon::create($year, $month, 1)->endOfMonth();
+            $prevStart = $start->copy()->subMonth()->startOfMonth();
+            $prevEnd = $start->copy()->subMonth()->endOfMonth();
+
+            return [$start, $end, $prevStart, $prevEnd];
+        }
+
         return match ($period) {
             'today' => [
                 Carbon::today()->startOfDay(),
@@ -222,19 +244,25 @@ class AdminOverviewController extends Controller
      */
     protected function generateTimelineSeries(string $period, ?Carbon $start, ?Carbon $end): array
     {
-        $daysCount = match ($period) {
-            'today' => 1,
-            'this_week' => 7,
-            'this_month' => 30,
-            default => 14,
-        };
+        if ($period === 'custom_month' && $start && $end) {
+            $startDate = $start->copy()->startOfDay();
+            $endDate = $end->copy()->endOfDay();
+        } else {
+            $daysCount = match ($period) {
+                'today' => 1,
+                'this_week' => 7,
+                'this_month' => 31,
+                'last_30_days' => 30,
+                default => 14,
+            };
 
-        $startDate = $start ? $start->copy()->startOfDay() : Carbon::now()->subDays($daysCount - 1)->startOfDay();
-        $endDate = $end ? $end->copy()->endOfDay() : Carbon::now()->endOfDay();
+            $startDate = $start ? $start->copy()->startOfDay() : Carbon::now()->subDays($daysCount - 1)->startOfDay();
+            $endDate = $end ? $end->copy()->endOfDay() : Carbon::now()->endOfDay();
 
-        // Limit maximum days in timeline to 30 for performance & clarity
-        if ($startDate->diffInDays($endDate) > 30) {
-            $startDate = $endDate->copy()->subDays(29)->startOfDay();
+            // Limit maximum days in timeline to 31 for performance & clarity
+            if ($startDate->diffInDays($endDate) > 31) {
+                $startDate = $endDate->copy()->subDays(30)->startOfDay();
+            }
         }
 
         $series = [];

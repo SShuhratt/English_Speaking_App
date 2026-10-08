@@ -21,6 +21,7 @@ import {
     CreditCard,
     Layers,
     ChevronRight,
+    ChevronDown,
     BarChart3,
     Sparkles,
 } from 'lucide-react';
@@ -75,7 +76,9 @@ interface RecentUser {
 }
 
 interface OverviewPageProps {
-    period: 'today' | 'this_week' | 'this_month' | 'last_30_days' | 'all_time';
+    period: 'today' | 'this_week' | 'this_month' | 'last_30_days' | 'all_time' | 'custom_month';
+    selectedYear?: number;
+    selectedMonth?: number;
     metrics: OverviewMetrics;
     trends: OverviewTrends;
     matrix: Record<'today' | 'this_week' | 'this_month' | 'all_time', OverviewMetrics>;
@@ -87,6 +90,8 @@ interface OverviewPageProps {
 
 export default function AdminOverview({
     period,
+    selectedYear,
+    selectedMonth,
     metrics,
     trends,
     matrix,
@@ -97,18 +102,71 @@ export default function AdminOverview({
 }: OverviewPageProps) {
     const { t } = useTranslation();
     const [chartMode, setChartMode] = useState<'revenue' | 'sessions' | 'users'>('revenue');
+    const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+    const pickerRef = React.useRef<HTMLDivElement>(null);
+
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const [tempYear, setTempYear] = useState<number>(selectedYear || currentYear);
+
+    React.useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+                setIsMonthPickerOpen(false);
+            }
+        }
+        if (isMonthPickerOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isMonthPickerOpen]);
 
     const formatCurrency = (val: number) => {
         return `${Number(val || 0).toLocaleString('ru-RU').replace(/,/g, ' ')} UZS`;
     };
 
     const handlePeriodChange = (newPeriod: string) => {
+        setIsMonthPickerOpen(false);
         router.get(
             '/admin/overview',
             { period: newPeriod },
             { preserveState: true, preserveScroll: true }
         );
     };
+
+    const handleSelectCustomMonth = (year: number, month: number) => {
+        setIsMonthPickerOpen(false);
+        router.get(
+            '/admin/overview',
+            { period: 'custom_month', year, month },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
+    const availableYears = [2024, 2025, 2026, 2027];
+
+    const monthOptions = [
+        { value: 1, label: t('overview.month_1', 'January') },
+        { value: 2, label: t('overview.month_2', 'February') },
+        { value: 3, label: t('overview.month_3', 'March') },
+        { value: 4, label: t('overview.month_4', 'April') },
+        { value: 5, label: t('overview.month_5', 'May') },
+        { value: 6, label: t('overview.month_6', 'June') },
+        { value: 7, label: t('overview.month_7', 'July') },
+        { value: 8, label: t('overview.month_8', 'August') },
+        { value: 9, label: t('overview.month_9', 'September') },
+        { value: 10, label: t('overview.month_10', 'October') },
+        { value: 11, label: t('overview.month_11', 'November') },
+        { value: 12, label: t('overview.month_12', 'December') },
+    ];
+
+    const activeMonthName = monthOptions.find((m) => m.value === (selectedMonth || currentMonth))?.label || '';
+    const customMonthLabel =
+        period === 'custom_month'
+            ? `${activeMonthName} ${selectedYear || currentYear}`
+            : t('overview.period_custom_month', 'Select Month');
 
     const periods = [
         { id: 'today', label: t('overview.period_today', 'Today') },
@@ -146,8 +204,8 @@ export default function AdminOverview({
                         </p>
                     </div>
 
-                    {/* Period Switcher */}
-                    <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-gray-200/90 bg-white p-1 shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                    {/* Period Switcher & Month Picker */}
+                    <div className="flex flex-wrap items-center gap-1 rounded-xl border border-gray-200/90 bg-white p-1 shadow-xs dark:border-gray-800 dark:bg-gray-900">
                         {periods.map((p) => (
                             <button
                                 key={p.id}
@@ -162,6 +220,82 @@ export default function AdminOverview({
                                 {p.label}
                             </button>
                         ))}
+
+                        <div className="mx-0.5 hidden h-4 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
+
+                        {/* Custom Month & Year Dropdown Picker */}
+                        <div className="relative" ref={pickerRef}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsMonthPickerOpen(!isMonthPickerOpen);
+                                    if (selectedYear) setTempYear(selectedYear);
+                                }}
+                                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all whitespace-nowrap ${
+                                    period === 'custom_month'
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
+                                }`}
+                            >
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span>{customMonthLabel}</span>
+                                <ChevronDown
+                                    className={`h-3 w-3 transition-transform ${
+                                        isMonthPickerOpen ? 'rotate-180' : ''
+                                    }`}
+                                />
+                            </button>
+
+                            {isMonthPickerOpen && (
+                                <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-xl dark:border-gray-800 dark:bg-gray-900 animate-in fade-in zoom-in-95 duration-100">
+                                    <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-gray-800">
+                                        <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            {t('overview.year_label', 'Year')}
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            {availableYears.map((y) => (
+                                                <button
+                                                    key={y}
+                                                    type="button"
+                                                    onClick={() => setTempYear(y)}
+                                                    className={`rounded-md px-2 py-0.5 text-xs font-bold transition-all ${
+                                                        tempYear === y
+                                                            ? 'bg-indigo-600 text-white shadow-xs'
+                                                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+                                                    }`}
+                                                >
+                                                    {y}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                        {monthOptions.map((m) => {
+                                            const isSelected =
+                                                period === 'custom_month' &&
+                                                (selectedYear || currentYear) === tempYear &&
+                                                (selectedMonth || currentMonth) === m.value;
+
+                                            return (
+                                                <button
+                                                    key={m.value}
+                                                    type="button"
+                                                    onClick={() => handleSelectCustomMonth(tempYear, m.value)}
+                                                    className={`rounded-lg px-2 py-1.5 text-center text-xs font-semibold transition-all ${
+                                                        isSelected
+                                                            ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                                                            : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-300'
+                                                    }`}
+                                                >
+                                                    {m.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 

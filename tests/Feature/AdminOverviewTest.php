@@ -108,4 +108,86 @@ class AdminOverviewTest extends TestCase
             );
         }
     }
+
+    public function test_admin_can_filter_overview_by_specific_month_and_year(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+
+        // September 2026 booking (150,000 UZS)
+        $sepBooking = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => '2026-09-10 10:00:00',
+            'end_at' => '2026-09-10 11:00:00',
+            'status' => 'confirmed',
+            'price' => 150000,
+            'is_package_booking' => false,
+        ]);
+        $sepBooking->created_at = '2026-09-10 10:00:00';
+        $sepBooking->save();
+
+        // August 2026 booking (200,000 UZS)
+        $augBooking = Appointment::create([
+            'teacher_id' => $teacher->id,
+            'pupil_id' => $pupil->id,
+            'start_at' => '2026-08-15 10:00:00',
+            'end_at' => '2026-08-15 11:00:00',
+            'status' => 'confirmed',
+            'price' => 200000,
+            'is_package_booking' => false,
+        ]);
+        $augBooking->created_at = '2026-08-15 10:00:00';
+        $augBooking->save();
+
+        $response = $this->actingAs($admin)->get('/admin/overview?period=custom_month&year=2026&month=9');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/overview')
+            ->where('period', 'custom_month')
+            ->where('selectedYear', 2026)
+            ->where('selectedMonth', 9)
+            ->where('metrics.direct_booking_revenue', 150000)
+            ->where('metrics.total_revenue', 150000)
+            ->where('metrics.paid_transactions_count', 1)
+        );
+    }
+
+    public function test_admin_overview_timeline_contains_all_days_of_selected_month(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        // September 2026 has 30 days
+        $sepResponse = $this->actingAs($admin)->get('/admin/overview?period=custom_month&year=2026&month=9');
+        $sepResponse->assertStatus(200);
+        $sepResponse->assertInertia(fn (Assert $page) => $page
+            ->component('admin/overview')
+            ->has('timeline', 30)
+        );
+
+        // October 2026 has 31 days
+        $octResponse = $this->actingAs($admin)->get('/admin/overview?period=custom_month&year=2026&month=10');
+        $octResponse->assertStatus(200);
+        $octResponse->assertInertia(fn (Assert $page) => $page
+            ->component('admin/overview')
+            ->has('timeline', 31)
+        );
+    }
+
+    public function test_admin_overview_handles_invalid_or_out_of_bounds_month_parameters(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->get('/admin/overview?period=custom_month&year=9999&month=99');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/overview')
+            ->where('period', 'custom_month')
+            ->where('selectedYear', now()->year)
+            ->where('selectedMonth', now()->month)
+        );
+    }
 }
