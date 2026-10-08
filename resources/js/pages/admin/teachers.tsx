@@ -51,7 +51,7 @@ import {
     CertificatePreviewData,
 } from '@/components/certificates/CertificatePreviewModal';
 import { useTranslation } from '@/hooks/use-translation';
-import { validateCertificateScores } from '@/config/certificates';
+import { validateCertificateScores, sanitizeScoreInput } from '@/config/certificates';
 
 interface TeacherProfile {
     id: string;
@@ -285,7 +285,13 @@ export default function AdminTeachers({
     const updateCertScore = (index: number, field: string, val: string) => {
         setEditingCerts((prev) => {
             const next = [...prev];
-            next[index] = { ...next[index], [field]: val };
+            const cert = next[index] || {};
+            const currentVal = cert[field] || '';
+            const isScoreField = ['overall', 'listening', 'reading', 'writing', 'speaking'].includes(field);
+            const sanitized = isScoreField
+                ? sanitizeScoreInput(currentVal, val, cert.type, field)
+                : val;
+            next[index] = { ...cert, [field]: sanitized };
             return next;
         });
     };

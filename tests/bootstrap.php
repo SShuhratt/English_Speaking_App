@@ -11,7 +11,7 @@ putenv('DB_CONNECTION=testing');
 putenv('DB_DATABASE=edtech_test');
 putenv('APP_ENV=testing');
 
-$dbHost = gethostbyname('postgres') === 'postgres' ? '127.0.0.1' : 'postgres';
+$dbHost = getenv('DB_HOST') ?: (file_exists('/.dockerenv') ? 'postgres' : '127.0.0.1');
 putenv("DB_HOST={$dbHost}");
 
 $_ENV['DB_CONNECTION'] = 'testing';

@@ -294,7 +294,7 @@ class TelegramAuthController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'role' => ['nullable', 'string', 'in:pupil,teacher'],
             'level' => ['nullable', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'],
-            'age' => ['nullable', 'integer', 'min:5', 'max:120'],
+            'age' => ['nullable', 'integer', 'min:8', 'max:100'],
             'phone_number' => ['nullable', 'string', 'max:30'],
         ]);
 

@@ -134,13 +134,23 @@ export default function Register({ passwordRules }: Props) {
         const numericAge = parseInt(currentAgeStr, 10);
         const requiredMinAge = role === 'teacher' ? 18 : 8;
 
-        if (!currentAgeStr || isNaN(numericAge) || numericAge < requiredMinAge) {
-            const message =
-                locale === 'uz'
-                    ? `Minimal yosh talabi: ${role === 'teacher' ? "O'qituvchilar uchun 18 yosh" : "O'quvchilar uchun 8 yosh"}.`
-                    : locale === 'ru'
-                        ? `Минимальный возраст: ${role === 'teacher' ? '18 лет для преподавателей' : '8 лет для учеников'}.`
-                        : `Minimum age required: ${role === 'teacher' ? '18 years for teachers' : '8 years for pupils'}.`;
+        if (!currentAgeStr || isNaN(numericAge) || numericAge < requiredMinAge || numericAge > 100) {
+            let message = '';
+            if (numericAge > 100) {
+                message =
+                    locale === 'uz'
+                        ? 'Yosh 100 dan oshmasligi kerak.'
+                        : locale === 'ru'
+                            ? 'Возраст не должен превышать 100 лет.'
+                            : 'Age cannot exceed 100 years.';
+            } else {
+                message =
+                    locale === 'uz'
+                        ? `Minimal yosh talabi: ${role === 'teacher' ? "O'qituvchilar uchun 18 yosh" : "O'quvchilar uchun 8 yosh"}.`
+                        : locale === 'ru'
+                            ? `Минимальный возраст: ${role === 'teacher' ? '18 лет для преподавателей' : '8 лет для учеников'}.`
+                            : `Minimum age required: ${role === 'teacher' ? '18 years for teachers' : '8 years for pupils'}.`;
+            }
             setAgeError(message);
             ageInput?.focus();
             return false;
@@ -501,9 +511,26 @@ export default function Register({ passwordRules }: Props) {
                                     type="number"
                                     required
                                     name="age"
+                                    min={role === 'teacher' ? 18 : 8}
+                                    max={100}
                                     value={age}
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     onChange={(e) => {
-                                        setAge(e.target.value);
+                                        const raw = e.target.value.replace(/\D/g, '');
+                                        if (raw === '') {
+                                            setAge('');
+                                            if (ageError) setAgeError(null);
+                                            return;
+                                        }
+                                        const parsed = parseInt(raw, 10);
+                                        if (parsed > 100 || raw.length > 3) {
+                                            return;
+                                        }
+                                        setAge(raw);
                                         if (ageError) setAgeError(null);
                                     }}
                                     autoComplete="bday"

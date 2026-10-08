@@ -7,6 +7,7 @@ import {
     getAvailableExamsForLanguage,
     getDefaultLanguageForExam,
     validateCertificateScore,
+    sanitizeScoreInput,
 } from '@/config/certificates';
 import { useTranslation } from '@/hooks/use-translation';
 
@@ -104,14 +105,23 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
         return '';
     };
 
-    // Helper to update skill value
-    const handleSkillChange = (skillKey: string, value: string) => {
+    // Helper to update overall score value with real-time restriction
+    const handleOverallChange = (candidate: string) => {
+        const currentVal = cert.overall || '';
+        const sanitized = sanitizeScoreInput(currentVal, candidate, cert.type, 'overall');
+        onChange({ ...cert, overall: sanitized });
+    };
+
+    // Helper to update skill value with real-time restriction
+    const handleSkillChange = (skillKey: string, candidate: string) => {
+        const currentVal = getSkillValue(skillKey);
+        const sanitized = sanitizeScoreInput(currentVal, candidate, cert.type, skillKey);
         const updatedSubScores = { ...(cert.sub_scores || {}) };
-        updatedSubScores[skillKey] = value;
+        updatedSubScores[skillKey] = sanitized;
 
         onChange({
             ...cert,
-            [skillKey]: value,
+            [skillKey]: sanitized,
             sub_scores: updatedSubScores,
         });
     };
@@ -347,7 +357,7 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                             name={`certificates[${index}][overall]`}
                             readOnly={readOnly}
                             value={cert.overall || ''}
-                            onChange={(e) => onChange({ ...cert, overall: e.target.value })}
+                            onChange={(e) => handleOverallChange(e.target.value)}
                             placeholder={definition.overall.placeholder}
                             className={`w-full rounded-lg border px-3 py-1.5 text-xs font-bold text-gray-900 focus:outline-none dark:bg-gray-800 dark:text-white ${
                                 overallError

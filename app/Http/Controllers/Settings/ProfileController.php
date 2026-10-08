@@ -123,7 +123,7 @@ class ProfileController extends Controller
 
             // Validate teacher profile details
             $profileData = $request->validate([
-                'age' => ['nullable', 'integer', 'min:1', 'max:120'],
+                'age' => ['nullable', 'integer', 'min:18', 'max:100'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
                 'experience_years' => ['nullable', 'string', 'max:100'],
                 'workplace' => ['nullable', 'string', 'max:255'],
@@ -436,7 +436,7 @@ class ProfileController extends Controller
             $this->validateArrayUploadSuccess($request, 'ielts_certificates', 'certificate file');
 
             $profileData = $request->validate([
-                'age' => ['nullable', 'integer', 'min:1', 'max:120'],
+                'age' => ['nullable', 'integer', 'min:8', 'max:100'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
                 'headline' => ['nullable', 'string', 'max:90'],
                 'bio' => ['nullable', 'string', 'max:600'],

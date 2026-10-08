@@ -86,7 +86,7 @@ class CreateNewUser implements CreatesNewUsers
                 $input['price'] = $sanitizedPrice !== '' ? (int) $sanitizedPrice : null;
             }
 
-            $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
+            $rules['age'] = ['required', 'integer', 'min:1', 'max:100'];
             $rules['phone_number'] = $phoneRule;
             $rules['overall_level'] = ['nullable', 'string', 'max:255'];
             $rules['speaking_band'] = ['nullable', 'numeric', 'min:0', 'max:9'];
@@ -98,7 +98,7 @@ class CreateNewUser implements CreatesNewUsers
             $rules['ielts_certificates'] = ['nullable', 'array'];
             $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
         } elseif ($role === 'pupil') {
-            $rules['age'] = ['required', 'integer', 'min:1', 'max:120'];
+            $rules['age'] = ['required', 'integer', 'min:1', 'max:100'];
             $rules['phone_number'] = $phoneRule;
             $rules['level'] = ['required', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
@@ -110,6 +110,7 @@ class CreateNewUser implements CreatesNewUsers
             'name.min' => 'Name must be at least 2 characters.',
             'phone_number.regex' => 'Please enter a valid phone number (e.g. +998 90 123 45 67).',
             'email.email' => 'Please enter a valid email address.',
+            'age.max' => 'Age cannot exceed 100 years.',
         ];
 
         Validator::make($input, $rules, $messages)->validate();

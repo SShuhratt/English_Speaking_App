@@ -14,6 +14,7 @@ import {
     HelpCircle,
     GraduationCap,
     UserCheck,
+    LayoutDashboard,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -102,6 +103,11 @@ export function AppSidebar() {
         ];
     } else if (role === 'admin') {
         mainNavItems = [
+            {
+                title: t('nav.overview', 'Overview'),
+                href: '/admin/overview',
+                icon: LayoutDashboard,
+            },
             {
                 title: t('nav.payment_confirmations'),
                 href: '/admin/dashboard',

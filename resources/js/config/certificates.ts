@@ -770,3 +770,91 @@ export function validateCertificateScores(
     return errors;
 }
 
+export function sanitizeScoreInput(
+    currentVal: string,
+    candidate: string,
+    examType?: string,
+    skillKey: string = 'overall'
+): string {
+    if (!candidate || candidate === '') {
+        return '';
+    }
+
+    const type = examType || 'ielts';
+    const def = CERTIFICATE_DEFINITIONS.find((d) => d.id === type);
+    if (!def) {
+        return candidate;
+    }
+
+    let rule: { min?: number; max?: number; step?: number | string; placeholder?: string; options?: any[] } | undefined;
+    if (skillKey === 'overall') {
+        rule = def.overall;
+    } else {
+        rule = def.skills.find((s) => s.key === skillKey);
+    }
+
+    if (rule?.options) {
+        return candidate;
+    }
+
+    if (!rule || rule.max === undefined) {
+        return candidate;
+    }
+
+    const max = rule.max;
+    const step = typeof rule.step === 'number' ? rule.step : parseFloat(String(rule.step || '1'));
+    const allowsDecimal = step < 1 || !Number.isInteger(step);
+
+    let normalized = candidate.replace(',', '.').trim();
+
+    if (allowsDecimal) {
+        if (!/^\d*\.?\d*$/.test(normalized)) {
+            return currentVal;
+        }
+        const parts = normalized.split('.');
+        if (parts.length === 2 && parts[1].length > 1) {
+            return currentVal;
+        }
+    } else {
+        if (!/^\d*$/.test(normalized)) {
+            return currentVal;
+        }
+    }
+
+    if (normalized.length > 1 && normalized.startsWith('0') && !normalized.startsWith('0.')) {
+        normalized = normalized.replace(/^0+/, '') || '0';
+    }
+
+    if (normalized === '.') {
+        return '0.';
+    }
+    if (normalized.endsWith('.')) {
+        const prefixNum = parseFloat(normalized.slice(0, -1));
+        if (isNaN(prefixNum) || prefixNum > max) {
+            return currentVal;
+        }
+        return normalized;
+    }
+
+    const numVal = parseFloat(normalized);
+    if (isNaN(numVal)) {
+        return currentVal;
+    }
+
+    if (numVal > max) {
+        return currentVal;
+    }
+
+    if (allowsDecimal && Math.abs(step - 0.5) < 0.001) {
+        const parts = normalized.split('.');
+        if (parts.length === 2 && parts[1].length === 1) {
+            const decDigit = parts[1];
+            if (decDigit !== '0' && decDigit !== '5') {
+                return currentVal;
+            }
+        }
+    }
+
+    return normalized;
+}
+

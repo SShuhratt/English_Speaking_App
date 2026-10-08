@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminOverviewController;
 use App\Http\Controllers\AdminSupportController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AppointmentMaterialController;
@@ -71,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin Routes
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+        Route::get('/overview', [AdminOverviewController::class, 'index'])->name('overview');
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::post('/appointments/{id}/confirm-payment', [AdminDashboardController::class, 'confirmPayment'])->name('appointments.confirm-payment');
         Route::post('/appointments/{id}/reject-payment', [AdminDashboardController::class, 'rejectPayment'])->name('appointments.reject-payment');

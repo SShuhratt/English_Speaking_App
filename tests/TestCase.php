@@ -9,6 +9,14 @@ abstract class TestCase extends BaseTestCase
 {
     protected function setUp(): void
     {
+        if (! $this->app) {
+            $this->refreshApplication();
+        }
+
+        if (! file_exists('/.dockerenv')) {
+            config(['database.connections.testing.host' => '127.0.0.1']);
+        }
+
         parent::setUp();
 
         $defaultConnection = config('database.default');
