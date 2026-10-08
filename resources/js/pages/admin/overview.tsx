@@ -129,14 +129,34 @@ export default function AdminOverview({
         return `${Number(val || 0).toLocaleString('ru-RU').replace(/,/g, ' ')} ${suffix}`;
     };
 
+    const monthNamesMap: Record<'uz' | 'ru' | 'en', string[]> = {
+        uz: [
+            'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+            'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
+        ],
+        ru: [
+            'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
+        ],
+        en: [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        ],
+    };
+
     const formatPointDate = (dateStr: string) => {
         try {
             const [y, m, d] = dateStr.split('-').map(Number);
-            const dateObj = new Date(y, m - 1, d);
-            return dateObj.toLocaleDateString(
-                locale === 'ru' ? 'ru-RU' : locale === 'uz' ? 'uz-UZ' : 'en-US',
-                { month: 'short', day: '2-digit' }
-            );
+            const lang = locale === 'uz' || locale === 'ru' || locale === 'en' ? locale : 'en';
+            const monthName = monthNamesMap[lang][m - 1] || '';
+
+            if (lang === 'uz') {
+                return `${d}-${monthName}`;
+            }
+            if (lang === 'ru') {
+                return `${d} ${monthName}`;
+            }
+            return `${monthName} ${d}`;
         } catch {
             return dateStr;
         }
@@ -146,15 +166,22 @@ export default function AdminOverview({
         try {
             if (tx.raw_date) {
                 const d = new Date(tx.raw_date * 1000);
-                const datePart = d.toLocaleDateString(
-                    locale === 'ru' ? 'ru-RU' : locale === 'uz' ? 'uz-UZ' : 'en-US',
-                    { month: 'short', day: '2-digit' }
-                );
-                const timePart = d.toLocaleTimeString(
-                    locale === 'ru' ? 'ru-RU' : locale === 'uz' ? 'uz-UZ' : 'en-US',
-                    { hour: '2-digit', minute: '2-digit', hour12: false }
-                );
-                return `${datePart}, ${timePart}`;
+                const day = d.getDate();
+                const monthIndex = d.getMonth();
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                const timePart = `${hours}:${minutes}`;
+
+                const lang = locale === 'uz' || locale === 'ru' || locale === 'en' ? locale : 'en';
+                const monthName = monthNamesMap[lang][monthIndex] || '';
+
+                if (lang === 'uz') {
+                    return `${day}-${monthName}, ${timePart}`;
+                }
+                if (lang === 'ru') {
+                    return `${day} ${monthName}, ${timePart}`;
+                }
+                return `${monthName} ${day}, ${timePart}`;
             }
             return tx.date;
         } catch {
