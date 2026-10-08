@@ -522,7 +522,7 @@ export default function AdminOverview({
                                     {t('overview.satisfaction_rating', 'Satisfaction Rating')}:
                                 </span>
                                 <span className="inline-flex items-center font-black text-amber-600 dark:text-amber-400">
-                                    ★ {metrics.satisfaction_rating} / 5.0
+                                    ★ {Number(metrics.satisfaction_rating).toFixed(1)} / 10.0
                                 </span>
                             </div>
                             <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between text-[11px] text-gray-400">

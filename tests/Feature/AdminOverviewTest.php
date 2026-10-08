@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Appointment;
+use App\Models\Conversation;
+use App\Models\Feedback;
 use App\Models\PupilPackage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -188,6 +190,67 @@ class AdminOverviewTest extends TestCase
             ->where('period', 'custom_month')
             ->where('selectedYear', now()->year)
             ->where('selectedMonth', now()->month)
+        );
+    }
+
+    public function test_admin_overview_calculates_satisfaction_rating_on_ten_point_scale(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        $teacher = User::factory()->create(['role' => 'teacher']);
+
+        $conversation = Conversation::create([
+            'pupil_id' => $pupil->id,
+            'teacher_id' => $teacher->id,
+            'started_at' => now(),
+        ]);
+
+        // 1. Pupil gives 8/10
+        Feedback::create([
+            'conversation_id' => $conversation->id,
+            'pupil_id' => $pupil->id,
+            'teacher_id' => $teacher->id,
+            'rating_score' => 8,
+            'comment_text' => 'Great lesson!',
+        ]);
+
+        // 2. Pupil gives 9/10
+        Feedback::create([
+            'conversation_id' => $conversation->id,
+            'pupil_id' => $pupil->id,
+            'teacher_id' => $teacher->id,
+            'rating_score' => 9,
+            'comment_text' => 'Very helpful lesson!',
+        ]);
+
+        // 3. Teacher feedback without rating_score (text-only)
+        Feedback::create([
+            'conversation_id' => $conversation->id,
+            'pupil_id' => $pupil->id,
+            'teacher_id' => $teacher->id,
+            'rating_score' => null,
+            'comment_text' => 'Pupil was attentive.',
+        ]);
+
+        $response = $this->actingAs($admin)->get('/admin/overview?period=this_month');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/overview')
+            ->where('metrics.satisfaction_rating', 8.5)
+        );
+    }
+
+    public function test_admin_overview_satisfaction_rating_defaults_to_ten_when_no_feedbacks_exist(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->get('/admin/overview?period=this_month');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/overview')
+            ->where('metrics.satisfaction_rating', fn ($val) => (float) $val === 10.0)
         );
     }
 }

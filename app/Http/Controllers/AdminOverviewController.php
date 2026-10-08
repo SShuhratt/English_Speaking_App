@@ -183,13 +183,18 @@ class AdminOverviewController extends Controller
             ->where('start_at', '>', now())
             ->count();
 
-        // 5. Satisfaction Rating (Feedbacks)
-        $feedbackQuery = Feedback::query();
+        // 5. Satisfaction Rating (Feedbacks on 1-10 scale)
+        $feedbackQuery = Feedback::whereNotNull('rating_score');
         if ($start && $end) {
             $feedbackQuery->whereBetween('created_at', [$start, $end]);
         }
         $avgFeedback = $feedbackQuery->avg('rating_score');
-        $satisfactionRating = round((float) ($avgFeedback ?: Feedback::avg('rating_score') ?: 5.0), 1);
+        if ($avgFeedback !== null) {
+            $satisfactionRating = round((float) $avgFeedback, 1);
+        } else {
+            $overallAvg = Feedback::whereNotNull('rating_score')->avg('rating_score');
+            $satisfactionRating = round((float) ($overallAvg ?? 10.0), 1);
+        }
 
         // 6. User Growth
         $pupilsQuery = User::where('role', 'pupil');
