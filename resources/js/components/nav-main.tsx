@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
     SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -14,9 +13,6 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="mb-1 px-2 py-1 text-xs font-semibold text-slate-400 uppercase">
-                Platform
-            </SidebarGroupLabel>
             <SidebarMenu className="space-y-1">
                 {items.map((item) => {
                     const active = isCurrentUrl(item.href);
