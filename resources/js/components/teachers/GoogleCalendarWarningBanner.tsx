@@ -19,17 +19,17 @@ export default function GoogleCalendarWarningBanner({ user: propUser, className 
 
     return (
         <div
-            className={`flex flex-col items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50/80 p-5 shadow-sm md:flex-row ${className}`}
+            className={`flex flex-col items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50/80 p-5 shadow-sm md:flex-row dark:border-rose-500/30 dark:bg-rose-950/40 ${className}`}
         >
             <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-900/50 dark:text-rose-300">
                     <Calendar className="h-5 w-5" />
                 </div>
                 <div>
-                    <h4 className="font-bold text-rose-900">
+                    <h4 className="font-bold text-rose-900 dark:text-rose-200">
                         {t('dashboard.google_not_connected') || 'Google Calendar Not Connected'}
                     </h4>
-                    <p className="mt-0.5 text-xs text-rose-700">
+                    <p className="mt-0.5 text-xs text-rose-700 dark:text-rose-300/80">
                         {t('dashboard.google_not_connected_desc') ||
                             'Connect your Google account to automatically generate Google Meet links for your sessions.'}
                     </p>

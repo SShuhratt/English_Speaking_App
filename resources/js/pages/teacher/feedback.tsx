@@ -26,7 +26,7 @@ export default function Feedback({ feedbacks }: Props) {
             <Head title={t('teacher.feedback_title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
@@ -37,7 +37,7 @@ export default function Feedback({ feedbacks }: Props) {
                         <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('teacher.feedback_title')}
                         </h1>
-                        <p className="text-sm font-medium text-brand-lightblue/80">
+                        <p className="text-sm font-medium text-brand-lightblue/80 dark:text-slate-300">
                             {t('teacher.feedback_desc')}
                         </p>
                     </div>
@@ -75,7 +75,7 @@ export default function Feedback({ feedbacks }: Props) {
                                 >
                                     <div className="mb-4 flex flex-col justify-between gap-4 border-b border-border/60 pb-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 dark:bg-white/10 dark:text-white">
                                                 <User className="h-5.5 w-5.5" />
                                             </div>
                                             <div>
@@ -154,7 +154,7 @@ export default function Feedback({ feedbacks }: Props) {
                                         {sessionDate && (
                                             <div className="flex flex-col justify-between gap-3 rounded-2xl border border-border/40 bg-muted/30 p-4 text-xs font-semibold sm:flex-row sm:items-center">
                                                 <div className="flex items-center gap-2 text-muted-foreground">
-                                                    <Calendar className="h-4 w-4 shrink-0 text-brand-brown" />
+                                                    <Calendar className="h-4 w-4 shrink-0 text-brand-brown dark:text-brand-yellow/80" />
                                                     <span className="text-foreground">
                                                         {t(
                                                             'teacher.feedback_session_info',
@@ -175,7 +175,7 @@ export default function Feedback({ feedbacks }: Props) {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-muted-foreground">
-                                                    <Clock className="h-4 w-4 shrink-0 text-brand-brown" />
+                                                    <Clock className="h-4 w-4 shrink-0 text-brand-brown dark:text-brand-yellow/80" />
                                                     <span>
                                                         {sessionDate.toLocaleTimeString(
                                                             [],
@@ -202,7 +202,7 @@ export default function Feedback({ feedbacks }: Props) {
                                         )}
 
                                         <div className="pt-2">
-                                            <p className="border-l-2 border-brand-brown/30 pl-4 text-sm leading-relaxed font-medium text-muted-foreground italic">
+                                            <p className="border-l-2 border-brand-brown/30 pl-4 text-sm leading-relaxed font-medium text-muted-foreground italic dark:border-brand-yellow/40">
                                                 "{fb.comment}"
                                             </p>
                                         </div>

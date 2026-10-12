@@ -166,7 +166,7 @@ export default function Sessions({ appointments }: Props) {
                 style={{ fontFamily: "'Schibsted Grotesk', sans-serif" }}
             >
                 {/* Header Section */}
-                <div className="relative overflow-hidden rounded-3xl bg-[#1E2A5A] p-8 text-white shadow-xl">
+                <div className="relative overflow-hidden rounded-3xl bg-[#1E2A5A] p-8 text-white shadow-xl dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-[#F0CE5F]/10 blur-2xl" />
 
                     <div className="relative z-10 space-y-2">
@@ -181,28 +181,28 @@ export default function Sessions({ appointments }: Props) {
                         >
                             {t('sessions.history_title')}
                         </h1>
-                        <p className="text-sm font-medium text-white/70">
+                        <p className="text-sm font-medium text-white/80 dark:text-slate-300">
                             {t('sessions.history_desc')}
                         </p>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex flex-wrap gap-2 rounded-2xl border border-[#E8E6DE] bg-white p-1.5 shadow-sm">
+                <div className="flex flex-wrap gap-2 rounded-2xl border border-[#E8E6DE] bg-white p-1.5 shadow-sm dark:border-white/10 dark:bg-card">
                     <button
                         onClick={() => setActiveTab('all')}
                         className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                             activeTab === 'all'
-                                ? 'bg-[#1E2A5A] text-white shadow-sm'
-                                : 'text-[#6B7394] hover:bg-[#EEF4FB]'
+                                ? 'bg-[#1E2A5A] text-white shadow-sm dark:bg-brand-yellow dark:text-[#061445]'
+                                : 'text-[#6B7394] hover:bg-[#EEF4FB] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'
                         }`}
                     >
                         {t('sessions.tab_all')}
                         <span
                             className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                                 activeTab === 'all'
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-[#EEF4FB] text-[#1E2A5A]'
+                                    ? 'bg-white/20 text-white dark:bg-[#061445]/20 dark:text-[#061445]'
+                                    : 'bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/10 dark:text-slate-300'
                             }`}
                         >
                             {allItems.length}
@@ -212,8 +212,8 @@ export default function Sessions({ appointments }: Props) {
                         onClick={() => setActiveTab('upcoming')}
                         className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                             activeTab === 'upcoming'
-                                ? 'bg-[#1E2A5A] text-white shadow-sm'
-                                : 'text-[#6B7394] hover:bg-[#EEF4FB]'
+                                ? 'bg-[#1E2A5A] text-white shadow-sm dark:bg-brand-yellow dark:text-[#061445]'
+                                : 'text-[#6B7394] hover:bg-[#EEF4FB] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'
                         }`}
                     >
                         {t('sessions.tab_upcoming')}
@@ -221,8 +221,8 @@ export default function Sessions({ appointments }: Props) {
                             <span
                                 className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                                     activeTab === 'upcoming'
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-[#EEF4FB] text-[#1E2A5A]'
+                                        ? 'bg-white/20 text-white dark:bg-[#061445]/20 dark:text-[#061445]'
+                                        : 'bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/10 dark:text-slate-300'
                                 }`}
                             >
                                 {upcomingCount}
@@ -233,8 +233,8 @@ export default function Sessions({ appointments }: Props) {
                         onClick={() => setActiveTab('completed')}
                         className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                             activeTab === 'completed'
-                                ? 'bg-[#1E2A5A] text-white shadow-sm'
-                                : 'text-[#6B7394] hover:bg-[#EEF4FB]'
+                                ? 'bg-[#1E2A5A] text-white shadow-sm dark:bg-brand-yellow dark:text-[#061445]'
+                                : 'text-[#6B7394] hover:bg-[#EEF4FB] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'
                         }`}
                     >
                         {t('sessions.tab_completed')}
@@ -242,8 +242,8 @@ export default function Sessions({ appointments }: Props) {
                             <span
                                 className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                                     activeTab === 'completed'
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-[#EEF4FB] text-[#1E2A5A]'
+                                        ? 'bg-white/20 text-white dark:bg-[#061445]/20 dark:text-[#061445]'
+                                        : 'bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/10 dark:text-slate-300'
                                 }`}
                             >
                                 {completedCount}
@@ -301,29 +301,29 @@ export default function Sessions({ appointments }: Props) {
                                         key={apt.id}
                                         className={`relative rounded-3xl border-2 p-6 transition-all ${
                                             isTrial
-                                                ? 'border-[#F7DE8B] bg-[#FBEDBD]/60 shadow-sm'
-                                                : 'border-[#E8E6DE] bg-white shadow-sm'
+                                                ? 'border-[#F7DE8B] bg-[#FBEDBD]/60 shadow-sm dark:border-amber-500/30 dark:bg-[#1a1708]'
+                                                : 'border-[#E8E6DE] bg-white shadow-sm dark:border-white/10 dark:bg-card'
                                         }`}
                                     >
                                         <div className="mb-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 {isTrial ? (
-                                                    <span className="rounded-full bg-[#1E2A5A] px-3 py-1 text-[10px] font-extrabold tracking-wider text-[#F7DE8B] uppercase">
+                                                    <span className="rounded-full bg-[#1E2A5A] px-3 py-1 text-[10px] font-extrabold tracking-wider text-[#F7DE8B] uppercase dark:border dark:border-amber-500/30 dark:bg-amber-950/80 dark:text-brand-yellow">
                                                         {t('sessions.trial_badge', { duration: durationMinutes })}
                                                     </span>
                                                 ) : (
-                                                    <span className="rounded-full border border-[#A9C6E8] bg-[#E4EEF9] px-3 py-1 text-[10px] font-extrabold tracking-wider text-[#1E2A5A] uppercase">
+                                                    <span className="rounded-full border border-[#A9C6E8] bg-[#E4EEF9] px-3 py-1 text-[10px] font-extrabold tracking-wider text-[#1E2A5A] uppercase dark:border-white/15 dark:bg-white/10 dark:text-slate-200">
                                                         {t('sessions.lesson_badge', { duration: durationMinutes })}
                                                     </span>
                                                 )}
                                                 {apt.status === 'confirmed' ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-[#DDF2E6] px-2.5 py-0.5 text-[10.5px] font-bold text-[#1E7A4D]">
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-[#DDF2E6] px-2.5 py-0.5 text-[10.5px] font-bold text-[#1E7A4D] dark:border dark:border-emerald-500/20 dark:bg-emerald-950/60 dark:text-emerald-400">
                                                         <Check className="h-3 w-3" />{' '}
                                                         {t('sessions.paid_badge')}
                                                     </span>
                                                 ) : apt.status ===
                                                   'accepted' ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full border border-[#F7DE8B] bg-[#FFF9E5] px-2.5 py-0.5 text-[10.5px] font-bold text-[#8A6A12]">
+                                                    <span className="inline-flex items-center gap-1 rounded-full border border-[#F7DE8B] bg-[#FFF9E5] px-2.5 py-0.5 text-[10.5px] font-bold text-[#8A6A12] dark:border-amber-500/30 dark:bg-amber-950/60 dark:text-brand-yellow">
                                                         {t('sessions.awaiting_payment')}
                                                     </span>
                                                 ) : (
@@ -333,7 +333,7 @@ export default function Sessions({ appointments }: Props) {
                                                 )}
                                             </div>
 
-                                            <div className="text-xs font-semibold text-[#6B7394]">
+                                            <div className="text-xs font-semibold text-[#6B7394] dark:text-slate-400">
                                                 {formattedDate} ·{' '}
                                                 {formattedTimeStr}
                                             </div>
@@ -342,7 +342,7 @@ export default function Sessions({ appointments }: Props) {
                                         <div className="flex items-start justify-between gap-4">
                                             <div>
                                                 <h3
-                                                    className="text-lg font-extrabold text-[#22284A]"
+                                                    className="text-lg font-extrabold text-[#22284A] dark:text-white"
                                                     style={{
                                                         fontFamily:
                                                             "'Bricolage Grotesque', sans-serif",
@@ -351,12 +351,12 @@ export default function Sessions({ appointments }: Props) {
                                                     {pupilName}
                                                 </h3>
                                                 {isTrial && (
-                                                    <p className="mt-0.5 text-xs font-semibold text-[#8A6A12]">
+                                                    <p className="mt-0.5 text-xs font-semibold text-[#8A6A12] dark:text-amber-400">
                                                         {t('sessions.new_student_desc')}
                                                     </p>
                                                 )}
-                                                <div className="mt-2 flex items-center gap-2 text-xs text-[#6B7394]">
-                                                    <strong className="font-bold text-[#1E2A5A]">
+                                                <div className="mt-2 flex items-center gap-2 text-xs text-[#6B7394] dark:text-slate-400">
+                                                    <strong className="font-bold text-[#1E2A5A] dark:text-brand-yellow">
                                                         {formattedPriceStr}
                                                     </strong>
                                                     <span>
@@ -376,7 +376,7 @@ export default function Sessions({ appointments }: Props) {
                                                                 apt,
                                                             )
                                                         }
-                                                        className="rounded-full bg-[#1E2A5A] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#1E2A5A]/90"
+                                                        className="rounded-full bg-[#1E2A5A] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#1E2A5A]/90 dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-brand-yellow-hover"
                                                     >
                                                         {t('sessions.join_lesson')}
                                                     </button>
@@ -390,7 +390,7 @@ export default function Sessions({ appointments }: Props) {
                                                                     apt,
                                                                 )
                                                             }
-                                                            className="rounded-full border border-[#1E2A5A]/20 px-3.5 py-2 text-xs font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB]"
+                                                            className="rounded-full border border-[#1E2A5A]/20 px-3.5 py-2 text-xs font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB] dark:border-white/20 dark:text-white dark:hover:bg-white/10"
                                                         >
                                                             {t('sessions.feedback_btn')}
                                                         </button>
@@ -402,8 +402,8 @@ export default function Sessions({ appointments }: Props) {
                                                         onClick={() => handleOpenAssessmentModal(apt)}
                                                         className={`rounded-full px-3.5 py-2 text-xs font-bold transition-all flex items-center gap-1.5 ${
                                                             apt.assessment
-                                                                ? 'bg-amber-50 border border-amber-300 text-amber-800 hover:bg-amber-100'
-                                                                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                                                                ? 'bg-amber-50 border border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-950/60 dark:text-brand-yellow dark:hover:bg-amber-900/50'
+                                                                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm dark:bg-indigo-500 dark:hover:bg-indigo-600'
                                                         }`}
                                                     >
                                                         <Sparkles className="h-3.5 w-3.5" />
@@ -420,8 +420,8 @@ export default function Sessions({ appointments }: Props) {
                                         </div>
 
                                         {teacherFeedback && (
-                                            <div className="mt-3 rounded-2xl border border-[#E8E6DE] bg-white/80 p-3 text-xs text-[#6B7394]">
-                                                <b className="text-[#1E2A5A]">
+                                            <div className="mt-3 rounded-2xl border border-[#E8E6DE] bg-white/80 p-3 text-xs text-[#6B7394] dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+                                                <b className="text-[#1E2A5A] dark:text-brand-yellow">
                                                     {t('sessions.your_feedback_prefix')}
                                                 </b>{' '}
                                                 "{teacherFeedback.comment}"
@@ -429,19 +429,19 @@ export default function Sessions({ appointments }: Props) {
                                         )}
 
                                         {apt.assessment && (
-                                            <div className="mt-2.5 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/70 to-orange-50/40 p-3 text-xs text-amber-950">
+                                            <div className="mt-2.5 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/70 to-orange-50/40 p-3 text-xs text-amber-950 dark:border-amber-500/20 dark:from-amber-950/40 dark:to-orange-950/20 dark:text-amber-100">
                                                 <div className="flex flex-wrap items-center justify-between gap-1.5">
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-black px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 text-[11px]">
                                                             Band {Number(apt.assessment.overall_score).toFixed(1)}
                                                         </span>
-                                                        <span className="text-slate-600 font-medium">
+                                                        <span className="text-slate-600 font-medium dark:text-slate-300">
                                                             Fluency {apt.assessment.fluency_score} · Lexical {apt.assessment.lexical_score} · Grammar {apt.assessment.grammar_score} · Pronunciation {apt.assessment.pronunciation_score}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 {apt.assessment.teacher_notes && (
-                                                    <div className="mt-1.5 text-slate-600 italic">
+                                                    <div className="mt-1.5 text-slate-600 italic dark:text-slate-300">
                                                         "{apt.assessment.teacher_notes}"
                                                     </div>
                                                 )}
@@ -451,18 +451,18 @@ export default function Sessions({ appointments }: Props) {
                                 );
                             })
                         ) : (
-                            <div className="rounded-3xl border border-dashed border-[#E8E6DE] bg-white p-12 text-center text-[#6B7394]">
-                                <Clock className="mx-auto mb-3 h-10 w-10 text-[#6B7394]/40" />
-                                <p className="text-base font-bold text-[#22284A]">
+                            <div className="rounded-3xl border border-dashed border-[#E8E6DE] bg-white p-12 text-center text-[#6B7394] dark:border-white/10 dark:bg-card dark:text-slate-400">
+                                <Clock className="mx-auto mb-3 h-10 w-10 text-[#6B7394]/40 dark:text-slate-600" />
+                                <p className="text-base font-bold text-[#22284A] dark:text-white">
                                     {t('sessions.no_lessons')}
                                 </p>
-                                <p className="mt-1 text-xs text-[#6B7394]">
+                                <p className="mt-1 text-xs text-[#6B7394] dark:text-slate-400">
                                     {t('sessions.no_lessons_desc')}
                                 </p>
                             </div>
                         )}
 
-                        <p className="pt-2 text-center text-xs text-[#6B7394]">
+                        <p className="pt-2 text-center text-xs text-[#6B7394] dark:text-slate-400">
                             {t('sessions.unpaid_note')}
                         </p>
                     </div>
@@ -470,17 +470,17 @@ export default function Sessions({ appointments }: Props) {
                     {/* Right Sidebar */}
                     <div className="space-y-6">
                         {/* Quick Stats Card */}
-                        <div className="rounded-3xl border border-[#E8E6DE] bg-white p-6 shadow-sm">
-                            <div className="mb-4 text-[11px] font-extrabold tracking-wider text-[#6B7394] uppercase">
+                        <div className="rounded-3xl border border-[#E8E6DE] bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card">
+                            <div className="mb-4 text-[11px] font-extrabold tracking-wider text-[#6B7394] uppercase dark:text-slate-400">
                                 {t('sessions.quick_stats')}
                             </div>
                             <div className="space-y-3.5 text-sm">
-                                <div className="flex items-center justify-between border-b border-[#E8E6DE] pb-3">
-                                    <span className="font-medium text-[#6B7394]">
+                                <div className="flex items-center justify-between border-b border-[#E8E6DE] pb-3 dark:border-white/10">
+                                    <span className="font-medium text-[#6B7394] dark:text-slate-400">
                                         {t('sessions.trials_this_week')}
                                     </span>
                                     <span
-                                        className="text-base font-extrabold text-[#1E2A5A]"
+                                        className="text-base font-extrabold text-[#1E2A5A] dark:text-white"
                                         style={{
                                             fontFamily:
                                                 "'Bricolage Grotesque', sans-serif",
@@ -489,12 +489,12 @@ export default function Sessions({ appointments }: Props) {
                                         {trialsThisWeek}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between border-b border-[#E8E6DE] pb-3">
-                                    <span className="font-medium text-[#6B7394]">
+                                <div className="flex items-center justify-between border-b border-[#E8E6DE] pb-3 dark:border-white/10">
+                                    <span className="font-medium text-[#6B7394] dark:text-slate-400">
                                         {t('sessions.tab_upcoming')}
                                     </span>
                                     <span
-                                        className="text-base font-extrabold text-[#1E2A5A]"
+                                        className="text-base font-extrabold text-[#1E2A5A] dark:text-white"
                                         style={{
                                             fontFamily:
                                                 "'Bricolage Grotesque', sans-serif",
@@ -504,11 +504,11 @@ export default function Sessions({ appointments }: Props) {
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="font-medium text-[#6B7394]">
+                                    <span className="font-medium text-[#6B7394] dark:text-slate-400">
                                         {t('sessions.tab_completed')}
                                     </span>
                                     <span
-                                        className="text-base font-extrabold text-[#1E2A5A]"
+                                        className="text-base font-extrabold text-[#1E2A5A] dark:text-white"
                                         style={{
                                             fontFamily:
                                                 "'Bricolage Grotesque', sans-serif",
@@ -521,12 +521,12 @@ export default function Sessions({ appointments }: Props) {
                         </div>
 
                         {/* Marketplace Tip Card */}
-                        <div className="border-1.5 rounded-3xl border-[#F7DE8B] bg-[#FBEDBD]/70 p-6 shadow-sm">
-                            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-black tracking-wider text-[#8A6A12] uppercase">
-                                <Sparkles className="h-4 w-4 text-[#8A6A12]" />{' '}
+                        <div className="border-1.5 rounded-3xl border-[#F7DE8B] bg-[#FBEDBD]/70 p-6 shadow-sm dark:border-amber-500/30 dark:bg-[#1a1708]">
+                            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-black tracking-wider text-[#8A6A12] uppercase dark:text-brand-yellow">
+                                <Sparkles className="h-4 w-4 text-[#8A6A12] dark:text-brand-yellow" />{' '}
                                 {t('sessions.marketplace_tip_title')}
                             </div>
-                            <p className="text-xs leading-relaxed font-medium text-[#5C4500]">
+                            <p className="text-xs leading-relaxed font-medium text-[#5C4500] dark:text-amber-200/90">
                                 {t('sessions.marketplace_tip_desc')}
                             </p>
                         </div>

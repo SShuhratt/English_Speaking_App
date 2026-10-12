@@ -123,17 +123,17 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
     return (
         <div className="space-y-4">
             {isConnected ? (
-                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-sky-200/80 bg-sky-50/40 p-6 sm:flex-row sm:items-center">
+                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-sky-200/80 bg-sky-50/40 p-6 sm:flex-row sm:items-center dark:border-sky-500/20 dark:bg-sky-950/20">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-500 text-white shadow-sm shadow-sky-200">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-500 text-white shadow-sm shadow-sky-200 dark:shadow-none">
                             <Send className="h-6 w-6" />
                         </div>
                         <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2.5">
-                                <h4 className="text-base font-bold text-gray-900">
+                                <h4 className="text-base font-bold text-gray-900 dark:text-white">
                                     Telegram Notifications
                                 </h4>
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-100/90 px-2.5 py-0.5 text-xs font-semibold text-sky-800">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-100/90 px-2.5 py-0.5 text-xs font-semibold text-sky-800 dark:border-sky-500/30 dark:bg-sky-900/40 dark:text-sky-300">
                                     <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
                                     <CheckCircle2 className="h-3 w-3" />
                                     <span>
@@ -143,7 +143,7 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                                     </span>
                                 </span>
                             </div>
-                            <p className="max-w-xl text-xs leading-relaxed text-gray-600">
+                            <p className="max-w-xl text-xs leading-relaxed text-gray-600 dark:text-gray-300">
                                 You are receiving instant alerts for booking requests, confirmations, meeting links, and 5-minute pre-session reminders on Telegram.
                             </p>
                         </div>
@@ -154,7 +154,7 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                             type="button"
                             variant="outline"
                             onClick={() => setIsDisconnectDialogOpen(true)}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-bold text-rose-600 shadow-sm transition-all hover:bg-rose-50 hover:text-rose-700 active:scale-95 sm:w-auto"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-bold text-rose-600 shadow-sm transition-all hover:bg-rose-50 hover:text-rose-700 active:scale-95 sm:w-auto dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/40 dark:hover:text-rose-300"
                         >
                             <Unlink className="h-3.5 w-3.5" />
                             <span>Disconnect Telegram</span>
@@ -162,21 +162,21 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-brand-pale-blue/40 bg-[#F8FAFC] p-6 sm:flex-row sm:items-center">
+                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-brand-pale-blue/40 bg-[#F8FAFC] p-6 sm:flex-row sm:items-center dark:border-white/10 dark:bg-card">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E0E7FF] text-[#4F46E5] shadow-sm">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E0E7FF] text-[#4F46E5] shadow-sm dark:bg-indigo-950/50 dark:text-indigo-400">
                             <Send className="h-6 w-6" />
                         </div>
                         <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2.5">
-                                <h4 className="text-base font-bold text-gray-900">
+                                <h4 className="text-base font-bold text-gray-900 dark:text-white">
                                     Telegram Notifications
                                 </h4>
-                                <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+                                <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
                                     Not connected
                                 </span>
                             </div>
-                            <p className="max-w-xl text-xs leading-relaxed text-gray-600">
+                            <p className="max-w-xl text-xs leading-relaxed text-gray-600 dark:text-gray-300">
                                 Connect our official Telegram bot to receive instant lesson alerts, Google Meet room links, and 5-minute pre-session notifications directly on your phone.
                             </p>
                         </div>
@@ -202,9 +202,9 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                             type="button"
                             variant="outline"
                             onClick={handleOpenPairingModal}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
                         >
-                            <KeyRound className="h-3.5 w-3.5 text-gray-500" />
+                            <KeyRound className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                             <span>Pairing Code</span>
                         </Button>
                     </div>
@@ -213,20 +213,20 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
 
             {/* Modal: 6-Digit Pairing Code */}
             <Dialog open={isPairingDialogOpen} onOpenChange={setIsPairingDialogOpen}>
-                <DialogContent className="max-w-md rounded-3xl p-6 sm:p-8">
-                    <DialogTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
+                <DialogContent className="max-w-md rounded-3xl p-6 sm:p-8 dark:border-white/10 dark:bg-card dark:text-white">
+                    <DialogTitle className="flex items-center gap-3 text-lg font-bold text-gray-900 dark:text-white">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
                             <KeyRound className="h-5 w-5" />
                         </div>
                         <span>Connect via 6-Digit Code</span>
                     </DialogTitle>
-                    <DialogDescription className="text-xs leading-relaxed text-gray-600">
+                    <DialogDescription className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
                         Follow these simple steps to link your Telegram account manually:
                     </DialogDescription>
 
                     <div className="my-2 space-y-4">
-                        <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 text-center">
-                            <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-600">
+                        <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 text-center dark:border-sky-500/20 dark:bg-sky-950/30">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400">
                                 Your Temporary Pairing Code
                             </span>
                             {isGeneratingCode ? (
@@ -235,14 +235,14 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                                 </div>
                             ) : (
                                 <div className="my-2 flex items-center justify-center gap-2">
-                                    <span className="font-mono text-3xl font-extrabold tracking-[0.25em] text-gray-900">
+                                    <span className="font-mono text-3xl font-extrabold tracking-[0.25em] text-gray-900 dark:text-white">
                                         {pairingCode || '------'}
                                     </span>
                                     {pairingCode && (
                                         <button
                                             type="button"
                                             onClick={handleCopyCode}
-                                            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-sky-100 hover:text-sky-700"
+                                            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-sky-100 hover:text-sky-700 dark:text-gray-400 dark:hover:bg-sky-900/40 dark:hover:text-sky-300"
                                             title="Copy Code"
                                         >
                                             {hasCopied ? (
@@ -254,17 +254,17 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                                     )}
                                 </div>
                             )}
-                            <p className="text-[11px] text-gray-500">
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400">
                                 Valid for 15 minutes. Send this code to our bot.
                             </p>
                         </div>
 
-                        <div className="space-y-2 rounded-xl bg-gray-50 p-4 text-xs text-gray-600">
-                            <p className="font-semibold text-gray-800">Instructions:</p>
+                        <div className="space-y-2 rounded-xl bg-gray-50 p-4 text-xs text-gray-600 dark:bg-white/5 dark:text-gray-300">
+                            <p className="font-semibold text-gray-800 dark:text-gray-200">Instructions:</p>
                             <ol className="list-decimal space-y-1.5 pl-4">
                                 <li>
                                     Open our bot in Telegram or search for{' '}
-                                    <span className="font-semibold text-gray-800">
+                                    <span className="font-semibold text-gray-800 dark:text-gray-200">
                                         our official bot
                                     </span>
                                     .
@@ -283,7 +283,7 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="rounded-xl border-gray-200"
+                                className="rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
                             >
                                 Close
                             </Button>
@@ -305,14 +305,14 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                 open={isDisconnectDialogOpen}
                 onOpenChange={setIsDisconnectDialogOpen}
             >
-                <DialogContent className="max-w-md rounded-3xl p-6 sm:p-8">
-                    <DialogTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                <DialogContent className="max-w-md rounded-3xl p-6 sm:p-8 dark:border-white/10 dark:bg-card dark:text-white">
+                    <DialogTitle className="flex items-center gap-3 text-lg font-bold text-gray-900 dark:text-white">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
                             <Unlink className="h-5 w-5" />
                         </div>
                         <span>Disconnect Telegram Notifications?</span>
                     </DialogTitle>
-                    <DialogDescription className="text-xs leading-relaxed text-gray-600">
+                    <DialogDescription className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
                         Are you sure you want to unlink Telegram? You will stop receiving instant notifications and reminders on your phone through Telegram.
                     </DialogDescription>
                     <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -321,7 +321,7 @@ export default function TelegramSettingsCard({ user: propUser }: Props) {
                                 type="button"
                                 variant="outline"
                                 disabled={isDisconnecting}
-                                className="rounded-xl border-gray-200"
+                                className="rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
                             >
                                 Cancel
                             </Button>

@@ -574,7 +574,7 @@ export default function Profile({
 
             <h1 className="sr-only">{t('profile.title')}</h1>
 
-            <div className="teacher-settings-container bg-[#FAFBFD] font-sans text-[#22284A] antialiased">
+            <div className="teacher-settings-container bg-[#FAFBFD] font-sans text-[#22284A] antialiased dark:bg-[#070e24] dark:text-gray-100">
                 {/* Embed mockup style definitions cleanly */}
                 <style
                     dangerouslySetInnerHTML={{
@@ -590,6 +590,17 @@ export default function Profile({
                         --line: #E6E9F2;
                         --white: #fff;
                         --radius: 22px;
+                    }
+                    .dark .teacher-settings-container {
+                        --butter: #fae18e;
+                        --butter-deep: #f0ce5f;
+                        --blue: #a9c6e8;
+                        --blue-tint: #0d1b3e;
+                        --navy: #e2e8f0;
+                        --ink: #f1f5f9;
+                        --muted: #94a3b8;
+                        --line: rgba(255, 255, 255, 0.1);
+                        --white: #0d1b3e;
                     }
                     .teacher-settings-container h1, 
                     .teacher-settings-container h2, 
@@ -610,9 +621,14 @@ export default function Profile({
                       background: var(--navy); border-radius: var(--radius); padding: 34px 34px 30px;
                       position: relative; overflow: hidden; margin-bottom: 26px;
                     }
+                    .dark .teacher-settings-container .hero {
+                      background: linear-gradient(135deg, #091334 0%, #0d1b3e 100%) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.08);
+                    }
                     .teacher-settings-container .hero .eyebrow { color: var(--butter); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
                     .teacher-settings-container .hero h1 { color: #fff; font-size: 34px; font-weight: 800; letter-spacing: -0.8px; margin-top: 6px; }
                     .teacher-settings-container .hero p { color: var(--blue); font-size: 15px; margin-top: 4px; }
+                    .dark .teacher-settings-container .hero p { color: #94a3b8; }
                     .teacher-settings-container .hero .naqsh { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px; opacity: .35; }
                     .teacher-settings-container .preview-link {
                       display: inline-flex; align-items: center; gap: 7px; margin-top: 16px;
@@ -629,26 +645,41 @@ export default function Profile({
                     }
                     .teacher-settings-container .tab.active { color: var(--navy); border-color: var(--butter-deep); }
                     .teacher-settings-container .tab:hover:not(.active) { color: var(--ink); }
+                    .dark .teacher-settings-container .tab { color: #94a3b8; }
+                    .dark .teacher-settings-container .tab.active { color: #ffffff; border-color: #fae18e; }
+                    .dark .teacher-settings-container .tab:hover:not(.active) { color: #f1f5f9; }
                     .teacher-settings-container .sec { margin-bottom: 34px; }
                     .teacher-settings-container .sec-head { margin-bottom: 14px; }
                     .teacher-settings-container .sec-head h2 { font-size: 19px; font-weight: 700; color: var(--navy); letter-spacing: -0.3px; }
+                    .dark .teacher-settings-container .sec-head h2 { color: #ffffff; }
                     .teacher-settings-container .sec-head p { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
+                    .dark .teacher-settings-container .sec-head p { color: #94a3b8; }
                     .teacher-settings-container .sec-head .req {
                       display: inline-block; font-size: 11px; font-weight: 700; color: var(--navy);
                       background: var(--butter); border-radius: 999px; padding: 3px 10px; margin-left: 8px; vertical-align: 2px;
                     }
+                    .dark .teacher-settings-container .sec-head .req { color: #061445; background: #fae18e; }
                     .teacher-settings-container .card {
                       background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 26px;
+                    }
+                    .dark .teacher-settings-container .card {
+                      background: #0d1b3e !important; border-color: rgba(255, 255, 255, 0.1) !important; color: #f1f5f9;
                     }
                     .teacher-settings-container .field { margin-bottom: 20px; }
                     .teacher-settings-container .field:last-child { margin-bottom: 0; }
                     .teacher-settings-container label { display: block; font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 7px; }
+                    .dark .teacher-settings-container label { color: #e2e8f0; }
                     .teacher-settings-container label .hint { font-weight: 500; color: var(--muted); font-size: 12.5px; margin-left: 6px; }
+                    .dark .teacher-settings-container label .hint { color: #94a3b8; }
                     .teacher-settings-container .private-tag {
                       display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700;
                       color: var(--muted); background: #F1F3F8; border-radius: 999px; padding: 3px 9px; margin-left: 8px; vertical-align: 1px;
                     }
+                    .dark .teacher-settings-container .private-tag {
+                      background: rgba(255, 255, 255, 0.08); color: #94a3b8;
+                    }
                     .teacher-settings-container .private-tag svg { width: 10px; height: 10px; stroke: var(--muted); }
+                    .dark .teacher-settings-container .private-tag svg { stroke: #94a3b8; }
                     .teacher-settings-container input[type=text],
                     .teacher-settings-container input[type=email],
                     .teacher-settings-container input[type=tel],
@@ -659,15 +690,33 @@ export default function Profile({
                       font-family: 'Schibsted Grotesk', sans-serif; font-size: 15px; color: var(--ink); background: #fff;
                       transition: border-color .15s, box-shadow .15s;
                     }
+                    .dark .teacher-settings-container input[type=text],
+                    .dark .teacher-settings-container input[type=email],
+                    .dark .teacher-settings-container input[type=tel],
+                    .dark .teacher-settings-container input[type=number],
+                    .dark .teacher-settings-container textarea,
+                    .dark .teacher-settings-container select {
+                      background: rgba(255, 255, 255, 0.04) !important;
+                      border-color: rgba(255, 255, 255, 0.12) !important;
+                      color: #f1f5f9 !important;
+                    }
                     .teacher-settings-container input:focus,
                     .teacher-settings-container textarea:focus,
                     .teacher-settings-container select:focus {
                       outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(169,198,232,.35);
                     }
+                    .dark .teacher-settings-container input:focus,
+                    .dark .teacher-settings-container textarea:focus,
+                    .dark .teacher-settings-container select:focus {
+                      border-color: #fae18e !important; box-shadow: 0 0 0 3px rgba(250, 225, 142, 0.2) !important;
+                    }
                     .teacher-settings-container input::placeholder,
                     .teacher-settings-container textarea::placeholder { color: #A6ACC4; }
+                    .dark .teacher-settings-container input::placeholder,
+                    .dark .teacher-settings-container textarea::placeholder { color: #64748b; }
                     .teacher-settings-container textarea { resize: vertical; min-height: 110px; }
                     .teacher-settings-container .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 5px; }
+                    .dark .teacher-settings-container .char-count { color: #94a3b8; }
                     .teacher-settings-container .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
                     @media(max-width:560px){.teacher-settings-container .row2 { grid-template-columns: 1fr; }}
                     .teacher-settings-container .photo-row { display: flex; gap: 20px; align-items: center; }
@@ -677,6 +726,10 @@ export default function Profile({
                       display: flex; align-items: center; justify-content: center;
                       font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 30px; color: var(--navy);
                     }
+                    .dark .teacher-settings-container .photo-preview {
+                      background: linear-gradient(135deg, rgba(169, 198, 232, 0.2), rgba(13, 27, 62, 0.8));
+                      color: #fae18e;
+                    }
                     .teacher-settings-container .upload-btn {
                       display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
                       border: 1.5px solid var(--line); border-radius: 999px; padding: 10px 18px;
@@ -684,33 +737,56 @@ export default function Profile({
                     }
                     .teacher-settings-container .upload-btn:hover { border-color: var(--navy); }
                     .teacher-settings-container .upload-btn svg { width: 14px; height: 14px; stroke: var(--navy); }
+                    .dark .teacher-settings-container .upload-btn {
+                      background: rgba(255, 255, 255, 0.06) !important;
+                      border-color: rgba(255, 255, 255, 0.12) !important;
+                      color: #f1f5f9 !important;
+                    }
+                    .dark .teacher-settings-container .upload-btn svg { stroke: #f1f5f9 !important; }
+                    .dark .teacher-settings-container .upload-btn:hover { border-color: rgba(255, 255, 255, 0.3) !important; }
                     .teacher-settings-container .photo-note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+                    .dark .teacher-settings-container .photo-note { color: #94a3b8; }
                     .teacher-settings-container .cert-row {
                       display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center;
                       border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; background: #fff;
                     }
+                    .dark .teacher-settings-container .cert-row {
+                      background: #0d1b3e !important; border-color: rgba(255, 255, 255, 0.1) !important;
+                    }
                     .teacher-settings-container .cert-row input { border: none; padding: 6px 4px; font-weight: 600; }
                     .teacher-settings-container .cert-row input:focus { box-shadow: none; }
+                    .dark .teacher-settings-container .cert-row input { color: #f1f5f9 !important; }
                     .teacher-settings-container .cert-status {
                       font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; white-space: nowrap;
                     }
                     .teacher-settings-container .cert-status.verified { background: var(--butter); color: var(--navy); }
+                    .dark .teacher-settings-container .cert-status.verified { background: #fae18e; color: #061445; }
                     .teacher-settings-container .cert-status.pending { background: #F1F3F8; color: var(--muted); }
+                    .dark .teacher-settings-container .cert-status.pending { background: rgba(255, 255, 255, 0.08); color: #94a3b8; }
                     .teacher-settings-container .cert-file {
                       font-size: 12.5px; font-weight: 600; color: var(--navy); cursor: pointer; white-space: nowrap;
                       border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px;
                     }
                     .teacher-settings-container .cert-file:hover { border-color: var(--navy); }
+                    .dark .teacher-settings-container .cert-file {
+                      color: #f1f5f9; border-color: rgba(255, 255, 255, 0.12);
+                    }
+                    .dark .teacher-settings-container .cert-file:hover { border-color: rgba(255, 255, 255, 0.3); }
                     .teacher-settings-container .add-cert {
                       display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; color: var(--navy);
                       background: none; border: none; cursor: pointer; margin-top: 4px; font-family: inherit;
                     }
                     .teacher-settings-container .add-cert:hover { text-decoration: underline; }
+                    .dark .teacher-settings-container .add-cert { color: #fae18e; }
                     .teacher-settings-container .verify-note {
                       margin-top: 14px; font-size: 12.5px; color: var(--muted); background: var(--blue-tint);
                       border-radius: 12px; padding: 11px 14px;
                     }
                     .teacher-settings-container .verify-note b { color: var(--navy); }
+                    .dark .teacher-settings-container .verify-note {
+                      background: rgba(255, 255, 255, 0.05); color: #94a3b8;
+                    }
+                    .dark .teacher-settings-container .verify-note b { color: #f1f5f9; }
                     @media(max-width:560px){.teacher-settings-container .cert-row { grid-template-columns: 1fr; gap: 8px; }}
                     .teacher-settings-container .focus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
                     @media(max-width:560px){.teacher-settings-container .focus-grid { grid-template-columns: 1fr; }}
@@ -730,6 +806,18 @@ export default function Profile({
                     .teacher-settings-container .check input:checked ~ .check-label { color: var(--navy); }
                     .teacher-settings-container .check.checked { border-color: var(--navy); background: var(--blue-tint); }
                     .teacher-settings-container .check-label { font-size: 14.5px; font-weight: 600; }
+                    .dark .teacher-settings-container .check {
+                      background: #0d1b3e; border-color: rgba(255, 255, 255, 0.1); color: #f1f5f9;
+                    }
+                    .dark .teacher-settings-container .check:hover { border-color: rgba(255, 255, 255, 0.25); }
+                    .dark .teacher-settings-container .check.checked {
+                      border-color: #fae18e; background: rgba(250, 225, 142, 0.08);
+                    }
+                    .dark .teacher-settings-container .check input:checked ~ .box {
+                      background: #fae18e; border-color: #fae18e;
+                    }
+                    .dark .teacher-settings-container .check input:checked ~ .box svg { stroke: #061445; }
+                    .dark .teacher-settings-container .check input:checked ~ .check-label { color: #ffffff; }
                 `,
                     }}
                 />
@@ -752,17 +840,17 @@ export default function Profile({
                                     {/* 1. Basics */}
                                     <div className="space-y-4">
                                         <div>
-                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A] dark:text-white">
                                                 The basics
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">
+                                            <p className="text-[13.5px] text-[#6B7394] dark:text-gray-400">
                                                 Your name, face, and one line
                                                 that makes a student pick you.
                                             </p>
                                         </div>
-                                        <div className="space-y-6 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                        <div className="space-y-6 rounded-[22px] border border-[#E6E9F2] bg-white p-6 dark:border-white/10 dark:bg-card">
                                             <div className="space-y-2">
-                                                <label className="text-sm font-bold text-[#22284A]">
+                                                <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                     Profile photo
                                                 </label>
                                                 <div className="flex items-center gap-5">
@@ -770,10 +858,10 @@ export default function Profile({
                                                         <img
                                                             src={avatarPreview}
                                                             alt="Avatar"
-                                                            className="height-[92px] h-[92px] w-[92px] flex-shrink-0 rounded-[24px] border border-[#E6E9F2] object-cover"
+                                                            className="height-[92px] h-[92px] w-[92px] flex-shrink-0 rounded-[24px] border border-[#E6E9F2] object-cover dark:border-white/10"
                                                         />
                                                     ) : (
-                                                        <div className="bricolage-font flex h-[92px] w-[92px] flex-shrink-0 items-center justify-center rounded-[24px] bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-3xl font-bold text-[#1E2A5A]">
+                                                        <div className="bricolage-font flex h-[92px] w-[92px] flex-shrink-0 items-center justify-center rounded-[24px] bg-gradient-to-br from-[#A9C6E8] to-[#EEF4FB] text-3xl font-bold text-[#1E2A5A] dark:from-[#1E2A5A] dark:to-[#0d1b3e] dark:text-brand-yellow">
                                                             {getInitials(
                                                                 auth.user
                                                                     .name || '',
@@ -782,7 +870,7 @@ export default function Profile({
                                                     )}
                                                     <div>
                                                         <label
-                                                            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#E6E9F2] bg-white px-[18px] py-2.5 text-[13.5px] font-bold text-[#1E2A5A] transition hover:border-[#1E2A5A]"
+                                                            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#E6E9F2] bg-white px-[18px] py-2.5 text-[13.5px] font-bold text-[#1E2A5A] transition hover:border-[#1E2A5A] dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:border-white/30"
                                                             htmlFor="photo-file"
                                                         >
                                                             <Upload className="h-3.5 w-3.5" />
@@ -798,7 +886,7 @@ export default function Profile({
                                                                 handleAvatarSelect
                                                             }
                                                         />
-                                                        <div className="mt-2 text-[12.5px] text-[#6B7394]">
+                                                        <div className="mt-2 text-[12.5px] text-[#6B7394] dark:text-gray-400">
                                                             A clear, friendly
                                                             photo of your face.
                                                             No logos, no filters
@@ -816,9 +904,9 @@ export default function Profile({
                                             </div>
 
                                             <div className="space-y-1.5">
-                                                <label className="text-sm font-bold text-[#22284A]">
+                                                <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                     Display name{' '}
-                                                    <span className="ml-1.5 text-[12.5px] font-normal text-[#6B7394]">
+                                                    <span className="ml-1.5 text-[12.5px] font-normal text-[#6B7394] dark:text-gray-400">
                                                         shown as first name +
                                                         initial
                                                     </span>
@@ -831,7 +919,7 @@ export default function Profile({
                                                         auth.user.full_name ||
                                                         ''
                                                     }
-                                                    className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                    className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     required
                                                 />
                                                 <InputError
@@ -840,9 +928,9 @@ export default function Profile({
                                             </div>
 
                                             <div className="space-y-1.5">
-                                                <label className="text-sm font-bold text-[#22284A]">
+                                                <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                     Headline{' '}
-                                                    <span className="ml-1.5 text-[12.5px] font-normal text-[#6B7394]">
+                                                    <span className="ml-1.5 text-[12.5px] font-normal text-[#6B7394] dark:text-gray-400">
                                                         one sentence, shown
                                                         under your name
                                                     </span>
@@ -856,13 +944,13 @@ export default function Profile({
                                                             e.target.value.substring(
                                                                 0,
                                                                 90,
-                                                            ),
+                                                             ),
                                                         )
                                                     }
                                                     placeholder="e.g. Helps shy speakers stop translating in their head — and just talk."
-                                                    className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                    className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                 />
-                                                <div className="mt-1 text-right text-[12px] text-[#6B7394]">
+                                                <div className="mt-1 text-right text-[12px] text-[#6B7394] dark:text-gray-400">
                                                     {headline.length} / 90
                                                 </div>
                                                 <InputError
@@ -871,7 +959,7 @@ export default function Profile({
                                             </div>
 
                                             <div className="space-y-1.5">
-                                                <label className="text-sm font-bold text-[#22284A]">
+                                                <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                     About you
                                                 </label>
                                                 <textarea
@@ -886,9 +974,9 @@ export default function Profile({
                                                         )
                                                     }
                                                     placeholder="Why do you teach speaking? What are your sessions actually like? Write how you talk — students can tell."
-                                                    className="min-h-[110px] w-full resize-y rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                    className="min-h-[110px] w-full resize-y rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                 />
-                                                <div className="mt-1 text-right text-[12px] text-[#6B7394]">
+                                                <div className="mt-1 text-right text-[12px] text-[#6B7394] dark:text-gray-400">
                                                     {bio.length} / 600
                                                 </div>
                                                 <InputError
@@ -898,14 +986,14 @@ export default function Profile({
 
                                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                    <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                         {t('settings.country_label') || 'Country / Nationality'}
                                                     </label>
                                                     <select
                                                         name="country_code"
                                                         value={countryCode}
                                                         onChange={(e) => setCountryCode(e.target.value)}
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-card dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     >
                                                         {COUNTRY_OPTIONS.map((c) => (
                                                             <option key={c.code} value={c.code}>
@@ -915,7 +1003,7 @@ export default function Profile({
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                    <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                         {t('settings.city_label') || 'City'}
                                                     </label>
                                                     <input
@@ -924,7 +1012,7 @@ export default function Profile({
                                                         value={city}
                                                         onChange={(e) => setCity(e.target.value)}
                                                         placeholder={t('settings.city_placeholder') || 'e.g. Tashkent, Samarkand, London'}
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     />
                                                 </div>
                                             </div>
@@ -934,21 +1022,21 @@ export default function Profile({
                                     {/* 2. Contact details (private) */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A] dark:text-white">
                                                 Contact details
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">
+                                            <p className="text-[13.5px] text-[#6B7394] dark:text-gray-400">
                                                 Never shown to students. Used
                                                 only for your account and
                                                 verification.
                                             </p>
                                         </div>
-                                        <div className="space-y-4 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                        <div className="space-y-4 rounded-[22px] border border-[#E6E9F2] bg-white p-6 dark:border-white/10 dark:bg-card">
                                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1.5">
-                                                    <label className="flex items-center gap-2 text-sm font-bold text-[#22284A]">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                         Email address
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F1F3F8] px-2 py-0.5 text-[11px] font-bold text-[#6B7394]">
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F1F3F8] px-2 py-0.5 text-[11px] font-bold text-[#6B7394] dark:bg-white/10 dark:text-gray-400">
                                                             <Lock className="h-2.5 w-2.5" />{' '}
                                                             Private
                                                         </span>
@@ -959,7 +1047,7 @@ export default function Profile({
                                                         defaultValue={
                                                             auth.user.email
                                                         }
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                         required
                                                     />
                                                     <InputError
@@ -967,9 +1055,9 @@ export default function Profile({
                                                     />
                                                 </div>
                                                 <div id="phone" className="space-y-1.5 scroll-mt-24">
-                                                    <label className="flex items-center gap-2 text-sm font-bold text-[#22284A]">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                         {t('auth.phone_number') || 'Phone number'}
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F1F3F8] px-2 py-0.5 text-[11px] font-bold text-[#6B7394]">
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F1F3F8] px-2 py-0.5 text-[11px] font-bold text-[#6B7394] dark:bg-white/10 dark:text-gray-400">
                                                             <Lock className="h-2.5 w-2.5" />{' '}
                                                             Private
                                                         </span>
@@ -983,18 +1071,18 @@ export default function Profile({
                                                             ''
                                                         }
                                                         placeholder="+998 90 123 45 67"
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     />
                                                     <InputError
                                                         message={
-                                                            errors.phone_number
+                                                             errors.phone_number
                                                         }
                                                     />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                    <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                         {t('auth.gender')}
                                                     </label>
                                                     <select
@@ -1008,7 +1096,7 @@ export default function Profile({
                                                                       '',
                                                         )}
                                                         required
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-card dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     >
                                                         {(!auth.user.gender ||
                                                             auth.user.gender ===
@@ -1045,25 +1133,25 @@ export default function Profile({
                                     {/* 3. Credentials */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#1E2A5A] dark:text-white">
                                                 Credentials
                                                 {auth.user.teacher_profile
                                                     ?.is_verified && (
-                                                    <span className="inline-block rounded-full bg-[#F7DE8B] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A]">
+                                                    <span className="inline-block rounded-full bg-[#F7DE8B] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A] dark:bg-brand-yellow dark:text-[#061445]">
                                                         Verified by ConvoMate
                                                     </span>
                                                 )}
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">
+                                            <p className="text-[13.5px] text-[#6B7394] dark:text-gray-400">
                                                 Scores and certificates we check
                                                 before showing your profile to
                                                 students.
                                             </p>
                                         </div>
-                                        <div className="space-y-6 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                        <div className="space-y-6 rounded-[22px] border border-[#E6E9F2] bg-white p-6 dark:border-white/10 dark:bg-card">
                                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                    <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                         Teaching experience
                                                     </label>
                                                     <input
@@ -1076,7 +1164,7 @@ export default function Profile({
                                                                 ?.experience_years ||
                                                             ''
                                                         }
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     />
                                                     <InputError
                                                         message={
@@ -1085,9 +1173,9 @@ export default function Profile({
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-sm font-bold text-[#22284A]">
+                                                    <label className="text-sm font-bold text-[#22284A] dark:text-gray-200">
                                                         Current workplace{' '}
-                                                        <span className="ml-1 text-[12.5px] font-normal text-[#6B7394]">
+                                                        <span className="ml-1 text-[12.5px] font-normal text-[#6B7394] dark:text-gray-400">
                                                             optional
                                                         </span>
                                                     </label>
@@ -1101,7 +1189,7 @@ export default function Profile({
                                                                 ?.workplace ||
                                                             ''
                                                         }
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     />
                                                     <InputError
                                                         message={
@@ -1115,12 +1203,12 @@ export default function Profile({
                                             <div className="space-y-4 pt-2">
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <label className="text-base font-extrabold text-[#1E2A5A]">
+                                                        <label className="text-base font-extrabold text-[#1E2A5A] dark:text-white">
                                                             Language
                                                             Certificates &
                                                             Scores
                                                         </label>
-                                                        <p className="text-xs text-[#6B7394]">
+                                                        <p className="text-xs text-[#6B7394] dark:text-gray-400">
                                                             Provide official
                                                             band scores and
                                                             upload certificate
@@ -1131,7 +1219,7 @@ export default function Profile({
                                                     <button
                                                         type="button"
                                                         onClick={addCertificate}
-                                                        className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-[#E6E9F2] bg-white px-3 py-1.5 text-xs font-bold text-[#1E2A5A] transition hover:bg-[#EEF4FB]"
+                                                        className="inline-flex cursor-pointer items-center gap-1 rounded-xl border border-[#E6E9F2] bg-white px-3 py-1.5 text-xs font-bold text-[#1E2A5A] transition hover:bg-[#EEF4FB] dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
                                                     >
                                                         <Plus className="h-3.5 w-3.5" />{' '}
                                                         Add Certificate
@@ -1184,10 +1272,10 @@ export default function Profile({
                                                     ))}
                                                 </div>
 
-                                                <div className="rounded-xl bg-[#EEF4FB] p-3.5 text-[12.5px] text-[#6B7394] select-none">
+                                                <div className="rounded-xl bg-[#EEF4FB] p-3.5 text-[12.5px] text-[#6B7394] select-none dark:bg-white/5 dark:text-gray-400">
                                                     Each certificate is reviewed
                                                     by platform admins within{' '}
-                                                    <b>2 business days</b>.
+                                                    <b className="dark:text-white">2 business days</b>.
                                                 </div>
                                             </div>
                                         </div>
@@ -1196,13 +1284,13 @@ export default function Profile({
                                     {/* 4. Intro video */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#1E2A5A] dark:text-white">
                                                 Intro video
                                                 <span
                                                     className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                                                         videoPreview
-                                                            ? 'bg-emerald-50 text-emerald-700'
-                                                            : 'bg-[#F7DE8B] text-[#1E2A5A]'
+                                                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                                                            : 'bg-[#F7DE8B] text-[#1E2A5A] dark:bg-brand-yellow dark:text-[#061445]'
                                                     }`}
                                                 >
                                                     {videoPreview
@@ -1210,24 +1298,24 @@ export default function Profile({
                                                         : 'Optional / Pending'}
                                                 </span>
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">
+                                            <p className="text-[13.5px] text-[#6B7394] dark:text-gray-400">
                                                 The first thing students play.
                                                 Unscripted, 30–90 seconds, just
                                                 you saying hello.
                                             </p>
                                         </div>
-                                        <div className="space-y-4 rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                        <div className="space-y-4 rounded-[22px] border border-[#E6E9F2] bg-white p-6 dark:border-white/10 dark:bg-card">
                                             <label
                                                 htmlFor="video-file"
-                                                className="block cursor-pointer rounded-2xl border border-dashed border-[#A9C6E8] bg-[#EEF4FB] p-7 text-center transition hover:bg-[#E3EDF9]"
+                                                className="block cursor-pointer rounded-2xl border border-dashed border-[#A9C6E8] bg-[#EEF4FB] p-7 text-center transition hover:bg-[#E3EDF9] dark:border-white/20 dark:bg-white/5 dark:hover:bg-white/10"
                                             >
-                                                <div className="mx-auto mb-3 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#F7DE8B] text-[#1E2A5A]">
+                                                <div className="mx-auto mb-3 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#F7DE8B] text-[#1E2A5A] dark:bg-brand-yellow dark:text-[#061445]">
                                                     <Play className="ml-0.5 h-5 w-5 fill-current" />
                                                 </div>
-                                                <b className="block text-base text-[#1E2A5A]">
+                                                <b className="block text-base text-[#1E2A5A] dark:text-white">
                                                     Upload or record your intro
                                                 </b>
-                                                <span className="mx-auto mt-1 block max-w-[44ch] text-[13px] text-[#6B7394]">
+                                                <span className="mx-auto mt-1 block max-w-[44ch] text-[13px] text-[#6B7394] dark:text-gray-400">
                                                     MP4 or WebM (H.264 video codec recommended for full browser compatibility), up to 100 MB.
                                                     Phone camera is perfect —
                                                     students trust real over
@@ -1249,13 +1337,13 @@ export default function Profile({
                                                 value={deleteIntroVideo ? '1' : '0'}
                                             />
                                             {deleteIntroVideo && !videoPreview && (
-                                                <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs font-semibold text-amber-800">
+                                                <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
                                                     Video is marked for removal and will be deleted when you click Save.
                                                 </div>
                                             )}
                                             {progress && typeof progress.percentage === 'number' && (
-                                                <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/80 p-4">
-                                                    <div className="flex items-center justify-between text-xs font-bold text-[#1E2A5A]">
+                                                <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/80 p-4 dark:border-blue-500/30 dark:bg-blue-500/10">
+                                                    <div className="flex items-center justify-between text-xs font-bold text-[#1E2A5A] dark:text-white">
                                                         <span className="flex items-center gap-2">
                                                             <span className="relative flex h-2 w-2">
                                                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
@@ -1263,15 +1351,15 @@ export default function Profile({
                                                             </span>
                                                             Uploading Video
                                                         </span>
-                                                        <span className="tabular-nums font-extrabold text-blue-700">{progress.percentage}%</span>
+                                                        <span className="tabular-nums font-extrabold text-blue-700 dark:text-blue-300">{progress.percentage}%</span>
                                                     </div>
-                                                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-blue-100">
+                                                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-white/10">
                                                         <div
                                                             className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300 ease-out"
                                                             style={{ width: `${progress.percentage}%` }}
                                                         />
                                                     </div>
-                                                    <p className="text-[11.5px] text-[#4A5568]">
+                                                    <p className="text-[11.5px] text-[#4A5568] dark:text-gray-400">
                                                         Please stay on this page while your video is transferring.
                                                     </p>
                                                 </div>
@@ -1279,7 +1367,7 @@ export default function Profile({
                                             {videoPreview && (
                                                 <div className="space-y-2">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-xs font-bold text-[#1E2A5A]">
+                                                        <span className="text-xs font-bold text-[#1E2A5A] dark:text-white">
                                                             {videoFileName
                                                                 ? `Selected: ${videoFileName}`
                                                                 : 'Current Intro Video'}
@@ -1287,13 +1375,13 @@ export default function Profile({
                                                         <button
                                                             type="button"
                                                             onClick={handleRemoveVideo}
-                                                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 hover:text-red-700"
+                                                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-100 hover:text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
                                                             Remove video
                                                         </button>
                                                     </div>
-                                                    <div className="relative mt-1 aspect-video max-w-sm overflow-hidden rounded-xl border border-[#E6E9F2] bg-neutral-900 shadow-sm">
+                                                    <div className="relative mt-1 aspect-video max-w-sm overflow-hidden rounded-xl border border-[#E6E9F2] bg-neutral-900 shadow-sm dark:border-white/10">
                                                         <video
                                                             src={videoPreview}
                                                             controls
@@ -1302,7 +1390,7 @@ export default function Profile({
                                                     </div>
                                                 </div>
                                             )}
-                                            <div className="text-[13px] text-[#6B7394]">
+                                            <div className="text-[13px] text-[#6B7394] dark:text-gray-400">
                                                 <b>What works:</b> say your
                                                 name, why you teach, and what a
                                                 session with you feels like.{' '}
@@ -1319,16 +1407,16 @@ export default function Profile({
                                     {/* 5. Teaching focus */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A] dark:text-white">
                                                 What you offer
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">
+                                            <p className="text-[13.5px] text-[#6B7394] dark:text-gray-400">
                                                 Shown as tags on your profile.
                                                 Pick only what you genuinely run
                                                 sessions for.
                                             </p>
                                         </div>
-                                        <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                        <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6 dark:border-white/10 dark:bg-card">
                                             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                                                 {[
                                                     {
@@ -1365,8 +1453,8 @@ export default function Profile({
                                                             key={tag.val}
                                                             className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all select-none ${
                                                                 isChecked
-                                                                    ? 'border-[#1E2A5A] bg-[#EEF4FB]'
-                                                                    : 'border-[#E6E9F2] bg-white hover:border-[#A9C6E8]'
+                                                                    ? 'border-[#1E2A5A] bg-[#EEF4FB] dark:border-brand-yellow dark:bg-brand-yellow/10'
+                                                                    : 'border-[#E6E9F2] bg-white hover:border-[#A9C6E8] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20'
                                                             }`}
                                                         >
                                                             <input
@@ -1386,14 +1474,14 @@ export default function Profile({
                                                             <div
                                                                 className={`flex h-[22px] w-[22px] items-center justify-center rounded-md border transition-all ${
                                                                     isChecked
-                                                                        ? 'border-[#1E2A5A] bg-[#1E2A5A]'
-                                                                        : 'border-[#C9CFDE] bg-white'
+                                                                        ? 'border-[#1E2A5A] bg-[#1E2A5A] dark:border-brand-yellow dark:bg-brand-yellow'
+                                                                        : 'border-[#C9CFDE] bg-white dark:border-white/20 dark:bg-transparent'
                                                                 }`}
                                                             >
                                                                 <svg
                                                                     viewBox="0 0 16 16"
                                                                     fill="none"
-                                                                    className={`h-3 w-3 stroke-white stroke-[3px] transition-opacity ${
+                                                                    className={`h-3 w-3 stroke-white dark:stroke-[#061445] stroke-[3px] transition-opacity ${
                                                                         isChecked
                                                                             ? 'opacity-100'
                                                                             : 'opacity-0'
@@ -1405,7 +1493,7 @@ export default function Profile({
                                                                     />
                                                                 </svg>
                                                             </div>
-                                                            <span className="text-[14.5px] font-bold text-[#22284A]">
+                                                            <span className="text-[14.5px] font-bold text-[#22284A] dark:text-white">
                                                                 {tag.label}
                                                             </span>
                                                         </label>
@@ -1422,20 +1510,20 @@ export default function Profile({
                                     {/* 6. Price */}
                                     <div className="space-y-4 pt-4">
                                         <div>
-                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A]">
+                                            <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A] dark:text-white">
                                                 Your rate
                                             </h2>
-                                            <p className="text-[13.5px] text-[#6B7394]">
+                                            <p className="text-[13.5px] text-[#6B7394] dark:text-gray-400">
                                                 Per 30-minute session. You can
                                                 change it anytime — existing
                                                 bookings keep their price.
                                             </p>
                                         </div>
-                                        <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6">
+                                        <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6 dark:border-white/10 dark:bg-card">
                                             <div className="space-y-1.5">
-                                                <label className="text-sm font-bold text-[#22284A]">
+                                                <label className="text-sm font-bold text-[#22284A] dark:text-white">
                                                     Price per session{' '}
-                                                    <span className="ml-1 text-xs font-normal text-[#6B7394]">
+                                                    <span className="ml-1 text-xs font-normal text-[#6B7394] dark:text-gray-400">
                                                         (optional)
                                                     </span>
                                                 </label>
@@ -1453,9 +1541,9 @@ export default function Profile({
                                                         }
                                                         inputMode="numeric"
                                                         placeholder="45 000"
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white py-3.5 pr-28 pl-4 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white py-3.5 pr-28 pl-4 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     />
-                                                    <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[13.5px] font-bold text-[#6B7394]">
+                                                    <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[13.5px] font-bold text-[#6B7394] dark:text-gray-400">
                                                         so'm / 30 min
                                                     </span>
                                                     <input
@@ -1467,10 +1555,10 @@ export default function Profile({
                                                         )}
                                                     />
                                                 </div>
-                                                <div className="mt-2 text-[12.5px] text-[#6B7394] select-none">
+                                                <div className="mt-2 text-[12.5px] text-[#6B7394] select-none dark:text-gray-400">
                                                     Most teachers with your
                                                     scores charge{' '}
-                                                    <b>40 000 – 60 000 so'm</b>.
+                                                    <b className="dark:text-white">40 000 – 60 000 so'm</b>.
                                                     New teachers often start
                                                     lower to collect first
                                                     reviews.
@@ -1676,7 +1764,7 @@ export default function Profile({
                                                         name="country_code"
                                                         value={pupilCountryCode}
                                                         onChange={(e) => setPupilCountryCode(e.target.value)}
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/10 dark:bg-card dark:text-gray-100 dark:focus:border-brand-yellow"
                                                     >
                                                         {COUNTRY_OPTIONS.map((c) => (
                                                             <option key={c.code} value={c.code}>
@@ -1776,7 +1864,7 @@ export default function Profile({
                                                                       '',
                                                         )}
                                                         required
-                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                        className="w-full rounded-[14px] border border-[#E6E9F2] bg-white px-4 py-3.5 text-base text-[#22284A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/10 dark:bg-card dark:text-gray-100 dark:focus:border-brand-yellow"
                                                     >
                                                         {(!auth.user.gender ||
                                                             auth.user.gender ===
@@ -2113,29 +2201,29 @@ export default function Profile({
                             )}
 
                             {/* Section 3: Verification status warning & Submit action bar */}
-                            <div className="mt-8 grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-8 lg:grid-cols-12">
+                            <div className="mt-8 grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-8 lg:grid-cols-12 dark:border-white/10">
                                 <div className="lg:col-span-4">
                                     {mustVerifyEmail &&
                                         auth.user.email_verified_at ===
                                             null && (
-                                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                                                <p className="text-sm font-semibold text-amber-800">
+                                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-500/10">
+                                                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
                                                     {t(
                                                         'profile.email_unverified',
                                                     )}{' '}
                                                     <Link
                                                         href={send()}
                                                         as="button"
-                                                        className="font-bold text-amber-900 underline transition-colors hover:text-amber-950"
+                                                        className="font-bold text-amber-900 underline transition-colors hover:text-amber-950 dark:text-amber-200 dark:hover:text-amber-100"
                                                     >
                                                         {t(
-                                                            'profile.resend_btn',
+                                                           'profile.resend_btn',
                                                         )}
                                                     </Link>
                                                 </p>
                                                 {status ===
                                                     'verification-link-sent' && (
-                                                    <div className="mt-2 text-xs font-bold text-emerald-700">
+                                                    <div className="mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
                                                         {t(
                                                             'profile.resend_sent',
                                                         )}
@@ -2146,13 +2234,13 @@ export default function Profile({
                                 </div>
                                 <div className="flex flex-col items-end gap-3 lg:col-span-8">
                                     {processing && (
-                                        <div className="flex w-full items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/90 p-4 text-blue-900 shadow-sm animate-pulse">
-                                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1E2A5A] border-t-transparent flex-shrink-0" />
+                                        <div className="flex w-full items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/90 p-4 text-blue-900 shadow-sm animate-pulse dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
+                                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1E2A5A] border-t-transparent flex-shrink-0 dark:border-white" />
                                             <div className="text-left">
-                                                <p className="text-sm font-bold text-[#1E2A5A]">
+                                                <p className="text-sm font-bold text-[#1E2A5A] dark:text-white">
                                                     Uploading media & saving profile...
                                                 </p>
-                                                <p className="text-xs text-[#6B7394]">
+                                                <p className="text-xs text-[#6B7394] dark:text-gray-400">
                                                     Please wait while your files are being uploaded and processed. Do not close or refresh this page.
                                                 </p>
                                             </div>
@@ -2163,19 +2251,19 @@ export default function Profile({
                                             type="button"
                                             onClick={() => window.location.reload()}
                                             disabled={processing}
-                                            className="cursor-pointer rounded-full border-0 bg-transparent px-8 py-3.5 text-sm font-bold text-[#1E2A5A] transition-all hover:bg-neutral-100 disabled:opacity-50"
+                                            className="cursor-pointer rounded-full border-0 bg-transparent px-8 py-3.5 text-sm font-bold text-[#1E2A5A] transition-all hover:bg-neutral-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-white/10"
                                         >
                                             Discard Changes
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={processing || hasCertScoreErrors}
-                                            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 bg-[#F7DE8B] px-12 py-4 text-sm font-bold text-[#1E2A5A] shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+                                            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 bg-[#F7DE8B] px-12 py-4 text-sm font-bold text-[#1E2A5A] shadow-lg transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
                                             data-test="update-profile-button"
                                         >
                                             {processing ? (
                                                 <>
-                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1E2A5A] border-t-transparent" />
+                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1E2A5A] border-t-transparent dark:border-[#061445]" />
                                                     {progress && typeof progress.percentage === 'number' && progress.percentage > 0
                                                         ? `Uploading (${progress.percentage}%)...`
                                                         : 'Saving...'}
@@ -2193,17 +2281,17 @@ export default function Profile({
 
                 {/* Section: Connected Services & Notifications */}
                 <div className="mx-auto max-w-[760px] px-4 pb-12">
-                    <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12">
+                    <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12 dark:border-white/10">
                         <div className="space-y-2 lg:col-span-4">
-                            <h3 className="text-xl font-extrabold text-[#1E2A5A]">
+                            <h3 className="text-xl font-extrabold text-[#1E2A5A] dark:text-white">
                                 {t('profile.connected_services') || 'Connected Services'}
                             </h3>
-                            <p className="text-sm font-medium text-[#6B7394]">
+                            <p className="text-sm font-medium text-[#6B7394] dark:text-gray-400">
                                 {t('profile.connected_services_desc') ||
                                     'Manage notification channels, Telegram alerts, and calendar synchronization.'}
                             </p>
                         </div>
-                        <div className="shadow-ambient space-y-6 rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8">
+                        <div className="shadow-ambient space-y-6 rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8 dark:border-white/10 dark:bg-card">
                             <TelegramSettingsCard user={auth.user} />
                             {auth?.user?.role === 'teacher' && (
                                 <GoogleCalendarSettingsCard user={auth.user} />
@@ -2214,17 +2302,17 @@ export default function Profile({
 
                 {/* Section 4: Delete Account */}
                 <div className="mx-auto max-w-[760px] px-4 pb-20">
-                    <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12">
+                    <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12 dark:border-white/10">
                         <div className="space-y-2 lg:col-span-4">
-                            <h3 className="text-xl font-extrabold text-red-600">
+                            <h3 className="text-xl font-extrabold text-red-600 dark:text-red-400">
                                 Delete Account
                             </h3>
-                            <p className="text-sm font-medium text-[#6B7394]">
+                            <p className="text-sm font-medium text-[#6B7394] dark:text-gray-400">
                                 Permanently delete your account and all of its
                                 resources.
                             </p>
                         </div>
-                        <div className="shadow-ambient rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8">
+                        <div className="shadow-ambient rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8 dark:border-white/10 dark:bg-card">
                             <DeleteUser />
                         </div>
                     </div>

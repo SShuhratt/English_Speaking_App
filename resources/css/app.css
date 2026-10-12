@@ -78,7 +78,7 @@
     --color-brand-orange: var(--brand-blue);
     --color-brand-button: var(--brand-yellow);
     --color-brand-button-hover: var(--brand-yellow-hover);
-    --color-brand-lightblue: var(--brand-pale-blue);
+    --color-brand-lightblue: var(--brand-lightblue);
 }
 
 /* ── Light mode (only mode) ───────────────────────────────────────────── */
@@ -138,10 +138,10 @@
 
 .dark {
     /* ConvoMate dark palette — sleek deep midnight navy */
-    --brand-navy: #fae18e;
+    --brand-navy: #081232;
     --brand-yellow: #fae18e;
     --brand-yellow-hover: #f0d070;
-    --brand-pale-blue: #182852;
+    --brand-pale-blue: #14234b;
     --brand-blue: #93b5d8;
     --brand-cream: #0d1b3e;
 
@@ -150,10 +150,10 @@
     --brand-orange: #93b5d8;
     --brand-button: #fae18e;
     --brand-button-hover: #f0d070;
-    --brand-lightblue: #182852;
+    --brand-lightblue: #cbd5e1;
 
     /* Semantic tokens */
-    --background: #080f28;
+    --background: #070e24;
     --foreground: #f8fafc;
     --card: #0d1b3e;
     --card-foreground: #f8fafc;
@@ -161,16 +161,16 @@
     --popover-foreground: #f8fafc;
     --primary: #fae18e;
     --primary-foreground: #061445;
-    --secondary: #182852;
+    --secondary: #13244e;
     --secondary-foreground: #f8fafc;
-    --muted: #13244e;
+    --muted: #0d1a3a;
     --muted-foreground: #94a3b8;
     --accent: #fae18e;
     --accent-foreground: #061445;
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
-    --border: rgba(255, 255, 255, 0.12);
-    --input: rgba(255, 255, 255, 0.15);
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.12);
     --ring: #fae18e;
 
     --chart-1: #fae18e;
@@ -185,8 +185,49 @@
     --sidebar-primary-foreground: #061445;
     --sidebar-accent: rgba(255, 255, 255, 0.08);
     --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: rgba(255, 255, 255, 0.1);
+    --sidebar-border: rgba(255, 255, 255, 0.08);
     --sidebar-ring: #fae18e;
+}
+
+.dark .text-brand-navy:not([class*="bg-brand-yellow"]):not([class*="bg-brand-button"]):not([class*="bg-[#F7DE8B]"]):not([class*="dark:bg-brand-yellow"]):not([class*="dark:bg-[#F7DE8B]"]),
+.dark .text-brand-brown:not([class*="bg-brand-yellow"]):not([class*="bg-brand-button"]):not([class*="bg-[#F7DE8B]"]):not([class*="dark:bg-brand-yellow"]):not([class*="dark:bg-[#F7DE8B]"]) {
+    color: #f8fafc;
+}
+
+.dark .border-brand-navy,
+.dark .border-brand-brown {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Ensure yellow brand buttons maintain accessible high-contrast dark navy text in all themes */
+.bg-brand-button,
+.bg-brand-yellow,
+.dark .bg-brand-button,
+.dark .bg-brand-yellow,
+.dark [class*="bg-brand-yellow"],
+.dark [class*="bg-brand-button"],
+.dark [class*="dark:bg-brand-yellow"] {
+    color: #061445;
+}
+
+.bg-brand-button .text-brand-brown,
+.bg-brand-yellow .text-brand-brown,
+.dark .bg-brand-button .text-brand-brown,
+.dark .bg-brand-yellow .text-brand-brown,
+.bg-brand-button.text-brand-brown,
+.bg-brand-yellow.text-brand-brown,
+.dark .bg-brand-button.text-brand-brown,
+.dark .bg-brand-yellow.text-brand-brown,
+.dark .bg-brand-button.text-white,
+.dark .bg-brand-yellow.text-white,
+.dark [class*="bg-brand-yellow"] span,
+.dark [class*="bg-brand-yellow"] svg,
+.dark [class*="bg-brand-button"] span,
+.dark [class*="bg-brand-button"] svg,
+.dark [class*="dark:bg-brand-yellow"] span,
+.dark [class*="dark:bg-brand-yellow"] svg {
+    color: #061445 !important;
+    stroke: currentColor;
 }
 
 @layer base {
@@ -221,6 +262,10 @@
 /* Butter-yellow text underline highlight (hero headlines) */
 .butter-underline {
     box-shadow: inset 0 -10px 0 0 #fae18e;
+}
+
+.dark .butter-underline {
+    box-shadow: inset 0 -10px 0 0 rgba(250, 225, 142, 0.35);
 }
 
 /* Glass panel for overlays */

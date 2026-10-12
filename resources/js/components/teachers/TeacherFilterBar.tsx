@@ -127,13 +127,13 @@ export default function TeacherFilterBar({
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
                         placeholder="Search teacher by name..."
-                        className="h-10 w-full rounded-full border-[#EAE4D2] bg-white pl-10 pr-9 text-sm text-[#1E2A5A] shadow-2xs transition-all placeholder:text-[#5C6480]/60 focus-visible:border-[#1E2A5A] focus-visible:ring-1 focus-visible:ring-[#1E2A5A]"
+                        className="h-10 w-full rounded-full border-[#EAE4D2] bg-white pl-10 pr-9 text-sm text-[#1E2A5A] shadow-2xs transition-all placeholder:text-[#5C6480]/60 focus-visible:border-[#1E2A5A] focus-visible:ring-1 focus-visible:ring-[#1E2A5A] dark:border-white/10 dark:bg-card dark:text-white dark:placeholder:text-slate-400 dark:focus-visible:border-brand-yellow dark:focus-visible:ring-brand-yellow"
                     />
                     {searchValue && (
                         <button
                             type="button"
                             onClick={handleClearSearch}
-                            className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800"
+                            className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
                             aria-label="Clear search"
                         >
                             <X className="h-3.5 w-3.5" />
@@ -143,8 +143,8 @@ export default function TeacherFilterBar({
 
                 {/* Filter Label & Clear Button */}
                 <div className="flex items-center justify-between gap-3 sm:justify-end">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#5C6480]">
-                        <Filter className="h-3.5 w-3.5 text-[#1E2A5A]" />
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#5C6480] dark:text-slate-300">
+                        <Filter className="h-3.5 w-3.5 text-[#1E2A5A] dark:text-brand-yellow" />
                         <span>Filter & Sort:</span>
                     </div>
 
@@ -161,7 +161,7 @@ export default function TeacherFilterBar({
                                     search: null,
                                 });
                             }}
-                            className="h-8 cursor-pointer px-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                            className="h-8 cursor-pointer px-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-950/30 dark:hover:text-rose-300"
                         >
                             <X className="mr-1 h-3.5 w-3.5" />
                             Clear All
@@ -179,8 +179,8 @@ export default function TeacherFilterBar({
                     onClick={() => applyFilters({ status: 'all' })}
                     className={`h-8 rounded-full text-xs font-bold ${
                         status === 'all'
-                            ? 'bg-[#1E2A5A] text-white hover:bg-[#1E2A5A]/90'
-                            : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4]'
+                            ? 'bg-[#1E2A5A] text-white hover:bg-[#1E2A5A]/90 dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-brand-yellow/90'
+                            : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4] dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/5'
                     }`}
                 >
                     All Teachers
@@ -192,8 +192,8 @@ export default function TeacherFilterBar({
                     onClick={() => applyFilters({ status: 'verified' })}
                     className={`h-8 rounded-full text-xs font-bold ${
                         status === 'verified'
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                            : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4]'
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white'
+                            : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4] dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/5'
                     }`}
                 >
                     <ShieldCheck className="mr-1 h-3.5 w-3.5" />
@@ -206,8 +206,8 @@ export default function TeacherFilterBar({
                     onClick={() => applyFilters({ status: 'new' })}
                     className={`h-8 rounded-full text-xs font-bold ${
                         status === 'new'
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4]'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white'
+                            : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4] dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/5'
                     }`}
                 >
                     <Sparkles className="mr-1 h-3.5 w-3.5" />
@@ -223,15 +223,15 @@ export default function TeacherFilterBar({
                         onClick={() => applyFilters({ status: 'unverified' })}
                         className={`h-8 rounded-full text-xs font-bold ${
                             status === 'unverified'
-                                ? 'bg-[#1E2A5A] text-white'
-                                : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4]'
+                                ? 'bg-[#1E2A5A] text-white dark:bg-brand-yellow dark:text-[#061445]'
+                                : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4] dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/5'
                         }`}
                     >
                         Unverified
                     </Button>
                 )}
 
-                <div className="hidden h-5 w-px bg-[#EAE4D2] sm:block" />
+                <div className="hidden h-5 w-px bg-[#EAE4D2] dark:bg-white/10 sm:block" />
 
                 {/* 2. IELTS Band Filter Dropdown */}
                 <DropdownMenu>
@@ -241,8 +241,8 @@ export default function TeacherFilterBar({
                             variant={ieltsSort ? 'default' : 'outline'}
                             className={`h-8 rounded-full text-xs font-bold transition-all ${
                                 ieltsSort
-                                    ? 'bg-amber-600 text-white shadow-2xs hover:bg-amber-700'
-                                    : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4]'
+                                    ? 'bg-amber-600 text-white shadow-2xs hover:bg-amber-700 dark:bg-amber-600 dark:text-white'
+                                    : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4] dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/5'
                             }`}
                         >
                             {ieltsSort === 'asc' ? (
@@ -250,7 +250,7 @@ export default function TeacherFilterBar({
                             ) : ieltsSort === 'desc' ? (
                                 <ArrowUp className="mr-1 h-3.5 w-3.5 stroke-[2.5]" />
                             ) : (
-                                <ArrowUpDown className="mr-1 h-3.5 w-3.5 text-amber-600" />
+                                <ArrowUpDown className="mr-1 h-3.5 w-3.5 text-amber-600 dark:text-brand-yellow" />
                             )}
                             <span>
                                 {ieltsSort === 'asc'
@@ -263,28 +263,28 @@ export default function TeacherFilterBar({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                         align="end"
-                        className="w-52 rounded-2xl border border-[#EAE4D2] bg-white p-1.5 shadow-xl"
+                        className="w-52 rounded-2xl border border-[#EAE4D2] bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#0d1b3e] dark:text-white"
                     >
                         <DropdownMenuItem
                             onClick={() => applyFilters({ ielts_sort: 'asc' })}
-                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold ${
+                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold dark:hover:bg-white/10 ${
                                 ieltsSort === 'asc'
-                                    ? 'bg-amber-50 text-amber-900'
+                                    ? 'bg-amber-50 text-amber-900 dark:bg-amber-950/60 dark:text-brand-yellow'
                                     : ''
                             }`}
                         >
-                            <ArrowDown className="h-3.5 w-3.5 text-amber-600" />
+                            <ArrowDown className="h-3.5 w-3.5 text-amber-600 dark:text-brand-yellow" />
                             <span>Band: Low to High</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => applyFilters({ ielts_sort: 'desc' })}
-                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold ${
+                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold dark:hover:bg-white/10 ${
                                 ieltsSort === 'desc'
-                                    ? 'bg-amber-50 text-amber-900'
+                                    ? 'bg-amber-50 text-amber-900 dark:bg-amber-950/60 dark:text-brand-yellow'
                                     : ''
                             }`}
                         >
-                            <ArrowUp className="h-3.5 w-3.5 text-amber-600" />
+                            <ArrowUp className="h-3.5 w-3.5 text-amber-600 dark:text-brand-yellow" />
                             <span>Band: High to Low</span>
                         </DropdownMenuItem>
                         {ieltsSort && (
@@ -292,7 +292,7 @@ export default function TeacherFilterBar({
                                 onClick={() =>
                                     applyFilters({ ielts_sort: null })
                                 }
-                                className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl border-t border-slate-100 py-2 text-xs font-bold text-slate-500 hover:text-slate-800"
+                                className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl border-t border-slate-100 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:border-white/10 dark:text-slate-400 dark:hover:text-white"
                             >
                                 <X className="h-3.5 w-3.5" />
                                 <span>Reset IELTS Sort</span>
@@ -309,8 +309,8 @@ export default function TeacherFilterBar({
                             variant={priceSort ? 'default' : 'outline'}
                             className={`h-8 rounded-full text-xs font-bold transition-all ${
                                 priceSort
-                                    ? 'bg-purple-600 text-white shadow-2xs hover:bg-purple-700'
-                                    : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4]'
+                                    ? 'bg-purple-600 text-white shadow-2xs hover:bg-purple-700 dark:bg-purple-600 dark:text-white'
+                                    : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4] dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/5'
                             }`}
                         >
                             {priceSort === 'asc' ? (
@@ -318,7 +318,7 @@ export default function TeacherFilterBar({
                             ) : priceSort === 'desc' ? (
                                 <ArrowUp className="mr-1 h-3.5 w-3.5 stroke-[2.5]" />
                             ) : (
-                                <ArrowUpDown className="mr-1 h-3.5 w-3.5 text-purple-600" />
+                                <ArrowUpDown className="mr-1 h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
                             )}
                             <span>
                                 {priceSort === 'asc'
@@ -331,28 +331,28 @@ export default function TeacherFilterBar({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                         align="end"
-                        className="w-52 rounded-2xl border border-[#EAE4D2] bg-white p-1.5 shadow-xl"
+                        className="w-52 rounded-2xl border border-[#EAE4D2] bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#0d1b3e] dark:text-white"
                     >
                         <DropdownMenuItem
                             onClick={() => applyFilters({ price_sort: 'asc' })}
-                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold ${
+                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold dark:hover:bg-white/10 ${
                                 priceSort === 'asc'
-                                    ? 'bg-purple-50 text-purple-900'
+                                    ? 'bg-purple-50 text-purple-900 dark:bg-purple-950/60 dark:text-purple-300'
                                     : ''
                             }`}
                         >
-                            <ArrowDown className="h-3.5 w-3.5 text-purple-600" />
+                            <ArrowDown className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
                             <span>Price: Low to High</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => applyFilters({ price_sort: 'desc' })}
-                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold ${
+                            className={`flex cursor-pointer items-center gap-2 rounded-xl py-2 text-xs font-bold dark:hover:bg-white/10 ${
                                 priceSort === 'desc'
-                                    ? 'bg-purple-50 text-purple-900'
+                                    ? 'bg-purple-50 text-purple-900 dark:bg-purple-950/60 dark:text-purple-300'
                                     : ''
                             }`}
                         >
-                            <ArrowUp className="h-3.5 w-3.5 text-purple-600" />
+                            <ArrowUp className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
                             <span>Price: High to Low</span>
                         </DropdownMenuItem>
                         {priceSort && (
@@ -360,7 +360,7 @@ export default function TeacherFilterBar({
                                 onClick={() =>
                                     applyFilters({ price_sort: null })
                                 }
-                                className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl border-t border-slate-100 py-2 text-xs font-bold text-slate-500 hover:text-slate-800"
+                                className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl border-t border-slate-100 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:border-white/10 dark:text-slate-400 dark:hover:text-white"
                             >
                                 <X className="h-3.5 w-3.5" />
                                 <span>Reset Price Sort</span>

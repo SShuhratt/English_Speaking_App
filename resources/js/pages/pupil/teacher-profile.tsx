@@ -1268,19 +1268,19 @@ export default function TeacherProfile({
                                         return (
                                             <div
                                                 key={idx}
-                                                className="space-y-3.5 rounded-2xl border border-[#E6E9F2] bg-white p-4 shadow-sm"
+                                                className="space-y-3.5 rounded-2xl border border-[#E6E9F2] bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card"
                                             >
                                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A]">
+                                                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/10 dark:text-brand-yellow">
                                                             <Award className="h-4.5 w-4.5" />
                                                         </div>
                                                         <div>
                                                             <div className="flex flex-wrap items-center gap-2">
-                                                                <h4 className="text-sm font-bold text-[#1E2A5A]">
+                                                                <h4 className="text-sm font-bold text-[#1E2A5A] dark:text-white">
                                                                     {cert.title || def.label}
                                                                 </h4>
-                                                                <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700">
+                                                                <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                                                                     {langBadge}
                                                                 </span>
                                                             </div>
@@ -1288,11 +1288,11 @@ export default function TeacherProfile({
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         {cert.status === 'verified' ? (
-                                                            <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A]">
+                                                            <span className="inline-flex items-center rounded-full bg-[#F7DE8B] px-3 py-1 text-xs font-bold text-[#1E2A5A] dark:border dark:border-amber-500/20 dark:bg-amber-950/60 dark:text-brand-yellow">
                                                                 ✓ Verified
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-bold text-[#6B7394]">
+                                                            <span className="inline-flex items-center rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-bold text-[#6B7394] dark:bg-white/10 dark:text-slate-400">
                                                                 Under review
                                                             </span>
                                                         )}
@@ -1331,13 +1331,13 @@ export default function TeacherProfile({
                                                 </div>
 
                                                 {/* Scores display */}
-                                                <div className="rounded-xl border border-[#E6E9F2]/60 bg-[#FAFBFD] p-3">
+                                                <div className="rounded-xl border border-[#E6E9F2]/60 bg-[#FAFBFD] p-3 dark:border-white/10 dark:bg-white/5">
                                                     {/* Overall row */}
-                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/60 pb-2">
-                                                        <span className="text-xs font-bold text-[#6B7394]">
+                                                    <div className="flex items-center justify-between border-b border-[#E6E9F2]/60 pb-2 dark:border-white/10">
+                                                        <span className="text-xs font-bold text-[#6B7394] dark:text-slate-400">
                                                             {t(def.overall.labelKey, def.overall.fallbackLabel)}
                                                         </span>
-                                                        <span className="rounded-lg bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold text-indigo-700">
+                                                        <span className="rounded-lg bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
                                                             {cert.overall || '—'}
                                                         </span>
                                                     </div>
@@ -1348,12 +1348,12 @@ export default function TeacherProfile({
                                                             {skills.map((s, sIdx) => (
                                                                 <div
                                                                     key={sIdx}
-                                                                    className="rounded-lg border border-[#E6E9F2]/60 bg-white p-2 text-center shadow-2xs"
+                                                                    className="rounded-lg border border-[#E6E9F2]/60 bg-white p-2 text-center shadow-2xs dark:border-white/10 dark:bg-card"
                                                                 >
-                                                                    <span className="block truncate text-[10px] font-bold text-[#6B7394] uppercase">
+                                                                    <span className="block truncate text-[10px] font-bold text-[#6B7394] uppercase dark:text-slate-400">
                                                                         {s.label}
                                                                     </span>
-                                                                    <span className="text-xs font-extrabold text-[#1E2A5A]">
+                                                                    <span className="text-xs font-extrabold text-[#1E2A5A] dark:text-brand-yellow">
                                                                         {s.value}
                                                                     </span>
                                                                 </div>
@@ -1381,7 +1381,7 @@ export default function TeacherProfile({
                                                                         setSelectedCertForPreview(cert);
                                                                     }
                                                                 }}
-                                                                className="group relative flex h-32 w-full sm:w-56 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-2xs transition-all hover:border-indigo-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-850"
+                                                                className="group relative flex h-32 w-full sm:w-56 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-2xs transition-all hover:border-indigo-400 hover:shadow-md dark:border-white/10 dark:bg-card"
                                                                 title={t('teacher.click_to_expand', 'Click to expand')}
                                                             >
                                                                 {isCertPdf ? (
@@ -1504,20 +1504,20 @@ export default function TeacherProfile({
                                                     return (
                                                         <div
                                                             key={pack.id}
-                                                            className="flex flex-col gap-1.5 rounded-xl border border-emerald-200/60 bg-white/80 p-2.5 shadow-2xs"
+                                                            className="flex flex-col gap-1.5 rounded-xl border border-emerald-200/60 bg-white/80 p-2.5 shadow-2xs dark:border-emerald-500/20 dark:bg-emerald-950/40"
                                                         >
                                                             <div className="flex items-center justify-between text-[11px]">
-                                                                <span className="font-bold text-emerald-950">
+                                                                <span className="font-bold text-emerald-950 dark:text-emerald-100">
                                                                     {pack.package_title}
                                                                 </span>
-                                                                <span className="font-semibold text-emerald-800">
+                                                                <span className="font-semibold text-emerald-800 dark:text-emerald-300">
                                                                     {t('packages.hours_left_of', {
                                                                         left: packHoursLeft,
                                                                         total: packHoursTotal,
                                                                     }) || `${packHoursLeft} left of ${packHoursTotal}h`}
                                                                 </span>
                                                             </div>
-                                                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-emerald-100">
+                                                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900/50">
                                                                 <div
                                                                     className="h-full rounded-full bg-emerald-500 transition-all duration-300"
                                                                     style={{ width: `${percentLeft}%` }}
@@ -1532,16 +1532,16 @@ export default function TeacherProfile({
                                 )}
 
                                 {pendingPupilPackage && (
-                                    <div className="mb-4 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900">
+                                    <div className="mb-4 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-200">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                                                 <Clock className="h-4 w-4" />
                                             </div>
                                             <div>
-                                                <p className="font-bold text-amber-950">
+                                                <p className="font-bold text-amber-950 dark:text-amber-100">
                                                     {t('packages.pending_verification') || 'Payment Verification Pending'}
                                                 </p>
-                                                <p className="text-[11.5px] text-amber-700">
+                                                <p className="text-[11.5px] text-amber-700 dark:text-amber-300">
                                                     {pendingPupilPackage.package_title} · Admin will approve your payment shortly.
                                                 </p>
                                             </div>
@@ -1556,11 +1556,11 @@ export default function TeacherProfile({
                                                         teacherName: teacher.full_name,
                                                     })
                                                 }
-                                                className="cursor-pointer rounded-xl bg-amber-200/90 hover:bg-amber-300 px-3 py-1.5 text-[11px] font-bold text-amber-950 transition-colors shadow-xs"
+                                                className="cursor-pointer rounded-xl bg-amber-200/90 hover:bg-amber-300 px-3 py-1.5 text-[11px] font-bold text-amber-950 transition-colors shadow-xs dark:bg-amber-900/70 dark:text-amber-100 dark:hover:bg-amber-800"
                                             >
                                                 {t('packages.view_payment_details') || 'Payment Details'}
                                             </button>
-                                            <span className="rounded-full bg-amber-200/60 px-2.5 py-1 text-[10.5px] font-bold text-amber-800">
+                                            <span className="rounded-full bg-amber-200/60 px-2.5 py-1 text-[10.5px] font-bold text-amber-800 dark:bg-amber-900/50 dark:text-amber-300">
                                                 Verifying
                                             </span>
                                         </div>
@@ -1586,40 +1586,40 @@ export default function TeacherProfile({
                                                 key={pkg.id}
                                                 className={`relative flex flex-col justify-between rounded-2xl border p-4 transition-all ${
                                                     isCurrentActive
-                                                        ? 'border-emerald-300 bg-emerald-50/30 shadow-xs'
-                                                        : 'border-[#E6E9F2] bg-[#FAFBFD] hover:border-[#1E2A5A]/30 hover:bg-white hover:shadow-md'
+                                                        ? 'border-emerald-300 bg-emerald-50/30 shadow-xs dark:border-emerald-500/30 dark:bg-emerald-950/30'
+                                                        : 'border-[#E6E9F2] bg-[#FAFBFD] hover:border-[#1E2A5A]/30 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-card dark:hover:border-white/20 dark:hover:bg-white/5'
                                                 }`}
                                             >
                                                 {pkg.discount_percentage && pkg.discount_percentage > 0 ? (
-                                                    <span className="absolute top-3 right-3 rounded-full bg-[#1E2A5A] px-2 py-0.5 text-[10px] font-extrabold text-[#F7DE8B]">
+                                                    <span className="absolute top-3 right-3 rounded-full bg-[#1E2A5A] px-2 py-0.5 text-[10px] font-extrabold text-[#F7DE8B] dark:border dark:border-amber-500/30 dark:bg-amber-950/80 dark:text-brand-yellow">
                                                         {t('packages.discount_badge', { discount: pkg.discount_percentage }) ||
                                                             `${pkg.discount_percentage}% OFF`}
                                                     </span>
                                                 ) : null}
 
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-[#1E2A5A]">
+                                                    <h4 className="text-sm font-bold text-[#1E2A5A] dark:text-white">
                                                         {pkg.title}
                                                     </h4>
-                                                    <p className="mt-0.5 text-xs font-semibold text-[#6B7394]">
+                                                    <p className="mt-0.5 text-xs font-semibold text-[#6B7394] dark:text-slate-400">
                                                         {formatHours(pkg.total_hours, locale)}
                                                     </p>
 
                                                     {pkg.description && (
-                                                        <p className="mt-2 text-xs leading-relaxed text-[#6B7394]">
+                                                        <p className="mt-2 text-xs leading-relaxed text-[#6B7394] dark:text-slate-400">
                                                             {pkg.description}
                                                         </p>
                                                     )}
                                                 </div>
 
-                                                <div className="mt-4 border-t border-[#E6E9F2] pt-3">
+                                                <div className="mt-4 border-t border-[#E6E9F2] pt-3 dark:border-white/10">
                                                     <div className="flex items-baseline justify-between">
                                                         <div>
-                                                            <div className="text-base font-extrabold text-[#1E2A5A]">
+                                                            <div className="text-base font-extrabold text-[#1E2A5A] dark:text-brand-yellow">
                                                                 {pkg.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
                                                             </div>
                                                             {savings > 0 && (
-                                                                <div className="text-[11px] font-medium text-emerald-600">
+                                                                <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                                                                     {t('packages.savings', {
                                                                         amount: `${savings.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`,
                                                                     }) || `Save ${savings.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`}
@@ -2120,25 +2120,25 @@ export default function TeacherProfile({
             {confirmingSlot && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#22284A]/40 backdrop-blur-sm">
                     <div
-                        className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95"
+                        className="relative mx-4 flex w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95 dark:border-white/10 dark:bg-card dark:text-white"
                         style={{
                             fontFamily: "'Schibsted Grotesk', sans-serif",
                         }}
                     >
                         <button
                             onClick={() => setConfirmingSlot(null)}
-                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] transition-colors hover:bg-[#A9C6E8] hover:text-[#1E2A5A]"
+                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] transition-colors hover:bg-[#A9C6E8] hover:text-[#1E2A5A] dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/20 dark:hover:text-white"
                         >
                             <X className="h-4 w-4" />
                         </button>
 
                         <div className="mt-2 flex items-start gap-4">
-                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A]">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/10 dark:text-brand-yellow">
                                 <Info className="h-5 w-5" />
                             </div>
                             <div className="flex-1">
                                 <h3
-                                    className="text-lg font-bold text-[#1E2A5A]"
+                                    className="text-lg font-bold text-[#1E2A5A] dark:text-white"
                                     style={{
                                         fontFamily:
                                             "'Bricolage Grotesque', sans-serif",
@@ -2153,14 +2153,14 @@ export default function TeacherProfile({
 
                                 {confirmingSlot.is_all_time ? (
                                     <div className="mt-3 space-y-4">
-                                        <p className="text-sm leading-relaxed text-[#6B7394]">
+                                        <p className="text-sm leading-relaxed text-[#6B7394] dark:text-slate-400">
                                             {t('booking.all_time_desc') ||
                                                 'Choose a specific start and end time for your custom session.'}
                                         </p>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="grid gap-1">
-                                                <label className="text-xs font-semibold text-[#22284A]">
+                                                <label className="text-xs font-semibold text-[#22284A] dark:text-white">
                                                     {t(
                                                         'booking.all_time_start',
                                                     ) || 'Start Time'}
@@ -2183,11 +2183,11 @@ export default function TeacherProfile({
                                                             confirmingSlot.end_at,
                                                         ),
                                                     )}
-                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/15 dark:bg-background dark:text-white"
                                                 />
                                             </div>
                                             <div className="grid gap-1">
-                                                <label className="text-xs font-semibold text-[#22284A]">
+                                                <label className="text-xs font-semibold text-[#22284A] dark:text-white">
                                                     {t(
                                                         'booking.all_time_end',
                                                     ) || 'End Time'}
@@ -2213,7 +2213,7 @@ export default function TeacherProfile({
                                                             confirmingSlot.end_at,
                                                         ),
                                                     )}
-                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                    className="mt-1 rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/15 dark:bg-background dark:text-white"
                                                 />
                                             </div>
                                         </div>
@@ -2252,7 +2252,7 @@ export default function TeacherProfile({
                                                 },
                                             );
                                         return (
-                                            <p className="mt-3 text-sm leading-relaxed text-[#6B7394]">
+                                            <p className="mt-3 text-sm leading-relaxed text-[#6B7394] dark:text-slate-400">
                                                 {t('booking.confirm_message', {
                                                     teacher: teacher.full_name,
                                                     start: startStr,
@@ -2265,8 +2265,8 @@ export default function TeacherProfile({
                                 )}
 
                                 {/* Topic selection */}
-                                <div className="mt-4 space-y-2 border-t border-[#E6E9F2] pt-3">
-                                    <label className="text-xs font-semibold text-[#22284A]">
+                                <div className="mt-4 space-y-2 border-t border-[#E6E9F2] pt-3 dark:border-white/10">
+                                    <label className="text-xs font-semibold text-[#22284A] dark:text-white">
                                         {t('booking.select_topics') ||
                                             'Select Speaking Topics'}{' '}
                                         <span className="text-red-500">*</span>
@@ -2302,8 +2302,8 @@ export default function TeacherProfile({
                                                         }}
                                                         className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                                                             isChecked
-                                                                ? 'border-[#1E2A5A] bg-[#1E2A5A] text-white'
-                                                                : 'border-[#D8E5F5] bg-[#EEF4FB] text-[#1E2A5A] hover:bg-[#A9C6E8]'
+                                                                ? 'border-[#1E2A5A] bg-[#1E2A5A] text-white dark:border-brand-yellow dark:bg-brand-yellow dark:text-[#061445]'
+                                                                : 'border-[#D8E5F5] bg-[#EEF4FB] text-[#1E2A5A] hover:bg-[#A9C6E8] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
                                                         }`}
                                                     >
                                                         {t(`labels.${lbl}`) ||
@@ -2319,8 +2319,8 @@ export default function TeacherProfile({
                                             }
                                             className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                                                 otherChecked
-                                                    ? 'border-[#1E2A5A] bg-[#1E2A5A] text-white'
-                                                    : 'border-[#D8E5F5] bg-[#EEF4FB] text-[#1E2A5A] hover:bg-[#A9C6E8]'
+                                                    ? 'border-[#1E2A5A] bg-[#1E2A5A] text-white dark:border-brand-yellow dark:bg-brand-yellow dark:text-[#061445]'
+                                                    : 'border-[#D8E5F5] bg-[#EEF4FB] text-[#1E2A5A] hover:bg-[#A9C6E8] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
                                             }`}
                                         >
                                             {t('booking.topic_other') ||
@@ -2343,7 +2343,7 @@ export default function TeacherProfile({
                                                         e.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none"
+                                                className="w-full rounded-xl border border-[#E6E9F2] p-2 text-sm text-[#22284A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/15 dark:bg-background dark:text-white"
                                                 maxLength={100}
                                             />
                                         </div>
@@ -2351,13 +2351,13 @@ export default function TeacherProfile({
                                 </div>
 
                                 {isCoveredByPackage && (
-                                    <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950">
+                                    <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950 dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-200">
                                         <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-600 mt-0.5" />
                                         <div>
-                                            <p className="font-bold text-emerald-950">
+                                            <p className="font-bold text-emerald-950 dark:text-emerald-100">
                                                 {t('packages.covered_badge') || 'Covered by your Conversation Pack (Free)'}
                                             </p>
-                                            <p className="mt-0.5 text-[11.5px] text-emerald-700">
+                                            <p className="mt-0.5 text-[11.5px] text-emerald-700 dark:text-emerald-300">
                                                 {t('packages.covered_session_desc', {
                                                     duration: formatDuration(durMins, locale),
                                                     remaining: formatDuration(Math.max(0, cumulativeRemainingMinutes - durMins), locale),
@@ -2368,13 +2368,13 @@ export default function TeacherProfile({
                                 )}
 
                                 {hasPartialPackage && (
-                                    <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-950">
+                                    <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-950 dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-200">
                                         <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600 mt-0.5" />
                                         <div>
-                                            <p className="font-bold text-amber-950">
+                                            <p className="font-bold text-amber-950 dark:text-amber-100">
                                                 {t('packages.insufficient_title') || 'Insufficient Conversation Pack Balance'}
                                             </p>
-                                            <p className="mt-0.5 text-[11.5px] text-amber-700">
+                                            <p className="mt-0.5 text-[11.5px] text-amber-700 dark:text-amber-300">
                                                 {t('packages.insufficient_minutes', {
                                                     remaining: formatDuration(cumulativeRemainingMinutes, locale),
                                                     duration: formatDuration(durMins, locale),
@@ -2385,9 +2385,9 @@ export default function TeacherProfile({
                                 )}
 
                                 {!isCoveredByPackage && activePrice > 0 && (
-                                    <div className="mt-4 flex items-center justify-between rounded-xl border border-[#D8E5F5] bg-[#EEF4FB]/50 p-3.5 text-xs">
-                                        <span className="text-[#6B7394] font-medium">{t('booking.session_price') || 'Session Price'}:</span>
-                                        <span className="font-bold text-[#1E2A5A] dark:text-white text-sm">
+                                    <div className="mt-4 flex items-center justify-between rounded-xl border border-[#D8E5F5] bg-[#EEF4FB]/50 p-3.5 text-xs dark:border-white/10 dark:bg-white/5">
+                                        <span className="text-[#6B7394] font-medium dark:text-slate-400">{t('booking.session_price') || 'Session Price'}:</span>
+                                        <span className="font-bold text-[#1E2A5A] dark:text-brand-yellow text-sm">
                                             {activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
                                         </span>
                                     </div>
@@ -2396,7 +2396,7 @@ export default function TeacherProfile({
                                 <div className="mt-6 flex items-center justify-end gap-3">
                                     <button
                                         onClick={() => setConfirmingSlot(null)}
-                                        className="cursor-pointer rounded-xl border border-[#E6E9F2] px-4 py-2 text-sm font-semibold text-[#6B7394] transition-colors hover:bg-[#FAFBFD]"
+                                        className="cursor-pointer rounded-xl border border-[#E6E9F2] px-4 py-2 text-sm font-semibold text-[#6B7394] transition-colors hover:bg-[#FAFBFD] dark:border-white/15 dark:text-slate-400 dark:hover:bg-white/5"
                                     >
                                         {t('booking.cancel_btn') || 'Cancel'}
                                     </button>
@@ -2405,7 +2405,7 @@ export default function TeacherProfile({
                                         disabled={
                                             booking || !validateSelectedRange()
                                         }
-                                        className="cursor-pointer rounded-xl bg-[#F7DE8B] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors hover:bg-[#F0CE5F] disabled:opacity-50"
+                                        className="cursor-pointer rounded-xl bg-[#F7DE8B] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors hover:bg-[#F0CE5F] disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
                                     >
                                         {booking
                                             ? t('booking.requesting') ||
@@ -2428,50 +2428,50 @@ export default function TeacherProfile({
             {purchasingPackage && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#22284A]/40 backdrop-blur-sm p-4">
                     <div
-                        className="relative w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95"
+                        className="relative w-full max-w-md animate-in flex-col rounded-3xl border border-[#E6E9F2] bg-white p-6 shadow-2xl duration-150 zoom-in-95 dark:border-white/10 dark:bg-card dark:text-white"
                         style={{ fontFamily: "'Schibsted Grotesk', sans-serif" }}
                     >
                         <button
                             type="button"
                             onClick={() => setPurchasingPackage(null)}
                             disabled={submittingPurchase}
-                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] transition-colors hover:bg-[#A9C6E8] hover:text-[#1E2A5A]"
+                            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FB] text-[#6B7394] transition-colors hover:bg-[#A9C6E8] hover:text-[#1E2A5A] dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/20 dark:hover:text-white"
                         >
                             <X className="h-4 w-4" />
                         </button>
 
                         <div className="flex items-start gap-4">
-                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[#EEF4FB] text-[#1E2A5A]">
-                                <Package className="h-6 w-6 text-[#1E2A5A]" />
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/10 dark:text-brand-yellow">
+                                <Package className="h-6 w-6 text-[#1E2A5A] dark:text-brand-yellow" />
                             </div>
                             <div className="flex-1">
                                 <h3
-                                    className="text-lg font-bold text-[#1E2A5A]"
+                                    className="text-lg font-bold text-[#1E2A5A] dark:text-white"
                                     style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
                                 >
                                     {t('packages.buy_button') || 'Buy Conversation Pack'}
                                 </h3>
-                                <p className="mt-1 text-xs text-[#6B7394]">
+                                <p className="mt-1 text-xs text-[#6B7394] dark:text-slate-400">
                                     {teacher.full_name} · {purchasingPackage.title}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="mt-4 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] p-3 text-xs">
+                        <div className="mt-4 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] p-3 text-xs dark:border-white/10 dark:bg-white/5">
                             <div className="flex justify-between items-center">
-                                <span className="text-[#6B7394] font-medium">{t('packages.pack_price') || 'Total Price'}</span>
-                                <span className="font-extrabold text-base text-[#1E2A5A]">
+                                <span className="text-[#6B7394] font-medium dark:text-slate-400">{t('packages.pack_price') || 'Total Price'}</span>
+                                <span className="font-extrabold text-base text-[#1E2A5A] dark:text-brand-yellow">
                                     {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
                                 </span>
                             </div>
                         </div>
 
-                        <div className="mt-4 rounded-xl border border-[#D4E2F4] bg-[#EEF4FB] p-3.5 text-[11.5px] leading-relaxed text-[#1E2A5A]">
-                            <div className="flex items-center gap-1.5 font-bold mb-1 text-[#1E2A5A]">
-                                <Info className="h-4 w-4 text-[#1E2A5A]" />
+                        <div className="mt-4 rounded-xl border border-[#D4E2F4] bg-[#EEF4FB] p-3.5 text-[11.5px] leading-relaxed text-[#1E2A5A] dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+                            <div className="flex items-center gap-1.5 font-bold mb-1 text-[#1E2A5A] dark:text-brand-yellow">
+                                <Info className="h-4 w-4 text-[#1E2A5A] dark:text-brand-yellow" />
                                 <span>{t('voucher.how_it_works_title') || 'How it works'}</span>
                             </div>
-                            <p className="text-[#3C4569]">
+                            <p className="text-[#3C4569] dark:text-slate-300">
                                 {t('voucher.how_it_works_desc', { name: teacher.full_name })}
                             </p>
                         </div>
@@ -2481,7 +2481,7 @@ export default function TeacherProfile({
                                 type="button"
                                 onClick={() => setPurchasingPackage(null)}
                                 disabled={submittingPurchase}
-                                className="cursor-pointer rounded-xl border border-[#E6E9F2] px-4 py-2 text-sm font-semibold text-[#6B7394] transition-colors hover:bg-[#FAFBFD]"
+                                className="cursor-pointer rounded-xl border border-[#E6E9F2] px-4 py-2 text-sm font-semibold text-[#6B7394] transition-colors hover:bg-[#FAFBFD] dark:border-white/15 dark:text-slate-400 dark:hover:bg-white/5"
                             >
                                 {t('booking.cancel_btn') || 'Cancel'}
                             </button>
@@ -2489,7 +2489,7 @@ export default function TeacherProfile({
                                 type="button"
                                 onClick={handlePurchasePackage}
                                 disabled={submittingPurchase}
-                                className="cursor-pointer rounded-xl bg-[#F7DE8B] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors hover:bg-[#F0CE5F] disabled:opacity-50"
+                                className="cursor-pointer rounded-xl bg-[#F7DE8B] px-5 py-2 text-sm font-bold text-[#1E2A5A] shadow-md shadow-brand-button/10 transition-colors hover:bg-[#F0CE5F] disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
                             >
                                 {submittingPurchase
                                     ? (t('packages.buying') || 'Processing...')

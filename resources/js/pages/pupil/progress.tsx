@@ -22,6 +22,7 @@ import {
     CheckCircle2,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+import { useAppearance } from '@/hooks/use-appearance';
 import { toast } from 'sonner';
 
 
@@ -54,6 +55,8 @@ interface Props {
 
 export default function Progress({ progress, assessments = [] }: Props) {
     const { t } = useTranslation();
+    const { resolvedAppearance } = useAppearance();
+    const isDark = resolvedAppearance === 'dark';
 
     // Default 4-week goals from props or fallback
     const initialWeeklyGoals =
@@ -204,7 +207,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
             <Head title={t('progress.title') || 'My Progress'} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* 1. Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-3xl bg-[#1E2A5A] p-6 md:p-8 text-white shadow-xl">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-3xl bg-[#1E2A5A] p-6 md:p-8 text-white shadow-xl dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black uppercase tracking-widest text-[#F0CE5F]">
@@ -214,19 +217,19 @@ export default function Progress({ progress, assessments = [] }: Props) {
                         <h1 className="text-2xl font-bold font-serif text-white">
                             {t('progress.title') || 'Learning Journey & Progress'}
                         </h1>
-                        <p className="text-xs text-white/70">
+                        <p className="text-xs text-white/70 dark:text-slate-300">
                             {t('progress.subtitle') || 'Track your sessions, goals, and fluency assessments'}
                         </p>
                     </div>
                 </div>
 
                 {/* 2. Main 4-Week Journey Roadmap Container */}
-                <div className="rounded-3xl border border-[#E8E4D8] bg-white p-6 shadow-sm md:p-8">
+                <div className="rounded-3xl border border-[#E8E4D8] bg-white p-6 shadow-sm md:p-8 dark:border-white/10 dark:bg-card">
                     {/* Top Header */}
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
-                            <span className="inline-block h-5 w-2 rounded-sm bg-[#1E2A5A]"></span>
-                            <h2 className="text-lg font-bold text-[#1E2A5A]">
+                            <span className="inline-block h-5 w-2 rounded-sm bg-[#1E2A5A] dark:bg-brand-yellow"></span>
+                            <h2 className="text-lg font-bold text-[#1E2A5A] dark:text-white">
                                 {t('progress.roadmap_title') || '4-Week Speaking Journey'}
                             </h2>
                         </div>
@@ -238,7 +241,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                 setWeek4Input(weeklyGoals[3].toString());
                                 setIsGoalModalOpen(true);
                             }}
-                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E8E4D8] px-3.5 py-1.5 text-xs font-semibold text-[#1E2A5A] transition hover:bg-[#FDF9EC]"
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#E8E4D8] px-3.5 py-1.5 text-xs font-semibold text-[#1E2A5A] transition hover:bg-[#FDF9EC] dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
                         >
                             {t('progress.goals_summary', {
                                 w1: String(weeklyGoals[0]),
@@ -246,33 +249,33 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                 w3: String(weeklyGoals[2]),
                                 w4: String(weeklyGoals[3]),
                             }) || `Goals: W1 (${weeklyGoals[0]}) · W2 (${weeklyGoals[1]}) · W3 (${weeklyGoals[2]}) · W4 (${weeklyGoals[3]})`}
-                            <Pencil className="h-3 w-3 text-[#888780]" />
+                            <Pencil className="h-3 w-3 text-[#888780] dark:text-slate-400" />
                         </button>
                     </div>
 
                     {/* Summary Stats Grid */}
                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <div className="rounded-2xl bg-[#FDF9EC] p-3.5">
-                            <p className="text-[11.5px] font-semibold text-[#854F0B]">
+                        <div className="rounded-2xl bg-[#FDF9EC] p-3.5 dark:bg-white/5 dark:border dark:border-white/5">
+                            <p className="text-[11.5px] font-semibold text-[#854F0B] dark:text-amber-300">
                                 {t('progress.sessions_completed') || 'Sessions completed'}
                             </p>
-                            <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A]">
+                            <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A] dark:text-white">
                                 {completedSessions}
                             </p>
                         </div>
-                        <div className="rounded-2xl bg-[#EEF4FB] p-3.5">
-                            <p className="text-[11.5px] font-semibold text-[#185FA5]">
+                        <div className="rounded-2xl bg-[#EEF4FB] p-3.5 dark:bg-white/5 dark:border dark:border-white/5">
+                            <p className="text-[11.5px] font-semibold text-[#185FA5] dark:text-sky-300">
                                 {t('progress.minutes_spoken') || 'Minutes spoken'}
                             </p>
-                            <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A]">
+                            <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A] dark:text-white">
                                 {progress.minutes_spoken}
                             </p>
                         </div>
-                        <div className="rounded-2xl bg-[#F4F1E8] p-3.5">
-                            <p className="text-[11.5px] font-semibold text-[#5F5E5A]">
+                        <div className="rounded-2xl bg-[#F4F1E8] p-3.5 dark:bg-white/5 dark:border dark:border-white/5">
+                            <p className="text-[11.5px] font-semibold text-[#5F5E5A] dark:text-slate-300">
                                 {t('progress.teachers_tried') || 'Teachers tried'}
                             </p>
-                            <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A]">
+                            <p className="mt-0.5 text-2xl font-bold text-[#1E2A5A] dark:text-white">
                                 {progress.teachers_tried}
                             </p>
                         </div>
@@ -291,7 +294,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                     <path
                                         d={pathD}
                                         fill="none"
-                                        stroke="#E8E4D8"
+                                        stroke={isDark ? 'rgba(255, 255, 255, 0.2)' : '#E8E4D8'}
                                         strokeWidth="5"
                                         strokeLinecap="round"
                                         strokeDasharray="2 10"
@@ -311,8 +314,8 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                     width="40"
                                                     height="40"
                                                     rx="12"
-                                                    fill={isDone ? '#1D9E75' : isNextUp ? '#F7DE8B' : '#FFFFFF'}
-                                                    stroke={isDone || isNextUp ? 'none' : '#E8E4D8'}
+                                                    fill={isDone ? '#1D9E75' : isNextUp ? '#F7DE8B' : isDark ? '#14234b' : '#FFFFFF'}
+                                                    stroke={isDone || isNextUp ? 'none' : isDark ? 'rgba(255, 255, 255, 0.2)' : '#E8E4D8'}
                                                     strokeWidth="1.5"
                                                     className="transition-colors duration-300"
                                                 />
@@ -320,7 +323,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                     x={node.x}
                                                     y={node.y + 5}
                                                     textAnchor="middle"
-                                                    fill={isDone ? '#FFFFFF' : isNextUp ? '#1E2A5A' : '#B4B2A9'}
+                                                    fill={isDone ? '#FFFFFF' : isNextUp ? '#1E2A5A' : isDark ? '#94a3b8' : '#B4B2A9'}
                                                     fontSize="15"
                                                     fontWeight="bold"
                                                 >
@@ -330,7 +333,13 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                     x={node.x}
                                                     y={node.y - 28}
                                                     textAnchor="middle"
-                                                    fill={isDone ? '#0F6E56' : isNextUp ? '#854F0B' : '#B4B2A9'}
+                                                    fill={
+                                                        isDone
+                                                            ? (isDark ? '#34d399' : '#0F6E56')
+                                                            : isNextUp
+                                                            ? (isDark ? '#fbbf24' : '#854F0B')
+                                                            : (isDark ? '#94a3b8' : '#B4B2A9')
+                                                    }
                                                     fontSize="11"
                                                     fontWeight="600"
                                                 >
@@ -343,7 +352,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                         x={node.x}
                                                         y={node.y + 32}
                                                         textAnchor="middle"
-                                                        fill="#1E2A5A"
+                                                        fill={isDark ? '#f8fafc' : '#1E2A5A'}
                                                         fontSize="10"
                                                         fontWeight="700"
                                                     >
@@ -370,15 +379,35 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                 cx={node.x}
                                                 cy={node.y}
                                                 r="14"
-                                                fill={isDone || isNextUp ? '#1E2A5A' : '#FFFFFF'}
-                                                stroke={isDone || isNextUp ? 'none' : '#D3D1C7'}
+                                                fill={
+                                                    isDark
+                                                        ? isDone
+                                                            ? '#38bdf8'
+                                                            : isNextUp
+                                                            ? '#F7DE8B'
+                                                            : '#14234b'
+                                                        : isDone || isNextUp
+                                                        ? '#1E2A5A'
+                                                        : '#FFFFFF'
+                                                }
+                                                stroke={isDone || isNextUp ? 'none' : isDark ? 'rgba(255, 255, 255, 0.2)' : '#D3D1C7'}
                                                 strokeWidth="1.5"
                                             />
                                             <text
                                                 x={node.x}
                                                 y={node.y + 4}
                                                 textAnchor="middle"
-                                                fill={isDone || isNextUp ? '#FFFFFF' : '#888780'}
+                                                fill={
+                                                    isDark
+                                                        ? isDone
+                                                            ? '#061445'
+                                                            : isNextUp
+                                                            ? '#061445'
+                                                            : '#94a3b8'
+                                                        : isDone || isNextUp
+                                                        ? '#FFFFFF'
+                                                        : '#888780'
+                                                }
                                                 fontSize="12"
                                                 fontWeight="600"
                                             >
@@ -389,7 +418,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                     x={node.x}
                                                     y={node.y + 32}
                                                     textAnchor="middle"
-                                                    fill="#1E2A5A"
+                                                    fill={isDark ? '#f8fafc' : '#1E2A5A'}
                                                     fontSize="10"
                                                     fontWeight="700"
                                                 >
@@ -404,8 +433,8 @@ export default function Progress({ progress, assessments = [] }: Props) {
                     </div>
 
                     {/* Bottom Action Banner */}
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#FDF9EC] p-3.5">
-                        <p className="m-0 text-xs font-medium text-[#1E2A5A]">
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#FDF9EC] p-3.5 dark:bg-white/5 dark:border dark:border-white/5">
+                        <p className="m-0 text-xs font-medium text-[#1E2A5A] dark:text-slate-200">
                             {sessionsLeftThisWeek === 1
                                 ? t('progress.one_session_left', '1 session left to finish this week')
                                 : t(
@@ -414,13 +443,13 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                       `${sessionsLeftThisWeek} sessions left to finish this week`
                                   )}
                             {' — '}
-                            <span className="text-[#5F5E5A]">
+                            <span className="text-[#5F5E5A] dark:text-slate-400">
                                 {t('progress.book_with_teacher_free', 'book your next session with a top teacher')}
                             </span>
                         </p>
                         <Link
                             href="/pupil/teachers"
-                            className="rounded-full bg-[#1E2A5A] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#061445]"
+                            className="rounded-full bg-[#1E2A5A] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#061445] dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-[#f7d66e]"
                         >
                             {t('progress.book_it') || 'Book it'}
                         </Link>
@@ -428,16 +457,16 @@ export default function Progress({ progress, assessments = [] }: Props) {
                 </div>
 
                 {/* 3. Teacher Rubric Evaluations & Fluency Breakdown */}
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:p-8">
-                    <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-100">
+                <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:p-8 dark:border-white/10 dark:bg-card">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-100 dark:border-white/10">
                         <div>
                             <div className="flex items-center gap-2">
-                                <span className="inline-block h-5 w-2 rounded-sm bg-indigo-600"></span>
-                                <h2 className="text-lg font-bold text-slate-900">
+                                <span className="inline-block h-5 w-2 rounded-sm bg-indigo-600 dark:bg-brand-yellow"></span>
+                                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                                     {t('progress.assessment_history_title', 'Teacher Rubric Evaluations')}
                                 </h2>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-xs text-slate-500 mt-0.5 dark:text-slate-400">
                                 {t(
                                     'progress.assessment_history_subtitle',
                                     'Official CEFR & IELTS rubric scores and personalized recommendations from certified teachers'
@@ -448,7 +477,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                         {assessments.length > 1 && (
                             <button
                                 onClick={() => setIsAssessmentHistoryOpen(!isAssessmentHistoryOpen)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
                             >
                                 <span>{t('progress.view_all_assessments', { count: String(assessments.length) })}</span>
                                 {isAssessmentHistoryOpen ? (
@@ -463,8 +492,8 @@ export default function Progress({ progress, assessments = [] }: Props) {
                     {latestAssessment ? (
                         <div className="mt-6 space-y-6">
                             {/* Spotlight Card on Latest Assessment */}
-                            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-amber-50/40 p-5 md:p-6 border border-indigo-100">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-indigo-100/70">
+                            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-amber-50/40 p-5 md:p-6 border border-indigo-100 dark:border-white/10 dark:bg-gradient-to-br dark:from-[#091334] dark:via-[#0d1b3e] dark:to-[#091334]">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-indigo-100/70 dark:border-white/10">
                                     <div className="flex items-center gap-3">
                                         {latestAssessment.teacher.avatar ? (
                                             <img
@@ -478,10 +507,10 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                             </div>
                                         )}
                                         <div>
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                                                 {t('progress.latest_official_evaluation', 'Latest Official Evaluation')}
                                             </span>
-                                            <h3 className="text-sm font-bold text-slate-900">
+                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                                                 {latestAssessment.teacher.name}
                                             </h3>
                                             <span className="text-[11px] text-slate-400">
@@ -506,41 +535,41 @@ export default function Progress({ progress, assessments = [] }: Props) {
 
                                 {/* 4 Criteria Comparative Score Cards */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5">
-                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center">
-                                        <span className="text-[11px] font-medium text-slate-500 block mb-1">
+                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center dark:border-white/10 dark:bg-card">
+                                        <span className="text-[11px] font-medium text-slate-500 block mb-1 dark:text-slate-400">
                                             {t('assessment.fluency', 'Fluency & Coherence')}
                                         </span>
-                                        <div className="text-xl font-black text-indigo-900">
+                                        <div className="text-xl font-black text-indigo-900 dark:text-white">
                                             {latestAssessment.fluency_score.toFixed(1)}
                                         </div>
                                         <span className="text-[10px] text-slate-400 font-mono">/ 9.0</span>
                                     </div>
 
-                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center">
-                                        <span className="text-[11px] font-medium text-slate-500 block mb-1">
+                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center dark:border-white/10 dark:bg-card">
+                                        <span className="text-[11px] font-medium text-slate-500 block mb-1 dark:text-slate-400">
                                             {t('assessment.lexical', 'Lexical Resource')}
                                         </span>
-                                        <div className="text-xl font-black text-indigo-900">
+                                        <div className="text-xl font-black text-indigo-900 dark:text-white">
                                             {latestAssessment.lexical_score.toFixed(1)}
                                         </div>
                                         <span className="text-[10px] text-slate-400 font-mono">/ 9.0</span>
                                     </div>
 
-                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center">
-                                        <span className="text-[11px] font-medium text-slate-500 block mb-1">
+                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center dark:border-white/10 dark:bg-card">
+                                        <span className="text-[11px] font-medium text-slate-500 block mb-1 dark:text-slate-400">
                                             {t('assessment.grammar', 'Grammatical Accuracy')}
                                         </span>
-                                        <div className="text-xl font-black text-indigo-900">
+                                        <div className="text-xl font-black text-indigo-900 dark:text-white">
                                             {latestAssessment.grammar_score.toFixed(1)}
                                         </div>
                                         <span className="text-[10px] text-slate-400 font-mono">/ 9.0</span>
                                     </div>
 
-                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center">
-                                        <span className="text-[11px] font-medium text-slate-500 block mb-1">
+                                    <div className="rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs text-center dark:border-white/10 dark:bg-card">
+                                        <span className="text-[11px] font-medium text-slate-500 block mb-1 dark:text-slate-400">
                                             {t('assessment.pronunciation', 'Pronunciation')}
                                         </span>
-                                        <div className="text-xl font-black text-indigo-900">
+                                        <div className="text-xl font-black text-indigo-900 dark:text-white">
                                             {latestAssessment.pronunciation_score.toFixed(1)}
                                         </div>
                                         <span className="text-[10px] text-slate-400 font-mono">/ 9.0</span>
@@ -548,11 +577,11 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                 </div>
 
                                 {latestAssessment.teacher_notes && (
-                                    <div className="rounded-xl bg-white/80 p-3.5 border border-indigo-100/80 text-xs text-slate-700">
-                                        <span className="font-bold text-indigo-950 block mb-1">
+                                    <div className="rounded-xl bg-white/80 p-3.5 border border-indigo-100/80 text-xs text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+                                        <span className="font-bold text-indigo-950 block mb-1 dark:text-indigo-300">
                                             {t('progress.teacher_notes_label', 'Teacher Recommendation')}:
                                         </span>
-                                        <p className="italic text-slate-600 leading-relaxed">
+                                        <p className="italic text-slate-600 leading-relaxed dark:text-slate-300">
                                             "{latestAssessment.teacher_notes}"
                                         </p>
                                     </div>
@@ -562,16 +591,16 @@ export default function Progress({ progress, assessments = [] }: Props) {
                             {/* Historical Feed of Assessments */}
                             {isAssessmentHistoryOpen && assessments.length > 1 && (
                                 <div className="space-y-3 pt-2">
-                                    <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                    <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400">
                                         {t('progress.previous_assessments', 'Previous Rubric Assessments')}
                                     </h4>
                                     <div className="space-y-3">
                                         {assessments.slice(1).map((record) => (
                                             <div
                                                 key={record.id}
-                                                className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition hover:bg-white hover:shadow-xs"
+                                                className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition hover:bg-white hover:shadow-xs dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                                             >
-                                                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                                                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-white/10">
                                                     <div className="flex items-center gap-2.5">
                                                         {record.teacher.avatar ? (
                                                             <img
@@ -580,12 +609,12 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                                 className="h-8 w-8 rounded-full object-cover"
                                                             />
                                                         ) : (
-                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700">
+                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-700 dark:bg-white/10 dark:text-slate-200">
                                                                 {record.teacher.name.charAt(0).toUpperCase()}
                                                             </div>
                                                         )}
                                                         <div>
-                                                            <span className="text-xs font-bold text-slate-900">
+                                                            <span className="text-xs font-bold text-slate-900 dark:text-white">
                                                                 {record.teacher.name}
                                                             </span>
                                                             <span className="text-[10px] text-slate-400 ml-2">
@@ -600,26 +629,26 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                 </div>
 
                                                 <div className="grid grid-cols-4 gap-2 text-center text-xs mt-3">
-                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100">
+                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100 dark:border-white/10 dark:bg-card">
                                                         <span className="text-[10px] text-slate-400 block">{t('assessment.fluency_short', 'Fluency')}</span>
-                                                        <span className="font-bold text-indigo-900">{record.fluency_score.toFixed(1)}</span>
+                                                        <span className="font-bold text-indigo-900 dark:text-white">{record.fluency_score.toFixed(1)}</span>
                                                     </div>
-                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100">
+                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100 dark:border-white/10 dark:bg-card">
                                                         <span className="text-[10px] text-slate-400 block">{t('assessment.lexical_short', 'Lexical')}</span>
-                                                        <span className="font-bold text-indigo-900">{record.lexical_score.toFixed(1)}</span>
+                                                        <span className="font-bold text-indigo-900 dark:text-white">{record.lexical_score.toFixed(1)}</span>
                                                     </div>
-                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100">
+                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100 dark:border-white/10 dark:bg-card">
                                                         <span className="text-[10px] text-slate-400 block">{t('assessment.grammar_short', 'Grammar')}</span>
-                                                        <span className="font-bold text-indigo-900">{record.grammar_score.toFixed(1)}</span>
+                                                        <span className="font-bold text-indigo-900 dark:text-white">{record.grammar_score.toFixed(1)}</span>
                                                     </div>
-                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100">
+                                                    <div className="bg-white rounded-lg p-1.5 border border-slate-100 dark:border-white/10 dark:bg-card">
                                                         <span className="text-[10px] text-slate-400 block">{t('assessment.pronunciation_short', 'Pronunciation')}</span>
-                                                        <span className="font-bold text-indigo-900">{record.pronunciation_score.toFixed(1)}</span>
+                                                        <span className="font-bold text-indigo-900 dark:text-white">{record.pronunciation_score.toFixed(1)}</span>
                                                     </div>
                                                 </div>
 
                                                 {record.teacher_notes && (
-                                                    <p className="mt-2 text-xs italic text-slate-500 pl-2 border-l-2 border-slate-300">
+                                                    <p className="mt-2 text-xs italic text-slate-500 pl-2 border-l-2 border-slate-300 dark:border-white/20 dark:text-slate-400">
                                                         "{record.teacher_notes}"
                                                     </p>
                                                 )}
@@ -630,14 +659,14 @@ export default function Progress({ progress, assessments = [] }: Props) {
                             )}
                         </div>
                     ) : (
-                        <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center my-6">
-                            <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                        <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center my-6 dark:border-white/10 dark:bg-white/5">
+                            <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3 dark:bg-indigo-950/50 dark:text-indigo-400">
                                 <Award className="h-6 w-6" />
                             </div>
-                            <h3 className="text-sm font-bold text-slate-900 mb-1">
+                            <h3 className="text-sm font-bold text-slate-900 mb-1 dark:text-white">
                                 {t('progress.assessment_empty_title', 'Ready for an Official Rubric Assessment?')}
                             </h3>
-                            <p className="text-xs text-slate-500 max-w-md mx-auto mb-4 leading-relaxed">
+                            <p className="text-xs text-slate-500 max-w-md mx-auto mb-4 leading-relaxed dark:text-slate-400">
                                 {t(
                                     'progress.no_assessments',
                                     'No teacher assessments yet. Book a session with a teacher to receive your first official rubric evaluation!'
@@ -645,7 +674,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                             </p>
                             <Link
                                 href="/pupil/teachers"
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-[#f7d66e]"
                             >
                                 <span>{t('progress.book_lesson_btn', 'Book a Lesson')}</span>
                                 <ArrowRight className="h-3.5 w-3.5" />
@@ -657,22 +686,22 @@ export default function Progress({ progress, assessments = [] }: Props) {
 
             {/* 4-Week Goal Edit Modal */}
             {isGoalModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="relative mx-4 flex w-full max-w-md flex-col rounded-3xl border border-[#E8E4D8] bg-white p-6 shadow-2xl">
-                        <div className="flex items-center justify-between border-b border-[#E8E4D8]/60 pb-3">
-                            <h3 className="text-lg font-bold text-[#1E2A5A]">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="relative mx-4 flex w-full max-w-md flex-col rounded-3xl border border-[#E8E4D8] bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#0d1b3e]">
+                        <div className="flex items-center justify-between border-b border-[#E8E4D8]/60 pb-3 dark:border-white/10">
+                            <h3 className="text-lg font-bold text-[#1E2A5A] dark:text-white">
                                 {t('progress.modal_goals_title', 'Set 4-Week Session Goals')}
                             </h3>
                             <button
                                 onClick={() => setIsGoalModalOpen(false)}
-                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
                             >
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
 
                         <form onSubmit={handleSaveGoals} className="mt-4 space-y-4">
-                            <p className="text-xs font-medium text-slate-500">
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                                 {t(
                                     'progress.modal_goals_desc',
                                     'Configure the number of session checkpoints for each week (1 to 350 sessions/week).'
@@ -681,7 +710,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-[#1E2A5A]">
+                                    <label className="block text-xs font-bold text-[#1E2A5A] dark:text-slate-200">
                                         {t('progress.week_n_goal', { week: '1' }) || 'Week 1 Goal'}
                                     </label>
                                     <input
@@ -690,12 +719,12 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                         max="350"
                                         value={week1Input}
                                         onChange={(e) => setWeek1Input(e.target.value)}
-                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
+                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-brand-yellow"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[#1E2A5A]">
+                                    <label className="block text-xs font-bold text-[#1E2A5A] dark:text-slate-200">
                                         {t('progress.week_n_goal', { week: '2' }) || 'Week 2 Goal'}
                                     </label>
                                     <input
@@ -704,12 +733,12 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                         max="350"
                                         value={week2Input}
                                         onChange={(e) => setWeek2Input(e.target.value)}
-                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
+                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-brand-yellow"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[#1E2A5A]">
+                                    <label className="block text-xs font-bold text-[#1E2A5A] dark:text-slate-200">
                                         {t('progress.week_n_goal', { week: '3' }) || 'Week 3 Goal'}
                                     </label>
                                     <input
@@ -718,12 +747,12 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                         max="350"
                                         value={week3Input}
                                         onChange={(e) => setWeek3Input(e.target.value)}
-                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
+                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-brand-yellow"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[#1E2A5A]">
+                                    <label className="block text-xs font-bold text-[#1E2A5A] dark:text-slate-200">
                                         {t('progress.week_n_goal', { week: '4' }) || 'Week 4 Goal'}
                                     </label>
                                     <input
@@ -732,24 +761,24 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                         max="350"
                                         value={week4Input}
                                         onChange={(e) => setWeek4Input(e.target.value)}
-                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none"
+                                        className="mt-1.5 w-full rounded-2xl border border-[#E8E4D8] bg-[#FDF9EC]/50 px-4 py-2.5 text-sm font-bold text-[#1E2A5A] focus:border-[#1E2A5A] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-brand-yellow"
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-end gap-2 border-t border-[#E8E4D8]/60 pt-3">
+                            <div className="flex items-center justify-end gap-2 border-t border-[#E8E4D8]/60 pt-3 dark:border-white/10">
                                 <button
                                     type="button"
                                     onClick={() => setIsGoalModalOpen(false)}
-                                    className="rounded-xl border border-[#E8E4D8] px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                                    className="rounded-xl border border-[#E8E4D8] px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
                                 >
                                     {t('progress.cancel_btn', 'Cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="rounded-xl bg-[#1E2A5A] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#061445] disabled:opacity-50"
+                                    className="rounded-xl bg-[#1E2A5A] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#061445] dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-[#f7d66e] disabled:opacity-50"
                                 >
                                     {submitting
                                         ? t('progress.saving', 'Saving...')

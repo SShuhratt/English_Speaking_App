@@ -81,7 +81,7 @@ export default function Sessions({ sessions }: Props) {
             <Head title={t('sessions.past_title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
@@ -92,7 +92,7 @@ export default function Sessions({ sessions }: Props) {
                         <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('sessions.past_title')}
                         </h1>
-                        <p className="text-sm font-medium text-brand-lightblue/80">
+                        <p className="text-sm font-medium text-brand-lightblue/80 dark:text-slate-300">
                             {t('sessions.past_desc')}
                         </p>
                     </div>
@@ -115,7 +115,7 @@ export default function Sessions({ sessions }: Props) {
                                 >
                                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 dark:bg-white/10 dark:text-white">
                                                 {apt.teacher?.avatar ? (
                                                     <img
                                                         src={apt.teacher.avatar}
@@ -144,7 +144,7 @@ export default function Sessions({ sessions }: Props) {
                                                 </h4>
                                                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                     <span className="flex items-center gap-1">
-                                                        <Calendar className="h-3.5 w-3.5 text-brand-brown" />
+                                                        <Calendar className="h-3.5 w-3.5 text-brand-brown/70 dark:text-slate-400" />
                                                         {new Date(
                                                             apt.start_at,
                                                         ).toLocaleDateString(
@@ -153,12 +153,12 @@ export default function Sessions({ sessions }: Props) {
                                                                 month: 'short',
                                                                 day: 'numeric',
                                                                 year: 'numeric',
-                                                            },
+                                                             },
                                                         )}
                                                     </span>
                                                     <div className="hidden h-2 w-px bg-border sm:block" />
                                                     <span className="flex items-center gap-1">
-                                                        <Clock className="h-3.5 w-3.5 text-brand-brown" />
+                                                        <Clock className="h-3.5 w-3.5 text-brand-brown/70 dark:text-slate-400" />
                                                         {new Date(
                                                             apt.start_at,
                                                         ).toLocaleTimeString(
@@ -191,15 +191,17 @@ export default function Sessions({ sessions }: Props) {
                                                             apt,
                                                         )
                                                     }
-                                                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-brand-brown/10 bg-brand-lightblue px-4 py-2.5 text-xs font-bold text-brand-brown transition-all"
+                                                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-amber-300/40 bg-brand-yellow px-4 py-2.5 text-xs font-bold text-[#061445] shadow-xs transition-all hover:bg-[#f7d66e] dark:border-brand-yellow/30 dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-[#f7d66e]"
                                                 >
-                                                    <Star className="h-3.5 w-3.5 fill-current" />{' '}
-                                                    {t(
-                                                        'sessions.leave_feedback',
-                                                    )}
+                                                    <Star className="h-3.5 w-3.5 fill-[#061445] text-[#061445]" />{' '}
+                                                    <span>
+                                                        {t(
+                                                            'sessions.leave_feedback',
+                                                        )}
+                                                    </span>
                                                 </button>
                                             ) : (
-                                                <span className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-600 uppercase">
+                                                <span className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold tracking-wide text-emerald-700 uppercase dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400">
                                                     {t(
                                                         'sessions.feedback_left',
                                                     )}
@@ -226,9 +228,9 @@ export default function Sessions({ sessions }: Props) {
                                     )}
 
                                     {teacherFeedback && (
-                                        <div className="mt-1 rounded-2xl border border-dashed border-border/80 bg-brand-lightblue/20 p-4 text-sm">
-                                            <div className="mb-2 flex items-center gap-1.5 font-bold text-brand-navy">
-                                                <MessageSquare className="h-4 w-4 text-brand-brown" />
+                                        <div className="mt-1 rounded-2xl border border-dashed border-border/80 bg-brand-lightblue/20 p-4 text-sm dark:bg-white/5">
+                                            <div className="mb-2 flex items-center gap-1.5 font-bold text-brand-navy dark:text-brand-yellow">
+                                                <MessageSquare className="h-4 w-4 text-brand-brown dark:text-brand-yellow" />
                                                 <span>
                                                     {t(
                                                         'sessions.teacher_feedback',
@@ -295,7 +297,7 @@ export default function Sessions({ sessions }: Props) {
                                         }
                                         className={`cursor-pointer rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
                                             data.rating_score === val.toString()
-                                                ? 'border-transparent bg-brand-brown text-white shadow-md shadow-brand-brown/10'
+                                                ? 'border-transparent bg-brand-brown text-white shadow-md shadow-brand-brown/10 dark:bg-brand-yellow dark:text-[#061445]'
                                                 : 'border-border bg-card text-muted-foreground hover:bg-muted'
                                         }`}
                                     >
@@ -341,7 +343,7 @@ export default function Sessions({ sessions }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="cursor-pointer rounded-xl bg-brand-button px-5 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all hover:bg-brand-button-hover disabled:opacity-50"
+                                className="cursor-pointer rounded-xl bg-brand-button px-5 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all hover:bg-brand-button-hover disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
                             >
                                 {processing
                                     ? t('sessions.submitting')

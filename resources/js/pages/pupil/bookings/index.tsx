@@ -52,7 +52,7 @@ function PupilMeetingButton({
         return (
             <button
                 onClick={() => handleJoin(apt)}
-                className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg"
+                className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg dark:bg-brand-yellow dark:text-[#061445]"
             >
                 <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
             </button>
@@ -76,7 +76,7 @@ function PupilMeetingButton({
         return (
             <button
                 onClick={() => handleJoin(apt)}
-                className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg"
+                className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg dark:bg-brand-yellow dark:text-[#061445]"
             >
                 <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
             </button>
@@ -242,7 +242,7 @@ export default function Bookings({ bookings }: Props) {
             <Head title={t('bookings.title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
@@ -253,7 +253,7 @@ export default function Bookings({ bookings }: Props) {
                         <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('bookings.title')}
                         </h1>
-                        <p className="text-sm font-medium text-brand-lightblue/80">
+                        <p className="text-sm font-medium text-brand-lightblue/80 dark:text-slate-300">
                             {t('bookings.desc')}
                         </p>
                     </div>
@@ -275,7 +275,7 @@ export default function Bookings({ bookings }: Props) {
                                                 href={`/profile/${apt.teacher.id}`}
                                                 className="shrink-0"
                                             >
-                                                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
+                                                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 dark:bg-white/10 dark:text-white">
                                                     {apt.teacher?.avatar ? (
                                                         <img
                                                             src={
@@ -291,7 +291,7 @@ export default function Bookings({ bookings }: Props) {
                                                 </div>
                                             </Link>
                                         ) : (
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown dark:bg-white/10 dark:text-white">
                                                 <User className="h-6 w-6" />
                                             </div>
                                         )}
@@ -335,7 +335,7 @@ export default function Bookings({ bookings }: Props) {
                                             </h4>
                                             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                 <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3.5 w-3.5 text-brand-brown" />
+                                                    <Calendar className="h-3.5 w-3.5 text-brand-brown dark:text-brand-yellow/80" />
                                                     {new Date(
                                                         apt.start_at,
                                                     ).toLocaleDateString([], {
@@ -346,7 +346,7 @@ export default function Bookings({ bookings }: Props) {
                                                 </span>
                                                 <div className="hidden h-2 w-px bg-border sm:block" />
                                                 <span className="flex items-center gap-1">
-                                                    <Clock className="h-3.5 w-3.5 text-brand-brown" />
+                                                    <Clock className="h-3.5 w-3.5 text-brand-brown dark:text-brand-yellow/80" />
                                                     {new Date(
                                                         apt.start_at,
                                                     ).toLocaleTimeString([], {
@@ -375,7 +375,7 @@ export default function Bookings({ bookings }: Props) {
                                                                 return (
                                                                     <span
                                                                         key={topic}
-                                                                        className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown"
+                                                                        className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown dark:bg-brand-lightblue/20 dark:text-brand-lightblue"
                                                                     >
                                                                         #{displayTopic}
                                                                     </span>
@@ -389,8 +389,8 @@ export default function Bookings({ bookings }: Props) {
                                             {(apt.status === 'cancelled' ||
                                                 apt.status === 'rejected') &&
                                                 apt.cancellation_reason && (
-                                                    <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs">
-                                                        <p className="font-extrabold text-red-800">
+                                                    <div className="mt-3 max-w-md rounded-2xl border border-red-100 bg-red-50/20 p-3 text-xs dark:border-red-500/20 dark:bg-red-950/30">
+                                                        <p className="font-extrabold text-red-800 dark:text-red-300">
                                                             {apt.status ===
                                                             'rejected'
                                                                 ? t(
@@ -441,17 +441,17 @@ export default function Bookings({ bookings }: Props) {
                                         <span
                                             className={`rounded-xl border px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${
                                                 apt.status === 'confirmed'
-                                                    ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700'
+                                                    ? 'border-emerald-200/50 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300'
                                                     : apt.status ===
                                                             'pending' ||
                                                         apt.status ===
                                                             'accepted'
-                                                      ? 'border-amber-200/50 bg-amber-50 text-amber-700'
+                                                      ? 'border-amber-200/50 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-300'
                                                       : apt.status ===
                                                               'cancelled' ||
                                                           apt.status ===
                                                               'rejected'
-                                                        ? 'border-red-200/50 bg-red-50 text-red-700'
+                                                        ? 'border-red-200/50 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-300'
                                                         : 'border-transparent bg-muted text-muted-foreground'
                                             }`}
                                         >
@@ -486,7 +486,7 @@ export default function Bookings({ bookings }: Props) {
                                                                 apt,
                                                             )
                                                         }
-                                                        className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg"
+                                                        className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg dark:bg-brand-yellow dark:text-[#061445]"
                                                     >
                                                         <CreditCard className="h-3.5 w-3.5" />
                                                         {t('booking.pay_now')}
@@ -528,7 +528,7 @@ export default function Bookings({ bookings }: Props) {
                             </p>
                             <Link
                                 href="/pupil/teachers"
-                                className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-button px-5 py-2.5 text-xs font-bold text-brand-brown shadow-md transition-all hover:scale-102 hover:bg-brand-button-hover"
+                                className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-button px-5 py-2.5 text-xs font-bold text-brand-brown shadow-md transition-all hover:scale-102 hover:bg-brand-button-hover dark:bg-brand-yellow dark:text-[#061445]"
                             >
                                 {t('teachers.browse')}{' '}
                                 <Sparkles className="h-3.5 w-3.5" />
@@ -666,7 +666,7 @@ export default function Bookings({ bookings }: Props) {
                                                 '9860196619404458',
                                             )
                                         }
-                                        className="hover:bg-brand-yellow-hover flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-bold text-brand-brown shadow transition-all hover:scale-105"
+                                        className="hover:bg-brand-yellow-hover flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-bold text-[#061445] dark:text-[#061445] shadow transition-all hover:scale-105"
                                     >
                                         {copiedCard ? (
                                             <Check className="h-3.5 w-3.5 text-emerald-700" />

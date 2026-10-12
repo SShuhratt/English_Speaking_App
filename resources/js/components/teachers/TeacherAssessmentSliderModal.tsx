@@ -157,18 +157,18 @@ export default function TeacherAssessmentSliderModal({
             />
 
             {/* Modal Body */}
-            <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 md:p-8 shadow-2xl ring-1 ring-slate-900/10">
+            <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 md:p-8 shadow-2xl ring-1 ring-slate-900/10 dark:bg-card dark:ring-white/10 dark:text-white">
                 {/* Header */}
-                <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-start justify-between pb-4 border-b border-slate-100 dark:border-white/10">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
                             <Award className="h-6 w-6" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                                 {t('assessment.title', 'Post-Lesson Fluency Assessment')}
                             </h2>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                                 {t(
                                     'assessment.subtitle',
                                     '30-second CEFR / IELTS standard rubric rating for your student'
@@ -178,7 +178,7 @@ export default function TeacherAssessmentSliderModal({
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                        className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white transition"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
@@ -186,7 +186,7 @@ export default function TeacherAssessmentSliderModal({
                 </div>
 
                 {/* Pupil Banner */}
-                <div className="my-4 flex items-center justify-between rounded-2xl bg-slate-50 p-3.5 border border-slate-200/70">
+                <div className="my-4 flex items-center justify-between rounded-2xl bg-slate-50 p-3.5 border border-slate-200/70 dark:bg-white/5 dark:border-white/10">
                     <div className="flex items-center gap-3">
                         {pupilAvatar ? (
                             <img
@@ -200,16 +200,16 @@ export default function TeacherAssessmentSliderModal({
                             </div>
                         )}
                         <div>
-                            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider dark:text-slate-400">
                                 {t('assessment.pupil_label', 'Student')}
                             </span>
-                            <div className="text-sm font-bold text-slate-900">{pupilName}</div>
+                            <div className="text-sm font-bold text-slate-900 dark:text-white">{pupilName}</div>
                         </div>
                     </div>
 
                     {/* Overall Band Pill */}
                     <div className="flex flex-col items-end">
-                        <span className="text-[11px] font-medium text-slate-500">
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                             {t('assessment.overall_band', 'Overall Band')}
                         </span>
                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-600 text-white font-black text-base shadow-sm">
@@ -221,14 +221,14 @@ export default function TeacherAssessmentSliderModal({
 
                 {/* Notifications */}
                 {errorMsg && (
-                    <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200">
+                    <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200 dark:bg-rose-950/50 dark:border-rose-500/30 dark:text-rose-200">
                         <AlertCircle className="h-4 w-4 shrink-0" />
                         <span>{errorMsg}</span>
                     </div>
                 )}
                 {successMsg && (
-                    <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800 border border-emerald-200">
-                        <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800 border border-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-500/30 dark:text-emerald-200">
+                        <Check className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                         <span>{successMsg}</span>
                     </div>
                 )}
@@ -240,17 +240,17 @@ export default function TeacherAssessmentSliderModal({
                         {criteria.map((item) => (
                             <div
                                 key={item.key}
-                                className="rounded-2xl border border-slate-100 bg-white p-3.5 shadow-xs"
+                                className="rounded-2xl border border-slate-100 bg-white p-3.5 shadow-xs dark:border-white/10 dark:bg-white/5"
                             >
                                 <div className="flex items-center justify-between mb-1">
-                                    <label className="text-xs font-bold text-slate-800">
+                                    <label className="text-xs font-bold text-slate-800 dark:text-white">
                                         {item.label}
                                     </label>
-                                    <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/50">
+                                    <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/50 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-500/30">
                                         {item.value.toFixed(1)} / 9.0
                                     </span>
                                 </div>
-                                <p className="text-[11px] text-slate-400 mb-2">{item.hint}</p>
+                                <p className="text-[11px] text-slate-400 mb-2 dark:text-slate-400">{item.hint}</p>
 
                                 <input
                                     type="range"
@@ -259,10 +259,10 @@ export default function TeacherAssessmentSliderModal({
                                     step="0.5"
                                     value={item.value}
                                     onChange={(e) => item.setter(parseFloat(e.target.value))}
-                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:bg-slate-700"
                                 />
 
-                                <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                                <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono dark:text-slate-400">
                                     <span>1.0 Beginner</span>
                                     <span>5.0 Intermediate</span>
                                     <span>7.0 Advanced</span>
@@ -274,7 +274,7 @@ export default function TeacherAssessmentSliderModal({
 
                     {/* Teacher Notes */}
                     <div className="pt-2">
-                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                        <label className="block text-xs font-bold text-slate-800 mb-1 dark:text-white">
                             {t('assessment.notes_label', 'Teacher Feedback & Recommendations (Optional)')}
                         </label>
                         <textarea
@@ -285,24 +285,24 @@ export default function TeacherAssessmentSliderModal({
                                 'assessment.notes_placeholder',
                                 'Great job describing childhood memories! Practice using passive voice and third conditional next time.'
                             )}
-                            className="w-full rounded-2xl border border-slate-200 p-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition resize-none"
+                            className="w-full rounded-2xl border border-slate-200 p-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition resize-none dark:border-white/15 dark:bg-background dark:text-white dark:placeholder-slate-500"
                             maxLength={1000}
                         />
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-white/10">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+                            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition dark:text-slate-300 dark:hover:bg-white/10"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition shadow-sm active:scale-95 disabled:bg-slate-300"
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition shadow-sm active:scale-95 disabled:bg-slate-300 dark:disabled:bg-slate-800"
                         >
                             {submitting ? (
                                 <>

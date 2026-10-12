@@ -1718,9 +1718,9 @@ export default function Availability({
                                 }));
                                 setIsCreateModalOpen(true);
                             }}
-                            className="w-full justify-start gap-3 rounded-full border bg-white px-5 py-6 text-gray-800 shadow-md transition-all hover:bg-muted hover:shadow-lg"
+                            className="w-full justify-start gap-3 rounded-full border bg-white px-5 py-6 text-gray-800 shadow-md transition-all hover:bg-muted hover:shadow-lg dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-muted/30"
                         >
-                            <Plus className="h-6 w-6 text-brand-brown" />
+                            <Plus className="h-6 w-6 text-brand-brown dark:text-brand-yellow" />
                             <span className="text-sm font-semibold tracking-wide">
                                 {t.createAvailability}
                             </span>
@@ -1788,7 +1788,7 @@ export default function Availability({
                                                 isSelected
                                                     ? 'bg-brand-brown text-white shadow-sm'
                                                     : isToday
-                                                      ? 'border border-brand-brown/20 bg-brand-lightblue text-brand-brown'
+                                                      ? 'border border-brand-brown/20 bg-brand-lightblue text-brand-brown dark:bg-white/10 dark:text-brand-yellow'
                                                       : 'text-foreground hover:bg-muted'
                                             }`}
                                         >
@@ -1798,7 +1798,7 @@ export default function Availability({
                                                     className={`absolute bottom-0.5 h-1 w-1 rounded-full ${
                                                         isSelected
                                                             ? 'bg-white'
-                                                            : 'bg-brand-brown'
+                                                            : 'bg-brand-brown dark:bg-brand-yellow'
                                                     }`}
                                                 />
                                             )}
@@ -3135,7 +3135,7 @@ export default function Availability({
                                         (!data.days_of_week ||
                                             data.days_of_week.length === 0))
                                 }
-                                className="rounded-xl bg-brand-button font-semibold text-brand-brown shadow-sm hover:bg-brand-button-hover"
+                                className="rounded-xl bg-brand-button font-semibold text-brand-brown shadow-sm hover:bg-brand-button-hover dark:bg-brand-yellow dark:text-[#061445]"
                             >
                                 {processing ? t.saving : t.save}
                             </Button>
@@ -3147,51 +3147,51 @@ export default function Availability({
             {/* Selected Slot Detail Modal */}
             {selectedSlotDetail && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-md animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-xl duration-150 zoom-in-95 fade-in">
-                        <div className="mb-4 flex items-center justify-between border-b pb-3">
+                    <div className="w-full max-w-md animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-xl duration-150 zoom-in-95 fade-in dark:border-white/10 dark:bg-card dark:text-white">
+                        <div className="mb-4 flex items-center justify-between border-b pb-3 dark:border-white/10">
                             <div className="flex items-center gap-2">
-                                <CalendarIcon className="h-5 w-5 text-[#1E2A5A]" />
-                                <h3 className="text-base font-bold text-[#1E2A5A]">
+                                <CalendarIcon className="h-5 w-5 text-[#1E2A5A] dark:text-brand-yellow" />
+                                <h3 className="text-base font-bold text-[#1E2A5A] dark:text-white">
                                     Session Details
                                 </h3>
                             </div>
                             <button
                                 onClick={() => setSelectedSlotDetail(null)}
-                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-white"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="space-y-3 text-sm text-gray-700">
-                            <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
-                                <span className="font-medium text-gray-500">
+                        <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5 dark:border-white/10 dark:bg-white/5">
+                                <span className="font-medium text-gray-500 dark:text-muted-foreground">
                                     Time Range:
                                 </span>
-                                <span className="font-bold text-gray-900">
+                                <span className="font-bold text-gray-900 dark:text-white">
                                     {selectedSlotDetail.timeLabel}
                                 </span>
                             </div>
 
-                            <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
-                                <span className="font-medium text-gray-500">
+                            <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5 dark:border-white/10 dark:bg-white/5">
+                                <span className="font-medium text-gray-500 dark:text-muted-foreground">
                                     Status:
                                 </span>
                                 <span
                                     className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold tracking-wider uppercase ${
                                         selectedSlotDetail.status ===
                                         'awaiting_payment'
-                                            ? 'border border-amber-300 bg-amber-100 text-amber-900'
+                                            ? 'border border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-300'
                                             : selectedSlotDetail.status ===
                                                 'booked'
-                                              ? 'border border-indigo-700 bg-indigo-950 text-white'
+                                              ? 'border border-indigo-700 bg-indigo-950 text-white dark:border-indigo-500/30 dark:bg-indigo-950/60 dark:text-indigo-200'
                                               : selectedSlotDetail.status ===
                                                   'completed'
-                                                ? 'border border-rose-300 bg-rose-100 text-rose-900'
+                                                ? 'border border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300'
                                                 : selectedSlotDetail.status ===
                                                     'expired'
-                                                  ? 'border border-rose-200 bg-rose-50 text-rose-800'
-                                                  : 'border border-emerald-300 bg-emerald-100 text-emerald-900'
+                                                  ? 'border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-300'
+                                                  : 'border border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300'
                                     }`}
                                 >
                                     {selectedSlotDetail.status ===
@@ -3210,12 +3210,12 @@ export default function Availability({
                             </div>
 
                             {selectedSlotDetail.appointment?.pupil && (
-                                <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
-                                    <span className="font-medium text-gray-500">
+                                <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5 dark:border-white/10 dark:bg-white/5">
+                                    <span className="font-medium text-gray-500 dark:text-muted-foreground">
                                         Student:
                                     </span>
-                                    <span className="flex items-center gap-1.5 font-bold text-gray-900">
-                                        <User className="h-4 w-4 text-brand-brown" />
+                                    <span className="flex items-center gap-1.5 font-bold text-gray-900 dark:text-white">
+                                        <User className="h-4 w-4 text-brand-brown dark:text-brand-yellow" />
                                         {
                                             selectedSlotDetail.appointment.pupil
                                                 .full_name
@@ -3227,11 +3227,11 @@ export default function Availability({
                             {selectedSlotDetail.appointment?.topics &&
                                 selectedSlotDetail.appointment.topics.length >
                                     0 && (
-                                    <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5">
-                                        <span className="font-medium text-gray-500">
+                                    <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5 dark:border-white/10 dark:bg-white/5">
+                                        <span className="font-medium text-gray-500 dark:text-muted-foreground">
                                             Topics:
                                         </span>
-                                        <span className="font-bold text-gray-900">
+                                        <span className="font-bold text-gray-900 dark:text-white">
                                             {selectedSlotDetail.appointment.topics.join(
                                                 ', ',
                                             )}
@@ -3296,9 +3296,9 @@ export default function Availability({
             {/* In-App Confirmation Modal (Option C & Accidental Deletion Prevention) */}
             {deleteTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl duration-150 zoom-in-95 fade-in dark:border-gray-800 dark:bg-gray-900">
+                    <div className="w-full max-w-lg animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl duration-150 zoom-in-95 fade-in dark:border-white/10 dark:bg-card dark:text-white">
                         {/* Header */}
-                        <div className="mb-4 flex items-start justify-between border-b pb-4 dark:border-gray-800">
+                        <div className="mb-4 flex items-start justify-between border-b pb-4 dark:border-white/10">
                             <div className="flex items-center gap-3">
                                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
                                     <Trash2 className="h-6 w-6" />
@@ -3335,14 +3335,14 @@ export default function Availability({
                                     !isDeleting && setDeleteTarget(null)
                                 }
                                 disabled={isDeleting}
-                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-white"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
                         {/* Target Summary Box */}
-                        <div className="mb-5 space-y-2.5 rounded-xl border border-gray-100 bg-gray-50/80 p-3.5 text-sm dark:border-gray-800 dark:bg-gray-800/50">
+                        <div className="mb-5 space-y-2.5 rounded-xl border border-gray-100 bg-gray-50/80 p-3.5 text-sm dark:border-white/10 dark:bg-white/5">
                             {deleteTarget.type === 'slot' && (
                                 <>
                                     <div className="flex items-center justify-between">
@@ -3473,7 +3473,7 @@ export default function Availability({
                                         className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-all ${
                                             deleteScope === 'date_only'
                                                 ? 'border-brand-brown/60 bg-brand-lightblue/20 ring-1 ring-brand-brown/50 dark:border-brand-lightblue dark:bg-brand-lightblue/10'
-                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900'
+                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5'
                                         }`}
                                     >
                                         <input
@@ -3501,7 +3501,7 @@ export default function Availability({
                                         className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-all ${
                                             deleteScope === 'all_weeks'
                                                 ? 'border-rose-400 bg-rose-50/50 ring-1 ring-rose-400 dark:border-rose-800 dark:bg-rose-950/20'
-                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900'
+                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5'
                                         }`}
                                     >
                                         <input
@@ -3601,8 +3601,8 @@ export default function Availability({
             {/* Clear Days Bulk Action Modal */}
             {isClearDaysModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl duration-150 zoom-in-95 fade-in dark:border-gray-800 dark:bg-gray-900">
-                        <div className="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-800">
+                    <div className="w-full max-w-lg animate-in rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl duration-150 zoom-in-95 fade-in dark:border-white/10 dark:bg-card dark:text-white">
+                        <div className="mb-4 flex items-center justify-between border-b pb-3 dark:border-white/10">
                             <div className="flex items-center gap-2">
                                 <Trash2 className="h-5 w-5 text-rose-600" />
                                 <h3 className="text-base font-bold text-gray-900 dark:text-white">
@@ -3611,7 +3611,7 @@ export default function Availability({
                             </div>
                             <button
                                 onClick={() => setIsClearDaysModalOpen(false)}
-                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-white"
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -3626,14 +3626,14 @@ export default function Availability({
                             <button
                                 type="button"
                                 onClick={handleSelectAllDaysWithSlots}
-                                className="rounded-lg border border-brand-brown/30 bg-brand-lightblue/20 px-2.5 py-1 font-semibold text-brand-brown hover:bg-brand-lightblue/30"
+                                className="rounded-lg border border-brand-brown/30 bg-brand-lightblue/20 px-2.5 py-1 font-semibold text-brand-brown hover:bg-brand-lightblue/30 dark:border-brand-yellow/30 dark:bg-white/10 dark:text-brand-yellow"
                             >
                                 {t.selectAllWithSlots}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setSelectedDaysToClear([])}
-                                className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 font-medium text-gray-600 hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
                             >
                                 {t.deselectAll}
                             </button>
@@ -3650,7 +3650,7 @@ export default function Availability({
                                         className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 text-xs transition-all ${
                                             isChecked
                                                 ? 'border-rose-300 bg-rose-50/50 dark:border-rose-900 dark:bg-rose-950/20'
-                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900'
+                                                : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5'
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5">

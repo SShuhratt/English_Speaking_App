@@ -1074,7 +1074,7 @@ export default function Speaking() {
 
             <div className="mx-auto flex h-full max-w-6xl flex-1 flex-col gap-8 p-4 text-[#22284A] md:p-8">
                 {/* Header Banner */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
@@ -1085,7 +1085,7 @@ export default function Speaking() {
                         <h1 className="text-3xl font-black tracking-tight text-white">
                             {t('speaking.title') || 'Start Speaking'}
                         </h1>
-                        <p className="text-sm font-medium text-brand-lightblue/80">
+                        <p className="text-sm font-medium text-brand-lightblue/80 dark:text-slate-300">
                             {t('speaking.desc') ||
                                 'Practice speaking English with random students in real-time.'}
                         </p>

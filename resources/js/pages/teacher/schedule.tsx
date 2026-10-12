@@ -56,7 +56,7 @@ function TeacherMeetingButton({
         <button
             disabled={startingAptId === apt.id}
             onClick={() => handleStart(apt)}
-            className="flex animate-pulse cursor-pointer items-center gap-1.5 rounded-xl bg-brand-button px-4 py-2 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg disabled:opacity-50"
+            className="flex animate-pulse cursor-pointer items-center gap-1.5 rounded-xl bg-brand-button px-4 py-2 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
         >
             <Video className="h-3.5 w-3.5" />
             {startingAptId === apt.id
@@ -305,7 +305,7 @@ export default function Schedule({ appointments }: Props) {
             <Head title={t('schedule.title')} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
@@ -317,7 +317,7 @@ export default function Schedule({ appointments }: Props) {
                             <h1 className="text-3xl font-black tracking-tight text-white">
                                 {t('schedule.title')}
                             </h1>
-                            <p className="text-sm font-medium text-brand-lightblue/80">
+                            <p className="text-sm font-medium text-brand-lightblue/80 dark:text-slate-300">
                                 {t('schedule.desc')}
                             </p>
                         </div>
@@ -329,7 +329,7 @@ export default function Schedule({ appointments }: Props) {
                                 onClick={() => setViewMode('calendar')}
                                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
                                     viewMode === 'calendar'
-                                        ? 'bg-brand-button text-brand-brown shadow-sm'
+                                        ? 'bg-brand-button text-brand-brown shadow-sm dark:bg-brand-yellow dark:text-[#061445]'
                                         : 'text-white/80 hover:text-white hover:bg-white/10'
                                 }`}
                             >
@@ -341,7 +341,7 @@ export default function Schedule({ appointments }: Props) {
                                 onClick={() => setViewMode('list')}
                                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
                                     viewMode === 'list'
-                                        ? 'bg-brand-button text-brand-brown shadow-sm'
+                                        ? 'bg-brand-button text-brand-brown shadow-sm dark:bg-brand-yellow dark:text-[#061445]'
                                         : 'text-white/80 hover:text-white hover:bg-white/10'
                                 }`}
                             >
@@ -360,9 +360,9 @@ export default function Schedule({ appointments }: Props) {
                         {/* Month Calendar Card */}
                         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
                             {/* Calendar Navigation Bar */}
-                            <div className="flex flex-col gap-4 border-b border-border/70 p-5 sm:flex-row sm:items-center sm:justify-between bg-muted/20">
+                            <div className="flex flex-col gap-4 border-b border-border/70 p-5 sm:flex-row sm:items-center sm:justify-between bg-muted/20 dark:bg-muted/10">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue/70 text-brand-brown">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue/70 text-brand-brown dark:bg-white/10 dark:text-brand-yellow">
                                         <Calendar className="h-5 w-5" />
                                     </div>
                                     <div>
@@ -452,7 +452,7 @@ export default function Schedule({ appointments }: Props) {
                                                     : 'bg-muted/15 text-muted-foreground/45 hover:bg-muted/35'
                                             } ${
                                                 isSelected
-                                                    ? 'ring-2 ring-inset ring-brand-brown/70 bg-brand-lightblue/20'
+                                                    ? 'ring-2 ring-inset ring-brand-brown/70 bg-brand-lightblue/20 dark:ring-brand-yellow/80 dark:bg-brand-yellow/10'
                                                     : ''
                                             }`}
                                         >
@@ -461,9 +461,9 @@ export default function Schedule({ appointments }: Props) {
                                                 <span
                                                     className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                                                         day.isToday
-                                                            ? 'bg-brand-navy text-white shadow-xs'
+                                                            ? 'bg-brand-navy text-white shadow-xs dark:bg-brand-yellow dark:text-[#061445]'
                                                             : isSelected
-                                                            ? 'text-brand-brown font-extrabold'
+                                                            ? 'text-brand-brown font-extrabold dark:text-brand-yellow'
                                                             : 'text-foreground'
                                                     }`}
                                                 >
@@ -471,7 +471,7 @@ export default function Schedule({ appointments }: Props) {
                                                 </span>
 
                                                 {hasAppointments && (
-                                                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-brand-button text-[10px] font-black text-brand-brown">
+                                                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-brand-button text-[10px] font-black text-brand-brown dark:bg-brand-yellow dark:text-[#061445]">
                                                         {dayAppointments.length}
                                                     </span>
                                                 )}
@@ -484,7 +484,7 @@ export default function Schedule({ appointments }: Props) {
                                                     .map((apt) => (
                                                         <div
                                                             key={apt.id}
-                                                            className="flex items-center gap-1 truncate rounded-md bg-brand-lightblue/60 px-1.5 py-0.5 text-[10px] font-bold text-brand-brown dark:bg-brand-brown/20 dark:text-brand-yellow"
+                                                            className="flex items-center gap-1 truncate rounded-md bg-brand-lightblue/60 px-1.5 py-0.5 text-[10px] font-bold text-brand-brown dark:bg-white/10 dark:text-brand-yellow"
                                                         >
                                                             <span className="shrink-0 font-mono text-[9px] opacity-80">
                                                                 {new Date(
@@ -503,7 +503,7 @@ export default function Schedule({ appointments }: Props) {
                                                     ))}
 
                                                 {dayAppointments.length > 2 && (
-                                                    <span className="text-[10px] font-semibold text-brand-brown/80 dark:text-brand-yellow">
+                                                    <span className="text-[10px] font-semibold text-brand-brown/80 dark:text-brand-yellow/90">
                                                         {t('schedule.more_sessions', {
                                                             count:
                                                                 dayAppointments.length -
@@ -522,7 +522,7 @@ export default function Schedule({ appointments }: Props) {
                         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
                             <div className="flex flex-col gap-1 border-b border-border/70 pb-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <span className="text-[10px] font-extrabold tracking-wider uppercase text-brand-brown">
+                                    <span className="text-[10px] font-extrabold tracking-wider uppercase text-brand-brown dark:text-brand-yellow">
                                         AGENDA
                                     </span>
                                     <h3 className="text-lg font-bold text-foreground">
@@ -548,7 +548,7 @@ export default function Schedule({ appointments }: Props) {
                                             className="group flex flex-col justify-between gap-5 rounded-2xl border border-border/80 bg-background p-5 transition-shadow hover:shadow-md md:flex-row md:items-center"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
+                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 dark:bg-white/10 dark:text-white">
                                                     <User className="h-6 w-6" />
                                                 </div>
                                                 <div>
@@ -596,7 +596,7 @@ export default function Schedule({ appointments }: Props) {
                                                                         return (
                                                                             <span
                                                                                 key={topic}
-                                                                                className="rounded-lg bg-brand-lightblue/80 px-2 py-0.5 text-[10px] font-bold text-brand-brown dark:bg-brand-brown/20 dark:text-brand-yellow"
+                                                                                className="rounded-lg bg-brand-lightblue/80 px-2 py-0.5 text-[10px] font-bold text-brand-brown dark:bg-brand-lightblue/20 dark:text-brand-lightblue"
                                                                             >
                                                                                 #{displayTopic}
                                                                             </span>
@@ -648,7 +648,7 @@ export default function Schedule({ appointments }: Props) {
                                     className="group flex flex-col justify-between gap-6 rounded-3xl border border-border bg-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-md md:flex-row md:items-center"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105">
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown transition-transform group-hover:scale-105 dark:bg-white/10 dark:text-white">
                                             <User className="h-6 w-6" />
                                         </div>
                                         <div>
@@ -657,7 +657,7 @@ export default function Schedule({ appointments }: Props) {
                                             </h4>
                                             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                 <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3.5 w-3.5 text-brand-brown" />
+                                                    <Calendar className="h-3.5 w-3.5 text-brand-brown dark:text-brand-yellow/80" />
                                                     {new Date(
                                                         apt.start_at,
                                                     ).toLocaleDateString([], {
@@ -668,7 +668,7 @@ export default function Schedule({ appointments }: Props) {
                                                 </span>
                                                 <div className="hidden h-2 w-px bg-border sm:block" />
                                                 <span className="flex items-center gap-1">
-                                                    <Clock className="h-3.5 w-3.5 text-brand-brown" />
+                                                    <Clock className="h-3.5 w-3.5 text-brand-brown dark:text-brand-yellow/80" />
                                                     {new Date(
                                                         apt.start_at,
                                                     ).toLocaleTimeString([], {
@@ -701,7 +701,7 @@ export default function Schedule({ appointments }: Props) {
                                                                 return (
                                                                     <span
                                                                         key={topic}
-                                                                        className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown"
+                                                                        className="rounded-lg bg-brand-lightblue px-2 py-0.5 text-[10px] font-bold text-brand-brown dark:bg-brand-lightblue/20 dark:text-brand-lightblue"
                                                                     >
                                                                         #{displayTopic}
                                                                     </span>

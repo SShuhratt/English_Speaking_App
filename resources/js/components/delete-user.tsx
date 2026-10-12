@@ -27,8 +27,8 @@ export default function DeleteUser() {
     const { t } = useTranslation();
 
     return (
-        <div className="space-y-4 rounded-[20px] border border-red-100 bg-red-50 p-6">
-            <div className="relative space-y-0.5 text-red-600">
+        <div className="space-y-4 rounded-[20px] border border-red-100 bg-red-50 p-6 dark:border-red-900/30 dark:bg-red-950/20">
+            <div className="relative space-y-0.5 text-red-600 dark:text-red-400">
                 <p className="font-medium">Warning</p>
                 <p className="text-sm">
                     Please proceed with caution, this cannot be undone.
@@ -44,11 +44,11 @@ export default function DeleteUser() {
                         Delete account
                     </Button>
                 </DialogTrigger>
-                <DialogContent>
-                    <DialogTitle>
+                <DialogContent className="dark:border-white/10 dark:bg-card dark:text-white">
+                    <DialogTitle className="dark:text-white">
                         Are you sure you want to delete your account?
                     </DialogTitle>
-                    <DialogDescription className="space-y-3 text-left">
+                    <DialogDescription className="space-y-3 text-left dark:text-gray-300">
                         <p>
                             Once your account is deleted, all of its resources and
                             data will also be permanently deleted.{' '}
@@ -59,8 +59,8 @@ export default function DeleteUser() {
                                   })}
                         </p>
                         {auth?.user?.google_connected && (
-                            <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                                <Calendar className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                            <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300">
+                                <Calendar className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                                 <div>
                                     <span className="font-bold">Google Calendar: </span>
                                     <span>

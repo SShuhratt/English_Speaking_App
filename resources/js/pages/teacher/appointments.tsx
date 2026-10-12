@@ -167,16 +167,16 @@ export default function Appointments() {
     return (
         <>
             <Head title={t('teacher.appointments_title')} />
-            <div className="min-h-screen bg-[#f8f9fc] p-4 md:p-8">
+            <div className="min-h-screen bg-[#f8f9fc] p-4 md:p-8 dark:bg-[#070e24]">
                 {/* Header Banner */}
-                <div className="mb-6 overflow-hidden rounded-2xl bg-[#061445] px-6 py-8 md:px-10">
+                <div className="mb-6 overflow-hidden rounded-2xl bg-[#061445] px-6 py-8 md:px-10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <p className="text-xs font-black tracking-widest text-[#fae18e] uppercase">
                         {t('teacher.session_management')}
                     </p>
                     <h1 className="mt-1 text-2xl font-black text-white md:text-3xl">
                         {t('teacher.booking_requests')}
                     </h1>
-                    <p className="mt-1 text-sm text-white/60">
+                    <p className="mt-1 text-sm text-white/70 dark:text-slate-300">
                         {t('teacher.booking_requests_desc')}
                     </p>
                 </div>
@@ -190,8 +190,8 @@ export default function Appointments() {
                         {/* List */}
                         <div className="flex flex-col gap-3">
                             {loading ? (
-                                <div className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white py-16">
-                                    <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#061445] border-t-transparent" />
+                                <div className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white py-16 dark:border-white/10 dark:bg-card">
+                                    <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#061445] border-t-transparent dark:border-brand-yellow" />
                                 </div>
                             ) : filteredAppointments.length > 0 ? (
                                 filteredAppointments.map((apt) => {
@@ -201,11 +201,11 @@ export default function Appointments() {
                                     return (
                                         <div
                                             key={apt.id}
-                                            className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md md:flex-row md:items-center"
+                                            className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md md:flex-row md:items-center dark:border-white/10 dark:bg-card dark:hover:border-white/20"
                                         >
                                             {/* Left: avatar + info */}
                                             <div className="flex items-start gap-4">
-                                                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#d0e4ff]/40 text-[#061445]">
+                                                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#d0e4ff]/40 text-[#061445] dark:bg-white/10 dark:text-white">
                                                     {apt.pupil?.avatar ? (
                                                         <img
                                                             src={
@@ -219,7 +219,7 @@ export default function Appointments() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-[#061445]">
+                                                    <h4 className="text-sm font-bold text-[#061445] dark:text-white">
                                                         {apt.pupil ? (
                                                             <Link
                                                                 href={`/profile/${apt.pupil.id}`}
@@ -411,12 +411,12 @@ export default function Appointments() {
                                     );
                                 })
                             ) : (
-                                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-                                    <CalendarDays className="mb-3 h-10 w-10 text-slate-300" />
-                                    <p className="text-sm font-bold text-slate-400">
+                                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center dark:border-white/10 dark:bg-card">
+                                    <CalendarDays className="mb-3 h-10 w-10 text-slate-300 dark:text-slate-500" />
+                                    <p className="text-sm font-bold text-slate-400 dark:text-slate-300">
                                         {t('teacher.no_appointments')}
                                     </p>
-                                    <p className="mt-1 text-xs text-slate-300">
+                                    <p className="mt-1 text-xs text-slate-300 dark:text-slate-400">
                                         {t('teacher.no_appointments_sub')}
                                     </p>
                                 </div>
@@ -427,32 +427,32 @@ export default function Appointments() {
                     {/* Sidebar */}
                     <div className="flex flex-col gap-4">
                         {/* Quick Stats */}
-                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                            <p className="mb-3 text-xs font-black tracking-widest text-slate-400 uppercase">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card">
+                            <p className="mb-3 text-xs font-black tracking-widest text-slate-400 uppercase dark:text-slate-400">
                                 {t('teacher.quick_stats')}
                             </p>
                             <div className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between rounded-xl bg-[#fffbeb] px-4 py-3">
-                                    <span className="text-xs font-bold text-[#92700a]">
+                                <div className="flex items-center justify-between rounded-xl bg-[#fffbeb] px-4 py-3 dark:bg-amber-500/10">
+                                    <span className="text-xs font-bold text-[#92700a] dark:text-amber-300">
                                         {t('teacher.pending_review')}
                                     </span>
-                                    <span className="text-lg font-black text-[#061445]">
+                                    <span className="text-lg font-black text-[#061445] dark:text-white">
                                         {pendingCount}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-xl bg-[#f0f8ff] px-4 py-3">
-                                    <span className="text-xs font-bold text-[#061445]/60">
+                                <div className="flex items-center justify-between rounded-xl bg-[#f0f8ff] px-4 py-3 dark:bg-sky-500/10">
+                                    <span className="text-xs font-bold text-[#061445]/60 dark:text-sky-300">
                                         {t('teacher.upcoming')}
                                     </span>
-                                    <span className="text-lg font-black text-[#061445]">
+                                    <span className="text-lg font-black text-[#061445] dark:text-white">
                                         {upcomingCount}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-                                    <span className="text-xs font-bold text-slate-400">
+                                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+                                    <span className="text-xs font-bold text-slate-400 dark:text-slate-400">
                                         {t('teacher.completed')}
                                     </span>
-                                    <span className="text-lg font-black text-[#061445]">
+                                    <span className="text-lg font-black text-[#061445] dark:text-white">
                                         {completedCount}
                                     </span>
                                 </div>
@@ -460,23 +460,23 @@ export default function Appointments() {
                         </div>
 
                         {/* Marketplace Tip */}
-                        <div className="rounded-2xl border border-[#fae18e]/60 bg-[#fffbeb] p-5">
+                        <div className="rounded-2xl border border-[#fae18e]/60 bg-[#fffbeb] p-5 dark:border-brand-yellow/20 dark:bg-brand-yellow/10">
                             <div className="mb-2 flex items-center gap-2">
-                                <TrendingUp className="h-4 w-4 text-[#92700a]" />
-                                <p className="text-xs font-black tracking-widest text-[#92700a] uppercase">
+                                <TrendingUp className="h-4 w-4 text-[#92700a] dark:text-brand-yellow" />
+                                <p className="text-xs font-black tracking-widest text-[#92700a] uppercase dark:text-brand-yellow">
                                     {t('teacher.marketplace_tip')}
                                 </p>
                             </div>
-                            <p className="text-xs leading-relaxed text-[#92700a]/80">
+                            <p className="text-xs leading-relaxed text-[#92700a]/80 dark:text-brand-yellow/80">
                                 {t('teacher.marketplace_tip_desc')}
                             </p>
                         </div>
 
                         {/* Popular Times */}
-                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card">
                             <div className="mb-3 flex items-center gap-2">
-                                <BookOpen className="h-4 w-4 text-[#061445]" />
-                                <p className="text-xs font-black tracking-widest text-slate-400 uppercase">
+                                <BookOpen className="h-4 w-4 text-[#061445] dark:text-brand-yellow" />
+                                <p className="text-xs font-black tracking-widest text-slate-400 uppercase dark:text-slate-400">
                                     {t('teacher.popular_times')}
                                 </p>
                             </div>
@@ -489,12 +489,12 @@ export default function Appointments() {
                                     key={slot}
                                     className="mb-2 flex items-center justify-between"
                                 >
-                                    <span className="text-xs text-slate-500">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">
                                         {slot}
                                     </span>
-                                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
+                                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
                                         <div
-                                            className="h-full rounded-full bg-[#061445]"
+                                            className="h-full rounded-full bg-[#061445] dark:bg-brand-yellow"
                                             style={{
                                                 width:
                                                     i === 0
@@ -515,14 +515,14 @@ export default function Appointments() {
             {/* Action Modal */}
             {modalAction && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="relative mx-4 flex w-full max-w-md flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-                        <h3 className="text-lg font-bold text-[#061445]">
+                    <div className="relative mx-4 flex w-full max-w-md flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-card">
+                        <h3 className="text-lg font-bold text-[#061445] dark:text-white">
                             {modalAction.type === 'cancel'
                                 ? t('teacher.cancel_title') ||
                                   'Cancel Appointment'
                                 : t('teacher.reject_title') || 'Reject Request'}
                         </h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                             {modalAction.type === 'cancel'
                                 ? t('teacher.cancel_desc') ||
                                   'Please state the reason for cancelling this appointment.'
@@ -535,7 +535,7 @@ export default function Appointments() {
                         >
                             <div>
                                 <textarea
-                                    className="min-h-[100px] w-full rounded-xl border border-slate-200 bg-[#f8f9fc] px-3 py-2 text-sm focus:border-[#061445] focus:ring-2 focus:ring-[#061445]/10 focus:outline-none"
+                                    className="min-h-[100px] w-full rounded-xl border border-slate-200 bg-[#f8f9fc] px-3 py-2 text-sm focus:border-[#061445] focus:ring-2 focus:ring-[#061445]/10 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500"
                                     placeholder={
                                         t('teacher.reason_placeholder') ||
                                         'Enter your reason here...'
@@ -559,7 +559,7 @@ export default function Appointments() {
                                         setModalAction(null);
                                         setActionReason('');
                                     }}
-                                    className="cursor-pointer rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                                    className="cursor-pointer rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10"
                                 >
                                     {t('bookings.close_btn') || 'Close'}
                                 </button>

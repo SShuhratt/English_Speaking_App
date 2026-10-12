@@ -39,7 +39,7 @@ export default function Teachers({
             <Head title={t('teachers.browse') || 'Find Teachers'} />
             <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
@@ -48,7 +48,7 @@ export default function Teachers({
                             {t('teachers_directory.title') ||
                                 'Find Your Ideal Teacher'}
                         </h1>
-                        <p className="max-w-2xl text-xs font-medium text-white/80 md:text-sm">
+                        <p className="max-w-2xl text-xs font-medium text-white/80 md:text-sm dark:text-slate-300">
                             {t('teachers_directory.subtitle') ||
                                 'Browse verified English tutors, filter by availability, level, and price to book your live 1-on-1 session.'}
                         </p>
@@ -70,14 +70,14 @@ export default function Teachers({
 
                 {/* Empty Search / Filter State */}
                 {teachers.data.length === 0 && (
-                    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#EAE4D2] bg-white py-16 text-center shadow-xs">
-                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FDF7E4] text-[#1E2A5A]">
-                            <SearchX className="h-7 w-7 text-[#1E2A5A]" />
+                    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#EAE4D2] bg-white py-16 text-center shadow-xs dark:border-white/10 dark:bg-card">
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FDF7E4] text-[#1E2A5A] dark:bg-brand-yellow/10 dark:text-brand-yellow">
+                            <SearchX className="h-7 w-7 text-[#1E2A5A] dark:text-brand-yellow" />
                         </div>
-                        <h3 className="text-lg font-bold text-[#1E2A5A]">
+                        <h3 className="text-lg font-bold text-[#1E2A5A] dark:text-white">
                             No teachers found
                         </h3>
-                        <p className="mt-1 max-w-md text-xs font-medium text-[#5C6480]">
+                        <p className="mt-1 max-w-md text-xs font-medium text-[#5C6480] dark:text-gray-400">
                             {activeFilters.search
                                 ? `We couldn't find any teachers matching "${activeFilters.search}". Try checking for spelling or clear search.`
                                 : t('teachers_directory.no_teachers') ||

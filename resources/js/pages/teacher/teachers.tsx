@@ -41,7 +41,7 @@ export default function TeacherDirectory({
             />
             <div className="mx-auto max-w-7xl space-y-8 p-6 md:p-8">
                 {/* Header Section */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10">
+                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
@@ -53,7 +53,7 @@ export default function TeacherDirectory({
                             {t('teachers_directory.title') ||
                                 'Teachers Directory'}
                         </h1>
-                        <p className="text-sm font-medium text-brand-lightblue/80">
+                        <p className="text-sm font-medium text-brand-lightblue/80 dark:text-slate-300">
                             {t('teachers_directory.subtitle') ||
                                 'Browse all colleague teachers in the platform.'}
                         </p>

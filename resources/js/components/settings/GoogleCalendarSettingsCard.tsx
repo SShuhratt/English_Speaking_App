@@ -48,23 +48,23 @@ export default function GoogleCalendarSettingsCard({ user: propUser }: Props) {
     return (
         <div className="space-y-4">
             {isConnected ? (
-                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-6 sm:flex-row sm:items-center">
+                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-6 sm:flex-row sm:items-center dark:border-emerald-500/20 dark:bg-emerald-950/20">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-sm">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-sm dark:bg-emerald-950/60 dark:text-emerald-400">
                             <Calendar className="h-6 w-6" />
                         </div>
                         <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2.5">
-                                <h4 className="text-base font-bold text-gray-900">
+                                <h4 className="text-base font-bold text-gray-900 dark:text-white">
                                     {t('profile.google_calendar_title') || 'Google Calendar'}
                                 </h4>
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-100/90 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-100/90 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-900/40 dark:text-emerald-300">
                                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                     <CheckCircle2 className="h-3 w-3" />
                                     <span>Connected</span>
                                 </span>
                             </div>
-                            <p className="text-xs leading-relaxed text-gray-600 max-w-xl">
+                            <p className="text-xs leading-relaxed text-gray-600 max-w-xl dark:text-gray-300">
                                 {t('profile.google_calendar_connected_desc') ||
                                     'Google Calendar is actively connected. Google Meet links are automatically generated for your scheduled practice sessions.'}
                             </p>
@@ -76,7 +76,7 @@ export default function GoogleCalendarSettingsCard({ user: propUser }: Props) {
                             type="button"
                             variant="outline"
                             onClick={() => setIsDialogOpen(true)}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 active:scale-95 transition-all shadow-sm"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 active:scale-95 transition-all shadow-sm dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/40 dark:hover:text-rose-300"
                         >
                             <Unlink className="h-3.5 w-3.5" />
                             <span>
@@ -87,21 +87,21 @@ export default function GoogleCalendarSettingsCard({ user: propUser }: Props) {
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-rose-200 bg-rose-50/80 p-6 sm:flex-row sm:items-center">
+                <div className="flex flex-col justify-between gap-5 rounded-2xl border border-rose-200 bg-rose-50/80 p-6 sm:flex-row sm:items-center dark:border-rose-500/30 dark:bg-rose-950/30">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 shadow-sm">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 shadow-sm dark:bg-rose-950/60 dark:text-rose-400">
                             <Calendar className="h-6 w-6" />
                         </div>
                         <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2.5">
-                                <h4 className="text-base font-bold text-rose-900">
+                                <h4 className="text-base font-bold text-rose-900 dark:text-rose-200">
                                     {t('profile.google_calendar_title') || 'Google Calendar'}
                                 </h4>
-                                <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                                <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-900/40 dark:text-rose-300">
                                     Not Connected
                                 </span>
                             </div>
-                            <p className="text-xs leading-relaxed text-rose-700 max-w-xl">
+                            <p className="text-xs leading-relaxed text-rose-700 max-w-xl dark:text-rose-300">
                                 {t('profile.google_calendar_disconnected_desc') ||
                                     'Google Calendar is not connected. Connect your account to enable automatic Google Meet link creation for your sessions.'}
                             </p>
@@ -125,12 +125,12 @@ export default function GoogleCalendarSettingsCard({ user: propUser }: Props) {
 
             {/* Disconnect Confirmation Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogTitle>
+                <DialogContent className="dark:border-white/10 dark:bg-card dark:text-white">
+                    <DialogTitle className="dark:text-white">
                         {t('profile.disconnect_modal_title') ||
                             'Disconnect Google Calendar?'}
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="dark:text-gray-300">
                         {t('profile.disconnect_modal_desc') ||
                             "Disconnecting your Google Calendar will revoke ConvMate's access and stop automatic Google Meet link generation for future sessions. You can reconnect at any time."}
                     </DialogDescription>
@@ -141,6 +141,7 @@ export default function GoogleCalendarSettingsCard({ user: propUser }: Props) {
                                 type="button"
                                 variant="outline"
                                 disabled={isDisconnecting}
+                                className="dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
                             >
                                 {t('profile.disconnect_modal_cancel') ||
                                     'Keep Connected'}

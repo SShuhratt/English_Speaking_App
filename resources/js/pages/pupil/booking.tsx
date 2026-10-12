@@ -841,9 +841,9 @@ export default function Booking({ teacher }: Props) {
                                             }}
                                             className={`relative flex aspect-square items-center justify-center rounded-full text-xs font-semibold transition-all ${
                                                 isSelected
-                                                    ? 'bg-brand-brown text-white shadow-sm'
+                                                    ? 'bg-brand-brown text-white shadow-sm dark:bg-brand-yellow dark:text-[#061445]'
                                                     : isToday
-                                                      ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown'
+                                                      ? 'border border-brand-lightblue bg-brand-lightblue/50 text-brand-brown dark:border-white/20 dark:bg-white/10 dark:text-brand-yellow'
                                                       : 'text-foreground hover:bg-muted'
                                             }`}
                                         >
@@ -857,7 +857,7 @@ export default function Booking({ teacher }: Props) {
                         {/* Request Custom Time Form */}
                         <div className="flex flex-col gap-3 border-t pt-4">
                             <h3 className="flex items-center gap-1.5 text-sm font-bold text-foreground">
-                                <Clock className="h-4 w-4 text-brand-brown" />
+                                <Clock className="h-4 w-4 text-brand-brown dark:text-brand-yellow" />
                                 {t('booking.custom_title')}
                             </h3>
                             <form
@@ -898,7 +898,7 @@ export default function Booking({ teacher }: Props) {
                                 <Button
                                     type="submit"
                                     disabled={booking}
-                                    className="w-full rounded-xl bg-brand-button py-4 text-xs font-semibold text-brand-brown shadow-md transition-all hover:bg-brand-button-hover disabled:opacity-50"
+                                    className="w-full rounded-xl bg-brand-button py-4 text-xs font-semibold text-brand-brown shadow-md transition-all hover:bg-brand-button-hover disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
                                 >
                                     {booking
                                         ? t('booking.requesting')
@@ -1060,7 +1060,7 @@ export default function Booking({ teacher }: Props) {
                                                             slot,
                                                             selectedDate,
                                                         )}
-                                                        className="absolute right-2.5 left-2.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-brand-lightblue bg-brand-lightblue/50 p-2 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow-md"
+                                                        className="absolute right-2.5 left-2.5 flex cursor-pointer flex-col overflow-hidden rounded-xl border border-brand-lightblue bg-brand-lightblue/50 p-2 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow-md dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/10"
                                                     >
                                                         <span className="flex items-center gap-1 text-[10px] font-extrabold tracking-wider uppercase">
                                                             <BookOpen className="h-3 w-3" />
@@ -1135,7 +1135,7 @@ export default function Booking({ teacher }: Props) {
                                                                         slot,
                                                                         day,
                                                                     )}
-                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border border-brand-lightblue/50 bg-brand-lightblue/50 p-0.5 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow md:rounded-xl md:p-1.5"
+                                                                    className="absolute right-0.5 left-0.5 flex cursor-pointer flex-col overflow-hidden rounded-md border border-brand-lightblue/50 bg-brand-lightblue/50 p-0.5 text-left text-brand-brown shadow-sm transition-all hover:scale-[1.01] hover:bg-brand-lightblue/80 hover:shadow md:rounded-xl md:p-1.5 dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/10"
                                                                 >
                                                                     <span className="hidden items-center gap-0.5 truncate text-[9px] font-extrabold tracking-wider uppercase md:flex">
                                                                         {t(
@@ -1347,7 +1347,7 @@ export default function Booking({ teacher }: Props) {
                                         disabled={
                                             booking || !validateSelectedRange()
                                         }
-                                        className="cursor-pointer rounded-xl bg-brand-button px-5 py-2 text-sm font-semibold text-brand-brown shadow-md shadow-brand-button/10 transition-colors hover:bg-brand-button-hover disabled:opacity-50"
+                                        className="cursor-pointer rounded-xl bg-brand-button px-5 py-2 text-sm font-semibold text-brand-brown shadow-md shadow-brand-button/10 transition-colors hover:bg-brand-button-hover disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
                                     >
                                         {booking
                                             ? t('booking.requesting')
@@ -1390,7 +1390,7 @@ export default function Booking({ teacher }: Props) {
                             <div className="mt-6 flex w-full flex-col gap-2.5">
                                 <Link
                                     href="/pupil/bookings"
-                                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-button py-3 text-sm font-bold text-brand-brown shadow-md transition-all hover:scale-[1.01] hover:bg-brand-button-hover"
+                                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-button py-3 text-sm font-bold text-brand-brown shadow-md transition-all hover:scale-[1.01] hover:bg-brand-button-hover dark:bg-brand-yellow dark:text-[#061445]"
                                 >
                                     <BookOpen className="h-4 w-4" />
                                     {t('booking.view_my_bookings')}

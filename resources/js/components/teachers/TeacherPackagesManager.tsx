@@ -333,8 +333,8 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                 key={pkg.id}
                                 className={`relative flex flex-col justify-between transition-all border shadow-sm hover:shadow-md ${
                                     pkg.is_active
-                                        ? 'border-indigo-200 dark:border-indigo-900/60 bg-white dark:bg-gray-900'
-                                        : 'border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-950/50 opacity-75'
+                                        ? 'border-indigo-200 dark:border-white/10 bg-white dark:bg-card'
+                                        : 'border-gray-200 dark:border-white/5 bg-gray-50/60 dark:bg-card/40 opacity-75'
                                 }`}
                             >
                                 <CardHeader className="pb-3">
@@ -384,7 +384,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                         </p>
                                     ) : null}
 
-                                    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/60 p-3">
+                                    <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-3">
                                         <div className="flex items-baseline justify-between">
                                             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                                                 {t('packages.price')}
@@ -408,7 +408,7 @@ export default function TeacherPackagesManager({ packages: initialPackages, hour
                                         )}
                                     </div>
 
-                                    <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3">
+                                    <div className="flex items-center justify-between border-t border-gray-100 dark:border-white/10 pt-3">
                                         <Button
                                             type="button"
                                             size="sm"
