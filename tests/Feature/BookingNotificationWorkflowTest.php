@@ -285,11 +285,18 @@ class BookingNotificationWorkflowTest extends TestCase
 
         // Test Telegram representation
         $telegram = $notification->toTelegram($this->teacher);
-        $this->assertStringContainsString('<b>Booking Method:</b> Direct Booking', $telegram);
-        $this->assertStringContainsString('<b>Start Time:</b>', $telegram);
-        $this->assertStringContainsString('<b>End Time:</b>', $telegram);
-        $this->assertStringContainsString('<b>Duration:</b> 60 minutes', $telegram);
-        $this->assertStringContainsString("<b>Price:</b> 70 000 so'm", $telegram);
+        $this->assertIsArray($telegram);
+        $telegramText = $telegram['text'];
+
+        $this->assertStringContainsString('<b>Booking Method:</b> Direct Booking', $telegramText);
+        $this->assertStringContainsString('<b>Start Time:</b>', $telegramText);
+        $this->assertStringContainsString('<b>End Time:</b>', $telegramText);
+        $this->assertStringContainsString('<b>Duration:</b> 60 minutes', $telegramText);
+        $this->assertStringContainsString("<b>Price:</b> 70 000 so'm", $telegramText);
+        $this->assertStringContainsString('<a href="'.url('/teacher/appointments').'">'.url('/teacher/appointments').'</a>', $telegramText);
+
+        $this->assertArrayHasKey('reply_markup', $telegram);
+        $this->assertEquals(url('/teacher/appointments'), $telegram['reply_markup']['inline_keyboard'][0][0]['url']);
     }
 
     public function test_booking_requested_notification_content_for_pack_booking(): void
@@ -323,10 +330,17 @@ class BookingNotificationWorkflowTest extends TestCase
 
         // Test Telegram representation
         $telegram = $notification->toTelegram($this->teacher);
-        $this->assertStringContainsString('<b>Booking Method:</b> Conversation Pack', $telegram);
-        $this->assertStringContainsString('<b>Start Time:</b>', $telegram);
-        $this->assertStringContainsString('<b>End Time:</b>', $telegram);
-        $this->assertStringContainsString('<b>Duration:</b> 60 minutes', $telegram);
-        $this->assertStringNotContainsString('<b>Price:</b>', $telegram);
+        $this->assertIsArray($telegram);
+        $telegramText = $telegram['text'];
+
+        $this->assertStringContainsString('<b>Booking Method:</b> Conversation Pack', $telegramText);
+        $this->assertStringContainsString('<b>Start Time:</b>', $telegramText);
+        $this->assertStringContainsString('<b>End Time:</b>', $telegramText);
+        $this->assertStringContainsString('<b>Duration:</b> 60 minutes', $telegramText);
+        $this->assertStringNotContainsString('<b>Price:</b>', $telegramText);
+        $this->assertStringContainsString('<a href="'.url('/teacher/appointments').'">'.url('/teacher/appointments').'</a>', $telegramText);
+
+        $this->assertArrayHasKey('reply_markup', $telegram);
+        $this->assertEquals(url('/teacher/appointments'), $telegram['reply_markup']['inline_keyboard'][0][0]['url']);
     }
 }

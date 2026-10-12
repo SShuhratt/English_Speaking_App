@@ -81,8 +81,10 @@ class BookingRequestedNotification extends Notification implements ShouldQueue
 
     /**
      * Telegram representation.
+     *
+     * @return array{text: string, reply_markup: array<string, mixed>}
      */
-    public function toTelegram(object $notifiable): string
+    public function toTelegram(object $notifiable): array
     {
         $pupilName = $this->appointment->pupil?->full_name ?? 'A student';
         $startTimeStr = $this->formatDateTime($this->appointment->start_at);
@@ -94,6 +96,7 @@ class BookingRequestedNotification extends Notification implements ShouldQueue
         $topics = is_array($this->appointment->topics) ? implode(', ', $this->appointment->topics) : 'General Speaking';
         $isPack = (bool) ($this->appointment->is_package_booking || $this->appointment->pupil_package_id);
         $bookingMethod = $isPack ? 'Conversation Pack' : ($this->appointment->is_trial ? 'Trial Lesson (Direct)' : 'Direct Booking');
+        $actionUrl = url('/teacher/appointments');
 
         $message = "🔔 <b>New Lesson Request!</b>\n\n".
             "<b>Student:</b> {$pupilName}\n".
@@ -113,10 +116,20 @@ class BookingRequestedNotification extends Notification implements ShouldQueue
 
         $message .= "<b>Topics:</b> {$topics}\n\n".
             "⏰ <b>Reminder:</b> Please respond to this incoming booking request within 30 minutes to confirm your availability.\n\n".
-            '👉 Please log in to your dashboard to review and approve this session: '.url('/teacher/appointments');
+            "👉 Please log in to your dashboard to review and approve this session:\n".
+            "<a href=\"{$actionUrl}\">{$actionUrl}</a>";
 
         $message .= $this->getTelegramTipFooter($notifiable);
 
-        return $message;
+        return [
+            'text' => $message,
+            'reply_markup' => [
+                'inline_keyboard' => [
+                    [
+                        ['text' => '👉 Review Booking Requests', 'url' => $actionUrl],
+                    ],
+                ],
+            ],
+        ];
     }
 }
