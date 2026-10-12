@@ -1351,7 +1351,8 @@ export default function Booking({ teacher }: Props) {
                                     >
                                         {booking
                                             ? t('booking.requesting')
-                                            : t('booking.confirm_btn')}
+                                            : t('booking.confirm_booking') ||
+                                              t('booking.confirm_btn')}
                                     </button>
                                 </div>
                             </div>

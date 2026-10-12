@@ -2386,7 +2386,7 @@ export default function TeacherProfile({
 
                                 {!isCoveredByPackage && activePrice > 0 && (
                                     <div className="mt-4 flex items-center justify-between rounded-xl border border-[#D8E5F5] bg-[#EEF4FB]/50 p-3.5 text-xs">
-                                        <span className="text-[#6B7394] font-medium">Session Price:</span>
+                                        <span className="text-[#6B7394] font-medium">{t('booking.session_price') || 'Session Price'}:</span>
                                         <span className="font-bold text-[#1E2A5A] dark:text-white text-sm">
                                             {activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
                                         </span>
@@ -2411,8 +2411,10 @@ export default function TeacherProfile({
                                             ? t('booking.requesting') ||
                                               'Requesting...'
                                             : isCoveredByPackage
-                                              ? 'Confirm Free Booking'
-                                              : t('booking.confirm_btn') ||
+                                              ? t('booking.confirm_free_booking') ||
+                                                'Confirm Free Booking'
+                                              : t('booking.confirm_booking') ||
+                                                t('booking.confirm_btn') ||
                                                 'Confirm Booking'}
                                     </button>
                                 </div>

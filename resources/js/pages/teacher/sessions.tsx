@@ -259,6 +259,8 @@ export default function Sessions({ appointments }: Props) {
                         {filteredAppointments.length > 0 ? (
                             filteredAppointments.map((apt) => {
                                 const isTrial = apt.is_trial;
+                                const isPast = new Date(apt.end_at) < now;
+                                const isCompleted = apt.status === 'completed' || isPast;
                                 const pupilName =
                                     apt.pupil?.full_name || t('sessions.student_fallback');
                                 const teacherFeedback = apt.feedbacks?.find(
@@ -367,7 +369,7 @@ export default function Sessions({ appointments }: Props) {
                                             </div>
 
                                             <div className="flex flex-col gap-2 sm:flex-row">
-                                                {apt.status === 'confirmed' && (
+                                                {apt.status === 'confirmed' && !isCompleted && activeTab !== 'completed' && (
                                                     <button
                                                         onClick={() =>
                                                             handleStartSession(
@@ -395,7 +397,7 @@ export default function Sessions({ appointments }: Props) {
                                                     )}
 
                                                 {/* Rate Fluency Assessment Button (for completed or past confirmed lessons) */}
-                                                {(apt.status === 'completed' || new Date(apt.end_at) < now) && (
+                                                {isCompleted && (
                                                     <button
                                                         onClick={() => handleOpenAssessmentModal(apt)}
                                                         className={`rounded-full px-3.5 py-2 text-xs font-bold transition-all flex items-center gap-1.5 ${
