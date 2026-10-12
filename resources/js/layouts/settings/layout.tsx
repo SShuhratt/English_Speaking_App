@@ -82,7 +82,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             </div>
 
             {/* Horizontal Settings Sub-Navigation */}
-            <div className="flex scrollbar-none gap-6 overflow-x-auto border-b border-brand-pale-blue/30 whitespace-nowrap">
+            <div className="flex scrollbar-none gap-6 overflow-x-auto border-b border-brand-pale-blue/30 dark:border-border whitespace-nowrap">
                 {sidebarNavItems.map((item, index) => {
                     const isActive = isCurrentOrParentUrl(item.href);
                     return (
@@ -92,8 +92,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                             className={cn(
                                 'relative pb-4 text-sm font-bold tracking-wide transition-colors',
                                 isActive
-                                    ? '-mb-[2px] border-b-2 border-brand-yellow text-brand-navy'
-                                    : 'text-brand-navy/50 hover:text-brand-navy',
+                                    ? '-mb-[2px] border-b-2 border-brand-yellow text-brand-navy dark:text-brand-yellow'
+                                    : 'text-brand-navy/50 dark:text-muted-foreground hover:text-brand-navy dark:hover:text-foreground',
                             )}
                         >
                             {getTranslatedTitle(item.title)}

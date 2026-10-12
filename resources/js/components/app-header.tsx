@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Menu, Moon, Search, Sun } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { useAppearance } from '@/hooks/use-appearance';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,6 +68,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+    const { resolvedAppearance, updateAppearance } = useAppearance();
 
     const userName = auth.user?.name || auth.user?.full_name || '';
 
@@ -211,6 +213,28 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 ))}
                             </div>
                         </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                                updateAppearance(
+                                    resolvedAppearance === 'dark'
+                                        ? 'light'
+                                        : 'dark',
+                                )
+                            }
+                            className="h-9 w-9 cursor-pointer text-muted-foreground hover:bg-accent hover:text-foreground"
+                            title={
+                                resolvedAppearance === 'dark' ? 'Light' : 'Dark'
+                            }
+                            aria-label="Toggle theme"
+                        >
+                            {resolvedAppearance === 'dark' ? (
+                                <Sun className="h-4 w-4 text-brand-yellow transition-transform hover:rotate-45" />
+                            ) : (
+                                <Moon className="h-4 w-4 transition-transform hover:-rotate-12" />
+                            )}
+                        </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button

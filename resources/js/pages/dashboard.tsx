@@ -51,27 +51,41 @@ function PupilMeetingButton({
 
     const start = new Date(apt.start_at);
     const hasStartedTime = currentTime >= start;
-    const isMeetingStarted = Boolean(apt.meeting_started || apt.google_meet_link);
+    const isTeacherStarted = Boolean(apt.meeting_started);
+    const hasMeetLink = Boolean(apt.google_meet_link);
 
-    // If teacher has started the meeting, pupil can join immediately!
-    if (isMeetingStarted) {
+    // If teacher has started the meeting early, pupil can join immediately!
+    if (isTeacherStarted) {
         return (
             <button
                 onClick={() => handleJoin(apt)}
-                className="flex cursor-pointer items-center gap-2 rounded-full bg-[#061445] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-[#061445]/10 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                className="flex cursor-pointer items-center gap-2 rounded-full bg-[#061445] dark:bg-brand-yellow dark:text-[#061445] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-[#061445]/10 transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
                 <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
             </button>
         );
     }
 
+    // Strict to exact starting time: until currentTime >= start, show Scheduled!
     if (!hasStartedTime) {
         return (
             <button
                 disabled
-                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-brand-lightblue/50 bg-brand-lightblue/35 px-4 py-2.5 text-xs font-semibold text-brand-brown/80"
+                className="flex cursor-not-allowed items-center gap-2 rounded-full border border-brand-lightblue/50 bg-brand-lightblue/35 dark:border-border dark:bg-muted/40 px-4 py-2.5 text-xs font-semibold text-brand-brown/80 dark:text-muted-foreground"
             >
                 <Clock className="h-3.5 w-3.5" /> {t('meeting.scheduled')}
+            </button>
+        );
+    }
+
+    // Exact time has arrived: if meeting link or meeting started, pupil can join!
+    if (hasMeetLink || isTeacherStarted) {
+        return (
+            <button
+                onClick={() => handleJoin(apt)}
+                className="flex cursor-pointer items-center gap-2 rounded-full bg-[#061445] dark:bg-brand-yellow dark:text-[#061445] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-[#061445]/10 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            >
+                <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
             </button>
         );
     }
@@ -84,15 +98,6 @@ function PupilMeetingButton({
         >
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
             <span>{t('meeting.waiting_teacher')}</span>
-        </button>
-    );
-
-    return (
-        <button
-            onClick={() => handleJoin(apt)}
-            className="flex cursor-pointer items-center gap-2 rounded-full bg-[#061445] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-[#061445]/10 transition-all hover:-translate-y-0.5 hover:shadow-lg"
-        >
-            <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
         </button>
     );
 }
@@ -616,20 +621,42 @@ function PupilDashboard({
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className="text-sm font-medium text-[#45464f]">
-                                                        {t('dashboard.with_teacher', {
-                                                            name: '',
-                                                        })}
-                                                        {apt.teacher ? (
-                                                            <Link
-                                                                href={`/profile/${apt.teacher.id}`}
-                                                                className="font-bold text-[#061445] hover:underline"
-                                                            >
-                                                                {apt.teacher.full_name}
-                                                            </Link>
-                                                        ) : (
-                                                            ''
-                                                        )}
+                                                    <p className="text-sm font-medium text-[#45464f] dark:text-muted-foreground">
+                                                        {(() => {
+                                                            const textWithPlaceholder =
+                                                                t(
+                                                                    'dashboard.with_teacher',
+                                                                    {
+                                                                        name: '__NAME__',
+                                                                    },
+                                                                );
+                                                            const parts =
+                                                                textWithPlaceholder.split(
+                                                                    '__NAME__',
+                                                                );
+                                                            const teacherLink =
+                                                                apt.teacher ? (
+                                                                    <Link
+                                                                        href={`/profile/${apt.teacher.id}`}
+                                                                        className="font-bold text-[#061445] dark:text-brand-yellow hover:underline"
+                                                                    >
+                                                                        {
+                                                                            apt
+                                                                                .teacher
+                                                                                .full_name
+                                                                        }
+                                                                    </Link>
+                                                                ) : null;
+
+                                                            return (
+                                                                <>
+                                                                    {parts[0]}
+                                                                    {teacherLink}
+                                                                    {parts[1] ||
+                                                                        ''}
+                                                                </>
+                                                            );
+                                                        })()}
                                                     </p>
                                                 </div>
                                             </div>
@@ -1242,23 +1269,43 @@ function TeacherDashboard({
                                                         'dashboard.conversation_practice',
                                                     )}
                                                 </h4>
-                                                <p className="text-xs font-semibold text-[#45464f]">
-                                                    {t('dashboard.with_pupil', {
-                                                        name: '',
-                                                    })}
-                                                    {apt.pupil ? (
-                                                        <Link
-                                                            href={`/profile/${apt.pupil.id}`}
-                                                            className="font-bold text-[#061445] hover:underline"
-                                                        >
-                                                            {
-                                                                apt.pupil
-                                                                    .full_name
-                                                            }
-                                                        </Link>
-                                                    ) : (
-                                                        'Pupil'
-                                                    )}
+                                                <p className="text-xs font-semibold text-[#45464f] dark:text-muted-foreground">
+                                                    {(() => {
+                                                        const textWithPlaceholder =
+                                                            t(
+                                                                'dashboard.with_pupil',
+                                                                {
+                                                                    name: '__NAME__',
+                                                                },
+                                                            );
+                                                        const parts =
+                                                            textWithPlaceholder.split(
+                                                                '__NAME__',
+                                                            );
+                                                        const pupilLink =
+                                                            apt.pupil ? (
+                                                                <Link
+                                                                    href={`/profile/${apt.pupil.id}`}
+                                                                    className="font-bold text-[#061445] dark:text-brand-yellow hover:underline"
+                                                                >
+                                                                    {
+                                                                        apt
+                                                                            .pupil
+                                                                            .full_name
+                                                                    }
+                                                                </Link>
+                                                            ) : (
+                                                                'Pupil'
+                                                            );
+
+                                                        return (
+                                                            <>
+                                                                {parts[0]}
+                                                                {pupilLink}
+                                                                {parts[1] || ''}
+                                                            </>
+                                                        );
+                                                    })()}
                                                 </p>
                                             </div>
                                             <div className="flex flex-wrap items-center gap-2">

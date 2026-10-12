@@ -5,6 +5,8 @@
 @source '../js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     /* Plus Jakarta Sans — ConvoMate brand typeface */
     --font-sans:
@@ -134,6 +136,59 @@
     --sidebar-ring: #3b82f6;
 }
 
+.dark {
+    /* ConvoMate dark palette — sleek deep midnight navy */
+    --brand-navy: #fae18e;
+    --brand-yellow: #fae18e;
+    --brand-yellow-hover: #f0d070;
+    --brand-pale-blue: #182852;
+    --brand-blue: #93b5d8;
+    --brand-cream: #0d1b3e;
+
+    /* Legacy aliases */
+    --brand-brown: #f8fafc;
+    --brand-orange: #93b5d8;
+    --brand-button: #fae18e;
+    --brand-button-hover: #f0d070;
+    --brand-lightblue: #182852;
+
+    /* Semantic tokens */
+    --background: #080f28;
+    --foreground: #f8fafc;
+    --card: #0d1b3e;
+    --card-foreground: #f8fafc;
+    --popover: #0d1b3e;
+    --popover-foreground: #f8fafc;
+    --primary: #fae18e;
+    --primary-foreground: #061445;
+    --secondary: #182852;
+    --secondary-foreground: #f8fafc;
+    --muted: #13244e;
+    --muted-foreground: #94a3b8;
+    --accent: #fae18e;
+    --accent-foreground: #061445;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: rgba(255, 255, 255, 0.12);
+    --input: rgba(255, 255, 255, 0.15);
+    --ring: #fae18e;
+
+    --chart-1: #fae18e;
+    --chart-2: #60a5fa;
+    --chart-3: #34d399;
+    --chart-4: #f472b6;
+    --chart-5: #a78bfa;
+
+    --sidebar: #050b1e;
+    --sidebar-foreground: #cbd5e1;
+    --sidebar-primary: #fae18e;
+    --sidebar-primary-foreground: #061445;
+    --sidebar-accent: rgba(255, 255, 255, 0.08);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: rgba(255, 255, 255, 0.1);
+    --sidebar-ring: #fae18e;
+}
+
 @layer base {
     * {
         @apply border-border;
@@ -151,8 +206,16 @@
     box-shadow: 0 12px 40px -12px rgba(6, 20, 69, 0.08);
 }
 
+.dark .shadow-ambient {
+    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.5);
+}
+
 .shadow-ambient-md {
     box-shadow: 0 24px 48px -12px rgba(6, 20, 69, 0.12);
+}
+
+.dark .shadow-ambient-md {
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
 }
 
 /* Butter-yellow text underline highlight (hero headlines) */
@@ -165,6 +228,12 @@
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.dark .glass-panel {
+    background: rgba(13, 27, 62, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ── Animations ──────────────────────────────────────────────────────── */

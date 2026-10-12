@@ -10,7 +10,27 @@
             html {
                 background-color: #fbf8fd;
             }
+            html.dark {
+                background-color: #080f28;
+                color-scheme: dark;
+            }
         </style>
+        <script>
+            (function() {
+                try {
+                    var appearance = localStorage.getItem('appearance') || 'light';
+                    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    var isDark = appearance === 'dark' || (appearance === 'system' && prefersDark);
+                    if (isDark) {
+                        document.documentElement.classList.add('dark');
+                        document.documentElement.style.colorScheme = 'dark';
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        document.documentElement.style.colorScheme = 'light';
+                    }
+                } catch (e) {}
+            })();
+        </script>
 
         {{-- Preconnect to Google Fonts domains for instant TLS handshake --}}
         <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>

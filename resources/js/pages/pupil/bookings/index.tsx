@@ -44,10 +44,11 @@ function PupilMeetingButton({
 
     const start = new Date(apt.start_at);
     const hasStartedTime = currentTime >= start;
-    const isMeetingStarted = Boolean(apt.meeting_started || apt.google_meet_link);
+    const isTeacherStarted = Boolean(apt.meeting_started);
+    const hasMeetLink = Boolean(apt.google_meet_link);
 
-    // If teacher has started the meeting, pupil can join immediately!
-    if (isMeetingStarted) {
+    // If teacher has started the meeting early, pupil can join immediately!
+    if (isTeacherStarted) {
         return (
             <button
                 onClick={() => handleJoin(apt)}
@@ -58,6 +59,7 @@ function PupilMeetingButton({
         );
     }
 
+    // Strict to exact starting time: until currentTime >= start, show Scheduled!
     if (!hasStartedTime) {
         return (
             <button
@@ -65,6 +67,18 @@ function PupilMeetingButton({
                 className="flex cursor-not-allowed items-center gap-2 rounded-xl border border-border/50 bg-muted/60 px-4 py-2.5 text-xs font-semibold text-muted-foreground"
             >
                 <Clock className="h-3.5 w-3.5" /> {t('meeting.scheduled')}
+            </button>
+        );
+    }
+
+    // Exact time has arrived: if meeting link or meeting started, pupil can join!
+    if (hasMeetLink || isTeacherStarted) {
+        return (
+            <button
+                onClick={() => handleJoin(apt)}
+                className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg"
+            >
+                <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
             </button>
         );
     }
@@ -77,15 +91,6 @@ function PupilMeetingButton({
         >
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
             <span>{t('meeting.waiting_teacher')}</span>
-        </button>
-    );
-
-    return (
-        <button
-            onClick={() => handleJoin(apt)}
-            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg"
-        >
-            <Video className="h-3.5 w-3.5" /> {t('meeting.join')}
         </button>
     );
 }
@@ -292,19 +297,41 @@ export default function Bookings({ bookings }: Props) {
                                         )}
                                         <div>
                                             <h4 className="text-base font-bold text-foreground">
-                                                {t('bookings.teacher_label', {
-                                                    name: '',
-                                                })}
-                                                {apt.teacher ? (
-                                                    <Link
-                                                        href={`/profile/${apt.teacher.id}`}
-                                                        className="font-bold text-[#061445] hover:underline"
-                                                    >
-                                                        {apt.teacher.full_name}
-                                                    </Link>
-                                                ) : (
-                                                    'Expert'
-                                                )}
+                                                {(() => {
+                                                    const textWithPlaceholder =
+                                                        t(
+                                                            'bookings.teacher_label',
+                                                            {
+                                                                name: '__NAME__',
+                                                            },
+                                                        );
+                                                    const parts =
+                                                        textWithPlaceholder.split(
+                                                            '__NAME__',
+                                                        );
+                                                    const teacherLink =
+                                                        apt.teacher ? (
+                                                            <Link
+                                                                href={`/profile/${apt.teacher.id}`}
+                                                                className="font-bold text-[#061445] dark:text-brand-yellow hover:underline"
+                                                            >
+                                                                {
+                                                                    apt.teacher
+                                                                        .full_name
+                                                                }
+                                                            </Link>
+                                                        ) : (
+                                                            'Expert'
+                                                        );
+
+                                                    return (
+                                                        <>
+                                                            {parts[0]}
+                                                            {teacherLink}
+                                                            {parts[1] || ''}
+                                                        </>
+                                                    );
+                                                })()}
                                             </h4>
                                             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                                                 <span className="flex items-center gap-1">
