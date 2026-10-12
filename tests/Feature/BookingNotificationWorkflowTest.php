@@ -253,4 +253,80 @@ class BookingNotificationWorkflowTest extends TestCase
 
         Notification::assertNotSentTo($this->teacher, AppointmentCancelledNotification::class);
     }
+
+    public function test_booking_requested_notification_content_for_direct_booking(): void
+    {
+        $start = PlatformTime::localNow()->addDays(2)->setHour(14)->setMinute(0)->setSecond(0);
+        $end = (clone $start)->addHour();
+
+        $appointment = Appointment::create([
+            'teacher_id' => $this->teacher->id,
+            'pupil_id' => $this->pupil->id,
+            'start_at' => PlatformTime::toUtc($start),
+            'end_at' => PlatformTime::toUtc($end),
+            'duration_minutes' => 60,
+            'price' => 70000,
+            'is_package_booking' => false,
+            'status' => 'pending',
+            'topics' => ['business english'],
+        ]);
+
+        $notification = new BookingRequestedNotification($appointment);
+
+        // Test Mail representation
+        $mail = $notification->toMail($this->teacher);
+        $mailContent = implode("\n", $mail->introLines);
+
+        $this->assertStringContainsString('**Booking Method:** Direct Booking', $mailContent);
+        $this->assertStringContainsString('**Start Time:**', $mailContent);
+        $this->assertStringContainsString('**End Time:**', $mailContent);
+        $this->assertStringContainsString('**Duration:** 60 minutes', $mailContent);
+        $this->assertStringContainsString("**Price:** 70 000 so'm", $mailContent);
+
+        // Test Telegram representation
+        $telegram = $notification->toTelegram($this->teacher);
+        $this->assertStringContainsString('<b>Booking Method:</b> Direct Booking', $telegram);
+        $this->assertStringContainsString('<b>Start Time:</b>', $telegram);
+        $this->assertStringContainsString('<b>End Time:</b>', $telegram);
+        $this->assertStringContainsString('<b>Duration:</b> 60 minutes', $telegram);
+        $this->assertStringContainsString("<b>Price:</b> 70 000 so'm", $telegram);
+    }
+
+    public function test_booking_requested_notification_content_for_pack_booking(): void
+    {
+        $start = PlatformTime::localNow()->addDays(3)->setHour(10)->setMinute(0)->setSecond(0);
+        $end = (clone $start)->addHour();
+
+        $appointment = Appointment::create([
+            'teacher_id' => $this->teacher->id,
+            'pupil_id' => $this->pupil->id,
+            'start_at' => PlatformTime::toUtc($start),
+            'end_at' => PlatformTime::toUtc($end),
+            'duration_minutes' => 60,
+            'price' => 0,
+            'is_package_booking' => true,
+            'status' => 'pending',
+            'topics' => ['mock'],
+        ]);
+
+        $notification = new BookingRequestedNotification($appointment);
+
+        // Test Mail representation
+        $mail = $notification->toMail($this->teacher);
+        $mailContent = implode("\n", $mail->introLines);
+
+        $this->assertStringContainsString('**Booking Method:** Conversation Pack', $mailContent);
+        $this->assertStringContainsString('**Start Time:**', $mailContent);
+        $this->assertStringContainsString('**End Time:**', $mailContent);
+        $this->assertStringContainsString('**Duration:** 60 minutes', $mailContent);
+        $this->assertStringNotContainsString('**Price:**', $mailContent);
+
+        // Test Telegram representation
+        $telegram = $notification->toTelegram($this->teacher);
+        $this->assertStringContainsString('<b>Booking Method:</b> Conversation Pack', $telegram);
+        $this->assertStringContainsString('<b>Start Time:</b>', $telegram);
+        $this->assertStringContainsString('<b>End Time:</b>', $telegram);
+        $this->assertStringContainsString('<b>Duration:</b> 60 minutes', $telegram);
+        $this->assertStringNotContainsString('<b>Price:</b>', $telegram);
+    }
 }
