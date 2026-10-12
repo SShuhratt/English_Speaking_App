@@ -24,12 +24,6 @@ import {
 import { useTranslation } from '@/hooks/use-translation';
 import { toast } from 'sonner';
 
-import FluencyLevelBadge from '@/components/gamification/FluencyLevelBadge';
-import StreakFlameBadge from '@/components/gamification/StreakFlameBadge';
-import SpeakingPassportCard from '@/components/gamification/SpeakingPassportCard';
-import MilestoneBadgesCard from '@/components/gamification/MilestoneBadgesCard';
-import XpStoreModal from '@/components/gamification/XpStoreModal';
-import VerifiedFluencyCardModal from '@/components/gamification/VerifiedFluencyCardModal';
 
 export interface AssessmentRecord {
     id: string;
@@ -55,19 +49,10 @@ interface Props {
         weekly_goal: number;
         weekly_goals?: number[];
     };
-    gamification?: {
-        fluency: any;
-        streak: any;
-        momentum: any;
-        passport: any;
-        badges: any;
-        xp_store: any;
-        credential: any;
-    };
     assessments?: AssessmentRecord[];
 }
 
-export default function Progress({ progress, gamification, assessments = [] }: Props) {
+export default function Progress({ progress, assessments = [] }: Props) {
     const { t } = useTranslation();
 
     // Default 4-week goals from props or fallback
@@ -87,10 +72,6 @@ export default function Progress({ progress, gamification, assessments = [] }: P
     const [week3Input, setWeek3Input] = useState(initialWeeklyGoals[2].toString());
     const [week4Input, setWeek4Input] = useState(initialWeeklyGoals[3].toString());
     const [submitting, setSubmitting] = useState(false);
-
-    // Stage 4 Gamification Modals
-    const [isXpStoreOpen, setIsXpStoreOpen] = useState(false);
-    const [isCredentialOpen, setIsCredentialOpen] = useState(false);
     const [isAssessmentHistoryOpen, setIsAssessmentHistoryOpen] = useState(false);
 
     const handleSaveGoals = (e: React.FormEvent) => {
@@ -222,51 +203,20 @@ export default function Progress({ progress, gamification, assessments = [] }: P
         <>
             <Head title={t('progress.title') || 'My Progress'} />
             <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
-                {/* 1. Top Hero: Gamification Ranks & Quick Action Controls */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 md:p-8 text-white shadow-xl border border-indigo-500/20">
-                    <div className="space-y-3">
+                {/* 1. Header */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-3xl bg-[#1E2A5A] p-6 md:p-8 text-white shadow-xl">
+                    <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[#F0CE5F]">
                                 {t('progress.my_progress') || 'My Progress'}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-300">
-                                {t('progress.hub_badge') || 'Progress Hub'}
-                            </span>
                         </div>
-
-                        <div className="flex flex-wrap items-center gap-3">
-                            {gamification?.fluency && (
-                                <FluencyLevelBadge fluency={gamification.fluency} />
-                            )}
-                            {gamification?.streak && (
-                                <StreakFlameBadge streak={gamification.streak} />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Action Hub Buttons */}
-                    <div className="flex flex-wrap items-center gap-3 pt-2 md:pt-0 border-t md:border-t-0 border-white/10">
-                        {gamification?.xp_store && (
-                            <button
-                                onClick={() => setIsXpStoreOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-md shadow-amber-500/20 active:scale-95 cursor-pointer"
-                            >
-                                <span>🛍️</span>
-                                <span>
-                                    {t('progress.xp_store_btn', {
-                                        count: (gamification.xp_store.available_xp ?? 0).toLocaleString(),
-                                    }) || `${gamification.xp_store.available_xp?.toLocaleString() ?? 0} XP Store`}
-                                </span>
-                            </button>
-                        )}
-
-                        <button
-                            onClick={() => setIsCredentialOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-md shadow-indigo-600/30 active:scale-95 cursor-pointer"
-                        >
-                            <Award className="h-4 w-4" />
-                            <span>{t('credential.view_public_btn', 'View Credential')}</span>
-                        </button>
+                        <h1 className="text-2xl font-bold font-serif text-white">
+                            {t('progress.title') || 'Learning Journey & Progress'}
+                        </h1>
+                        <p className="text-xs text-white/70">
+                            {t('progress.subtitle') || 'Track your sessions, goals, and fluency assessments'}
+                        </p>
                     </div>
                 </div>
 
@@ -703,30 +653,7 @@ export default function Progress({ progress, gamification, assessments = [] }: P
                         </div>
                     )}
                 </div>
-
-                {/* 4. Speaking Passport & International Network */}
-                {gamification?.passport && (
-                    <SpeakingPassportCard passport={gamification.passport} />
-                )}
-
-                {/* 5. Milestone Badges Trophy Case */}
-                {gamification?.badges && (
-                    <MilestoneBadgesCard badges={gamification.badges} />
-                )}
             </div>
-
-            {/* Modals */}
-            <XpStoreModal
-                isOpen={isXpStoreOpen}
-                onClose={() => setIsXpStoreOpen(false)}
-                catalog={gamification?.xp_store}
-            />
-
-            <VerifiedFluencyCardModal
-                isOpen={isCredentialOpen}
-                onClose={() => setIsCredentialOpen(false)}
-                credential={gamification?.credential}
-            />
 
             {/* 4-Week Goal Edit Modal */}
             {isGoalModalOpen && (

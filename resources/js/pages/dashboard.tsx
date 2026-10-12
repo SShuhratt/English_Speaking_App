@@ -33,22 +33,6 @@ import { formatDuration, formatSpeakingTime } from '@/lib/duration';
 import AppLayout from '@/layouts/app-layout';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import PhoneNumberReminderBanner from '@/components/PhoneNumberReminderBanner';
-import FluencyLevelBadge from '@/components/gamification/FluencyLevelBadge';
-import StreakFlameBadge from '@/components/gamification/StreakFlameBadge';
-import WeeklyLeaderboardCard from '@/components/gamification/WeeklyLeaderboardCard';
-import DailySpeakingSparkCard from '@/components/gamification/DailySpeakingSparkCard';
-import SessionCelebrationModal from '@/components/gamification/SessionCelebrationModal';
-import WeeklyMomentumRingCard from '@/components/gamification/WeeklyMomentumRingCard';
-import SpeakingPassportCard from '@/components/gamification/SpeakingPassportCard';
-import MilestoneBadgesCard from '@/components/gamification/MilestoneBadgesCard';
-import ReferralCard from '@/components/gamification/ReferralCard';
-import LevelUpCelebrationModal from '@/components/gamification/LevelUpCelebrationModal';
-import XpStoreModal from '@/components/gamification/XpStoreModal';
-import VerifiedFluencyCardModal from '@/components/gamification/VerifiedFluencyCardModal';
-import MeetingCompanion, {
-    openGoogleMeetSession,
-    requestCompanionPiPWindow,
-} from '@/components/session/MeetingCompanion';
 
 function PupilMeetingButton({
     apt,
@@ -163,38 +147,18 @@ function PupilDashboard({
     appointments = [],
     stats = {},
     recentFeedback = null,
-    gamification = null,
     activePackages = [],
 }: {
     user: any;
     appointments?: any[];
     stats?: any;
     recentFeedback?: any;
-    gamification?: any;
     activePackages?: any[];
 }) {
     const { t, locale } = useTranslation();
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
     const [copiedCard, setCopiedCard] = useState(false);
     const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
-    const [activeLevelUp, setActiveLevelUp] = useState<any | null>(
-        gamification?.new_level_up || null
-    );
-    const [isXpStoreOpen, setIsXpStoreOpen] = useState(false);
-    const [isCredentialOpen, setIsCredentialOpen] = useState(false);
-    const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
-    const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
-    const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
-    const [companionMeetWindow, setCompanionMeetWindow] = useState<Window | null>(null);
-
-    const handleAcknowledgeLevel = async (level: number) => {
-        try {
-            await axios.post('/gamification/acknowledge-level', { level });
-            setActiveLevelUp(null);
-        } catch {
-            setActiveLevelUp(null);
-        }
-    };
 
     const handleConnectTelegram = async () => {
         setIsConnectingTelegram(true);
@@ -296,44 +260,16 @@ function PupilDashboard({
     };
 
     const handleJoin = async (apt: any) => {
-        // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        const pipWin = await requestCompanionPiPWindow(() => {
-            toast.info(
-                t(
-                    'companion.unsupported_browser_pip',
-                    'Floating companion is optimized for Google Chrome and Edge. Your companion is active inside this tab.',
-                ),
-            );
-        });
-        if (pipWin) {
-            setExternalPipWindow(pipWin);
-        }
-        setActiveCompanionAptId(apt.id);
-
         try {
             const response = await axios.post(
                 `/pupil/appointments/${apt.id}/join`,
             );
             if (response.data.google_meet_link) {
-                setCompanionMeetLink(response.data.google_meet_link);
-                try {
-                    const meetWin = openGoogleMeetSession(
-                        response.data.google_meet_link,
-                    );
-                    if (meetWin) {
-                        setCompanionMeetWindow(meetWin);
-                    }
-                } catch (e) {
-                    // Handled inside the always-on-top companion window
-                }
+                window.open(response.data.google_meet_link, '_blank');
+            } else {
+                toast.error(t('meeting.not_ready') || 'Meeting link is not available yet.');
             }
         } catch (error: any) {
-            if (pipWin) {
-                pipWin.close();
-                setExternalPipWindow(null);
-            }
-            setActiveCompanionAptId(null);
-            setCompanionMeetWindow(null);
             toast.error(
                 error.response?.data?.message || t('meeting.not_ready'),
             );
@@ -361,32 +297,8 @@ function PupilDashboard({
                                     <span>👤</span>
                                 )}
                             </div>
-                            <span className="absolute -right-1 -bottom-1 rounded-full border-2 border-brand-navy bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                                {gamification?.fluency ? (
-                                    <span>{gamification.fluency.badge} L{gamification.fluency.level}</span>
-                                ) : (
-                                    t('dashboard.level', { level: 3 })
-                                )}
-                            </span>
                         </div>
                         <div>
-                            {user.role !== 'admin' && (
-                                <div className="mb-2">
-                                    {gamification?.streak ? (
-                                        <StreakFlameBadge streak={gamification.streak} />
-                                    ) : (
-                                        <div className="flex animate-pulse items-center space-x-1.5 rounded-full border border-orange-500/30 bg-orange-500/20 px-3 py-1 text-xs font-bold text-orange-200 shadow-sm">
-                                            <span>
-                                                {t('dashboard.streak', {
-                                                    count:
-                                                        (user.streak_count as number) ??
-                                                        0,
-                                                })}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                             <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">
                                 {t('dashboard.welcome_back', {
                                     name: user.full_name || user.name,
@@ -407,13 +319,6 @@ function PupilDashboard({
                         <span>{t('dashboard.book_now')}</span>
                     </Link>
                 </div>
-
-                {/* Dynamic Fluency Level & XP Progress Banner */}
-                {gamification?.fluency && (
-                    <div className="z-10 mt-2 border-t border-white/15 pt-4">
-                        <FluencyLevelBadge fluency={gamification.fluency} />
-                    </div>
-                )}
             </div>
 
             {/* Phone Number Reminder Banner */}
@@ -554,73 +459,8 @@ function PupilDashboard({
                 </div>
             </div>
 
-            {/* Gamification & Upcoming Sessions Sections (Upcoming sessions placed above when appointments > 0) */}
+            {/* Active Packs & Upcoming Sessions Sections */}
             {(() => {
-                const gamificationSection = gamification ? (
-                    <div className="space-y-6">
-                        {/* Stage 4: XP Store & Credential Actions Banner */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-gradient-to-r from-indigo-50/90 via-purple-50/60 to-amber-50/70 p-5 border border-indigo-100/90 shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20">
-                                    <Sparkles className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-black text-slate-900">
-                                            {gamification.xp_store?.available_xp?.toLocaleString() ?? 0} XP
-                                        </span>
-                                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 border border-amber-300/40">
-                                            {t('gamification.available_xp_label', 'Available XP')}
-                                        </span>
-                                    </div>
-                                    <div className="text-xs text-slate-500 mt-0.5">
-                                        {t('gamification.store_subtitle', 'Turn your practice XP into valuable rewards and lesson discounts')}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2.5">
-                                <button
-                                    onClick={() => setIsXpStoreOpen(true)}
-                                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer"
-                                >
-                                    <span>🛍️</span>
-                                    <span>{t('gamification.open_store_btn', 'XP Rewards Store')}</span>
-                                </button>
-
-                                <button
-                                    onClick={() => setIsCredentialOpen(true)}
-                                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm active:scale-95 cursor-pointer"
-                                >
-                                    <Award className="h-4 w-4" />
-                                    <span>{t('credential.view_public_btn', 'View Credential')}</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {gamification.momentum && (
-                            <WeeklyMomentumRingCard momentum={gamification.momentum} />
-                        )}
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                            {gamification.daily_spark && (
-                                <DailySpeakingSparkCard spark={gamification.daily_spark} />
-                            )}
-                            {gamification.leaderboard && (
-                                <WeeklyLeaderboardCard leaderboard={gamification.leaderboard} />
-                            )}
-                        </div>
-                        {gamification.passport && (
-                            <SpeakingPassportCard passport={gamification.passport} />
-                        )}
-                        {gamification.badges && (
-                            <MilestoneBadgesCard badges={gamification.badges} />
-                        )}
-                        {gamification.referrals && (
-                            <ReferralCard referral={gamification.referrals} />
-                        )}
-                    </div>
-                ) : null;
-
                 const activePacksSection = activePackages && activePackages.length > 0 ? (
                     <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-8">
                         <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
@@ -895,16 +735,9 @@ function PupilDashboard({
                     </div>
                 );
 
-                return appointments.length > 0 ? (
+                return (
                     <>
                         {activePacksSection}
-                        {upcomingSessionsSection}
-                        {gamificationSection}
-                    </>
-                ) : (
-                    <>
-                        {activePacksSection}
-                        {gamificationSection}
                         {upcomingSessionsSection}
                     </>
                 );
@@ -1060,42 +893,6 @@ function PupilDashboard({
                     </div>
                 </div>
             )}
-
-            {/* Level-Up Celebration Ceremony Modal */}
-            <LevelUpCelebrationModal
-                levelUp={activeLevelUp}
-                onAcknowledge={handleAcknowledgeLevel}
-            />
-
-            {/* Stage 4: XP Rewards Store Modal */}
-            <XpStoreModal
-                isOpen={isXpStoreOpen}
-                onClose={() => setIsXpStoreOpen(false)}
-                catalog={gamification?.xp_store}
-            />
-
-            {/* Stage 4: Verified Fluency Credential Modal */}
-            <VerifiedFluencyCardModal
-                isOpen={isCredentialOpen}
-                onClose={() => setIsCredentialOpen(false)}
-                credential={gamification?.credential}
-            />
-
-            {activeCompanionAptId && (
-                <MeetingCompanion
-                    appointmentId={activeCompanionAptId}
-                    isOpen={!!activeCompanionAptId}
-                    onClose={() => {
-                        setActiveCompanionAptId(null);
-                        setExternalPipWindow(null);
-                        setCompanionMeetLink(null);
-                        setCompanionMeetWindow(null);
-                    }}
-                    externalPipWindow={externalPipWindow}
-                    initialMeetLink={companionMeetLink}
-                    initialMeetWindow={companionMeetWindow}
-                />
-            )}
         </div>
     );
 }
@@ -1110,10 +907,6 @@ function TeacherDashboard({
     stats?: any;
 }) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
-    const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
-    const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
-    const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
-    const [companionMeetWindow, setCompanionMeetWindow] = useState<Window | null>(null);
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
     const pendingCount = auth.pending_requests_count || 0;
@@ -1171,48 +964,17 @@ function TeacherDashboard({
     };
 
     const handleStart = async (apt: any) => {
-        // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        const pipWin = await requestCompanionPiPWindow(() => {
-            toast.info(
-                t(
-                    'companion.unsupported_browser_pip',
-                    'Floating companion is optimized for Google Chrome and Edge. Your companion is active inside this tab.',
-                ),
-            );
-        });
-        if (pipWin) {
-            setExternalPipWindow(pipWin);
-        }
-
         setStartingAptId(apt.id);
-        setActiveCompanionAptId(apt.id);
-
         try {
             const response = await axios.post(
                 `/teacher/appointments/${apt.id}/start`,
             );
             toast.success(t('dashboard.start_conversation_success'));
             if (response.data.google_meet_link) {
-                setCompanionMeetLink(response.data.google_meet_link);
-                try {
-                    const meetWin = openGoogleMeetSession(
-                        response.data.google_meet_link,
-                    );
-                    if (meetWin) {
-                        setCompanionMeetWindow(meetWin);
-                    }
-                } catch (e) {
-                    // Handled inside the always-on-top companion window
-                }
+                window.open(response.data.google_meet_link, '_blank');
             }
             router.reload({ only: ['appointments', 'stats'] });
         } catch (error: any) {
-            if (pipWin) {
-                pipWin.close();
-                setExternalPipWindow(null);
-            }
-            setActiveCompanionAptId(null);
-            setCompanionMeetWindow(null);
             if (error.response?.data?.requires_google_calendar) {
                 toast.error(
                     error.response.data.message ||
@@ -1592,22 +1354,6 @@ function TeacherDashboard({
                     </Link>
                 </div>
             </div>
-
-            {activeCompanionAptId && (
-                <MeetingCompanion
-                    appointmentId={activeCompanionAptId}
-                    isOpen={!!activeCompanionAptId}
-                    onClose={() => {
-                        setActiveCompanionAptId(null);
-                        setExternalPipWindow(null);
-                        setCompanionMeetLink(null);
-                        setCompanionMeetWindow(null);
-                    }}
-                    externalPipWindow={externalPipWindow}
-                    initialMeetLink={companionMeetLink}
-                    initialMeetWindow={companionMeetWindow}
-                />
-            )}
         </div>
     );
 }
@@ -1616,13 +1362,11 @@ export default function Dashboard({
     appointments = [],
     stats = {},
     recentFeedback = null,
-    gamification = null,
     activePackages = [],
 }: {
     appointments?: any[];
     stats?: any;
     recentFeedback?: any;
-    gamification?: any;
     activePackages?: any[];
 }) {
     const { auth } = usePage<any>().props;
@@ -1645,7 +1389,6 @@ export default function Dashboard({
                     appointments={appointments}
                     stats={stats}
                     recentFeedback={recentFeedback}
-                    gamification={gamification}
                     activePackages={activePackages}
                 />
             )}

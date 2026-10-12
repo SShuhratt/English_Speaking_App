@@ -6,7 +6,6 @@ use App\Models\Appointment;
 use App\Models\Feedback;
 use App\Models\PupilPackage;
 use App\Models\TeacherProfile;
-use App\Services\GamificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -79,20 +78,6 @@ class DashboardController extends Controller
                 ->latest()
                 ->first();
 
-            $gamification = [
-                'fluency' => GamificationService::calculateFluency($user),
-                'streak' => GamificationService::getStreakInfo($user),
-                'momentum' => GamificationService::getWeeklyMomentum($user),
-                'leaderboard' => GamificationService::getWeeklyLeaderboard($user),
-                'daily_spark' => GamificationService::getDailySpark(),
-                'passport' => GamificationService::getSpeakingPassport($user),
-                'badges' => GamificationService::getMilestoneBadges($user),
-                'referrals' => GamificationService::getReferralStats($user),
-                'new_level_up' => GamificationService::getNewLevelUp($user),
-                'xp_store' => GamificationService::getXpStoreCatalog($user),
-                'credential' => GamificationService::getVerifiedFluencyCredential($user),
-            ];
-
             $activePackages = PupilPackage::where('pupil_id', $user->id)
                 ->where('status', 'active')
                 ->where('payment_status', 'paid')
@@ -108,7 +93,7 @@ class DashboardController extends Controller
                     'upcoming_sessions' => $upcomingSessionsCount,
                 ],
                 'recentFeedback' => $recentFeedback,
-                'gamification' => $gamification,
+                'gamification' => null,
                 'activePackages' => $activePackages,
             ]);
         }

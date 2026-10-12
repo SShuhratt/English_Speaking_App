@@ -644,6 +644,9 @@ const dictionary = {
         'teacher.no_reviews_be_his': 'No reviews yet — be his first',
         'teacher.no_reviews_be_her': 'No reviews yet — be her first',
         'teacher.no_reviews_be_their': 'No reviews yet — be their first',
+        'teacher.hear_his_speaking_first': 'Hear his speaking first',
+        'teacher.hear_her_speaking_first': 'Hear her speaking first',
+        'teacher.hear_their_speaking_first': 'Hear their speaking first',
 
         // Pupil booking / teachers list
         'pupil.find_teachers': 'Find a Teacher',
@@ -2397,6 +2400,9 @@ const dictionary = {
         'teacher.no_reviews_be_his': "Hali sharhlar yo'q — birinchi bo'ling",
         'teacher.no_reviews_be_her': "Hali sharhlar yo'q — birinchi bo'ling",
         'teacher.no_reviews_be_their': "Hali sharhlar yo'q — birinchi bo'ling",
+        'teacher.hear_his_speaking_first': "Avval uning nutqini tinglang",
+        'teacher.hear_her_speaking_first': "Avval uning nutqini tinglang",
+        'teacher.hear_their_speaking_first': "Avval uning nutqini tinglang",
 
         // Pupil booking / teachers list
         'pupil.find_teachers': "O'qituvchi topish",
@@ -4161,6 +4167,12 @@ const dictionary = {
             'Пока нет отзывов — станьте её первым учеником',
         'teacher.no_reviews_be_their':
             'Пока нет отзывов — станьте первым учеником',
+        'teacher.hear_his_speaking_first':
+            'Послушайте его речь сначала',
+        'teacher.hear_her_speaking_first':
+            'Послушайте её речь сначала',
+        'teacher.hear_their_speaking_first':
+            'Послушайте их речь сначала',
 
         // Pupil booking / teachers list
         'pupil.find_teachers': 'Найти учителя',

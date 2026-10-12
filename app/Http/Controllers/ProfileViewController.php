@@ -6,7 +6,6 @@ use App\Models\PupilPackage;
 use App\Models\TeacherPackage;
 use App\Models\TeacherProfile;
 use App\Models\User;
-use App\Services\GamificationService;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -126,12 +125,6 @@ class ProfileViewController extends Controller
 
         return Inertia::render('pupil/profile-view', [
             'pupil' => $pupil,
-            'gamification' => [
-                'fluency' => GamificationService::calculateFluency($pupil),
-                'momentum' => GamificationService::getWeeklyMomentum($pupil),
-                'passport' => GamificationService::getSpeakingPassport($pupil),
-                'badges' => GamificationService::getMilestoneBadges($pupil),
-            ],
         ]);
     }
 }

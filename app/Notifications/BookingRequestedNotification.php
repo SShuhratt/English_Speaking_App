@@ -47,6 +47,7 @@ class BookingRequestedNotification extends Notification implements ShouldQueue
             ->line("{$pupilName} has sent you a request for an English speaking session.")
             ->line("**Scheduled Time:** {$timeStr}")
             ->line("**Topics:** {$topics}")
+            ->line('⏰ **Reminder:** Please respond to this incoming booking request within 30 minutes to confirm your availability.')
             ->action('Review Booking Requests', url('/teacher/appointments'))
             ->line('Please log in to your account to review and approve or decline this booking.');
 
@@ -71,6 +72,7 @@ class BookingRequestedNotification extends Notification implements ShouldQueue
             "<b>Student:</b> {$pupilName}\n".
             "<b>Scheduled Time:</b> {$timeStr}\n".
             "<b>Topics:</b> {$topics}\n\n".
+            "⏰ <b>Reminder:</b> Please respond to this incoming booking request within 30 minutes to confirm your availability.\n\n".
             '👉 Please log in to your dashboard to review and approve this session: '.url('/teacher/appointments');
 
         $message .= $this->getTelegramTipFooter($notifiable);

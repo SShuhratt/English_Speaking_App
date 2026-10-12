@@ -4,7 +4,6 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminOverviewController;
 use App\Http\Controllers\AdminSupportController;
 use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\AppointmentMaterialController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
@@ -25,8 +24,15 @@ use App\Http\Controllers\TeacherPackageController;
 use App\Http\Controllers\TelegramAuthController;
 use App\Http\Controllers\TelegramConnectController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return Inertia::render('welcome');
+})->name('home');
 Route::inertia('/privacy', 'privacy')->name('privacy');
 Route::inertia('/terms', 'terms')->name('terms');
 
@@ -137,7 +143,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Speaking & Matchmaking Routes (only for Pupils)
     Route::middleware('pupil')->group(function () {
         Route::get('/speaking', function () {
-            return Inertia\Inertia::render('speaking');
+            return Inertia::render('speaking');
         })->name('speaking');
 
         Route::get('/matchmaking/topics', [MatchmakingController::class, 'topics'])->name('matchmaking.topics');
@@ -169,8 +175,6 @@ Route::middleware('auth')->group(function () {
         ->middleware('signed')
         ->name('telegram.connect');
     Route::post('/voucher/validate', [PupilPackageController::class, 'validateVoucher'])->name('voucher.validate');
-    Route::get('/appointments/{appointment}/materials', [AppointmentMaterialController::class, 'index'])->name('appointments.materials.index');
-    Route::post('/appointments/{appointment}/materials', [AppointmentMaterialController::class, 'store'])->name('appointments.materials.store');
 });
 
 Route::get('/credential/{id}', [GamificationController::class, 'showCredential'])->name('credential.show');

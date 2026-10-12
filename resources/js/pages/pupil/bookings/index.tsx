@@ -16,15 +16,10 @@ import {
     ExternalLink,
     ShieldAlert,
     X,
-    Paperclip,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
-import MeetingCompanion, {
-    openGoogleMeetSession,
-    requestCompanionPiPWindow,
-} from '@/components/session/MeetingCompanion';
 
 interface Props {
     bookings: {
@@ -107,10 +102,6 @@ export default function Bookings({ bookings }: Props) {
 
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
     const [copiedCard, setCopiedCard] = useState(false);
-    const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
-    const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
-    const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
-    const [companionMeetWindow, setCompanionMeetWindow] = useState<Window | null>(null);
 
     const handleCopyCardNumber = (cardNumber: string) => {
         navigator.clipboard.writeText(cardNumber);
@@ -206,44 +197,16 @@ export default function Bookings({ bookings }: Props) {
     };
 
     const handleJoin = async (apt: any) => {
-        // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        const pipWin = await requestCompanionPiPWindow(() => {
-            toast.info(
-                t(
-                    'companion.unsupported_browser_pip',
-                    'Floating companion is optimized for Google Chrome and Edge. Your companion is active inside this tab.',
-                ),
-            );
-        });
-        if (pipWin) {
-            setExternalPipWindow(pipWin);
-        }
-        setActiveCompanionAptId(apt.id);
-
         try {
             const response = await axios.post(
                 `/pupil/appointments/${apt.id}/join`,
             );
             if (response.data.google_meet_link) {
-                setCompanionMeetLink(response.data.google_meet_link);
-                try {
-                    const meetWin = openGoogleMeetSession(
-                        response.data.google_meet_link,
-                    );
-                    if (meetWin) {
-                        setCompanionMeetWindow(meetWin);
-                    }
-                } catch (e) {
-                    // Handled inside the always-on-top companion window
-                }
+                window.open(response.data.google_meet_link, '_blank');
+            } else {
+                toast.error(t('meeting.not_ready') || 'Meeting link is not available yet.');
             }
         } catch (error: any) {
-            if (pipWin) {
-                pipWin.close();
-                setExternalPipWindow(null);
-            }
-            setActiveCompanionAptId(null);
-            setCompanionMeetWindow(null);
             toast.error(
                 error.response?.data?.message || t('meeting.not_ready'),
             );
@@ -472,16 +435,6 @@ export default function Bookings({ bookings }: Props) {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() =>
-                                                        setActiveCompanionAptId(apt.id)
-                                                    }
-                                                    className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-2 text-xs font-bold text-indigo-700 transition-all duration-300 hover:bg-indigo-100 hover:text-indigo-900"
-                                                    title="View Session Materials"
-                                                >
-                                                    <Paperclip className="h-3.5 w-3.5 text-indigo-600" />
-                                                    <span>Materials</span>
-                                                </button>
-                                                <button
-                                                    onClick={() =>
                                                         handleDelete(apt.id)
                                                     }
                                                     className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-destructive/20 px-3 py-2 text-xs font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-white"
@@ -493,22 +446,10 @@ export default function Bookings({ bookings }: Props) {
                                         ) : (
                                             <div className="flex items-center gap-2">
                                                 {apt.status === 'confirmed' && (
-                                                    <>
-                                                        <PupilMeetingButton
-                                                            apt={apt}
-                                                            handleJoin={handleJoin}
-                                                        />
-                                                        <button
-                                                            onClick={() =>
-                                                                setActiveCompanionAptId(apt.id)
-                                                            }
-                                                            className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-2 text-xs font-bold text-indigo-700 transition-all duration-300 hover:bg-indigo-100 hover:text-indigo-900"
-                                                            title="Open Lesson Materials & Live Companion"
-                                                        >
-                                                            <Paperclip className="h-3.5 w-3.5 text-indigo-600" />
-                                                            <span>Materials</span>
-                                                        </button>
-                                                    </>
+                                                    <PupilMeetingButton
+                                                        apt={apt}
+                                                        handleJoin={handleJoin}
+                                                    />
                                                 )}
 
                                                 {apt.status === 'accepted' && (
@@ -783,22 +724,6 @@ export default function Bookings({ bookings }: Props) {
                         </div>
                     </div>
                 </div>
-            )}
-
-            {activeCompanionAptId && (
-                <MeetingCompanion
-                    appointmentId={activeCompanionAptId}
-                    isOpen={!!activeCompanionAptId}
-                    onClose={() => {
-                        setActiveCompanionAptId(null);
-                        setExternalPipWindow(null);
-                        setCompanionMeetLink(null);
-                        setCompanionMeetWindow(null);
-                    }}
-                    externalPipWindow={externalPipWindow}
-                    initialMeetLink={companionMeetLink}
-                    initialMeetWindow={companionMeetWindow}
-                />
             )}
         </>
     );

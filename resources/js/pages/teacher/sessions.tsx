@@ -10,7 +10,6 @@ import {
     Sparkles,
     Check,
     Info,
-    Paperclip,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -25,10 +24,6 @@ import {
 import { useTranslation } from '@/hooks/use-translation';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import TeacherAssessmentSliderModal, { AssessmentData } from '@/components/teachers/TeacherAssessmentSliderModal';
-import MeetingCompanion, {
-    openGoogleMeetSession,
-    requestCompanionPiPWindow,
-} from '@/components/session/MeetingCompanion';
 
 interface Props {
     appointments: {
@@ -42,10 +37,6 @@ export default function Sessions({ appointments }: Props) {
     const [selectedApt, setSelectedApt] = useState<any>(null);
     const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
     const [assessmentApt, setAssessmentApt] = useState<any>(null);
-    const [activeCompanionAptId, setActiveCompanionAptId] = useState<string | null>(null);
-    const [externalPipWindow, setExternalPipWindow] = useState<Window | null>(null);
-    const [companionMeetLink, setCompanionMeetLink] = useState<string | null>(null);
-    const [companionMeetWindow, setCompanionMeetWindow] = useState<Window | null>(null);
     const [itemsList, setItemsList] = useState<any[]>(appointments.data || []);
     const [activeTab, setActiveTab] = useState<
         'all' | 'upcoming' | 'completed'
@@ -124,44 +115,16 @@ export default function Sessions({ appointments }: Props) {
     };
 
     const handleStartSession = async (apt: any) => {
-        // Request Document Picture-in-Picture window immediately using direct user click gesture!
-        const pipWin = await requestCompanionPiPWindow(() => {
-            toast.info(
-                t(
-                    'companion.unsupported_browser_pip',
-                    'Floating companion is optimized for Google Chrome and Edge. Your companion is active inside this tab.',
-                ),
-            );
-        });
-        if (pipWin) {
-            setExternalPipWindow(pipWin);
-        }
-        setActiveCompanionAptId(apt.id);
-
         try {
             const res = await axios.post(
                 `/teacher/appointments/${apt.id}/start`,
             );
             if (res.data.google_meet_link) {
-                setCompanionMeetLink(res.data.google_meet_link);
-                try {
-                    const meetWin = openGoogleMeetSession(res.data.google_meet_link);
-                    if (meetWin) {
-                        setCompanionMeetWindow(meetWin);
-                    }
-                } catch (e) {
-                    // Handled inside the always-on-top companion window
-                }
+                window.open(res.data.google_meet_link, '_blank');
             } else {
                 toast.success(t('sessions.session_started'));
             }
         } catch (err: any) {
-            if (pipWin) {
-                pipWin.close();
-                setExternalPipWindow(null);
-            }
-            setActiveCompanionAptId(null);
-            setCompanionMeetWindow(null);
             if (err.response?.data?.requires_google_calendar) {
                 toast.error(
                     err.response.data.message ||
@@ -416,17 +379,6 @@ export default function Sessions({ appointments }: Props) {
                                                         {t('sessions.join_lesson')}
                                                     </button>
                                                 )}
-
-                                                <button
-                                                    onClick={() =>
-                                                        setActiveCompanionAptId(apt.id)
-                                                    }
-                                                    className="rounded-full border border-indigo-200 bg-indigo-50/70 px-3.5 py-2 text-xs font-bold text-indigo-700 transition-all hover:bg-indigo-100 flex items-center gap-1.5"
-                                                    title="Open Lesson Materials & Live Companion"
-                                                >
-                                                    <Paperclip className="h-3.5 w-3.5 text-indigo-600" />
-                                                    <span>Materials</span>
-                                                </button>
 
                                                 {apt.status === 'confirmed' &&
                                                     !teacherFeedback && (
@@ -688,22 +640,6 @@ export default function Sessions({ appointments }: Props) {
                 initialData={assessmentApt?.assessment}
                 onSaved={handleAssessmentSaved}
             />
-
-            {activeCompanionAptId && (
-                <MeetingCompanion
-                    appointmentId={activeCompanionAptId}
-                    isOpen={!!activeCompanionAptId}
-                    onClose={() => {
-                        setActiveCompanionAptId(null);
-                        setExternalPipWindow(null);
-                        setCompanionMeetLink(null);
-                        setCompanionMeetWindow(null);
-                    }}
-                    externalPipWindow={externalPipWindow}
-                    initialMeetLink={companionMeetLink}
-                    initialMeetWindow={companionMeetWindow}
-                />
-            )}
         </>
     );
 }

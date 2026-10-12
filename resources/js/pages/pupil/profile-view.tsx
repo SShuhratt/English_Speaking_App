@@ -12,8 +12,6 @@ import {
     User,
     MapPin,
 } from 'lucide-react';
-import SpeakingPassportCard from '@/components/gamification/SpeakingPassportCard';
-import MilestoneBadgesCard from '@/components/gamification/MilestoneBadgesCard';
 
 interface Props {
     pupil: {
@@ -38,15 +36,9 @@ interface Props {
             }>;
         };
     };
-    gamification?: {
-        fluency?: any;
-        momentum?: any;
-        passport?: any;
-        badges?: any;
-    };
 }
 
-export default function PupilProfileView({ pupil, gamification }: Props) {
+export default function PupilProfileView({ pupil }: Props) {
     const { t } = useTranslation();
 
     const initials = pupil.full_name
@@ -279,18 +271,6 @@ export default function PupilProfileView({ pupil, gamification }: Props) {
                         </div>
                     </div>
                 </div>
-
-                {/* Gamification Passport & Milestones Showcase */}
-                {gamification && (
-                    <div className="mt-8 space-y-6">
-                        {gamification.passport && (
-                            <SpeakingPassportCard passport={gamification.passport} />
-                        )}
-                        {gamification.badges && (
-                            <MilestoneBadgesCard badges={gamification.badges} />
-                        )}
-                    </div>
-                )}
             </div>
         </>
     );

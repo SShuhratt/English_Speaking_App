@@ -134,13 +134,6 @@ interface Props {
     activePupilPackages?: PupilPackage[];
     totalActivePackageMinutes?: number;
     pendingPupilPackage?: PupilPackage | null;
-    vouchers?: Voucher[];
-}
-
-interface Voucher {
-    id: string;
-    voucher_code: string;
-    discount_percent: number;
 }
 
 export default function TeacherProfile({
@@ -153,7 +146,6 @@ export default function TeacherProfile({
     activePupilPackages = [],
     totalActivePackageMinutes,
     pendingPupilPackage = null,
-    vouchers = [],
 }: Props) {
     const { auth } = usePage<any>().props;
     const { t, locale } = useTranslation();
@@ -184,10 +176,6 @@ export default function TeacherProfile({
         price: number;
         teacherName: string;
     } | null>(null);
-    const [voucherCode, setVoucherCode] = React.useState('');
-    const [appliedVoucher, setAppliedVoucher] = React.useState<Voucher | null>(null);
-    const [voucherValidating, setVoucherValidating] = React.useState(false);
-    const [voucherError, setVoucherError] = React.useState<string | null>(null);
 
     // Raw certificates normalization
     const rawCerts = teacher.teacher_profile?.certificates ?? [];
@@ -312,50 +300,6 @@ export default function TeacherProfile({
     const [selectedTopics, setSelectedTopics] = React.useState<string[]>([]);
     const [otherChecked, setOtherChecked] = React.useState(false);
     const [customTopic, setCustomTopic] = React.useState('');
-
-    // Slot booking voucher states
-    const [slotVoucherCode, setSlotVoucherCode] = React.useState('');
-    const [appliedSlotVoucher, setAppliedSlotVoucher] = React.useState<Voucher | null>(null);
-    const [slotVoucherValidating, setSlotVoucherValidating] = React.useState(false);
-    const [slotVoucherError, setSlotVoucherError] = React.useState<string | null>(null);
-
-    const handleValidateSlotVoucher = async () => {
-        const code = slotVoucherCode.trim();
-        if (!code) return;
-        setSlotVoucherValidating(true);
-        setSlotVoucherError(null);
-        setAppliedSlotVoucher(null);
-        try {
-            const res = await fetch('/voucher/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN':
-                        (
-                            document.querySelector(
-                                'meta[name="csrf-token"]',
-                            ) as HTMLMetaElement
-                        )?.content || '',
-                },
-                body: JSON.stringify({ voucher_code: code }),
-            });
-            const data = await res.json();
-            if (res.ok && data.valid) {
-                setAppliedSlotVoucher({
-                    id: data.voucher_id,
-                    voucher_code: data.voucher_code,
-                    discount_percent: data.discount_percent,
-                });
-            } else {
-                setSlotVoucherError(data.message || 'Invalid voucher code.');
-            }
-        } catch {
-            setSlotVoucherError('Could not validate voucher. Please try again.');
-        } finally {
-            setSlotVoucherValidating(false);
-        }
-    };
 
     // Video play state
     const [isPlayingVideo, setIsPlayingVideo] = React.useState(false);
@@ -526,19 +470,11 @@ export default function TeacherProfile({
                 is_trial: lessonType === 'trial',
                 duration_minutes:
                     lessonType === 'trial' ? 20 : selectedDuration,
-                voucher_id: !isCoveredByPackage ? appliedSlotVoucher?.id : undefined,
-                voucher_code: !isCoveredByPackage
-                    ? appliedSlotVoucher?.voucher_code ??
-                      (slotVoucherCode.trim() || undefined)
-                    : undefined,
             });
             toast.success(
                 t('booking.success') || 'Appointment booked successfully!',
             );
             setConfirmingSlot(null);
-            setAppliedSlotVoucher(null);
-            setSlotVoucherCode('');
-            setSlotVoucherError(null);
             fetchSlots();
         } catch (error: any) {
             const serverErrors = error.response?.data?.errors;
@@ -603,40 +539,6 @@ export default function TeacherProfile({
           ? `${activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
           : "0 so'm";
 
-    const handleValidateVoucher = async () => {
-        const code = voucherCode.trim();
-        if (!code) return;
-        setVoucherValidating(true);
-        setVoucherError(null);
-        setAppliedVoucher(null);
-        try {
-            const res = await fetch('/voucher/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ voucher_code: code }),
-            });
-            const data = await res.json();
-            if (data.valid) {
-                setAppliedVoucher({
-                    id: data.voucher_id,
-                    voucher_code: data.voucher_code,
-                    discount_percent: data.discount_percent,
-                });
-                toast.success(`${data.discount_percent}% discount applied!`);
-            } else {
-                setVoucherError(data.message || 'Invalid voucher code.');
-            }
-        } catch {
-            setVoucherError('Could not validate voucher. Please try again.');
-        } finally {
-            setVoucherValidating(false);
-        }
-    };
-
     const handlePurchasePackage = () => {
         if (!purchasingPackage) return;
         if (!auth?.user) {
@@ -655,21 +557,14 @@ export default function TeacherProfile({
             '/pupil/packages/purchase',
             {
                 teacher_package_id: purchasingPackage.id,
-                voucher_code: appliedVoucher?.voucher_code ?? (voucherCode.trim() || undefined),
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     setPurchasingPackage(null);
-                    setVoucherCode('');
-                    setAppliedVoucher(null);
-                    setVoucherError(null);
-                    const finalPrice = appliedVoucher
-                        ? Math.max(0, packageToPay.price - Math.round((packageToPay.price * appliedVoucher.discount_percent) / 100))
-                        : packageToPay.price;
                     setPaymentModalPackage({
                         title: packageToPay.title,
-                        price: finalPrice,
+                        price: packageToPay.price,
                         teacherName: teacher.full_name,
                     });
                     toast.success(
@@ -1097,7 +992,7 @@ export default function TeacherProfile({
 
                                     {/* Gender */}
                                     <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white/80 p-2.5 shadow-2xs dark:border-gray-800 dark:bg-gray-800/60">
-                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[#EEF4FB] text-[#1E2A5A] dark:bg-[#1E2A5A]/30 dark:text-[#A9C6E8]">
                                             <User className="h-4 w-4" />
                                         </div>
                                         <div className="min-w-0 flex-1">
@@ -1247,7 +1142,20 @@ export default function TeacherProfile({
                                     <span className="n">
                                         <Video className="h-3.5 w-3.5" />
                                     </span>
-                                    Hear her speak first
+                                    {teacher.gender === 'male'
+                                        ? t(
+                                              'teacher.hear_his_speaking_first',
+                                              'Hear his speaking first',
+                                          )
+                                        : teacher.gender === 'female'
+                                          ? t(
+                                                'teacher.hear_her_speaking_first',
+                                                'Hear her speaking first',
+                                            )
+                                          : t(
+                                                'teacher.hear_their_speaking_first',
+                                                'Hear their speaking first',
+                                            )}
                                 </div>
                                 {isPlayingVideo ? (
                                     <div className="aspect-video w-full overflow-hidden rounded-2xl border bg-black">
@@ -2477,131 +2385,11 @@ export default function TeacherProfile({
                                 )}
 
                                 {!isCoveredByPackage && activePrice > 0 && (
-                                    <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3.5 dark:border-purple-900/30 dark:bg-purple-950/30">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
-                                                <span>🎟</span> {t('voucher.have_discount')}
-                                            </p>
-                                            {appliedSlotVoucher && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setAppliedSlotVoucher(null);
-                                                        setSlotVoucherCode('');
-                                                        setSlotVoucherError(null);
-                                                    }}
-                                                    className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
-                                                >
-                                                    ✕ {t('voucher.remove')}
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* Owned vouchers quick-select */}
-                                        {vouchers.length > 0 && (
-                                            <div className="mb-2">
-                                                <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                                    {t('voucher.select_from_vouchers')}
-                                                </label>
-                                                <select
-                                                    className="w-full rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1E2A5A] shadow-sm focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
-                                                    value={appliedSlotVoucher?.voucher_code ?? ''}
-                                                    onChange={(e) => {
-                                                        const selected = vouchers.find(
-                                                            (v) => v.voucher_code === e.target.value,
-                                                        );
-                                                        setAppliedSlotVoucher(selected ?? null);
-                                                        setSlotVoucherCode(e.target.value);
-                                                        setSlotVoucherError(null);
-                                                    }}
-                                                    disabled={booking}
-                                                >
-                                                    <option value="">{t('voucher.no_voucher_selected')}</option>
-                                                    {vouchers.map((v) => (
-                                                        <option key={v.id} value={v.voucher_code}>
-                                                            {v.voucher_code} — {v.discount_percent}{t('voucher.off')}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {/* Manual code entry */}
-                                        <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                            {t('voucher.enter_code_manually')}
-                                        </label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                placeholder={t('voucher.code_placeholder')}
-                                                value={slotVoucherCode}
-                                                onChange={(e) => {
-                                                    setSlotVoucherCode(e.target.value.toUpperCase());
-                                                    setSlotVoucherError(null);
-                                                }}
-                                                disabled={booking}
-                                                className="flex-1 rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 font-mono text-xs text-[#1E2A5A] placeholder:text-slate-400 focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={handleValidateSlotVoucher}
-                                                disabled={!slotVoucherCode.trim() || slotVoucherValidating || booking}
-                                                className="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 disabled:opacity-50 cursor-pointer"
-                                            >
-                                                {slotVoucherValidating ? t('voucher.applying') : t('voucher.apply')}
-                                            </button>
-                                        </div>
-
-                                        {slotVoucherError && (
-                                            <p className="mt-1.5 text-[11px] font-semibold text-red-600">
-                                                {slotVoucherError}
-                                            </p>
-                                        )}
-
-                                        {appliedSlotVoucher && (
-                                            <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-1.5 dark:bg-emerald-950/40">
-                                                <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                                                    {t('voucher.discount_applied', { percent: appliedSlotVoucher.discount_percent })}
-                                                </span>
-                                                <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                                                    −
-                                                    {Math.round(
-                                                        (activePrice * appliedSlotVoucher.discount_percent) / 100,
-                                                    )
-                                                        .toLocaleString('ru-RU')
-                                                        .replace(/,/g, ' ')}{' '}
-                                                    so'm
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Price preview */}
-                                        <div className="mt-2.5 border-t border-purple-100 pt-2 flex items-center justify-between text-xs dark:border-purple-900/30">
-                                            <span className="text-[#6B7394] font-medium">Session Price:</span>
-                                            <div className="text-right">
-                                                {appliedSlotVoucher && (
-                                                    <span className="line-through text-gray-400 mr-2">
-                                                        {activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
-                                                    </span>
-                                                )}
-                                                <span className="font-bold text-[#1E2A5A] dark:text-white text-sm">
-                                                    {Math.max(
-                                                        0,
-                                                        activePrice -
-                                                            (appliedSlotVoucher
-                                                                ? Math.round(
-                                                                      (activePrice *
-                                                                          appliedSlotVoucher.discount_percent) /
-                                                                          100,
-                                                                  )
-                                                                : 0),
-                                                    )
-                                                        .toLocaleString('ru-RU')
-                                                        .replace(/,/g, ' ')}{' '}
-                                                    so'm
-                                                </span>
-                                            </div>
-                                        </div>
+                                    <div className="mt-4 flex items-center justify-between rounded-xl border border-[#D8E5F5] bg-[#EEF4FB]/50 p-3.5 text-xs">
+                                        <span className="text-[#6B7394] font-medium">Session Price:</span>
+                                        <span className="font-bold text-[#1E2A5A] dark:text-white text-sm">
+                                            {activePrice.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                        </span>
                                     </div>
                                 )}
 
@@ -2668,123 +2456,22 @@ export default function TeacherProfile({
                         </div>
 
                         <div className="mt-4 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] p-3 text-xs">
-                            {appliedVoucher ? (
-                                <div className="space-y-1">
-                                    <div className="flex justify-between">
-                                        <span className="text-[#6B7394]">Original price</span>
-                                        <span className="font-semibold text-[#1E2A5A] line-through">
-                                            {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-emerald-600 font-semibold">Voucher discount ({appliedVoucher.discount_percent}% off)</span>
-                                        <span className="font-bold text-emerald-600">
-                                            −{Math.round((purchasingPackage.price * appliedVoucher.discount_percent) / 100).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between border-t border-[#E6E9F2] pt-1">
-                                        <span className="font-bold text-[#1E2A5A]">You pay</span>
-                                        <span className="font-extrabold text-base text-emerald-600">
-                                            {Math.max(0, purchasingPackage.price - Math.round((purchasingPackage.price * appliedVoucher.discount_percent) / 100)).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
-                                        </span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex justify-between">
-                                    <span className="text-[#6B7394]">{t('packages.pack_price') || 'Total Price'}</span>
-                                    <span className="font-extrabold text-base text-[#1E2A5A]">
-                                        {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
-                                    </span>
-                                </div>
-                            )}
+                            <div className="flex justify-between items-center">
+                                <span className="text-[#6B7394] font-medium">{t('packages.pack_price') || 'Total Price'}</span>
+                                <span className="font-extrabold text-base text-[#1E2A5A]">
+                                    {purchasingPackage.price.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                </span>
+                            </div>
                         </div>
 
-                        {/* Voucher / Discount Code */}
-                        <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3.5 dark:border-purple-900/30 dark:bg-purple-950/30">
-                            <p className="mb-2 text-[11px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
-                                <span>🎟</span> {t('voucher.have_discount')}
+                        <div className="mt-4 rounded-xl border border-[#D4E2F4] bg-[#EEF4FB] p-3.5 text-[11.5px] leading-relaxed text-[#1E2A5A]">
+                            <div className="flex items-center gap-1.5 font-bold mb-1 text-[#1E2A5A]">
+                                <Info className="h-4 w-4 text-[#1E2A5A]" />
+                                <span>{t('voucher.how_it_works_title') || 'How it works'}</span>
+                            </div>
+                            <p className="text-[#3C4569]">
+                                {t('voucher.how_it_works_desc', { name: teacher.full_name })}
                             </p>
-
-                            {/* Owned vouchers quick-select */}
-                            {vouchers.length > 0 && (
-                                <div className="mb-2">
-                                    <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                        {t('voucher.select_from_vouchers')}
-                                    </label>
-                                    <select
-                                        className="w-full rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1E2A5A] shadow-sm focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
-                                        value={appliedVoucher?.voucher_code ?? ''}
-                                        onChange={(e) => {
-                                            const selected = vouchers.find(v => v.voucher_code === e.target.value);
-                                            setAppliedVoucher(selected ?? null);
-                                            setVoucherCode(e.target.value);
-                                            setVoucherError(null);
-                                        }}
-                                        disabled={submittingPurchase}
-                                    >
-                                        <option value="">{t('voucher.no_voucher')}</option>
-                                        {vouchers.map((v) => (
-                                            <option key={v.id} value={v.voucher_code}>
-                                                {v.voucher_code} — {v.discount_percent}{t('voucher.off')}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Manual code entry */}
-                            <label className="mb-1 block text-[10px] font-semibold text-[#6B7394] uppercase tracking-wide">
-                                {t('voucher.enter_code_manually')}
-                            </label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder={t('voucher.code_placeholder')}
-                                    value={voucherCode}
-                                    onChange={(e) => {
-                                        setVoucherCode(e.target.value.toUpperCase());
-                                        setAppliedVoucher(null);
-                                        setVoucherError(null);
-                                    }}
-                                    disabled={submittingPurchase}
-                                    className="flex-1 rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 font-mono text-xs text-[#1E2A5A] placeholder:text-slate-400 focus:border-purple-400 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-slate-200"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleValidateVoucher}
-                                    disabled={!voucherCode.trim() || voucherValidating || submittingPurchase}
-                                    className="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 disabled:opacity-50"
-                                >
-                                    {voucherValidating ? t('voucher.applying') : t('voucher.apply')}
-                                </button>
-                            </div>
-
-                            {voucherError && (
-                                <p className="mt-1.5 text-[11px] font-semibold text-red-600">{voucherError}</p>
-                            )}
-
-                            {appliedVoucher && (
-                                <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-1.5 dark:bg-emerald-950/40">
-                                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                                        {t('voucher.discount_applied', { percent: appliedVoucher.discount_percent })}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        className="text-[10px] font-semibold text-red-500 hover:underline cursor-pointer"
-                                        onClick={() => { setAppliedVoucher(null); setVoucherCode(''); }}
-                                    >
-                                        {t('voucher.remove')}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-[11.5px] leading-relaxed text-[#1E2A5A]">
-                            <div className="flex items-center gap-1.5 font-bold mb-0.5">
-                                <Info className="h-3.5 w-3.5 text-blue-600" />
-                                <span>{t('voucher.how_it_works_title')}</span>
-                            </div>
-                            {t('voucher.how_it_works_desc', { name: teacher.full_name })}
                         </div>
 
                         <div className="mt-6 flex items-center justify-end gap-3">

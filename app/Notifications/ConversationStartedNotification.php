@@ -49,6 +49,7 @@ class ConversationStartedNotification extends Notification implements ShouldQueu
             ->greeting("Hello {$notifiable->full_name}!")
             ->line("It is time for your lesson with **{$partnerName}**.")
             ->action('Enter Speaking Room Now', $meetLink)
+            ->line("Direct meeting link: {$meetLink}")
             ->line('Your partner is expecting you. Have a great conversation!');
 
         $footerTip = $this->getEmailTipFooter($notifiable);
@@ -69,12 +70,19 @@ class ConversationStartedNotification extends Notification implements ShouldQueu
             ? ($this->appointment->pupil?->full_name ?? 'your student')
             : ($this->appointment->teacher?->full_name ?? 'your teacher');
 
-        $meetLink = $this->appointment->google_meet_link ?? url('/dashboard');
+        $meetLink = $this->appointment->google_meet_link;
 
         $message = "🚀 <b>Session is Starting Now!</b>\n\n".
-            "Your conversation with <b>{$partnerName}</b> is ready to begin.\n\n".
-            "👉 <b>Join Meeting:</b> <a href=\"{$meetLink}\">Click here to join</a>\n\n".
-            'Have a fantastic practice session!';
+            "Your conversation with <b>{$partnerName}</b> is ready to begin.\n\n";
+
+        if ($meetLink) {
+            $message .= "👉 <b>Join Meeting Link:</b> {$meetLink}\n\n";
+        } else {
+            $dashboardUrl = url('/dashboard');
+            $message .= "👉 <b>Join Meeting Link:</b> {$dashboardUrl}\n\n";
+        }
+
+        $message .= 'Have a fantastic practice session!';
 
         $message .= $this->getTelegramTipFooter($notifiable);
 

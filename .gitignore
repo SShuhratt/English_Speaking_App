@@ -32,12 +32,20 @@ yarn-error.log
 frankenphp
 frankenphp-worker.php
 
-# AI and Assistant Directories
+# AI and Assistant Directories & Files
 .agents
 .codex
 .gemini
 .claude
 .junie
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+CODEX.md
+*agents*.md
+*claude*.md
+*codex*.md
+*gemini*.md
 
 # Archives and Tarballs
 *.tar

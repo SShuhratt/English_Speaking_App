@@ -254,11 +254,8 @@ class GamificationTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->component('dashboard')
-            ->has('gamification')
-            ->has('gamification.fluency')
-            ->has('gamification.streak')
-            ->has('gamification.leaderboard')
-            ->has('gamification.daily_spark')
+            ->where('gamification', null)
+            ->has('activePackages')
         );
     }
 }

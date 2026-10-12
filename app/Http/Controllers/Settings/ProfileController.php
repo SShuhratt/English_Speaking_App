@@ -123,7 +123,7 @@ class ProfileController extends Controller
 
             // Validate teacher profile details
             $profileData = $request->validate([
-                'age' => ['nullable', 'integer', 'min:18', 'max:100'],
+                'age' => ['nullable', 'integer', 'min:1', 'max:120'],
                 'phone_number' => ['nullable', 'string', 'max:20'],
                 'experience_years' => ['nullable', 'string', 'max:100'],
                 'workplace' => ['nullable', 'string', 'max:255'],

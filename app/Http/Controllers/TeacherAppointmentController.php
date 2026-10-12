@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\BookingUpdated;
 use App\Models\Appointment;
+use App\Notifications\ConversationStartedNotification;
 use App\Services\BookingService;
 use App\Services\GamificationService;
 use App\Services\GoogleCalendarService;
@@ -212,6 +213,17 @@ class TeacherAppointmentController extends Controller
         $appointment->update([
             'meeting_started' => true,
         ]);
+
+        if (! $appointment->reminder_started_sent_at) {
+            $appointment->update([
+                'reminder_started_sent_at' => now(),
+            ]);
+            try {
+                $appointment->pupil?->notify(new ConversationStartedNotification($appointment));
+            } catch (\Throwable $e) {
+                Log::error('Failed to notify pupil on meeting start: '.$e->getMessage());
+            }
+        }
 
         try {
             BookingUpdated::dispatch($appointment->fresh());
