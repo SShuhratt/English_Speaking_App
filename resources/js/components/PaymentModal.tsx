@@ -12,14 +12,11 @@ import {
     Loader2,
     Send,
     QrCode,
-    Smartphone,
-    Globe,
     Copy,
     Check,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { toast } from 'sonner';
-import { PaymentAppIcon } from '@/components/PaymentLogos';
 
 export interface PaymentModalProps {
     isOpen: boolean;
@@ -51,7 +48,7 @@ export default function PaymentModal({
     onSuccess,
 }: PaymentModalProps) {
     const { t } = useTranslation();
-    const { payment, auth } = usePage<{
+    const { payment } = usePage<{
         payment?: {
             card_number?: string;
             card_holder?: string;
@@ -66,8 +63,6 @@ export default function PaymentModal({
         };
     }>().props;
 
-    const [activeTab, setActiveTab] = useState<'qr' | 'web' | 'mobile'>('qr');
-    const [activeApp, setActiveApp] = useState<'click' | 'payme' | 'uzum'>('click');
     const [copiedCard, setCopiedCard] = useState(false);
     const [telegramStatus, setTelegramStatus] = useState<'idle' | 'sent' | 'not_connected'>('idle');
     const [qrCodeSvg, setQrCodeSvg] = useState<string | null>(null);
@@ -88,14 +83,6 @@ export default function PaymentModal({
     // Auto-dispatch payment details to Telegram and fetch smart QR when opened
     useEffect(() => {
         if (!isOpen) return;
-
-        const isMobile =
-            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                navigator.userAgent
-            ) || window.innerWidth < 768;
-        if (isMobile) {
-            setActiveTab('mobile');
-        }
 
         const type = appointmentId ? 'booking' : pupilPackageId ? 'package' : null;
         const targetId = appointmentId || pupilPackageId;
@@ -148,31 +135,6 @@ export default function PaymentModal({
 
     if (!isOpen) return null;
 
-    const appLinks = {
-        click: {
-            name: 'Click',
-            color: 'bg-blue-600 hover:bg-blue-700 text-white',
-            webUrl: 'https://my.click.uz',
-        },
-        payme: {
-            name: 'Payme',
-            color: 'bg-[#00CCCC] hover:bg-[#00b4b4] text-teal-950',
-            webUrl: 'https://payme.uz',
-        },
-        uzum: {
-            name: 'Uzum Bank',
-            color: 'bg-[#7000FF] hover:bg-[#5e00db] text-white',
-            webUrl: 'https://bank.uzum.uz',
-        },
-    };
-
-    const getAppDeepLink = (appKey: 'click' | 'payme' | 'uzum') => {
-        if (appKey === 'uzum') {
-            return 'uzumbank://';
-        }
-        return '';
-    };
-
     const copyToClipboard = async (text: string): Promise<boolean> => {
         if (!text) return false;
         if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext) {
@@ -197,25 +159,6 @@ export default function PaymentModal({
             return successful;
         } catch {
             return false;
-        }
-    };
-
-    const handleCopyAndOpen = async (appKey: 'click' | 'payme' | 'uzum') => {
-        if (!rawCardNumber) return;
-        await copyToClipboard(rawCardNumber);
-        setCopiedCard(true);
-        setTimeout(() => setCopiedCard(false), 2500);
-
-        if (appKey === 'uzum') {
-            toast.success(
-                t('payment.copied_opening_app', { app: appLinks[appKey].name }) ||
-                    `Card number copied! Opening ${appLinks[appKey].name}...`
-            );
-        } else {
-            toast.success(
-                t('payment.copied_switch_to_app', { app: appLinks[appKey].name }) ||
-                    `Card number copied! Switch to ${appLinks[appKey].name} to complete payment.`
-            );
         }
     };
 
@@ -409,282 +352,47 @@ export default function PaymentModal({
                     </div>
                 )}
 
-                {/* Payment Mode Selector Tabs (QR Code / Desktop Web / Mobile App) */}
-                <div className="mt-4 flex rounded-xl border border-slate-200 bg-muted/50 p-1 text-xs dark:border-slate-800">
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab('qr')}
-                        className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg py-1.5 font-bold transition-all ${
-                            activeTab === 'qr'
-                                ? 'bg-card text-foreground shadow-xs'
-                                : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                        <QrCode className="h-3.5 w-3.5" />
-                        <span>{t('payment.tab_qr') || 'QR Code'}</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab('web')}
-                        className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg py-1.5 font-bold transition-all ${
-                            activeTab === 'web'
-                                ? 'bg-card text-foreground shadow-xs'
-                                : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                        <Globe className="h-3.5 w-3.5" />
-                        <span>{t('payment.tab_web') || 'Web Browser'}</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab('mobile')}
-                        className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg py-1.5 font-bold transition-all ${
-                            activeTab === 'mobile'
-                                ? 'bg-card text-foreground shadow-xs'
-                                : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                        <Smartphone className="h-3.5 w-3.5" />
-                        <span>{t('payment.tab_mobile') || 'Mobile App'}</span>
-                    </button>
-                </div>
-
-                {/* TAB 1: QR CODE SCANNING */}
-                {activeTab === 'qr' && (
-                    <div className="mt-3.5 rounded-2xl border border-slate-200/80 bg-slate-50 p-4 text-center dark:border-slate-800 dark:bg-slate-900/50">
-                        <p className="text-xs font-bold text-foreground">
-                            {t('payment.qr_scan_title') || 'Scan with your phone camera:'}
-                        </p>
-                        <div className="mx-auto my-2.5 flex h-40 w-40 items-center justify-center rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-700">
-                            {qrCodeSvg || payment?.qr_svg ? (
-                                <div
-                                    className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
-                                    dangerouslySetInnerHTML={{ __html: qrCodeSvg || payment?.qr_svg }}
-                                />
-                            ) : (
-                                <QrCode className="h-20 w-20 text-slate-400" />
-                            )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground">
-                            {t('payment.qr_scan_smart_hint') ||
-                                'Scan with your phone camera to open payment on your smartphone.'}
-                        </p>
-
-                        {/* 1-Tap Copy Card under QR block */}
-                        <div className="mt-3 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-800/80">
-                            <span className="font-mono text-xs font-bold tracking-wider text-foreground">
-                                {formattedCardNumber}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={handleCopyCard}
-                                className="flex cursor-pointer items-center gap-1 rounded-lg bg-brand-button px-2.5 py-1 text-[11px] font-bold text-brand-brown shadow-xs transition-all hover:bg-brand-button-hover active:scale-95 dark:bg-brand-yellow dark:text-[#061445]"
-                            >
-                                {copiedCard ? (
-                                    <Check className="h-3 w-3 text-emerald-700" />
-                                ) : (
-                                    <Copy className="h-3 w-3" />
-                                )}
-                                <span>
-                                    {copiedCard
-                                        ? t('payment.copied_btn') || 'Copied'
-                                        : t('payment.copy_btn') || 'Copy Card'}
-                                </span>
-                            </button>
-                        </div>
+                {/* QR Code & Payment Section */}
+                <div className="mt-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-center dark:border-slate-800 dark:bg-slate-900/50">
+                    <div className="mx-auto my-2 flex h-44 w-44 items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-xs dark:border-slate-700">
+                        {qrCodeSvg || payment?.qr_svg ? (
+                            <div
+                                className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
+                                dangerouslySetInnerHTML={{ __html: qrCodeSvg || payment?.qr_svg }}
+                            />
+                        ) : (
+                            <QrCode className="h-20 w-20 text-slate-400" />
+                        )}
                     </div>
-                )}
 
-                {/* TAB 2: DESKTOP WEB BANKING */}
-                {activeTab === 'web' && (
-                    <div className="mt-3.5 space-y-3 rounded-2xl border border-slate-200/80 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-foreground">
-                                {t('payment.desktop_web_title') || 'Pay via desktop browser'}
-                            </span>
-                            <span className="rounded-lg bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-blue-800 dark:bg-blue-950 dark:text-blue-300">
-                                Click Web
-                            </span>
-                        </div>
+                    <p className="mt-3 text-xs leading-relaxed text-foreground/90 font-medium px-2">
+                        {t('payment.qr_simplified_desc', { bot: botUsername }) ||
+                            `Copy the card number and pay with any payment app and send the check file/screenshot to @${botUsername} or the upload field below. You can scan this qr in order to open this payment section on your phone.`}
+                    </p>
 
-                        <p className="text-[11px] text-muted-foreground">
-                            {t('payment.click_web_desc') || 'Go to Click website and transfer to the card:'}
-                        </p>
-
-                        {/* Direct Click Web button */}
-                        <a
-                            href="https://my.click.uz"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-1.5 w-full rounded-xl border border-slate-300 bg-background py-2.5 text-xs font-bold text-foreground shadow-xs transition-all hover:bg-muted dark:border-slate-700"
+                    {/* Card number with 1-click Copy button directly below the reminder */}
+                    <div className="mt-3.5 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 dark:border-slate-700 dark:bg-slate-800/80">
+                        <span className="font-mono text-xs sm:text-sm font-bold tracking-wider text-foreground">
+                            {formattedCardNumber}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={handleCopyCard}
+                            className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-button px-3 py-1.5 text-xs font-bold text-brand-brown shadow-xs transition-all hover:bg-brand-button-hover active:scale-95 dark:bg-brand-yellow dark:text-[#061445]"
                         >
-                            <Globe className="h-3.5 w-3.5 text-blue-600" />
+                            {copiedCard ? (
+                                <Check className="h-3.5 w-3.5 text-emerald-700" />
+                            ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                            )}
                             <span>
-                                {t('payment.open_web_in_new_tab', { app: 'Click' }) ||
-                                    'Open Click website in new tab'}
+                                {copiedCard
+                                    ? t('payment.copied_btn') || 'Copied'
+                                    : t('payment.copy_btn') || 'Copy Card'}
                             </span>
-                            <ExternalLink className="h-3 w-3" />
-                        </a>
-
-                        {/* Copy Card for Web Banking */}
-                        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-background px-3 py-2 dark:border-slate-800">
-                            <span className="font-mono text-xs font-bold tracking-wider text-foreground">
-                                {formattedCardNumber}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={handleCopyCard}
-                                className="flex cursor-pointer items-center gap-1 rounded-lg bg-brand-button px-2.5 py-1 text-[11px] font-bold text-brand-brown shadow-xs transition-all hover:bg-brand-button-hover active:scale-95 dark:bg-brand-yellow dark:text-[#061445]"
-                            >
-                                {copiedCard ? (
-                                    <Check className="h-3 w-3 text-emerald-700" />
-                                ) : (
-                                    <Copy className="h-3 w-3" />
-                                )}
-                                <span>
-                                    {copiedCard
-                                        ? t('payment.copied_btn') || 'Copied'
-                                        : t('payment.copy_btn') || 'Copy Card'}
-                                </span>
-                            </button>
-                        </div>
-
-                        {/* Note about Payme & Uzum mobile requirement */}
-                        <p className="text-[11px] text-muted-foreground">
-                            {t('payment.payme_uzum_mobile_hint') ||
-                                'Payme and Uzum Bank require mobile app — please scan the QR code with your phone.'}
-                        </p>
+                        </button>
                     </div>
-                )}
-
-                {/* TAB 3: MOBILE APPS DIRECT LAUNCH */}
-                {activeTab === 'mobile' && (
-                    <div className="mt-3.5 space-y-3">
-                        <div className="grid grid-cols-3 gap-2">
-                            {(['click', 'payme', 'uzum'] as const).map((appKey) => {
-                                const isDirectApp = appKey === 'uzum';
-                                const commonClasses = `flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${appLinks[appKey].color}`;
-
-                                return isDirectApp ? (
-                                    <a
-                                        key={appKey}
-                                        href={getAppDeepLink(appKey)}
-                                        onClick={() => handleCopyAndOpen(appKey)}
-                                        className={commonClasses}
-                                    >
-                                        <PaymentAppIcon app={appKey} className="h-7 w-auto max-w-[85px] object-contain rounded-md shadow-xs" />
-                                        <span className="text-xs font-black uppercase">
-                                            {appLinks[appKey].name}
-                                        </span>
-                                        <span className="text-[10px] opacity-90 flex items-center gap-0.5">
-                                            {t('payment.open_in_app') || 'Open in app'}
-                                            <ExternalLink className="h-2.5 w-2.5" />
-                                        </span>
-                                    </a>
-                                ) : (
-                                    <button
-                                        key={appKey}
-                                        type="button"
-                                        onClick={() => handleCopyAndOpen(appKey)}
-                                        className={commonClasses}
-                                    >
-                                        <PaymentAppIcon app={appKey} className="h-7 w-auto max-w-[85px] object-contain rounded-md shadow-xs" />
-                                        <span className="text-xs font-black uppercase">
-                                            {appLinks[appKey].name}
-                                        </span>
-                                        <span className="text-[10px] opacity-90 flex items-center gap-0.5">
-                                            {copiedCard
-                                                ? (t('payment.copied_btn') || 'Copied')
-                                                : (t('payment.copy_btn') || 'Copy Card')}
-                                            {copiedCard ? (
-                                                <Check className="h-2.5 w-2.5" />
-                                            ) : (
-                                                <Copy className="h-2.5 w-2.5" />
-                                            )}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* P2P Step-by-Step Guidance Box */}
-                        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5 dark:border-slate-800 dark:bg-slate-900/60">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
-                                <h4 className="text-xs font-bold text-foreground">
-                                    {t('payment.p2p_instructions_title') || 'How to complete your payment:'}
-                                </h4>
-                            </div>
-                            <ol className="space-y-1.5 text-xs text-muted-foreground">
-                                <li className="flex items-start gap-2">
-                                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-lightblue/50 text-[10px] font-bold text-brand-brown dark:bg-brand-lightblue/20 dark:text-brand-yellow">
-                                        1
-                                    </span>
-                                    <span>
-                                        {t('payment.p2p_step_1') || 'Tap any app above to copy the card number.'}
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-lightblue/50 text-[10px] font-bold text-brand-brown dark:bg-brand-lightblue/20 dark:text-brand-yellow">
-                                        2
-                                    </span>
-                                    <span>
-                                        {t('payment.p2p_step_2', { app: 'Click / Payme / Uzum' }) || 'Switch to your banking app and paste into Card Transfers.'}
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-lightblue/50 text-[10px] font-bold text-brand-brown dark:bg-brand-lightblue/20 dark:text-brand-yellow">
-                                        3
-                                    </span>
-                                    <span>
-                                        {t('payment.p2p_step_3') || 'Transfer the exact amount, then upload your receipt below.'}
-                                    </span>
-                                </li>
-                            </ol>
-                        </div>
-
-                        {/* 1-Tap Copy Card for Mobile fallback */}
-                        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-background px-3 py-2 dark:border-slate-800">
-                            <span className="font-mono text-xs font-bold tracking-wider text-foreground">
-                                {formattedCardNumber}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={handleCopyCard}
-                                className="flex cursor-pointer items-center gap-1 rounded-lg bg-brand-button px-2.5 py-1 text-[11px] font-bold text-brand-brown shadow-xs transition-all hover:bg-brand-button-hover active:scale-95 dark:bg-brand-yellow dark:text-[#061445]"
-                            >
-                                {copiedCard ? (
-                                    <Check className="h-3 w-3 text-emerald-700" />
-                                ) : (
-                                    <Copy className="h-3 w-3" />
-                                )}
-                                <span>
-                                    {copiedCard
-                                        ? t('payment.copied_btn') || 'Copied'
-                                        : t('payment.copy_btn') || 'Copy Card'}
-                                </span>
-                            </button>
-                        </div>
-
-                        {/* Universal Mobile Helper & Web/Store Fallback */}
-                        <div className="rounded-xl border border-slate-200/60 bg-muted/30 p-2.5 text-center dark:border-slate-800">
-                            <div className="flex items-center justify-center gap-2 text-[11px]">
-                                <span className="text-muted-foreground">
-                                    {t('payment.dont_have_app') || "Don't have the app?"}
-                                </span>
-                                <a
-                                    href="https://my.click.uz"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="font-semibold text-blue-600 hover:underline dark:text-blue-400 inline-flex items-center gap-0.5"
-                                >
-                                    <span>Click Web</span>
-                                    <ExternalLink className="h-2.5 w-2.5" />
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                </div>
 
                 {/* Important Verification Tip Banner */}
                 <div className="mt-4 rounded-2xl border border-blue-200/80 bg-blue-50/80 p-3.5 text-xs text-blue-950 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">

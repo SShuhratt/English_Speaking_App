@@ -52,7 +52,8 @@ load_env(BASE_DIR / ".env")
 # Configuration
 TELEGRAM_API_ID = os.getenv("TELEGRAM_API_ID")
 TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH")
-WEBHOOK_URL = os.getenv("HUMO_WEBHOOK_URL", "http://127.0.0.1:8080/api/webhooks/humo-payment")
+APP_URL = os.getenv("APP_URL", "http://127.0.0.1:8080").rstrip("/")
+WEBHOOK_URL = os.getenv("HUMO_WEBHOOK_URL", f"{APP_URL}/api/webhooks/humo-payment")
 WEBHOOK_SECRET = os.getenv("HUMO_WEBHOOK_SECRET", "convomate-humo-webhook-secret-key")
 TARGET_BOT = os.getenv("HUMO_BOT_USERNAME", "HUMOcardbot").lstrip("@")
 

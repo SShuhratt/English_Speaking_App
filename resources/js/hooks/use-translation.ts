@@ -717,7 +717,9 @@ const dictionary = {
         'booking.pay_now': 'Pay Now',
         'payment.modal_title': 'Complete Your Payment',
         'payment.modal_desc':
-            'Choose your payment app to transfer the fee, then upload your receipt below for instant automatic verification.',
+            'Transfer the fee via any payment app and submit your check below or via Telegram for instant automatic verification.',
+        'payment.qr_simplified_desc':
+            'Copy the card number and pay with any payment app and send the check file/screenshot to @:bot or the upload field below. You can scan this qr in order to open this payment section on your phone.',
         'payment.choose_app': 'Choose Payment App',
         'payment.choose_app_desc':
             'Select your preferred app to make a direct transfer without entering card numbers manually:',
@@ -2537,7 +2539,9 @@ const dictionary = {
         'booking.pay_now': "To'lov qilish",
         'payment.modal_title': "To'lovni amalga oshirish",
         'payment.modal_desc':
-            "To'lov ilovasini tanlab pul o'tkazing va tezkor avtomatik tasdiqlash uchun chekingizni yuklang.",
+            "Istalgan to'lov ilovasi orqali to'lovni amalga oshiring va avtomatik tasdiqlash uchun chekingizni quyida yoki Telegram orqali yuboring.",
+        'payment.qr_simplified_desc':
+            "Karta raqamini nusxalab, istalgan to'lov ilovasi orqali to'lang va chek fayli/skrinshotni @:bot botimizga yoki quyidagi yuklash maydoniga yuboring. Ushbu to'lov bo'limini telefoningizda ochish uchun QR-kodni skanerlashingiz mumkin.",
         'payment.choose_app': "To'lov ilovasini tanlang",
         'payment.choose_app_desc':
             "Karta raqamini kiritmasdan to'g'ridan-to'g'ri o'tish uchun ilovani tanlang:",
@@ -4370,7 +4374,9 @@ const dictionary = {
         'booking.pay_now': 'Оплатить сейчас',
         'payment.modal_title': 'Завершите оплату',
         'payment.modal_desc':
-            'Выберите приложение для перевода и загрузите чек ниже для мгновенной автоматической проверки.',
+            'Оплатите через любое платёжное приложение и отправьте чек ниже или в Telegram для мгновенного автоматического подтверждения.',
+        'payment.qr_simplified_desc':
+            'Скопируйте номер карты, оплатите через любое платёжное приложение и отправьте чек/скриншот в @:bot или в поле загрузки ниже. Вы можете отсканировать этот QR-код, чтобы открыть оплату на телефоне.',
         'payment.choose_app': 'Выберите способ оплаты',
         'payment.choose_app_desc':
             'Выберите удобное приложение для быстрого перевода без ручного ввода карты:',
