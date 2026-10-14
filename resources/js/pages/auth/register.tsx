@@ -508,12 +508,13 @@ export default function Register({ passwordRules }: Props) {
                                 <Label htmlFor="age">{t('auth.age')}</Label>
                                 <Input
                                     id="age"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     required
                                     name="age"
-                                    min={role === 'teacher' ? 18 : 8}
-                                    max={100}
                                     value={age}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     onKeyDown={(e) => {
                                         if (['e', 'E', '+', '-', '.'].includes(e.key)) {
                                             e.preventDefault();
@@ -533,8 +534,8 @@ export default function Register({ passwordRules }: Props) {
                                         setAge(raw);
                                         if (ageError) setAgeError(null);
                                     }}
-                                    autoComplete="bday"
-                                    placeholder=""
+                                    autoComplete="off"
+                                    placeholder={t('auth.age_placeholder') || ''}
                                 />
                                 <InputError message={ageError || errors.age} />
                             </div>

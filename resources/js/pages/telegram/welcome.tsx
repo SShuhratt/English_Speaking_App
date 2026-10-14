@@ -385,11 +385,17 @@ export default function TelegramWelcome() {
                                     </Label>
                                     <Input
                                         id="reg-age"
-                                        type="number"
-                                        min={5}
-                                        max={100}
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         value={age}
-                                        onChange={(e) => setAge(e.target.value)}
+                                        onWheel={(e) => e.currentTarget.blur()}
+                                        onChange={(e) => {
+                                            const raw = e.target.value.replace(/\D/g, '');
+                                            if (raw === '' || (parseInt(raw, 10) <= 100 && raw.length <= 3)) {
+                                                setAge(raw);
+                                            }
+                                        }}
                                         className="mt-1"
                                     />
                                 </div>

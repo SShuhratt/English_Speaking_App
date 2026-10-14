@@ -37,7 +37,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
-        if (app()->isProduction()) {
+        if ($appUrl = config('app.url')) {
+            URL::forceRootUrl(rtrim($appUrl, '/'));
+            if (str_starts_with($appUrl, 'https://')) {
+                URL::forceScheme('https');
+            }
+        } elseif (app()->isProduction()) {
             if (! app()->runningInConsole() && ! in_array(request()->getHost(), ['localhost', '127.0.0.1'])) {
                 URL::forceScheme('https');
             }
