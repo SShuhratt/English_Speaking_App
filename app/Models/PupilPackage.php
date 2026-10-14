@@ -26,6 +26,8 @@ class PupilPackage extends Model
         'discount_amount',
         'payment_status',
         'payment_rejection_reason',
+        'receipt_path',
+        'receipt_data',
         'status',
     ];
 
@@ -34,6 +36,7 @@ class PupilPackage extends Model
         'remaining_minutes' => 'integer',
         'price_paid' => 'integer',
         'discount_amount' => 'integer',
+        'receipt_data' => 'array',
     ];
 
     public function pupil(): BelongsTo

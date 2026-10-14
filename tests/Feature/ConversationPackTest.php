@@ -15,6 +15,7 @@ use App\Notifications\PackagePaymentPendingNotification;
 use App\Notifications\PackagePaymentRejectedNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -726,16 +727,21 @@ class ConversationPackTest extends TestCase
         $pupilPackage->load(['teacher', 'pupil']);
 
         // 1. Pending Notification
+        Config::set('services.humo.card_number', '0000111122223333');
+        Config::set('services.humo.card_holder', 'Test Holder');
+
         $pendingNotification = new PackagePaymentPendingNotification($pupilPackage);
         $this->assertContains('mail', $pendingNotification->via($pupil));
         $this->assertContains(TelegramChannel::class, $pendingNotification->via($pupil));
 
         $mail = $pendingNotification->toMail($pupil);
-        $this->assertStringContainsString('9860 1966 1940 4458', implode("\n", $mail->introLines));
+        $this->assertStringContainsString('0000 1111 2222 3333', implode("\n", $mail->introLines));
+        $this->assertStringContainsString('Test Holder', implode("\n", $mail->introLines));
         $this->assertStringContainsString('900 000', implode("\n", $mail->introLines));
 
         $telegram = $pendingNotification->toTelegram($pupil);
-        $this->assertStringContainsString('9860 1966 1940 4458', $telegram);
+        $this->assertStringContainsString('0000 1111 2222 3333', $telegram);
+        $this->assertStringContainsString('Test Holder', $telegram);
         $this->assertStringContainsString('https://t.me/+Z9Gr0FnDDAFhOTky', $telegram);
 
         // 2. Confirmed Notification

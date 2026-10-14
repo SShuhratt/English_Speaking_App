@@ -6,6 +6,10 @@ use App\Models\Appointment;
 use App\Models\PupilPackage;
 use App\Models\SupportMessage;
 use App\Services\StreakService;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -82,6 +86,28 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'google_register' => $request->session()->get('google_register'),
             'telegram_register' => $request->session()->get('telegram_register'),
+            'payment' => [
+                'card_number' => (string) config('services.humo.card_number'),
+                'card_holder' => (string) config('services.humo.card_holder'),
+                'bot_username' => (string) config('services.telegram.bot_username', 'ConvomateAdminBot'),
+                'qr_svg' => (function () {
+                    try {
+                        $card = (string) config('services.humo.card_number');
+                        if (empty($card)) {
+                            return null;
+                        }
+                        $renderer = new ImageRenderer(
+                            new RendererStyle(200, 1),
+                            new SvgImageBackEnd
+                        );
+
+                        return (new Writer($renderer))->writeString(url('/pupil/bookings'));
+                    } catch (\Throwable) {
+                        return null;
+                    }
+                })(),
+            ],
         ];
+
     }
 }

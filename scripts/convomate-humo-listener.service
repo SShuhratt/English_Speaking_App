@@ -1,0 +1,15 @@
+[Unit]
+Description=ConvoMate HUMO Telegram Interceptor Daemon
+After=network.target convomate-web.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/shuhrat/Projects/English_Speaking_Platform/English_Speaking_App
+ExecStart=/usr/bin/python3 /home/shuhrat/Projects/English_Speaking_Platform/English_Speaking_App/scripts/humo_listener.py
+Restart=always
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

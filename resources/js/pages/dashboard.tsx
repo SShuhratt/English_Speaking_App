@@ -33,6 +33,7 @@ import { formatDuration, formatSpeakingTime } from '@/lib/duration';
 import AppLayout from '@/layouts/app-layout';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import PhoneNumberReminderBanner from '@/components/PhoneNumberReminderBanner';
+import PaymentModal from '@/components/PaymentModal';
 
 function PupilMeetingButton({
     apt,
@@ -162,7 +163,6 @@ function PupilDashboard({
 }) {
     const { t, locale } = useTranslation();
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
-    const [copiedCard, setCopiedCard] = useState(false);
     const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
 
     const handleConnectTelegram = async () => {
@@ -186,13 +186,6 @@ function PupilDashboard({
         } finally {
             setIsConnectingTelegram(false);
         }
-    };
-
-    const handleCopyCardNumber = (cardNumber: string) => {
-        navigator.clipboard.writeText(cardNumber);
-        setCopiedCard(true);
-        toast.success(t('payment.copied_toast') || 'Card number copied!');
-        setTimeout(() => setCopiedCard(false), 2500);
     };
 
     useEffect(() => {
@@ -770,156 +763,17 @@ function PupilDashboard({
                 );
             })()}
 
-            {/* Payment Modal (Pop-up on Dashboard) */}
-            {paymentBooking && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 text-left backdrop-blur-sm">
-                    <div className="relative flex w-full max-w-lg animate-in flex-col rounded-3xl border border-border bg-white p-6 shadow-2xl duration-150 zoom-in-95">
-                        <button
-                            onClick={() => setPaymentBooking(null)}
-                            className="absolute top-4 right-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-
-                        <div className="flex items-center gap-3 border-b pb-4">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-lightblue text-brand-brown">
-                                <CreditCard className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-foreground">
-                                    {t('payment.modal_title') ||
-                                        'Payment & Verification'}
-                                </h3>
-                                <p className="text-xs text-muted-foreground">
-                                    {t('payment.modal_desc') ||
-                                        'Transfer the session fee to the card below and send your receipt in Telegram.'}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Styled Credit Card Component */}
-                        <div className="relative mt-5 overflow-hidden rounded-3xl border border-brand-yellow/20 bg-gradient-to-br from-[#061445] via-[#1E2A5A] to-[#0D226B] p-6 text-white shadow-xl">
-                            <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-brand-yellow/10 blur-2xl" />
-                            <div className="pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-brand-lightblue/10 blur-2xl" />
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex h-7 w-10 items-center justify-center rounded-md border border-amber-200 bg-amber-300/80 shadow-inner">
-                                        <div className="flex h-4 w-6 items-center justify-center border-y border-amber-500/50">
-                                            <div className="h-2 w-2 rounded-full border border-amber-600/50" />
-                                        </div>
-                                    </div>
-                                    <span className="text-[10px] font-bold tracking-widest text-brand-yellow uppercase">
-                                        HUMO / UZCARD
-                                    </span>
-                                </div>
-                                <span className="text-sm font-extrabold tracking-wider text-brand-yellow">
-                                    Convo
-                                    <span className="text-white">Mate</span>
-                                </span>
-                            </div>
-
-                            <div className="mt-6">
-                                <span className="mb-1 block text-[10px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
-                                    {t('payment.card_number') || 'Card Number'}
-                                </span>
-                                <div className="flex items-center justify-between rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 backdrop-blur-md">
-                                    <span className="font-mono text-lg font-black tracking-widest text-white">
-                                        9860 1966 1940 4458
-                                    </span>
-                                    <button
-                                        onClick={() =>
-                                            handleCopyCardNumber(
-                                                '9860196619404458',
-                                            )
-                                        }
-                                        className="hover:bg-brand-yellow-hover flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-bold text-brand-brown shadow transition-all hover:scale-105"
-                                    >
-                                        {copiedCard ? (
-                                            <Check className="h-3.5 w-3.5 text-emerald-700" />
-                                        ) : (
-                                            <Copy className="h-3.5 w-3.5" />
-                                        )}
-                                        <span>
-                                            {copiedCard
-                                                ? t('payment.copied') || 'Copied'
-                                                : t('payment.copy_card') ||
-                                                  'Copy Card'}
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/10 pt-2">
-                                <div>
-                                    <span className="block text-[9px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
-                                        {t('payment.card_holder') ||
-                                            'Card Holder'}
-                                    </span>
-                                    <span className="mt-0.5 block truncate text-xs font-bold text-white uppercase">
-                                        Zarnigor Mirsaidova
-                                    </span>
-                                </div>
-                                <div>
-                                    <span className="block text-[9px] font-semibold tracking-wider text-brand-lightblue/70 uppercase">
-                                        {t('payment.pupil_id') || 'Pupil ID'}
-                                    </span>
-                                    <span className="mt-0.5 block font-mono text-xs font-black text-brand-yellow">
-                                        {user.short_id ||
-                                            user.id
-                                                .substring(0, 8)
-                                                .toUpperCase()}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4">
-                            <div className="flex gap-3">
-                                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                                <div className="space-y-1">
-                                    <p className="text-xs leading-snug font-extrabold text-amber-900">
-                                        {t('payment.warning_notice') ||
-                                            'Must send proof with your Pupil ID to Telegram for verification!'}
-                                    </p>
-                                    <p className="text-[11px] font-medium text-amber-800">
-                                        {t('payment.name_label') || 'Name:'}{' '}
-                                        <strong className="font-bold">
-                                            {user.full_name}
-                                        </strong>{' '}
-                                        | {t('payment.id_label') || 'ID:'}{' '}
-                                        <strong className="font-mono font-bold text-amber-950">
-                                            {user.short_id ||
-                                                user.id
-                                                    .substring(0, 8)
-                                                    .toUpperCase()}
-                                        </strong>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-5 flex flex-col gap-2.5">
-                            <a
-                                href="https://t.me/+Z9Gr0FnDDAFhOTky"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#24A1DE] py-3 text-xs font-bold text-white shadow-md transition-all hover:scale-[1.01] hover:bg-[#1D8AC0]"
-                            >
-                                <ExternalLink className="h-4 w-4" />
-                                {t('payment.open_telegram') ||
-                                    'Open Telegram Verification Group'}
-                            </a>
-                            <button
-                                onClick={() => setPaymentBooking(null)}
-                                className="cursor-pointer rounded-xl border py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted"
-                            >
-                                {t('bookings.close_btn') || 'Close'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Payment Modal */}
+            <PaymentModal
+                isOpen={!!paymentBooking}
+                onClose={() => setPaymentBooking(null)}
+                appointmentId={paymentBooking?.id}
+                itemTitle={paymentBooking?.title || t('overview.single_session') || 'Speaking Session'}
+                amount={paymentBooking?.price || paymentBooking?.hourly_rate}
+                teacherName={paymentBooking?.teacher?.full_name || paymentBooking?.teacher?.name}
+                pupilId={user.short_id || user.id.substring(0, 8).toUpperCase()}
+                pupilName={user.full_name}
+            />
         </div>
     );
 }

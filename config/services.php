@@ -54,4 +54,16 @@ return [
         'api_url' => env('ESKIZ_API_URL', 'https://notify.eskiz.uz/api/'),
     ],
 
+    'humo' => [
+        'webhook_secret' => env('HUMO_WEBHOOK_SECRET', 'convomate-humo-webhook-secret-key'),
+        'card_last_digits' => env('HUMO_CARD_LAST_DIGITS'),
+        'card_number' => env('PAYMENT_CARD_NUMBER'),
+        'card_holder' => env('PAYMENT_CARD_HOLDER', 'ConvoMate'),
+    ],
+
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.5-flash'),
+    ],
+
 ];

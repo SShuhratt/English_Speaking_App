@@ -14,10 +14,41 @@ class TelegramService
 
     protected string $botUsername;
 
-    public function __construct()
+    protected TelegramLocaleService $localeService;
+
+    public function __construct(?TelegramLocaleService $localeService = null)
     {
         $this->token = config('services.telegram.bot_token');
         $this->botUsername = config('services.telegram.bot_username', 'EnglishSpeakingBot');
+        $this->localeService = $localeService ?: app(TelegramLocaleService::class);
+    }
+
+    /**
+     * Answer Telegram callback query (dismiss loading spinner on buttons).
+     */
+    public function answerCallbackQuery(string $callbackQueryId, ?string $text = null, bool $showAlert = false): bool
+    {
+        if (empty($this->token)) {
+            return true;
+        }
+
+        try {
+            $payload = [
+                'callback_query_id' => $callbackQueryId,
+                'show_alert' => $showAlert,
+            ];
+            if ($text !== null) {
+                $payload['text'] = $text;
+            }
+
+            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->token}/answerCallbackQuery", $payload);
+
+            return $response->successful();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to answer Telegram callback query: '.$e->getMessage());
+
+            return false;
+        }
     }
 
     /**
@@ -176,30 +207,19 @@ class TelegramService
     /**
      * Send welcome prompt offering Dual Approach (Signed Link + 6-Digit Code) for direct Telegram starts.
      */
-    public function sendWelcomePrompt(string $chatId): bool
+    public function sendWelcomePrompt(string $chatId, ?string $locale = null): bool
     {
+        $resolvedLocale = $locale ?: $this->localeService->resolveLocale(null, $chatId);
         $signedUrl = $this->generateSignedConnectUrl($chatId);
+        $prompt = $this->localeService->getWelcomePrompt($signedUrl, $resolvedLocale);
 
-        $text = "👋 <b>Welcome to ConvoMate!</b>\n\n".
-            "To connect this Telegram chat to your account and receive instant lesson alerts:\n\n".
-            "1️⃣ <b>Fastest:</b> Tap the button below to link directly with your browser session.\n".
-            '2️⃣ <b>Or:</b> Reply to this message with your <b>6-digit code</b> from your website profile settings.';
-
-        $replyMarkup = [
-            'inline_keyboard' => [
-                [
-                    ['text' => '🔗 Link My Account', 'url' => $signedUrl],
-                ],
-            ],
-        ];
-
-        return $this->sendMessage($chatId, $text, $replyMarkup);
+        return $this->sendMessage($chatId, $prompt['text'], $prompt['reply_markup']);
     }
 
     /**
      * Link account using the deep-link token from the website.
      */
-    public function linkByToken(string $token, string $chatId, ?string $username = null): ?User
+    public function linkByToken(string $token, string $chatId, ?string $username = null, ?string $locale = null): ?User
     {
         $userId = Cache::pull("telegram_link_token:{$token}");
         if (! $userId) {
@@ -208,7 +228,7 @@ class TelegramService
 
         $user = User::find($userId);
         if ($user) {
-            $this->linkUser($user, $chatId, $username);
+            $this->linkUser($user, $chatId, $username, $locale);
 
             return $user;
         }
@@ -219,7 +239,7 @@ class TelegramService
     /**
      * Link account using the 6-digit code (Mechanism B).
      */
-    public function linkByCode(string $code, string $chatId, ?string $username = null): ?User
+    public function linkByCode(string $code, string $chatId, ?string $username = null, ?string $locale = null): ?User
     {
         $cleanCode = preg_replace('/\s+/', '', $code);
         $userId = Cache::pull("telegram_pairing:{$cleanCode}");
@@ -231,7 +251,7 @@ class TelegramService
 
         $user = User::find($userId);
         if ($user) {
-            $this->linkUser($user, $chatId, $username);
+            $this->linkUser($user, $chatId, $username, $locale);
 
             return $user;
         }
@@ -242,18 +262,17 @@ class TelegramService
     /**
      * Associate Telegram chat with user and send confirmation.
      */
-    public function linkUser(User $user, string $chatId, ?string $username = null): void
+    public function linkUser(User $user, string $chatId, ?string $username = null, ?string $locale = null): void
     {
+        $resolvedLocale = $locale ?: $this->localeService->resolveLocale($user, $chatId);
         $user->update([
             'telegram_chat_id' => $chatId,
             'telegram_username' => $username,
+            'telegram_locale' => $resolvedLocale,
         ]);
 
-        $this->sendMessage(
-            $chatId,
-            "✅ <b>Account Linked Successfully!</b>\n\n".
-            "Welcome, <b>{$user->full_name}</b>. You will now receive instant notifications about your booking requests, approvals, and lesson reminders here."
-        );
+        $text = $this->localeService->getLinkSuccessMessage($user->full_name, $resolvedLocale);
+        $this->sendMessage($chatId, $text);
     }
 
     /**
@@ -295,6 +314,43 @@ class TelegramService
             Log::error('Exception while configuring Telegram chat menu button: '.$e->getMessage());
 
             return false;
+        }
+    }
+
+    /**
+     * Download binary file content from Telegram API.
+     */
+    public function downloadFile(string $fileId): ?string
+    {
+        if (empty($this->token)) {
+            return null;
+        }
+
+        try {
+            $infoResponse = Http::timeout(10)->get("https://api.telegram.org/bot{$this->token}/getFile", [
+                'file_id' => $fileId,
+            ]);
+
+            if (! $infoResponse->successful()) {
+                return null;
+            }
+
+            $filePath = $infoResponse->json('result.file_path');
+            if (! $filePath) {
+                return null;
+            }
+
+            $downloadResponse = Http::timeout(15)->get("https://api.telegram.org/file/bot{$this->token}/{$filePath}");
+
+            if ($downloadResponse->successful()) {
+                return $downloadResponse->body();
+            }
+
+            return null;
+        } catch (\Throwable $e) {
+            Log::warning('TelegramService failed to download file: '.$e->getMessage());
+
+            return null;
         }
     }
 }

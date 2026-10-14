@@ -37,6 +37,8 @@ class Appointment extends Model
         'is_package_booking',
         'discount_voucher_id',
         'discount_amount',
+        'receipt_path',
+        'receipt_data',
     ];
 
     protected $casts = [
@@ -50,6 +52,7 @@ class Appointment extends Model
         'price' => 'integer',
         'discount_amount' => 'integer',
         'is_package_booking' => 'boolean',
+        'receipt_data' => 'array',
     ];
 
     protected function startAt(): Attribute

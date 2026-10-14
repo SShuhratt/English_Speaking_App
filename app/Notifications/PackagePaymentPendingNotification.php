@@ -68,11 +68,15 @@ class PackagePaymentPendingNotification extends Notification implements ShouldQu
             $mail->line("**Discount Applied{$voucherCode}:** -{$formattedDiscount}");
         }
 
+        $rawCard = (string) config('services.humo.card_number', '');
+        $formattedCard = ! empty($rawCard) ? trim(chunk_split($rawCard, 4, ' ')) : '';
+        $cardHolder = (string) config('services.humo.card_holder', 'ConvoMate');
+
         $mail->line("**Total Amount Due:** **{$formattedPrice}**")
             ->line('**Payment Status:** Pending Verification')
             ->line('### Payment Instructions:')
             ->line('1. Transfer the exact amount to the following card:')
-            ->line('**Card:** `9860 1966 1940 4458` (HUMO / UZCARD - Zarnigor Mirsaidova)')
+            ->line("**Card:** `{$formattedCard}` (HUMO / UZCARD - {$cardHolder})")
             ->line("2. Send your payment receipt, Order ID (**`{$orderId}`**), and Pupil ID (**{$pupilId}**) to our verification team on Telegram:")
             ->action('Send Receipt on Telegram', 'https://t.me/+Z9Gr0FnDDAFhOTky')
             ->line('Once verified by our administrators, your hours will become active immediately and you can book sessions freely.');
@@ -105,6 +109,10 @@ class PackagePaymentPendingNotification extends Notification implements ShouldQu
         $discountAmount = (int) ($this->pupilPackage->discount_amount ?? 0);
         $voucher = $this->pupilPackage->discountVoucher;
 
+        $rawCard = (string) config('services.humo.card_number', '');
+        $formattedCard = ! empty($rawCard) ? trim(chunk_split($rawCard, 4, ' ')) : '';
+        $cardHolder = htmlspecialchars((string) config('services.humo.card_holder', 'ConvoMate'), ENT_QUOTES, 'UTF-8');
+
         $message = "📦 <b>Package Order Received!</b>\n\n".
             "🔖 <b>Order ID:</b> <code>{$orderId}</code>\n".
             "📅 <b>Date:</b> {$orderDate}\n".
@@ -121,7 +129,7 @@ class PackagePaymentPendingNotification extends Notification implements ShouldQu
         $message .= "💳 <b>Total Due:</b> <b>{$formattedPrice}</b>\n".
             "⏳ <b>Status:</b> Pending Verification\n\n".
             "<b>Payment Details:</b>\n".
-            "💳 <b>Card:</b> <code>9860 1966 1940 4458</code> (HUMO/UZCARD - Zarnigor Mirsaidova)\n".
+            "💳 <b>Card:</b> <code>{$formattedCard}</code> (HUMO/UZCARD - {$cardHolder})\n".
             "🆔 <b>Your Pupil ID:</b> <code>{$pupilId}</code>\n\n".
             "⚡ <b>Next Step:</b> Please make the transfer and send the receipt to our Telegram confirmation channel:\n".
             "👉 <a href=\"https://t.me/+Z9Gr0FnDDAFhOTky\">Send Receipt on Telegram</a>\n\n".

@@ -10,6 +10,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GamificationController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MatchmakingController;
+use App\Http\Controllers\PaymentLinkController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\PupilBookingController;
 use App\Http\Controllers\PupilPackageController;
@@ -35,6 +36,11 @@ Route::get('/', function () {
 })->name('home');
 Route::inertia('/privacy', 'privacy')->name('privacy');
 Route::inertia('/terms', 'terms')->name('terms');
+
+// Smart Dynamic Payment Landing Page (Mobile App Deeplink + Desktop QR & Web)
+Route::get('/pay/{type}/{id}', [PaymentLinkController::class, 'show'])->name('payment.show');
+Route::get('/pay/{type}/{id}/qr', [PaymentLinkController::class, 'qrSvg'])->name('payment.qr');
+Route::post('/pay/{type}/{id}/receipt', [PaymentLinkController::class, 'uploadReceipt'])->name('payment.receipt');
 
 Route::get('/tma', [TelegramAuthController::class, 'entry'])->name('telegram.tma');
 Route::get('/telegram/token/{token}', [TelegramAuthController::class, 'consumeToken'])->name('telegram.consume-token');
@@ -132,8 +138,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
         Route::get('/booking', [TeacherController::class, 'showBooking'])->name('booking.show');
         Route::get('/bookings', [PupilBookingController::class, 'index'])->name('bookings.index');
+        Route::post('/bookings/{appointment}/receipt', [PupilBookingController::class, 'uploadReceipt'])->name('bookings.receipt');
+        Route::post('/bookings/{appointment}/send-telegram-link', [PaymentLinkController::class, 'sendTelegramBookingLink'])
+            ->name('bookings.send-telegram-link');
         Route::get('/packages', [PupilPackageController::class, 'index'])->name('packages.index');
         Route::post('/packages/purchase', [PupilPackageController::class, 'purchase'])->name('packages.purchase');
+        Route::post('/packages/{pupilPackage}/receipt', [PupilPackageController::class, 'uploadReceipt'])->name('packages.receipt');
+        Route::post('/packages/{pupilPackage}/send-telegram-link', [PaymentLinkController::class, 'sendTelegramPackageLink'])
+            ->name('packages.send-telegram-link');
         Route::get('/sessions', [PupilSessionController::class, 'index'])->name('sessions.index');
         Route::post('/appointments/{id}/join', [PupilSessionController::class, 'join'])->name('appointments.join');
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');

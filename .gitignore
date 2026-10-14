@@ -77,3 +77,7 @@ cloudflared
 /Gamification_System_Overview.pdf
 *gamification*overview*.pdf
 *Gamification*Overview*.pdf
+
+# Telegram Session Files
+*.session
+*.session-journal

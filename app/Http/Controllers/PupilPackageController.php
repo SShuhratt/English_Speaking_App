@@ -6,6 +6,7 @@ use App\Models\PupilPackage;
 use App\Models\TeacherPackage;
 use App\Models\UserDiscountVoucher;
 use App\Notifications\PackagePaymentPendingNotification;
+use App\Services\HumoPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -149,5 +150,38 @@ class PupilPackageController extends Controller
         }
 
         return back()->with('success', 'Package purchase request submitted! Admin will verify payment shortly.');
+    }
+
+    public function uploadReceipt(Request $request, PupilPackage $pupilPackage, HumoPaymentService $humoPaymentService)
+    {
+        if ($pupilPackage->pupil_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'receipt' => 'nullable|file|mimes:jpeg,jpg,png,pdf,webp|max:10240',
+            'receipt_text' => 'nullable|string|max:1000',
+        ]);
+
+        $fileOrText = $request->file('receipt') ?: $request->input('receipt_text');
+        if (! $fileOrText) {
+            return back()->with('error', 'Iltimos, chek faylini yuklang yoki chek matnini kiriting.');
+        }
+
+        $result = $humoPaymentService->claimWithReceipt(
+            pupil: $request->user(),
+            receiptDataOrText: $fileOrText,
+            pupilPackageId: $pupilPackage->id
+        );
+
+        if ($result['status'] === 'confirmed') {
+            return back()->with('success', "Paket to'lovi muvaffaqiyatli tasdiqlandi!");
+        }
+
+        if ($result['status'] === 'receipt_saved') {
+            return back()->with('success', "Chek qabul qilindi. Bank to'lovi kelishi bilan avtomatik tasdiqlanadi.");
+        }
+
+        return back()->with('error', $result['message'] ?? "Chekni tasdiqlab bo'lmadi.");
     }
 }

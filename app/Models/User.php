@@ -40,6 +40,7 @@ class User extends Authenticatable implements PasskeyUser
         'has_password',
         'telegram_chat_id',
         'telegram_username',
+        'telegram_locale',
         'referral_code',
         'referred_by_id',
 

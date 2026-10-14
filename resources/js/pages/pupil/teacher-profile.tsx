@@ -175,6 +175,7 @@ export default function TeacherProfile({
         title: string;
         price: number;
         teacherName: string;
+        pupilPackageId?: string | number;
     } | null>(null);
 
     // Raw certificates normalization
@@ -797,6 +798,250 @@ export default function TeacherProfile({
                     .teacher-profile-pupil-container .assure{margin-top:14px;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
                     .teacher-profile-pupil-container .assure b{color:var(--navy)}
                     .teacher-profile-pupil-container .tz{font-size:11.5px;color:var(--muted);margin-top:10px}
+
+                    /* ── Dark Mode Overrides ─────────────────────────────────────── */
+                    .dark .teacher-profile-pupil-container {
+                        --butter: #F7DE8B;
+                        --butter-deep: #F0CE5F;
+                        --blue: #93b5d8;
+                        --blue-tint: rgba(147, 181, 216, 0.12);
+                        --navy: #f8fafc;
+                        --ink: #f1f5f9;
+                        --muted: #94a3b8;
+                        --line: rgba(255, 255, 255, 0.08);
+                        background: transparent !important;
+                        color: var(--ink);
+                    }
+
+                    .dark .teacher-profile-pupil-container .crumb {
+                        color: #94a3b8;
+                    }
+                    .dark .teacher-profile-pupil-container .crumb a {
+                        color: #94a3b8;
+                    }
+                    .dark .teacher-profile-pupil-container .crumb a:hover {
+                        color: #fae18e;
+                    }
+
+                    .dark .teacher-profile-pupil-container .head-card,
+                    .dark .teacher-profile-pupil-container .main-card,
+                    .dark .teacher-profile-pupil-container .book {
+                        background: #0d1b3e !important;
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+                    }
+
+                    .dark .teacher-profile-pupil-container .naqsh {
+                        stroke: #93b5d8;
+                        opacity: 0.18;
+                    }
+
+                    .dark .teacher-profile-pupil-container .avatar {
+                        background: linear-gradient(135deg, #13244e, #1e3a7a);
+                        border: 1px solid rgba(255, 255, 255, 0.12);
+                    }
+
+                    .dark .teacher-profile-pupil-container .verified {
+                        background: #fae18e;
+                        color: #061445;
+                    }
+
+                    .dark .teacher-profile-pupil-container .headline {
+                        color: #cbd5e1;
+                    }
+
+                    .dark .teacher-profile-pupil-container .score-chip {
+                        background: #091228 !important;
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .score-chip.hero {
+                        background: var(--butter) !important;
+                        border-color: var(--butter) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .score-chip.hero .sv {
+                        color: #061445 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .score-chip.hero .sl {
+                        color: #53430f !important;
+                    }
+                    .dark .teacher-profile-pupil-container .score-chip .sv {
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .score-chip .sl {
+                        color: #94a3b8 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .new-badge {
+                        background: rgba(147, 181, 216, 0.12) !important;
+                        border-color: rgba(147, 181, 216, 0.2) !important;
+                        color: #93b5d8 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .section {
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .sec-title {
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .sec-title .n {
+                        background: rgba(147, 181, 216, 0.12) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .sec-title .n svg {
+                        stroke: #fae18e !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .intro {
+                        background: #091228 !important;
+                        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .play svg {
+                        fill: #061445;
+                    }
+
+                    .dark .teacher-profile-pupil-container .bio {
+                        color: #cbd5e1;
+                    }
+
+                    .dark .teacher-profile-pupil-container .chip {
+                        background: rgba(147, 181, 216, 0.1) !important;
+                        border-color: rgba(147, 181, 216, 0.2) !important;
+                        color: #cbd5e1 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .cert {
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .cert-ic {
+                        background: rgba(147, 181, 216, 0.12) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .cert-ic svg {
+                        stroke: #fae18e !important;
+                    }
+                    .dark .teacher-profile-pupil-container .cert-badge.review {
+                        background: rgba(255, 255, 255, 0.08) !important;
+                        color: #94a3b8 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .fb-empty {
+                        background: rgba(147, 181, 216, 0.05) !important;
+                        border-color: rgba(147, 181, 216, 0.25) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .fb-empty .big {
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .fb-empty p {
+                        color: #94a3b8 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .book .corner {
+                        stroke: #fae18e !important;
+                        opacity: 0.2 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .price {
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .per {
+                        color: #94a3b8 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .rail-label {
+                        color: #94a3b8 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .ltype {
+                        background: #091228 !important;
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .ltype.trial {
+                        background: rgba(247, 222, 139, 0.06) !important;
+                        border-color: rgba(240, 206, 95, 0.35) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .ltype.sel {
+                        border-color: #fae18e !important;
+                        box-shadow: 0 0 0 1px #fae18e !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .dur {
+                        background: #091228 !important;
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                        color: #cbd5e1 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .dur:hover {
+                        border-color: #93b5d8 !important;
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .dur.sel {
+                        background: #fae18e !important;
+                        border-color: #fae18e !important;
+                        color: #061445 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .day-tab {
+                        background: #091228 !important;
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .day-tab .dn {
+                        color: #94a3b8 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .day-tab .dd {
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .day-tab.active {
+                        background: #14234b !important;
+                        border-color: #fae18e !important;
+                    }
+                    .dark .teacher-profile-pupil-container .day-tab.active .dn {
+                        color: #fae18e !important;
+                    }
+                    .dark .teacher-profile-pupil-container .day-tab.active .dd {
+                        color: #f8fafc !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .slots {
+                        display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px;
+                    }
+                    .dark .teacher-profile-pupil-container .slot {
+                        background: #091228 !important;
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                        color: #cbd5e1 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .slot:hover {
+                        border-color: #fae18e !important;
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .slot.picked {
+                        background: #fae18e !important;
+                        border-color: #fae18e !important;
+                        color: #061445 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .cta {
+                        background: #fae18e !important;
+                        color: #061445 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .cta:hover {
+                        background: #f0d070 !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .book-meta {
+                        border-color: rgba(255, 255, 255, 0.08) !important;
+                    }
+                    .dark .teacher-profile-pupil-container .bm-row .k {
+                        color: #94a3b8 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .bm-row .v {
+                        color: #f8fafc !important;
+                    }
+
+                    .dark .teacher-profile-pupil-container .assure {
+                        color: #94a3b8 !important;
+                    }
+                    .dark .teacher-profile-pupil-container .assure b {
+                        color: #f8fafc !important;
+                    }
+                    .dark .teacher-profile-pupil-container .tz {
+                        color: #94a3b8 !important;
+                    }
                 `,
                     }}
                 />
@@ -1454,29 +1699,29 @@ export default function TeacherProfile({
                                         </span>
                                         <span>{t('packages.title') || 'Conversation Packs'}</span>
                                     </div>
-                                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200 dark:border-emerald-500/20 dark:bg-emerald-950/60 dark:text-emerald-300">
                                         {t('packages.discount_badge', { discount: '10-30' }) || 'Special Discount'}
                                     </span>
                                 </div>
-                                <p className="mb-4 text-xs leading-relaxed text-[#6B7394]">
+                                <p className="mb-4 text-xs leading-relaxed text-[#6B7394] dark:text-slate-400">
                                     {t('packages.subtitle') ||
                                         'Purchase discounted conversation hours with this teacher in bulk and use them anytime for free bookings.'}
                                 </p>
 
                                 {cumulativeRemainingMinutes > 0 && (
-                                    <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-xs text-emerald-900 shadow-xs">
+                                    <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-xs text-emerald-900 shadow-xs dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-200">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
                                                     <CheckCircle2 className="h-4 w-4" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-emerald-950">
+                                                    <p className="font-bold text-emerald-950 dark:text-emerald-100">
                                                         {activePupilPackages.length > 1
                                                             ? t('packages.active_packs_title') || 'Active Conversation Packs'
                                                             : t('packages.active_package') || 'Active Conversation Pack'}
                                                     </p>
-                                                    <p className="text-[12px] font-semibold text-emerald-700">
+                                                    <p className="text-[12px] font-semibold text-emerald-700 dark:text-emerald-300">
                                                         {activePupilPackages.length > 1
                                                             ? t('packages.hours_remaining_across_packs', {
                                                                   hours: formatRemainingBalance(cumulativeRemainingMinutes, locale),
@@ -1554,6 +1799,7 @@ export default function TeacherProfile({
                                                         title: pendingPupilPackage.package_title,
                                                         price: pendingPupilPackage.price_paid,
                                                         teacherName: teacher.full_name,
+                                                        pupilPackageId: pendingPupilPackage.id,
                                                     })
                                                 }
                                                 className="cursor-pointer rounded-xl bg-amber-200/90 hover:bg-amber-300 px-3 py-1.5 text-[11px] font-bold text-amber-950 transition-colors shadow-xs dark:bg-amber-900/70 dark:text-amber-100 dark:hover:bg-amber-800"
@@ -1659,11 +1905,11 @@ export default function TeacherProfile({
                                     {teacher.feedbacks.map((fb) => (
                                         <div
                                             key={fb.id}
-                                            className="rounded-2xl border border-muted/50 bg-[#FAFBFD] p-5 shadow-sm"
+                                            className="rounded-2xl border border-muted/50 bg-[#FAFBFD] p-5 shadow-sm dark:border-white/10 dark:bg-white/5"
                                         >
                                             <div className="mb-3 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-[#EEF4FB] text-xs font-bold text-[#1E2A5A]">
+                                                    <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-[#EEF4FB] text-xs font-bold text-[#1E2A5A] dark:bg-white/10 dark:text-brand-yellow">
                                                         {fb.author?.avatar ? (
                                                             <img
                                                                 src={
@@ -1684,12 +1930,12 @@ export default function TeacherProfile({
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-sm font-bold text-[#1E2A5A]">
+                                                        <h4 className="text-sm font-bold text-[#1E2A5A] dark:text-white">
                                                             {fb.author
                                                                 ?.full_name ||
                                                                 'Pupil'}
                                                         </h4>
-                                                        <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
+                                                        <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground dark:text-slate-400">
                                                             {new Date(
                                                                 fb.created_at,
                                                             ).toLocaleDateString(
@@ -1703,12 +1949,12 @@ export default function TeacherProfile({
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-1 rounded-lg border border-amber-500/10 bg-amber-500/5 px-2.5 py-1 text-xs font-bold text-amber-600">
+                                                <div className="flex items-center gap-1 rounded-lg border border-amber-500/10 bg-amber-500/5 px-2.5 py-1 text-xs font-bold text-amber-600 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-400">
                                                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" />{' '}
                                                     {fb.rating}/10
                                                 </div>
                                             </div>
-                                            <p className="text-sm leading-relaxed text-[#6B7394] italic">
+                                            <p className="text-sm leading-relaxed text-[#6B7394] italic dark:text-slate-300">
                                                 "{fb.comment}"
                                             </p>
                                         </div>
@@ -1759,19 +2005,19 @@ export default function TeacherProfile({
 
                             {/* Active Package Banner in Rail */}
                             {cumulativeRemainingMinutes > 0 && (
-                                <div className="mt-3.5 mb-1 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950">
+                                <div className="mt-3.5 mb-1 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950 dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-200">
                                     <div className="flex items-center justify-between font-bold">
-                                        <span className="flex items-center gap-1.5 text-emerald-900">
-                                            <Package className="h-4 w-4 text-emerald-600" />
+                                        <span className="flex items-center gap-1.5 text-emerald-900 dark:text-emerald-100">
+                                            <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                             {activePupilPackages && activePupilPackages.length > 1
                                                 ? t('packages.active_packs_title') || 'Active Packs'
                                                 : t('packages.active_package') || 'Active Pack'}
                                         </span>
-                                        <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-extrabold text-emerald-900">
+                                        <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-extrabold text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-200">
                                             {formatRemainingBalance(cumulativeRemainingMinutes, locale)}
                                         </span>
                                     </div>
-                                    <p className="mt-1 text-[11.5px] leading-snug text-emerald-700">
+                                    <p className="mt-1 text-[11.5px] leading-snug text-emerald-700 dark:text-emerald-300">
                                         {isCoveredByPackage
                                             ? t('packages.covered_badge') || 'Covered by your Pack (Free Booking)'
                                             : t('packages.insufficient_minutes', {
@@ -1784,12 +2030,12 @@ export default function TeacherProfile({
                             )}
 
                             {pendingPupilPackage && (
-                                <div className="mt-3.5 mb-1 rounded-2xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900">
-                                    <div className="flex items-center gap-1.5 font-bold text-amber-800">
-                                        <Clock className="h-3.5 w-3.5 text-amber-600" />
+                                <div className="mt-3.5 mb-1 rounded-2xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-200">
+                                    <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                                        <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                                         <span>Payment Verification Pending</span>
                                     </div>
-                                    <p className="mt-0.5 text-[11px] text-amber-700">
+                                    <p className="mt-0.5 text-[11px] text-amber-700 dark:text-amber-300">
                                         {pendingPupilPackage.package_title}
                                     </p>
                                 </div>
@@ -1805,7 +2051,7 @@ export default function TeacherProfile({
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex min-w-0 flex-wrap items-center gap-2">
                                             <span
-                                                className="text-[15px] font-bold text-[#22284A]"
+                                                className="text-[15px] font-bold text-[#22284A] dark:text-white"
                                                 style={{
                                                     fontFamily:
                                                         "'Bricolage Grotesque', sans-serif",
@@ -1813,12 +2059,12 @@ export default function TeacherProfile({
                                             >
                                                 Trial lesson
                                             </span>
-                                            <span className="rounded-full bg-[#1E2A5A] px-2.5 py-0.5 text-[9.5px] font-extrabold tracking-wider whitespace-nowrap text-[#F7DE8B] uppercase">
+                                            <span className="rounded-full bg-[#1E2A5A] px-2.5 py-0.5 text-[9.5px] font-extrabold tracking-wider whitespace-nowrap text-[#F7DE8B] uppercase dark:bg-amber-400/20 dark:text-amber-300 dark:border dark:border-amber-400/30">
                                                 First time only
                                             </span>
                                         </div>
                                         <span
-                                            className="text-[15px] font-bold whitespace-nowrap text-[#1E2A5A]"
+                                            className="text-[15px] font-bold whitespace-nowrap text-[#1E2A5A] dark:text-brand-yellow"
                                             style={{
                                                 fontFamily:
                                                     "'Bricolage Grotesque', sans-serif",
@@ -1827,7 +2073,7 @@ export default function TeacherProfile({
                                             {formattedTrialPrice}
                                         </span>
                                     </div>
-                                    <div className="mt-1.5 text-[12.5px] leading-snug text-[#6B7394]">
+                                    <div className="mt-1.5 text-[12.5px] leading-snug text-[#6B7394] dark:text-slate-400">
                                         20 minutes to meet{' '}
                                         {teacher.full_name?.split(' ')[0] ||
                                             'teacher'}{' '}
@@ -1843,7 +2089,7 @@ export default function TeacherProfile({
                             >
                                 <div className="flex items-center justify-between gap-2">
                                     <span
-                                        className="text-[15px] font-bold text-[#22284A]"
+                                        className="text-[15px] font-bold text-[#22284A] dark:text-white"
                                         style={{
                                             fontFamily:
                                                 "'Bricolage Grotesque', sans-serif",
@@ -1852,7 +2098,7 @@ export default function TeacherProfile({
                                         Full lesson
                                     </span>
                                     <span
-                                        className="text-[15px] font-bold whitespace-nowrap text-[#1E2A5A]"
+                                        className="text-[15px] font-bold whitespace-nowrap text-[#1E2A5A] dark:text-brand-yellow"
                                         style={{
                                             fontFamily:
                                                 "'Bricolage Grotesque', sans-serif",
@@ -1861,7 +2107,7 @@ export default function TeacherProfile({
                                         {formattedFullPrice}
                                     </span>
                                 </div>
-                                <div className="mt-1.5 text-[12.5px] leading-snug text-[#6B7394]">
+                                <div className="mt-1.5 text-[12.5px] leading-snug text-[#6B7394] dark:text-slate-400">
                                     Regular session at {genderPronoun} standard
                                     rate. Pick your length below.
                                 </div>
@@ -2028,8 +2274,8 @@ export default function TeacherProfile({
                             </p>
 
                             {pickedSlot && (
-                                <div className="mt-3.5 rounded-xl border border-[#E8E6DE] bg-[#F7F6F2] p-3 text-[13px] leading-relaxed text-[#6B7394]">
-                                    <b className="text-[#22284A]">
+                                <div className="mt-3.5 rounded-xl border border-[#E8E6DE] bg-[#F7F6F2] p-3 text-[13px] leading-relaxed text-[#6B7394] dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+                                    <b className="text-[#22284A] dark:text-white">
                                         {lessonType === 'trial'
                                             ? `Trial · ${formatDuration(20, locale)}`
                                             : `Full lesson · ${formatDuration(selectedDuration, locale)}`}
@@ -2068,7 +2314,7 @@ export default function TeacherProfile({
                                         });
                                     })()}{' '}
                                     ·{' '}
-                                    <b className={isCoveredByPackage ? "text-emerald-700 font-extrabold" : "text-[#1E2A5A]"}>
+                                    <b className={isCoveredByPackage ? "text-emerald-700 font-extrabold dark:text-emerald-400" : "text-[#1E2A5A] dark:text-brand-yellow font-extrabold"}>
                                         {isCoveredByPackage ? "0 so'm (Free with Pack)" : formattedActivePrice}
                                     </b>
                                 </div>
@@ -2517,6 +2763,7 @@ export default function TeacherProfile({
                 <PaymentModal
                     isOpen={!!paymentModalPackage}
                     onClose={() => setPaymentModalPackage(null)}
+                    pupilPackageId={paymentModalPackage.pupilPackageId}
                     itemTitle={paymentModalPackage.title}
                     amount={paymentModalPackage.price}
                     teacherName={paymentModalPackage.teacherName}
