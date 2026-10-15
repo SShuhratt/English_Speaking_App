@@ -205,9 +205,9 @@ export default function Progress({ progress, assessments = [] }: Props) {
     return (
         <>
             <Head title={t('progress.title') || 'My Progress'} />
-            <div className="mx-auto max-w-5xl space-y-8 p-6 md:p-8">
+            <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 md:space-y-8 p-4 sm:p-6 md:p-8">
                 {/* 1. Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-3xl bg-[#1E2A5A] p-6 md:p-8 text-white shadow-xl dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
+                <div className="w-full max-w-full min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-3xl bg-[#1E2A5A] p-4 sm:p-6 md:p-8 text-white shadow-xl dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black uppercase tracking-widest text-[#F0CE5F]">
@@ -224,7 +224,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                 </div>
 
                 {/* 2. Main 4-Week Journey Roadmap Container */}
-                <div className="rounded-3xl border border-[#E8E4D8] bg-white p-6 shadow-sm md:p-8 dark:border-white/10 dark:bg-card">
+                <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-[#E8E4D8] bg-white p-4 sm:p-6 md:p-8 shadow-sm dark:border-white/10 dark:bg-card">
                     {/* Top Header */}
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
@@ -282,11 +282,11 @@ export default function Progress({ progress, assessments = [] }: Props) {
                     </div>
 
                     {/* Dynamic 4-Week SVG Journey Map Curve */}
-                    <div className="mt-6 overflow-x-auto pb-4">
-                        <div style={{ minWidth: `${svgWidth}px` }}>
+                    <div className="mt-6 w-full max-w-full min-w-0 overflow-x-auto overscroll-x-contain touch-pan-x pb-4">
+                        <div style={{ width: `${svgWidth}px`, minWidth: `${svgWidth}px` }}>
                             <svg
                                 viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                                className="w-full"
+                                className="w-full block"
                                 role="img"
                                 aria-label="Dynamic 4-week roadmap graph"
                             >
@@ -457,7 +457,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                 </div>
 
                 {/* 3. Teacher Rubric Evaluations & Fluency Breakdown */}
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:p-8 dark:border-white/10 dark:bg-card">
+                <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-6 md:p-8 shadow-sm dark:border-white/10 dark:bg-card">
                     <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-100 dark:border-white/10">
                         <div>
                             <div className="flex items-center gap-2">
@@ -628,7 +628,7 @@ export default function Progress({ progress, assessments = [] }: Props) {
                                                     </span>
                                                 </div>
 
-                                                <div className="grid grid-cols-4 gap-2 text-center text-xs mt-3">
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs mt-3">
                                                     <div className="bg-white rounded-lg p-1.5 border border-slate-100 dark:border-white/10 dark:bg-card">
                                                         <span className="text-[10px] text-slate-400 block">{t('assessment.fluency_short', 'Fluency')}</span>
                                                         <span className="font-bold text-indigo-900 dark:text-white">{record.fluency_score.toFixed(1)}</span>

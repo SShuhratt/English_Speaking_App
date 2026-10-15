@@ -135,6 +135,9 @@ const dictionary = {
             'Keep this page open or start speaking to wait in the queue for a partner.',
         'speaking.no_online_pupils':
             'No other pupils are online right now. Keep this page open to show up!',
+        'speaking.no_one_online_badge': '0 Online Now',
+        'speaking.no_one_online_notice':
+            'No practice partners are online right now. You can still start speaking to join the queue and get connected as soon as someone joins.',
         'speaking.requested': 'Requested',
         'speaking.request_btn': 'Request',
         'speaking.active_session_detected': 'Active Session Detected',
@@ -236,6 +239,7 @@ const dictionary = {
         'welcome.nav_why_humans': 'Why humans',
         'welcome.nav_about': 'About',
         'welcome.login': 'Log in',
+        'welcome.register': 'Register',
         'welcome.be_teacher': 'Be a teacher',
         'welcome.teach_short': 'Teach',
         'welcome.book_lesson': 'Find a tutor',
@@ -295,6 +299,11 @@ const dictionary = {
         'welcome.slots_available': 'Slots available',
         'welcome.reviews': 'reviews',
         'welcome.book_with_teacher': 'Book lesson with :name',
+        'welcome.certified_teacher': 'Certified Teacher',
+        'welcome.default_teacher_desc':
+            'Experienced English tutor specializing in IELTS speaking, fluency, and pronunciation coaching.',
+        'welcome.no_teachers_yet':
+            'Our certified teachers are currently updating their schedules. Check back soon or apply to become a teacher!',
         'welcome.browse_all_teachers': 'Browse all verified teachers',
         'welcome.bottom_cta_title': 'Ready to speak with confidence?',
         'welcome.bottom_cta_subtitle': 'Book your lesson in under 2 minutes. Free during early access beta.',
@@ -1944,6 +1953,9 @@ const dictionary = {
             'Ushbu sahifada qoling yoki navbatda suhbatdosh kutish uchun boshlashni bosing.',
         'speaking.no_online_pupils':
             'Hozircha boshqa online foydalanuvchilar yo‘q. Faol bo‘lib ko‘rinish uchun ushbu sahifani ochiq qoldiring!',
+        'speaking.no_one_online_badge': 'Hozir 0 ta faol',
+        'speaking.no_one_online_notice':
+            "Hozirda suhbat uchun hech kim tarmoqda emas. Shunday bo'lsa ham, suhbatni boshlab navbatga turishingiz mumkin — kimdir kirishi bilan avtomatik bog'lanasiz.",
         'speaking.requested': 'So‘rov yuborildi',
         'speaking.request_btn': 'So‘rov yuborish',
         'speaking.active_session_detected': 'Faol suhbat aniqlandi',
@@ -2046,6 +2058,7 @@ const dictionary = {
         'welcome.nav_why_humans': 'Nega insonlar',
         'welcome.nav_about': 'Platforma haqida',
         'welcome.login': 'Kirish',
+        'welcome.register': "Ro'yxatdan o'tish",
         'welcome.be_teacher': "O'qituvchi bo'lish",
         'welcome.teach_short': "O'qitish",
         'welcome.book_lesson': 'Ustoz topish',
@@ -2105,6 +2118,11 @@ const dictionary = {
         'welcome.slots_available': 'Bo‘sh vaqtlar bor',
         'welcome.reviews': 'ta sharh',
         'welcome.book_with_teacher': ":name bilan dars bron qilish",
+        'welcome.certified_teacher': "Sertifikatlangan o'qituvchi",
+        'welcome.default_teacher_desc':
+            "IELTS speaking, so'zlashuv ravonligi va to'g'ri talaffuz bo'yicha ixtisoslashgan tajribali repetitor.",
+        'welcome.no_teachers_yet':
+            "Bizning sertifikatlangan o'qituvchilarimiz dars jadvallarini yangilamoqda. Tez orada qayta tekshiring yoki o'qituvchi bo'lish uchun ariza bering!",
         'welcome.browse_all_teachers': "Barcha tasdiqlangan o'qituvchilarni ko'rish",
         'welcome.bottom_cta_title': 'O‘zingizga ishonch bilan gapirishga tayyormisiz?',
         'welcome.bottom_cta_subtitle': 'Darsingizni 2 daqiqada bron qiling. Erta kirish beta davrida bepul.',
@@ -3779,6 +3797,9 @@ const dictionary = {
             'Оставайтесь на этой странице или начните разговор, чтобы найти собеседника.',
         'speaking.no_online_pupils':
             'Сейчас нет других пользователей онлайн. Держите эту страницу открытой, чтобы появиться в списке!',
+        'speaking.no_one_online_badge': '0 онлайн',
+        'speaking.no_one_online_notice':
+            'Сейчас нет собеседников онлайн. Вы все равно можете начать разговор, чтобы встать в очередь и подключиться, как только кто-то появится.',
         'speaking.requested': 'Запрос отправлен',
         'speaking.request_btn': 'Запрос',
         'speaking.active_session_detected': 'Обнаружен активный сеанс',
@@ -3880,6 +3901,7 @@ const dictionary = {
         'welcome.nav_why_humans': 'Почему люди',
         'welcome.nav_about': 'О платформе',
         'welcome.login': 'Войти',
+        'welcome.register': 'Регистрация',
         'welcome.be_teacher': 'Стать преподавателем',
         'welcome.teach_short': 'Преподавать',
         'welcome.book_lesson': 'Найти репетитора',
@@ -3939,6 +3961,11 @@ const dictionary = {
         'welcome.slots_available': 'Есть свободные слоты',
         'welcome.reviews': 'отзывов',
         'welcome.book_with_teacher': 'Забронировать урок с :name',
+        'welcome.certified_teacher': 'Сертифицированный преподаватель',
+        'welcome.default_teacher_desc':
+            'Опытный преподаватель, специализирующийся на подготовке к IELTS speaking, беглости речи и произношению.',
+        'welcome.no_teachers_yet':
+            'Наши преподаватели сейчас обновляют свои расписания. Загляните позже или подайте заявку, чтобы стать преподавателем!',
         'welcome.browse_all_teachers': 'Посмотреть всех проверенных учителей',
         'welcome.bottom_cta_title': 'Готовы говорить на английском уверенно?',
         'welcome.bottom_cta_subtitle': 'Забронируйте урок менее чем за 2 минуты. Бесплатно в период раннего бета-тестирования.',

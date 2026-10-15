@@ -1072,20 +1072,20 @@ export default function Speaking() {
         <>
             <Head title={t('speaking.title') || 'Start Speaking'} />
 
-            <div className="mx-auto flex h-full max-w-6xl flex-1 flex-col gap-8 p-4 text-[#22284A] md:p-8">
+            <div className="mx-auto flex h-full max-w-6xl flex-1 flex-col gap-5 p-3 text-[#22284A] sm:gap-6 sm:p-4 md:gap-8 md:p-8">
                 {/* Header Banner */}
-                <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
+                <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-brand-navy p-4 sm:p-6 md:p-8 text-white shadow-lg shadow-brand-navy/10 dark:border dark:border-white/10 dark:bg-gradient-to-r dark:from-[#091334] dark:to-[#0d1b3e]">
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
-                    <div className="relative z-10 space-y-1.5">
+                    <div className="relative z-10 space-y-1">
                         <span className="text-[10px] font-black tracking-widest text-[#F7DE8B] uppercase">
                             SPEAKING CLUB
                         </span>
-                        <h1 className="text-3xl font-black tracking-tight text-white">
+                        <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl md:text-3xl">
                             {t('speaking.title') || 'Start Speaking'}
                         </h1>
-                        <p className="text-sm font-medium text-brand-lightblue/80 dark:text-slate-300">
+                        <p className="text-xs font-medium text-brand-lightblue/80 sm:text-sm dark:text-slate-300">
                             {t('speaking.desc') ||
                                 'Practice speaking English with random students in real-time.'}
                         </p>
@@ -1249,9 +1249,9 @@ export default function Speaking() {
                     </div>
                 ) : (
                     /* 3-Column Grid for matchmaking lobby */
-                    <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+                    <div className="grid grid-cols-1 items-start gap-6 md:gap-8 lg:grid-cols-12">
                         {/* Left Column: Online Pupils */}
-                        <div className="space-y-4 lg:col-span-3">
+                        <div className={`space-y-4 lg:col-span-3 lg:order-1 ${incomingRequests.length > 0 ? 'order-3' : 'order-2'}`}>
                             {onlinePupils.length === 0 ? (
                                 <div className="space-y-3">
                                     <h2 className="text-sm font-extrabold text-[#1E2A5A] md:text-base dark:text-[#F7DE8B]">
@@ -1381,7 +1381,7 @@ export default function Speaking() {
                         </div>
 
                         {/* Middle Column: Matchmaking Controls */}
-                        <div className="lg:col-span-6">
+                        <div className={`lg:col-span-6 lg:order-2 ${incomingRequests.length > 0 ? 'order-2' : 'order-1'}`}>
                             <div className="shadow-ambient flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-[#d0e4ff]/30 bg-white p-8 text-center md:p-12 dark:border-white/5 dark:bg-[#0c0c16]">
                                 {status === 'idle' &&
                                     (activeSessionData ? (
@@ -1450,6 +1450,27 @@ export default function Speaking() {
                                                 </p>
                                             </div>
                                             <div className="flex flex-col items-center gap-3 w-full max-w-sm">
+                                                {/* Notice when no one is online */}
+                                                {onlinePupils.length === 0 && (
+                                                    <div className="w-full flex items-start gap-2.5 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-left shadow-2xs dark:border-amber-400/20 dark:bg-amber-400/10">
+                                                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300">
+                                                            <Users className="h-4 w-4" />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-extrabold text-amber-900 dark:text-amber-200">
+                                                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                                                    {t('speaking.no_one_online_badge') || '0 Online Now'}
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-1 text-[11px] leading-relaxed font-medium text-amber-950/80 dark:text-amber-200/90">
+                                                                {t('speaking.no_one_online_notice') ||
+                                                                    'No practice partners are online right now. You can still start speaking to join the queue and get connected as soon as someone joins.'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {/* Topic Selector Card */}
                                                 <div className="w-full rounded-2xl border border-[#E6E9F2] bg-[#FAFBFD] p-3.5 text-left shadow-2xs dark:border-white/10 dark:bg-white/5">
                                                     <div className="flex items-center justify-between gap-2">
@@ -1562,11 +1583,19 @@ export default function Speaking() {
                         </div>
 
                         {/* Right Column: Incoming Requests */}
-                        <div className="space-y-4 lg:col-span-3">
-                            <h2 className="text-sm font-black tracking-widest text-[#1E2A5A] uppercase dark:text-[#F7DE8B]">
-                                {t('speaking.incoming_requests') ||
-                                    'Incoming Requests'}
-                            </h2>
+                        <div className={`space-y-4 lg:col-span-3 lg:order-3 ${incomingRequests.length > 0 ? 'order-1' : 'order-3'}`}>
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-sm font-black tracking-widest text-[#1E2A5A] uppercase dark:text-[#F7DE8B]">
+                                    {t('speaking.incoming_requests') ||
+                                        'Incoming Requests'}
+                                </h2>
+                                {incomingRequests.length > 0 && (
+                                    <span className="flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-black text-[#1E2A5A] animate-pulse">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-[#1E2A5A]"></span>
+                                        {incomingRequests.length}
+                                    </span>
+                                )}
+                            </div>
                             <div className="max-h-[500px] space-y-3 overflow-y-auto pr-1">
                                 {incomingRequests.length === 0 ? (
                                     <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6 text-center text-xs text-[#6B7394] select-none">

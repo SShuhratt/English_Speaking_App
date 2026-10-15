@@ -1551,25 +1551,46 @@ export default function Availability({
         }
     };
 
+    const handleOpenCreateModal = () => {
+        const todayStr = formatDateString(new Date());
+        const nextWeekDate = new Date(
+            new Date().getTime() + 6 * 24 * 60 * 60 * 1000,
+        );
+        setData((prev) => ({
+            ...prev,
+            type: 'recurring',
+            days_of_week: [...ALL_DAYS],
+            day_of_week: getWeekdayName(new Date()),
+            start_time: '10:00',
+            end_time: '21:00',
+            custom_mode: 'single',
+            date: todayStr,
+            start_date: todayStr,
+            end_date: formatDateString(nextWeekDate),
+            slot_duration: 30,
+        }));
+        setIsCreateModalOpen(true);
+    };
+
     return (
         <>
             <Head title="Teacher Availability Scheduler" />
-            <div className="flex h-[calc(100vh-4rem)] animate-in flex-col overflow-hidden bg-background duration-300 select-none fade-in">
+            <div className="flex min-h-[calc(100vh-4rem)] flex-1 animate-in flex-col bg-background duration-300 select-none fade-in md:h-[calc(100vh-4rem)] md:overflow-hidden">
                 <GoogleCalendarWarningBanner className="m-4 shrink-0" />
                 {/* Header (Toolbar) */}
-                <div className="flex items-center justify-between border-b bg-card px-6 py-3.5">
-                    <div className="flex items-center gap-6">
+                <div className="flex flex-col gap-3 border-b bg-card px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between md:py-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-3 md:justify-start md:gap-6">
                         <div className="flex items-center gap-2.5">
                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-brown text-white shadow-md shadow-brand-brown/20">
                                 <CalendarIcon className="h-5 w-5" />
                             </div>
-                            <span className="text-xl font-bold tracking-tight text-foreground">
+                            <span className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
                                 {t.title}
                             </span>
                         </div>
 
-                        {/* Top-Level Mode Switcher */}
-                        <div className="flex items-center gap-1 rounded-xl bg-muted/60 p-1 border">
+                        {/* Desktop Mode Switcher */}
+                        <div className="hidden md:flex items-center gap-1 rounded-xl bg-muted/60 p-1 border">
                             <Button
                                 variant={mainTab === 'calendar' ? 'secondary' : 'ghost'}
                                 size="sm"
@@ -1577,7 +1598,7 @@ export default function Availability({
                                 className={`rounded-lg font-semibold text-xs gap-1.5 ${mainTab === 'calendar' ? 'bg-background shadow-xs text-foreground' : 'text-muted-foreground'}`}
                             >
                                 <CalendarIcon className="h-3.5 w-3.5" />
-                                {t.title}
+                                <span>{t.title}</span>
                             </Button>
                             <Button
                                 variant={mainTab === 'packages' ? 'secondary' : 'ghost'}
@@ -1586,7 +1607,7 @@ export default function Availability({
                                 className={`rounded-lg font-semibold text-xs gap-1.5 ${mainTab === 'packages' ? 'bg-background shadow-xs text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground'}`}
                             >
                                 <Package className="h-3.5 w-3.5" />
-                                {t.packagesTab || 'Conversation Packs'}
+                                <span>{t.packagesTab || 'Conversation Packs'}</span>
                                 {packages && packages.length > 0 && (
                                     <span className="ml-1 rounded-full bg-indigo-100 dark:bg-indigo-950 px-1.5 py-0.2 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
                                         {packages.length}
@@ -1596,12 +1617,12 @@ export default function Availability({
                         </div>
 
                         {mainTab === 'calendar' && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={setToday}
-                                    className="rounded-lg px-4 font-medium"
+                                    className="rounded-lg px-2.5 sm:px-4 font-medium text-xs sm:text-sm"
                                 >
                                     {t.today}
                                 </Button>
@@ -1623,11 +1644,38 @@ export default function Availability({
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>
                                 </div>
-                                <span className="ml-2 text-lg font-semibold text-foreground capitalize">
+                                <span className="ml-1 text-sm font-semibold text-foreground capitalize sm:ml-2 sm:text-lg">
                                     {currentTitleString()}
                                 </span>
                             </div>
                         )}
+                    </div>
+
+                    {/* Mobile Mode Switcher (Full-width 2-column segmented toggle on mobile) */}
+                    <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1 border w-full md:hidden">
+                        <Button
+                            variant={mainTab === 'calendar' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setMainTab('calendar')}
+                            className={`rounded-lg font-semibold text-xs gap-1.5 justify-center py-2 ${mainTab === 'calendar' ? 'bg-background shadow-xs text-foreground' : 'text-muted-foreground'}`}
+                        >
+                            <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{t.title}</span>
+                        </Button>
+                        <Button
+                            variant={mainTab === 'packages' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setMainTab('packages')}
+                            className={`rounded-lg font-semibold text-xs gap-1.5 justify-center py-2 ${mainTab === 'packages' ? 'bg-background shadow-xs text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground'}`}
+                        >
+                            <Package className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{t.packagesTab || 'Conversation Packs'}</span>
+                            {packages && packages.length > 0 && (
+                                <span className="ml-1 rounded-full bg-indigo-100 dark:bg-indigo-950 px-1.5 py-0.2 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
+                                    {packages.length}
+                                </span>
+                            )}
+                        </Button>
                     </div>
 
                     {mainTab === 'calendar' && (
@@ -1685,46 +1733,30 @@ export default function Availability({
                 <div
                     className={
                         view === 'day'
-                            ? 'flex flex-1 flex-row overflow-hidden'
-                            : 'flex flex-1 flex-col overflow-hidden md:flex-row'
+                            ? 'flex flex-1 flex-row md:overflow-hidden'
+                            : 'flex flex-1 flex-col md:flex-row md:overflow-hidden'
                     }
                 >
                     {/* Left Sidebar (Mini Cal, Create, Calendars toggles) */}
                     <div
                         className={
                             view === 'day'
-                                ? 'flex w-[58%] flex-shrink-0 flex-col gap-3 overflow-y-auto border-r bg-card p-2 md:w-64 md:gap-6 md:p-4'
-                                : 'flex max-h-[40vh] w-full flex-shrink-0 flex-col gap-3 overflow-y-auto border-b bg-card p-3 md:max-h-none md:w-64 md:gap-6 md:border-r md:border-b-0 md:p-4'
+                                ? 'flex w-[58%] flex-shrink-0 flex-col gap-3 border-r bg-card p-2 md:w-64 md:gap-6 md:p-4 md:overflow-y-auto'
+                                : 'flex w-full flex-shrink-0 flex-col gap-3 border-b bg-card p-3 md:w-64 md:gap-6 md:border-r md:border-b-0 md:p-4 md:overflow-y-auto md:max-h-none'
                         }
                     >
-                        <Button
-                            onClick={() => {
-                                const todayStr = formatDateString(new Date());
-                                const nextWeekDate = new Date(
-                                    new Date().getTime() + 6 * 24 * 60 * 60 * 1000,
-                                );
-                                setData((prev) => ({
-                                    ...prev,
-                                    type: 'recurring',
-                                    days_of_week: [...ALL_DAYS],
-                                    day_of_week: getWeekdayName(new Date()),
-                                    start_time: '10:00',
-                                    end_time: '21:00',
-                                    custom_mode: 'single',
-                                    date: todayStr,
-                                    start_date: todayStr,
-                                    end_date: formatDateString(nextWeekDate),
-                                    slot_duration: 30,
-                                }));
-                                setIsCreateModalOpen(true);
-                            }}
-                            className="w-full justify-start gap-3 rounded-full border bg-white px-5 py-6 text-gray-800 shadow-md transition-all hover:bg-muted hover:shadow-lg dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-muted/30"
-                        >
-                            <Plus className="h-6 w-6 text-brand-brown dark:text-brand-yellow" />
-                            <span className="text-sm font-semibold tracking-wide">
-                                {t.createAvailability}
-                            </span>
-                        </Button>
+                        {/* Sticky "+ Create Availability" Container on Mobile */}
+                        <div className="sticky top-0 z-25 -mx-3 -mt-3 bg-card/95 px-3 py-2.5 backdrop-blur-md border-b md:border-b-0 md:static md:mx-0 md:mt-0 md:p-0 md:bg-transparent">
+                            <Button
+                                onClick={handleOpenCreateModal}
+                                className="w-full justify-start gap-3 rounded-full border bg-white px-5 py-5 text-gray-800 shadow-md transition-all hover:bg-muted hover:shadow-lg dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-muted/30 md:py-6"
+                            >
+                                <Plus className="h-6 w-6 text-brand-brown dark:text-brand-yellow" />
+                                <span className="text-sm font-semibold tracking-wide">
+                                    {t.createAvailability}
+                                </span>
+                            </Button>
+                        </div>
 
                         {/* Mini Calendar */}
                         <div className="flex flex-col gap-2">
@@ -1848,11 +1880,11 @@ export default function Availability({
                     <div
                         className={
                             view === 'day'
-                                ? 'flex min-w-0 flex-1 flex-col overflow-hidden border-t bg-muted/5 md:border-t-0'
-                                : 'flex min-h-[300px] w-full min-w-0 flex-1 flex-col overflow-hidden border-t bg-muted/5 md:min-h-0 md:w-auto md:border-t-0'
+                                ? 'flex min-w-0 flex-1 flex-col border-t bg-muted/5 md:border-t-0 md:overflow-hidden'
+                                : 'flex w-full min-w-0 flex-1 flex-col border-t bg-muted/5 md:w-auto md:border-t-0 md:overflow-hidden'
                         }
                     >
-                        <div className="flex w-full min-w-0 flex-1 flex-col overflow-hidden">
+                        <div className="flex w-full min-w-0 flex-1 flex-col md:overflow-hidden">
                             {/* Status Legend Bar */}
                             <div className="flex flex-wrap items-center gap-2 border-b bg-card/60 p-2.5 px-4 text-xs">
                                 <span className="mr-1 font-bold text-muted-foreground">
@@ -1881,7 +1913,7 @@ export default function Availability({
                             </div>
 
                             {/* Day/Week header row */}
-                            <div className="flex border-b bg-card">
+                            <div className="sticky top-0 z-20 flex border-b bg-card shadow-xs md:static md:shadow-none">
                                 <div className="w-14 flex-shrink-0 border-r bg-card md:w-16"></div>
                                 <div className="flex flex-1 overflow-hidden">
                                     {view === 'day' ? (
@@ -1988,7 +2020,7 @@ export default function Availability({
                             </div>
 
                             {/* Vertical Timeline Scroll Grid */}
-                            <div className="relative flex flex-1 overflow-y-auto">
+                            <div className="relative flex flex-1 md:overflow-y-auto">
                                 {/* Y-Axis Hours label */}
                                 <div
                                     className="relative flex w-14 flex-shrink-0 flex-col border-r bg-card select-none md:w-16"
@@ -2640,6 +2672,17 @@ export default function Availability({
                     </div>
                 </div>
             )}
+
+            {/* Mobile Floating Action Button (FAB) */}
+            <button
+                type="button"
+                onClick={handleOpenCreateModal}
+                className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-brown text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 md:hidden dark:bg-brand-yellow dark:text-[#061445]"
+                aria-label={t.createAvailability}
+                title={t.createAvailability}
+            >
+                <Plus className="h-7 w-7" />
+            </button>
 
             {/* Create Availability Modal */}
             {isCreateModalOpen && (

@@ -23,47 +23,33 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-// Realistic Teacher Profiles matching ConvoMate standards
-const teachers = [
-    {
-        name: 'Kamola',
-        titleKey: 'welcome.teacher_kamola_title',
-        descKey: 'welcome.teacher_kamola_desc',
-        badgeKey: 'welcome.teacher_kamola_badge',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
-        rating: '4.9',
-        reviews: '128',
-    },
-    {
-        name: 'Javohir',
-        titleKey: 'welcome.teacher_javohir_title',
-        descKey: 'welcome.teacher_javohir_desc',
-        badgeKey: 'welcome.teacher_javohir_badge',
-        avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80',
-        rating: '4.8',
-        reviews: '94',
-    },
-    {
-        name: 'Dilnoza',
-        titleKey: 'welcome.teacher_dilnoza_title',
-        descKey: 'welcome.teacher_dilnoza_desc',
-        badgeKey: 'welcome.teacher_dilnoza_badge',
-        avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80',
-        rating: '5.0',
-        reviews: '210',
-    },
-];
+interface CertifiedTeacher {
+    id: string;
+    name: string;
+    avatar?: string | null;
+    speaking_band?: string | null;
+    overall_level?: string | null;
+    headline?: string | null;
+    bio?: string | null;
+    rating?: string;
+    reviews?: string;
+    price?: number | null;
+}
 
-export default function Welcome() {
+interface WelcomeProps {
+    certifiedTeachers?: CertifiedTeacher[];
+}
+
+export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
     const { auth } = usePage<{ auth: { user: unknown } }>().props;
     const { t, locale, setLanguage } = useTranslation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const getBookLessonLink = () => {
-        if (!auth.user) return '/register';
+    const getBookLessonLink = (teacherId?: string) => {
+        if (!auth.user) return teacherId ? `/register?teacher=${teacherId}` : '/register';
         if ((auth.user as any).role === 'teacher') return '/dashboard';
         if ((auth.user as any).role === 'admin') return '/admin/dashboard';
-        return '/pupil/teachers';
+        return teacherId ? `/pupil/teachers/${teacherId}` : '/pupil/teachers';
     };
 
     return (
@@ -92,6 +78,11 @@ export default function Welcome() {
                   --line: #EAE4D2;
                   --white: #FFFFFF;
                   --radius: 22px;
+                }
+
+                html, body {
+                  overflow-x: hidden;
+                  max-width: 100vw;
                 }
 
                 body {
@@ -172,19 +163,19 @@ export default function Welcome() {
                 }}
             />
 
-            <div className="min-h-screen bg-white text-[#232A45] antialiased">
+            <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white text-[#232A45] antialiased">
                 {/* ── Main Header ── */}
                 <header className="sticky top-0 z-50 border-b border-[#EAE4D2] bg-white/95 backdrop-blur-md">
-                    <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-6 lg:gap-8 lg:px-8">
-                        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-                            <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#1E2A5A]/10 bg-white p-1 shadow-md shadow-[#1E2A5A]/10 transition-transform hover:scale-105">
+                    <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6 lg:gap-8 lg:px-8">
+                        <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+                            <div className="flex h-[34px] w-[34px] sm:h-[38px] sm:w-[38px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#1E2A5A]/10 bg-white p-1 shadow-md shadow-[#1E2A5A]/10 transition-transform hover:scale-105">
                                 <img
                                     src="/images/logo.png"
                                     alt="ConvoMate"
                                     className="h-full w-full object-contain"
                                 />
                             </div>
-                            <span className="font-['Bricolage_Grotesque'] text-[22px] font-extrabold text-[#1E2A5A]">
+                            <span className="font-['Bricolage_Grotesque'] text-[18px] sm:text-[22px] font-extrabold text-[#1E2A5A]">
                                 Convo
                                 <span className="text-[#D9B437]">Mate</span>
                             </span>
@@ -211,7 +202,7 @@ export default function Welcome() {
                             </a>
                         </nav>
 
-                        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5 md:gap-3 lg:gap-3.5">
+                        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5 md:gap-3 lg:gap-3.5">
                             {/* 1. Language Dropdown */}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -265,35 +256,37 @@ export default function Welcome() {
                                 </Link>
                             ) : (
                                 <>
-                                    {/* 2. Text Link: Log In */}
+                                    {/* 2. Text Link: Log In (Visible on mobile & desktop) */}
                                     <Link
                                         href="/login"
-                                        className="shrink-0 px-1 text-xs font-bold text-[#1E2A5A] hover:underline sm:text-sm"
+                                        className="shrink-0 px-1.5 py-1 text-xs font-bold text-[#1E2A5A] hover:underline sm:px-2.5 sm:text-sm"
                                     >
                                         {t('welcome.login')}
                                     </Link>
 
-                                    {/* 3. Outlined Secondary Button: Be a teacher (Desktop: full label, Mobile: compact Teach badge) */}
-                                    <Link
-                                        href="/register?role=teacher"
-                                        className="inline-flex shrink-0 items-center rounded-full border border-[#1E2A5A]/30 px-2.5 py-1 text-[11px] font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB] sm:px-4 sm:py-2 sm:text-xs md:text-sm"
-                                    >
-                                        <span className="hidden sm:inline">
-                                            {t('welcome.be_teacher')}
-                                        </span>
-                                        <span className="sm:hidden">{t('welcome.teach_short')}</span>
-                                    </Link>
-
-                                    {/* 4. Solid Primary CTA: Book a lesson */}
+                                    {/* 3. Solid Primary CTA: Register (Visible on mobile & desktop) */}
                                     <Link
                                         href="/register"
-                                        className="btn-primary shrink-0 rounded-full px-3 py-1 text-[11px] font-bold transition-transform hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-xs md:text-sm"
+                                        className="btn-primary shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition-transform hover:-translate-y-0.5 sm:px-4 sm:py-2 sm:text-sm"
                                     >
-                                        <span className="hidden sm:inline">
-                                            {t('welcome.book_lesson')}
-                                        </span>
-                                        <span className="sm:hidden">{t('welcome.book_short')}</span>
+                                        {t('welcome.register')}
                                     </Link>
+
+                                    {/* 4. Outlined Secondary: Be a teacher (Desktop only; on mobile inside triple-line menu) */}
+                                    <Link
+                                        href="/register?role=teacher"
+                                        className="hidden shrink-0 items-center rounded-full border border-[#1E2A5A]/30 px-3 py-2 text-xs font-bold text-[#1E2A5A] transition-all hover:bg-[#EEF4FB] sm:inline-flex md:text-sm"
+                                    >
+                                        {t('welcome.be_teacher')}
+                                    </Link>
+
+                                    {/* 5. Secondary Button: Find a tutor / Tutors (Desktop only; on mobile inside triple-line menu) */}
+                                    <a
+                                        href="#teachers"
+                                        className="hidden shrink-0 items-center rounded-full border border-[#1E2A5A] bg-transparent px-3.5 py-2 text-xs font-bold text-[#1E2A5A] transition-all hover:bg-[#1E2A5A] hover:text-white sm:inline-flex md:text-sm"
+                                    >
+                                        {t('welcome.book_lesson')}
+                                    </a>
                                 </>
                             )}
 
@@ -319,6 +312,20 @@ export default function Welcome() {
                         <div className="animate-in border-t border-[#EAE4D2] bg-white px-6 py-5 shadow-lg duration-200 slide-in-from-top lg:hidden">
                             <div className="flex flex-col gap-4 font-semibold text-[#5C6480]">
                                 <a
+                                    href="#teachers"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="py-1 text-base font-bold text-[#1E2A5A] transition-colors hover:text-[#D9B437]"
+                                >
+                                    {t('welcome.book_lesson')} →
+                                </a>
+                                <Link
+                                    href="/register?role=teacher"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="inline-flex items-center gap-1.5 py-1 text-base font-bold text-[#1E2A5A]"
+                                >
+                                    {t('welcome.be_teacher')} →
+                                </Link>
+                                <a
                                     href="#why"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="py-1 text-base text-[#1E2A5A] transition-colors hover:text-[#D9B437]"
@@ -339,13 +346,24 @@ export default function Welcome() {
                                 >
                                     {t('welcome.nav_teachers')}
                                 </a>
-                                <Link
-                                    href="/register?role=teacher"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="inline-flex items-center gap-1.5 py-1 text-base font-bold text-[#1E2A5A]"
-                                >
-                                    {t('welcome.be_teacher')} →
-                                </Link>
+                                {!auth.user && (
+                                    <div className="flex items-center gap-3 border-t border-[#EAE4D2] pt-4">
+                                        <Link
+                                            href="/login"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="flex-1 rounded-xl border border-[#1E2A5A]/20 py-2.5 text-center text-sm font-bold text-[#1E2A5A]"
+                                        >
+                                            {t('welcome.login')}
+                                        </Link>
+                                        <Link
+                                            href="/register"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="btn-primary flex-1 rounded-xl py-2.5 text-center text-sm font-bold"
+                                        >
+                                            {t('welcome.register')}
+                                        </Link>
+                                    </div>
+                                )}
 
                                 <div className="flex items-center justify-between border-t border-[#EAE4D2] pt-4">
                                     <span className="text-xs font-bold text-[#6B7394]">
@@ -732,50 +750,80 @@ export default function Welcome() {
                             </p>
                         </div>
 
-                        <div className="grid gap-6 md:grid-cols-3">
-                            {teachers.map((teacher, index) => (
-                                <div
-                                    key={index}
-                                    className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
-                                >
-                                    <div className="mb-4 flex items-center gap-4">
-                                        <img
-                                            alt={teacher.name}
-                                            className="h-16 w-16 shrink-0 rounded-full object-cover"
-                                            src={teacher.avatar}
-                                        />
-                                        <div>
-                                            <h3 className="text-xl font-bold text-[#1E2A5A]">
-                                                {teacher.name}
-                                            </h3>
-                                            <span className="inline-block rounded-full bg-[#FDF7E4] px-2.5 py-1 text-xs font-semibold text-[#854F0B]">
-                                                {t(teacher.badgeKey)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <p className="mb-4 flex-1 text-sm font-medium text-[#5C6480]">
-                                        {t(teacher.descKey)}
+                        <div
+                            className={`grid gap-6 ${
+                                certifiedTeachers.length === 1
+                                    ? 'max-w-md mx-auto grid-cols-1'
+                                    : certifiedTeachers.length === 2
+                                    ? 'max-w-3xl mx-auto md:grid-cols-2'
+                                    : 'md:grid-cols-2 lg:grid-cols-3'
+                            }`}
+                        >
+                            {certifiedTeachers.length === 0 ? (
+                                <div className="col-span-full rounded-2xl border border-dashed border-[#EAE4D2] bg-[#FAF8F5] p-8 text-center">
+                                    <p className="text-base font-semibold text-[#1E2A5A]">
+                                        {t('welcome.no_teachers_yet')}
                                     </p>
-                                    <div className="mb-4 flex items-center justify-between border-t border-[#EAE4D2] pt-3 text-xs font-semibold text-[#5C6480]">
-                                        <span className="flex items-center gap-1 font-bold text-[#1E2A5A]">
-                                            <Star className="h-3.5 w-3.5 fill-[#F7DE8B] text-[#F7DE8B]" />{' '}
-                                            {teacher.rating} ({teacher.reviews}{' '}
-                                            {t('welcome.reviews')})
-                                        </span>
-                                        <span className="font-bold text-[#1D9E75]">
-                                            {t('welcome.slots_available')}
-                                        </span>
-                                    </div>
                                     <Link
-                                        href={getBookLessonLink()}
-                                        className="btn-primary rounded-xl py-2.5 text-center text-xs font-bold transition-transform hover:scale-[1.02]"
+                                        href="/register?role=teacher"
+                                        className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#1E2A5A] px-5 py-2 text-xs font-bold text-[#1E2A5A] hover:bg-[#1E2A5A] hover:text-white transition-all"
                                     >
-                                        {t('welcome.book_with_teacher', {
-                                            name: teacher.name,
-                                        })}
+                                        {t('welcome.be_teacher')}
                                     </Link>
                                 </div>
-                            ))}
+                            ) : (
+                                certifiedTeachers.map((teacher) => (
+                                    <div
+                                        key={teacher.id}
+                                        className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                                    >
+                                        <div className="mb-4 flex items-center gap-4">
+                                            {teacher.avatar ? (
+                                                <img
+                                                    alt={teacher.name}
+                                                    className="h-16 w-16 shrink-0 rounded-full object-cover"
+                                                    src={teacher.avatar}
+                                                />
+                                            ) : (
+                                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#1E2A5A] text-xl font-bold text-white shadow-inner">
+                                                    {teacher.name ? teacher.name.charAt(0).toUpperCase() : 'T'}
+                                                </div>
+                                            )}
+                                            <div>
+                                                <h3 className="text-xl font-bold text-[#1E2A5A]">
+                                                    {teacher.name}
+                                                </h3>
+                                                <span className="inline-block rounded-full bg-[#FDF7E4] px-2.5 py-1 text-xs font-semibold text-[#854F0B]">
+                                                    {teacher.speaking_band
+                                                        ? `IELTS Speaking Band ${teacher.speaking_band}`
+                                                        : teacher.overall_level || t('welcome.certified_teacher')}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className="mb-4 flex-1 text-sm font-medium text-[#5C6480] line-clamp-3">
+                                            {teacher.headline || teacher.bio || t('welcome.default_teacher_desc')}
+                                        </p>
+                                        <div className="mb-4 flex items-center justify-between border-t border-[#EAE4D2] pt-3 text-xs font-semibold text-[#5C6480]">
+                                            <span className="flex items-center gap-1 font-bold text-[#1E2A5A]">
+                                                <Star className="h-3.5 w-3.5 fill-[#F7DE8B] text-[#F7DE8B]" />{' '}
+                                                {teacher.rating || '5.0'} ({teacher.reviews || '12'}{' '}
+                                                {t('welcome.reviews')})
+                                            </span>
+                                            <span className="font-bold text-[#1D9E75]">
+                                                {t('welcome.slots_available')}
+                                            </span>
+                                        </div>
+                                        <Link
+                                            href={getBookLessonLink(teacher.id)}
+                                            className="btn-primary rounded-xl py-2.5 text-center text-xs font-bold transition-transform hover:scale-[1.02]"
+                                        >
+                                            {t('welcome.book_with_teacher', {
+                                                name: teacher.name,
+                                            })}
+                                        </Link>
+                                    </div>
+                                ))
+                            )}
                         </div>
 
                         <div className="mt-12 text-center">

@@ -274,6 +274,201 @@ function PupilDashboard({
         }
     };
 
+    const renderUpcomingSessions = (extraWrapperClass = '') => (
+        <div className={`shadow-ambient rounded-3xl bg-white p-6 md:p-10 dark:border dark:border-white/10 dark:bg-card ${extraWrapperClass}`}>
+            <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f] dark:text-white">
+                <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445] dark:bg-brand-yellow"></span>
+                <span>{t('dashboard.upcoming_sessions')}</span>
+            </h2>
+
+            {appointments.length > 0 ? (
+                <div className="flex flex-col gap-5">
+                    {appointments.map((apt) => (
+                        <div
+                            key={apt.id}
+                            className="group hover:shadow-ambient-md overflow-hidden rounded-3xl border border-[#c6c5d0]/35 bg-white shadow-sm transition-all duration-300 hover:border-[#061445]/20 dark:border-white/10 dark:bg-[#070e24] dark:hover:border-white/20"
+                        >
+                            <div className="flex flex-col justify-between gap-4 border-b border-[#c6c5d0]/35 p-6 sm:flex-row sm:items-center dark:border-white/10">
+                                <div className="flex items-center gap-4">
+                                    {apt.teacher ? (
+                                        <Link
+                                            href={`/profile/${apt.teacher.id}`}
+                                            className="shrink-0"
+                                        >
+                                            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105 dark:bg-brand-yellow/15 dark:text-brand-yellow">
+                                                {apt.teacher?.avatar ? (
+                                                    <img
+                                                        src={
+                                                            apt.teacher
+                                                                .avatar
+                                                        }
+                                                        className="h-full w-full object-cover"
+                                                        alt="avatar"
+                                                    />
+                                                ) : (
+                                                    <Mic className="h-6 w-6" />
+                                                )}
+                                            </div>
+                                        </Link>
+                                    ) : (
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445] dark:bg-brand-yellow/15 dark:text-brand-yellow">
+                                            <Mic className="h-6 w-6" />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <h4 className="text-base font-bold text-[#1b1b1f] dark:text-white">
+                                                {t(
+                                                    'dashboard.speaking_practice',
+                                                )}
+                                            </h4>
+                                            {apt.status === 'accepted' && (
+                                                <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-amber-800 uppercase dark:border-amber-500/30 dark:bg-amber-950/60 dark:text-amber-300">
+                                                    {t('bookings.status_accepted')}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm font-medium text-[#45464f] dark:text-muted-foreground">
+                                            {(() => {
+                                                const textWithPlaceholder =
+                                                    t(
+                                                        'dashboard.with_teacher',
+                                                        {
+                                                            name: '__NAME__',
+                                                        },
+                                                    );
+                                                const parts =
+                                                    textWithPlaceholder.split(
+                                                        '__NAME__',
+                                                    );
+                                                const teacherLink =
+                                                    apt.teacher ? (
+                                                        <Link
+                                                            href={`/profile/${apt.teacher.id}`}
+                                                            className="font-bold text-[#061445] dark:text-brand-yellow hover:underline"
+                                                        >
+                                                            {
+                                                                apt
+                                                                    .teacher
+                                                                    .full_name
+                                                            }
+                                                        </Link>
+                                                    ) : null;
+
+                                                return (
+                                                    <>
+                                                        {parts[0]}
+                                                        {teacherLink}
+                                                        {parts[1] ||
+                                                            ''}
+                                                    </>
+                                                );
+                                            })()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col sm:text-right">
+                                    <span className="font-bold text-[#061445] dark:text-white">
+                                        {new Date(
+                                            apt.start_at,
+                                        ).toLocaleDateString(locale, {
+                                            month: 'long',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                        })}
+                                    </span>
+                                    <span className="mt-0.5 text-xs font-semibold text-[#45464f] dark:text-slate-400">
+                                        {new Date(
+                                            apt.start_at,
+                                        ).toLocaleTimeString(locale, {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}{' '}
+                                        -{' '}
+                                        {new Date(
+                                            apt.end_at,
+                                        ).toLocaleTimeString(locale, {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 bg-brand-lightblue/20 px-6 py-4 dark:bg-white/5">
+                                {apt.status === 'accepted' ? (
+                                    <>
+                                        <span className="mr-auto text-xs font-bold text-amber-800 dark:text-amber-300">
+                                            {t('dashboard.awaiting_payment_desc') ||
+                                                'Awaiting payment & admin confirmation'}
+                                        </span>
+                                        <button
+                                            onClick={() =>
+                                                setPaymentBooking(apt)
+                                            }
+                                            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-full bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all hover:-translate-y-0.5 hover:bg-brand-button-hover dark:bg-brand-yellow dark:text-[#061445]"
+                                        >
+                                            💳{' '}
+                                            {t('booking.pay_now') ||
+                                                'Pay Now'}
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleCancel(apt.id)
+                                            }
+                                            className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
+                                        >
+                                            {t('dashboard.cancel_button')}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() =>
+                                                handleCancel(apt.id)
+                                            }
+                                            className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
+                                        >
+                                            {t('dashboard.cancel_button')}
+                                        </button>
+                                        <PupilMeetingButton
+                                            apt={apt}
+                                            handleJoin={handleJoin}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="mx-auto flex max-w-md flex-col items-center space-y-5 px-4 py-8 text-center">
+                    <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[#d0e4ff] text-4xl shadow-inner dark:bg-white/10">
+                        🎙️
+                        <div className="absolute -right-1 -bottom-1 flex h-8 w-8 animate-bounce items-center justify-center rounded-full bg-amber-400 text-sm shadow-sm">
+                            ✨
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-[#1b1b1f] dark:text-white">
+                            {t('dashboard.no_upcoming')}
+                        </h3>
+                        <p className="text-sm leading-relaxed text-[#45464f] dark:text-slate-400">
+                            {t('dashboard.no_upcoming_sub')}
+                        </p>
+                    </div>
+
+                    <Link
+                        href="/pupil/teachers"
+                        className="block rounded-full bg-[#061445] px-6 py-3 text-center font-bold text-white shadow-md shadow-[#061445]/10 transition-all duration-150 hover:scale-[1.01] hover:bg-[#061445]/90 active:scale-[0.99] dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-brand-yellow/90"
+                    >
+                        {t('dashboard.book_now')}
+                    </Link>
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
             {/* Header / Welcome Back Banner */}
@@ -370,6 +565,13 @@ function PupilDashboard({
                             </Link>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Mobile Upcoming Session (Displayed on top below greeting/reminders when sessions exist) */}
+            {appointments.length > 0 && (
+                <div className="md:hidden">
+                    {renderUpcomingSessions()}
                 </div>
             )}
 
@@ -560,205 +762,16 @@ function PupilDashboard({
                     </div>
                 ) : null;
 
-                const upcomingSessionsSection = (
-                    <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-10 dark:border dark:border-white/10 dark:bg-card">
-                        <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f] dark:text-white">
-                            <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445] dark:bg-brand-yellow"></span>
-                            <span>{t('dashboard.upcoming_sessions')}</span>
-                        </h2>
-
-                        {appointments.length > 0 ? (
-                            <div className="flex flex-col gap-5">
-                                {appointments.map((apt) => (
-                                    <div
-                                        key={apt.id}
-                                        className="group hover:shadow-ambient-md overflow-hidden rounded-3xl border border-[#c6c5d0]/35 bg-white shadow-sm transition-all duration-300 hover:border-[#061445]/20 dark:border-white/10 dark:bg-[#070e24] dark:hover:border-white/20"
-                                    >
-                                        <div className="flex flex-col justify-between gap-4 border-b border-[#c6c5d0]/35 p-6 sm:flex-row sm:items-center dark:border-white/10">
-                                            <div className="flex items-center gap-4">
-                                                {apt.teacher ? (
-                                                    <Link
-                                                        href={`/profile/${apt.teacher.id}`}
-                                                        className="shrink-0"
-                                                    >
-                                                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[#d0e4ff] text-[#061445] transition-transform group-hover:scale-105 dark:bg-brand-yellow/15 dark:text-brand-yellow">
-                                                            {apt.teacher?.avatar ? (
-                                                                <img
-                                                                    src={
-                                                                        apt.teacher
-                                                                            .avatar
-                                                                    }
-                                                                    className="h-full w-full object-cover"
-                                                                    alt="avatar"
-                                                                />
-                                                            ) : (
-                                                                <Mic className="h-6 w-6" />
-                                                            )}
-                                                        </div>
-                                                    </Link>
-                                                ) : (
-                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d0e4ff] text-[#061445] dark:bg-brand-yellow/15 dark:text-brand-yellow">
-                                                        <Mic className="h-6 w-6" />
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <h4 className="text-base font-bold text-[#1b1b1f] dark:text-white">
-                                                            {t(
-                                                                'dashboard.speaking_practice',
-                                                            )}
-                                                        </h4>
-                                                        {apt.status === 'accepted' && (
-                                                            <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-black tracking-wider text-amber-800 uppercase dark:border-amber-500/30 dark:bg-amber-950/60 dark:text-amber-300">
-                                                                {t('bookings.status_accepted')}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-sm font-medium text-[#45464f] dark:text-muted-foreground">
-                                                        {(() => {
-                                                            const textWithPlaceholder =
-                                                                t(
-                                                                    'dashboard.with_teacher',
-                                                                    {
-                                                                        name: '__NAME__',
-                                                                    },
-                                                                );
-                                                            const parts =
-                                                                textWithPlaceholder.split(
-                                                                    '__NAME__',
-                                                                );
-                                                            const teacherLink =
-                                                                apt.teacher ? (
-                                                                    <Link
-                                                                        href={`/profile/${apt.teacher.id}`}
-                                                                        className="font-bold text-[#061445] dark:text-brand-yellow hover:underline"
-                                                                    >
-                                                                        {
-                                                                            apt
-                                                                                .teacher
-                                                                                .full_name
-                                                                        }
-                                                                    </Link>
-                                                                ) : null;
-
-                                                            return (
-                                                                <>
-                                                                    {parts[0]}
-                                                                    {teacherLink}
-                                                                    {parts[1] ||
-                                                                        ''}
-                                                                </>
-                                                            );
-                                                        })()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col sm:text-right">
-                                                <span className="font-bold text-[#061445] dark:text-white">
-                                                    {new Date(
-                                                        apt.start_at,
-                                                    ).toLocaleDateString(locale, {
-                                                        month: 'long',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                    })}
-                                                </span>
-                                                <span className="mt-0.5 text-xs font-semibold text-[#45464f] dark:text-slate-400">
-                                                    {new Date(
-                                                        apt.start_at,
-                                                    ).toLocaleTimeString(locale, {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}{' '}
-                                                    -{' '}
-                                                    {new Date(
-                                                        apt.end_at,
-                                                    ).toLocaleTimeString(locale, {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-end gap-3 bg-brand-lightblue/20 px-6 py-4 dark:bg-white/5">
-                                            {apt.status === 'accepted' ? (
-                                                <>
-                                                    <span className="mr-auto text-xs font-bold text-amber-800 dark:text-amber-300">
-                                                        {t('dashboard.awaiting_payment_desc') ||
-                                                            'Awaiting payment & admin confirmation'}
-                                                    </span>
-                                                    <button
-                                                        onClick={() =>
-                                                            setPaymentBooking(apt)
-                                                        }
-                                                        className="flex animate-pulse cursor-pointer items-center gap-2 rounded-full bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all hover:-translate-y-0.5 hover:bg-brand-button-hover dark:bg-brand-yellow dark:text-[#061445]"
-                                                    >
-                                                        💳{' '}
-                                                        {t('booking.pay_now') ||
-                                                            'Pay Now'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCancel(apt.id)
-                                                        }
-                                                        className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
-                                                    >
-                                                        {t('dashboard.cancel_button')}
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCancel(apt.id)
-                                                        }
-                                                        className="cursor-pointer rounded-full border border-destructive/20 px-4 py-2.5 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
-                                                    >
-                                                        {t('dashboard.cancel_button')}
-                                                    </button>
-                                                    <PupilMeetingButton
-                                                        apt={apt}
-                                                        handleJoin={handleJoin}
-                                                    />
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="mx-auto flex max-w-md flex-col items-center space-y-5 px-4 py-8 text-center">
-                                <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[#d0e4ff] text-4xl shadow-inner dark:bg-white/10">
-                                    🎙️
-                                    <div className="absolute -right-1 -bottom-1 flex h-8 w-8 animate-bounce items-center justify-center rounded-full bg-amber-400 text-sm shadow-sm">
-                                        ✨
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <h3 className="text-xl font-bold text-[#1b1b1f] dark:text-white">
-                                        {t('dashboard.no_upcoming')}
-                                    </h3>
-                                    <p className="text-sm leading-relaxed text-[#45464f] dark:text-slate-400">
-                                        {t('dashboard.no_upcoming_sub')}
-                                    </p>
-                                </div>
-
-                                <Link
-                                    href="/pupil/teachers"
-                                    className="block rounded-full bg-[#061445] px-6 py-3 text-center font-bold text-white shadow-md shadow-[#061445]/10 transition-all duration-150 hover:scale-[1.01] hover:bg-[#061445]/90 active:scale-[0.99] dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-brand-yellow/90"
-                                >
-                                    {t('dashboard.book_now')}
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                );
-
                 return (
                     <>
                         {activePacksSection}
-                        {upcomingSessionsSection}
+                        {appointments.length > 0 ? (
+                            <div className="hidden md:block">
+                                {renderUpcomingSessions()}
+                            </div>
+                        ) : (
+                            renderUpcomingSessions()
+                        )}
                     </>
                 );
             })()}

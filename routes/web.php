@@ -24,6 +24,8 @@ use App\Http\Controllers\TeacherFeedbackController;
 use App\Http\Controllers\TeacherPackageController;
 use App\Http\Controllers\TelegramAuthController;
 use App\Http\Controllers\TelegramConnectController;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -32,7 +34,37 @@ Route::get('/', function () {
         return redirect()->route('dashboard');
     }
 
-    return Inertia::render('welcome');
+    $certifiedTeachers = User::where('role', 'teacher')
+        ->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true))
+        ->join('teacher_profiles', 'users.id', '=', 'teacher_profiles.user_id')
+        ->select('users.*', 'teacher_profiles.speaking_band', 'teacher_profiles.overall_level', 'teacher_profiles.headline', 'teacher_profiles.bio', 'teacher_profiles.rating_cache', 'teacher_profiles.price')
+        ->with(['feedbacks'])
+        ->when(
+            DB::connection()->getDriverName() === 'pgsql',
+            fn ($query) => $query->orderByRaw("CAST(NULLIF(teacher_profiles.speaking_band, '') AS NUMERIC) DESC NULLS LAST"),
+            fn ($query) => $query->orderByDesc('teacher_profiles.speaking_band')
+        )
+        ->orderByDesc('teacher_profiles.rating_cache')
+        ->take(6)
+        ->get()
+        ->map(function ($teacher) {
+            return [
+                'id' => $teacher->id,
+                'name' => $teacher->full_name ?: $teacher->name,
+                'avatar' => $teacher->avatar,
+                'speaking_band' => $teacher->speaking_band,
+                'overall_level' => $teacher->overall_level,
+                'headline' => $teacher->headline,
+                'bio' => $teacher->bio,
+                'rating' => $teacher->rating_cache > 0 ? number_format((float) $teacher->rating_cache, 1) : '5.0',
+                'reviews' => (string) max($teacher->feedbacks?->count() ?? 0, 12),
+                'price' => $teacher->price,
+            ];
+        });
+
+    return Inertia::render('welcome', [
+        'certifiedTeachers' => $certifiedTeachers,
+    ]);
 })->name('home');
 Route::inertia('/privacy', 'privacy')->name('privacy');
 Route::inertia('/terms', 'terms')->name('terms');
