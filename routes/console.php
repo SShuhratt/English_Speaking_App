@@ -17,3 +17,4 @@ Schedule::call(function () {
 })->daily();
 
 Schedule::command('appointments:send-reminders')->everyMinute();
+Schedule::command('bookings:expire-unpaid')->everyFiveMinutes();

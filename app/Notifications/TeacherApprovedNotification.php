@@ -39,14 +39,16 @@ class TeacherApprovedNotification extends Notification implements ShouldQueue
     {
         $teacherName = $this->appointment->teacher?->full_name ?? 'Your teacher';
         $timeStr = $this->formatDateTime($this->appointment->start_at);
+        $paymentUrl = url("/pay/booking/{$this->appointment->id}");
 
         $mail = (new MailMessage)
             ->subject("Your Lesson Request Was Approved by {$teacherName}")
             ->greeting("Hello {$notifiable->full_name}!")
             ->line("Great news! {$teacherName} has approved your lesson request.")
             ->line("**Scheduled Time:** {$timeStr}")
-            ->line('Our administration team is currently verifying the payment. Once confirmed, your session will be locked in and you will receive your meeting link.')
-            ->action('View My Bookings', url('/pupil/bookings'));
+            ->line('⏳ **Important:** Please complete the payment and upload your receipt within 60 minutes. Unpaid reservations automatically expire after 1 hour to free up the teacher\'s schedule.')
+            ->action('Pay & Upload Receipt', $paymentUrl)
+            ->line('You can also view all your active sessions from your dashboard.');
 
         $footerTip = $this->getEmailTipFooter($notifiable);
         if ($footerTip) {
@@ -63,11 +65,14 @@ class TeacherApprovedNotification extends Notification implements ShouldQueue
     {
         $teacherName = $this->appointment->teacher?->full_name ?? 'Your teacher';
         $timeStr = $this->formatDateTime($this->appointment->start_at);
+        $paymentUrl = url("/pay/booking/{$this->appointment->id}");
 
         $message = "✅ <b>Lesson Request Approved!</b>\n\n".
             "Your teacher, <b>{$teacherName}</b>, has approved your session for <b>{$timeStr}</b>.\n\n".
-            "Our administration team is currently verifying payment confirmation. You will be notified the moment your session is fully confirmed.\n\n".
-            '👉 View bookings: '.url('/pupil/bookings');
+            "⏳ <b>Muhim eslatma / Важно:</b> To'lovni amalga oshirib, chekni <b>60 daqiqa</b> ichida yuklang. To'lanmagan buyurtmalar 60 daqiqadan so'ng avtomatik bekor qilinadi.\n".
+            "Пожалуйста, оплатите и загрузите чек в течение <b>60 минут</b>, иначе бронирование автоматически аннулируется.\n\n".
+            "💳 To'lov qilish / Оплатить: {$paymentUrl}\n".
+            '👉 Darslarim / Мои уроки: '.url('/pupil/bookings');
 
         $message .= $this->getTelegramTipFooter($notifiable);
 

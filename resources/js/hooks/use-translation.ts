@@ -724,6 +724,10 @@ const dictionary = {
             'Your booking request has been submitted to the teacher. Payment is NOT required yet. Please check your booking dashboard regularly for updates. Once the teacher accepts, you can proceed to payment.',
         'booking.view_my_bookings': 'Go to My Bookings',
         'booking.pay_now': 'Pay Now',
+        'booking.expires_in_60m': 'Expires in 60m',
+        'payment.sixty_min_badge': '60-Minute Confirmation Window',
+        'payment.sixty_min_notice':
+            "Please transfer the payment and upload your receipt within 60 minutes. Unpaid reservations automatically expire after 1 hour to free up the teacher's schedule.",
         'payment.modal_title': 'Complete Your Payment',
         'payment.modal_desc':
             'Transfer the fee via any payment app and submit your check below or via Telegram for instant automatic verification.',
@@ -2555,6 +2559,10 @@ const dictionary = {
             "Sizning bron so'rovingiz o'qituvchiga yuborildi. Hozircha to'lov qilish shart emas. Yangilanishlarni bilish uchun muntazam ravishda darslar bo'limini tekshiring. O'qituvchi tasdiqlagach, to'lovni amalga oshirishingiz mumkin.",
         'booking.view_my_bookings': "Mening darslarimga o'tish",
         'booking.pay_now': "To'lov qilish",
+        'booking.expires_in_60m': "60 daqiqada bekor bo'ladi",
+        'payment.sixty_min_badge': "60 daqiqalik to'lov vaqti",
+        'payment.sixty_min_notice':
+            "Iltimos, to'lovni amalga oshirib, chekni 60 daqiqa ichida yuklang. O'qituvchi jadvalini bo'shatish uchun to'lanmagan darslar 1 soatdan so'ng avtomatik bekor qilinadi.",
         'payment.modal_title': "To'lovni amalga oshirish",
         'payment.modal_desc':
             "Istalgan to'lov ilovasi orqali to'lovni amalga oshiring va avtomatik tasdiqlash uchun chekingizni quyida yoki Telegram orqali yuboring.",
@@ -4399,6 +4407,10 @@ const dictionary = {
             'Ваш запрос на бронирование отправлен преподавателю. Оплата пока НЕ требуется. Пожалуйста, регулярно проверяйте панель бронирований. Как только учитель подтвердит занятие, вы сможете перейти к оплате.',
         'booking.view_my_bookings': 'Перейти к моим бронированиям',
         'booking.pay_now': 'Оплатить сейчас',
+        'booking.expires_in_60m': 'Истекает через 60 мин',
+        'payment.sixty_min_badge': '60-минутное окно подтверждения',
+        'payment.sixty_min_notice':
+            'Пожалуйста, оплатите и загрузите чек в течение 60 минут. Неоплаченные бронирования автоматически аннулируются через 1 час, чтобы освободить расписание преподавателя.',
         'payment.modal_title': 'Завершите оплату',
         'payment.modal_desc':
             'Оплатите через любое платёжное приложение и отправьте чек ниже или в Telegram для мгновенного автоматического подтверждения.',

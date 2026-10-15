@@ -172,10 +172,13 @@ class HumoPaymentService
 
                 $totalCandidates = $pendingAppointments->count() + $pendingPackages->count();
 
-                // Case A: Exactly 1 candidate -> No collision! Auto-confirm immediately
-                if ($totalCandidates === 1) {
-                    if ($pendingAppointments->isNotEmpty()) {
-                        $appointment = $pendingAppointments->first();
+                // Strict Receipt Rule: An SMS alone NEVER blindly auto-confirms an order.
+                // Check if any candidate has submitted a verified matching receipt
+                $resolved = $this->resolveCandidateWithReceipt($pendingAppointments, $pendingPackages, $parsed);
+
+                if ($resolved) {
+                    if ($resolved['type'] === 'appointment') {
+                        $appointment = $resolved['model'];
                         $this->confirmAppointment($appointment);
 
                         $tx->update([
@@ -194,7 +197,7 @@ class HumoPaymentService
                         ];
                     }
 
-                    $package = $pendingPackages->first();
+                    $package = $resolved['model'];
                     $this->confirmPackage($package);
 
                     $tx->update([
@@ -213,72 +216,15 @@ class HumoPaymentService
                     ];
                 }
 
-                // Case B: Collision detected (2 or more candidates with same price)
-                if ($totalCandidates > 1) {
-                    // Check if any candidate has submitted a matching receipt
-                    $resolved = $this->resolveCandidateWithReceipt($pendingAppointments, $pendingPackages, $parsed);
-
-                    if ($resolved) {
-                        if ($resolved['type'] === 'appointment') {
-                            $appointment = $resolved['model'];
-                            $this->confirmAppointment($appointment);
-
-                            $tx->update([
-                                'status' => 'matched',
-                                'matched_type' => 'appointment',
-                                'matched_id' => $appointment->id,
-                            ]);
-
-                            $this->notifyAdminsMatchedAppointment($appointment, $parsed);
-
-                            return [
-                                'status' => 'matched_appointment',
-                                'appointment_id' => $appointment->id,
-                                'amount' => $parsed['amount'],
-                                'details' => $parsed,
-                            ];
-                        }
-
-                        $package = $resolved['model'];
-                        $this->confirmPackage($package);
-
-                        $tx->update([
-                            'status' => 'matched',
-                            'matched_type' => 'package',
-                            'matched_id' => $package->id,
-                        ]);
-
-                        $this->notifyAdminsMatchedPackage($package, $parsed);
-
-                        return [
-                            'status' => 'matched_package',
-                            'package_id' => $package->id,
-                            'amount' => $parsed['amount'],
-                            'details' => $parsed,
-                        ];
-                    }
-
-                    // No candidate has a matching receipt yet -> Quarantine payment
-                    $tx->update(['status' => 'quarantined']);
-                    $this->notifyAdminsQuarantined($parsed, $totalCandidates);
-
-                    return [
-                        'status' => 'quarantined',
-                        'amount' => $parsed['amount'],
-                        'candidates_count' => $totalCandidates,
-                        'message' => 'Multiple pending orders found with same amount. Payment quarantined pending receipt verification.',
-                        'details' => $parsed,
-                    ];
-                }
-
-                // Case C: Unmatched payment (0 candidates)
+                // If no candidate has uploaded a matching receipt yet:
+                // Transaction remains unmatched, safely waiting for pupil to upload their check
                 $tx->update(['status' => 'unmatched']);
                 $this->notifyAdminsUnmatched($parsed);
 
                 return [
                     'status' => 'unmatched',
                     'amount' => $parsed['amount'],
-                    'message' => 'Payment received but no matching pending booking with payment_status=verifying was found.',
+                    'message' => 'Payment received. Awaiting receipt upload from pupil to confirm booking.',
                     'details' => $parsed,
                 ];
             });

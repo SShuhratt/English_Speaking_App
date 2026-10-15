@@ -473,17 +473,22 @@ export default function Bookings({ bookings }: Props) {
                                                 )}
 
                                                 {apt.status === 'accepted' && (
-                                                    <button
-                                                        onClick={() =>
-                                                            setPaymentBooking(
-                                                                apt,
-                                                            )
-                                                        }
-                                                        className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg dark:bg-brand-yellow dark:text-[#061445]"
-                                                    >
-                                                        <CreditCard className="h-3.5 w-3.5" />
-                                                        {t('booking.pay_now')}
-                                                    </button>
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        <button
+                                                            onClick={() =>
+                                                                setPaymentBooking(
+                                                                    apt,
+                                                                )
+                                                            }
+                                                            className="flex animate-pulse cursor-pointer items-center gap-2 rounded-xl bg-brand-button px-4 py-2.5 text-xs font-bold text-brand-brown shadow-md shadow-brand-button/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-button-hover hover:shadow-lg dark:bg-brand-yellow dark:text-[#061445]"
+                                                        >
+                                                            <CreditCard className="h-3.5 w-3.5" />
+                                                            {t('booking.pay_now')}
+                                                        </button>
+                                                        <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                                                            ⏳ {t('booking.expires_in_60m') || 'Expires in 60m'}
+                                                        </span>
+                                                    </div>
                                                 )}
 
                                                 {(apt.status === 'confirmed' ||

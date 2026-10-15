@@ -14,6 +14,7 @@ import {
     QrCode,
     Copy,
     Check,
+    Clock,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { toast } from 'sonner';
@@ -351,6 +352,25 @@ export default function PaymentModal({
                         </div>
                     </div>
                 )}
+
+                {/* 60-Minute Expiration Notice Banner */}
+                <div className="mt-3.5 flex items-start gap-2.5 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-3 text-left shadow-2xs dark:border-amber-400/25 dark:bg-amber-400/10">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300">
+                        <Clock className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-extrabold text-amber-900 dark:text-amber-200">
+                                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                {t('payment.sixty_min_badge') || '60-Minute Window'}
+                            </span>
+                        </div>
+                        <p className="mt-1 text-[11px] leading-relaxed font-medium text-amber-950/90 dark:text-amber-200/90">
+                            {t('payment.sixty_min_notice') ||
+                                "Please transfer the payment and upload your receipt within 60 minutes. Unpaid reservations automatically expire after 1 hour to free up the teacher's schedule."}
+                        </p>
+                    </div>
+                </div>
 
                 {/* QR Code & Payment Section */}
                 <div className="mt-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-center dark:border-slate-800 dark:bg-slate-900/50">
