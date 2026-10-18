@@ -79,7 +79,7 @@ class TeacherAvailabilityController extends Controller
         ]);
 
         $teacherId = $request->user()->id;
-        $slotDuration = (isset($validated['slot_duration']) && (int) $validated['slot_duration'] > 0) ? (int) $validated['slot_duration'] : 30;
+        $slotDuration = 30;
         $tz = 'Asia/Tashkent';
         $nowTz = Carbon::now($tz);
 
@@ -548,7 +548,7 @@ class TeacherAvailabilityController extends Controller
             'end_time' => $validated['type'] === 'recurring' ? $validated['end_time'] : null,
             'start_at' => $validated['type'] === 'custom' ? PlatformTime::toUtc($validated['start_at']) : null,
             'end_at' => $validated['type'] === 'custom' ? PlatformTime::toUtc($validated['end_at']) : null,
-            'slot_duration' => $validated['slot_duration'] ?? $availability->slot_duration,
+            'slot_duration' => 30,
         ]);
 
         // Clear slot cache

@@ -495,7 +495,7 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         // $followingSaturday must still have recurring slots!
         $futureSlots = $slotService->getAvailableSlots($teacher->id, $followingSaturday);
         $this->assertNotEmpty($futureSlots);
-        $this->assertCount(4, $futureSlots);
+        $this->assertCount(8, $futureSlots);
     }
 
     /**
@@ -694,9 +694,9 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         // $nextMonday has 0 slots
         $this->assertEmpty($slotService->getAvailableSlots($teacher->id, $nextMonday));
 
-        // $followingMonday has all 6 slots intact
+        // $followingMonday has all 12 slots intact
         $followingSlots = $slotService->getAvailableSlots($teacher->id, $followingMonday);
-        $this->assertCount(6, $followingSlots);
+        $this->assertCount(12, $followingSlots);
     }
 
     /**
@@ -865,9 +865,9 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         $this->assertContains('15:00', $nextTimes);
         $this->assertContains('16:00', $nextTimes);
 
-        // Following Wednesday has all 8 hours available
+        // Following Wednesday has all 8 hours available (16 30-min slots)
         $followingSlots = $slotService->getAvailableSlots($teacher->id, $followingWed);
-        $this->assertCount(8, $followingSlots);
+        $this->assertCount(16, $followingSlots);
     }
 
     /**
@@ -955,7 +955,7 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
                 'day_of_week' => $day,
                 'start_time' => '10:00',
                 'end_time' => '14:00',
-                'slot_duration' => 60,
+                'slot_duration' => 30,
                 'is_active' => true,
             ]);
         }
@@ -965,7 +965,7 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
         $slots = $slotService->getAvailableSlots($teacher->id, $nextMon);
         $times = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($this->tz)->format('H:i'), $slots);
 
-        $this->assertEquals(['10:00', '11:00', '12:00', '13:00'], $times);
+        $this->assertEquals(['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30'], $times);
     }
 
     /**
@@ -1000,12 +1000,12 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
                 'type' => 'custom',
                 'start_at' => PlatformTime::toUtc("{$dStr} 10:00:00")->format('Y-m-d H:i:s'),
                 'end_at' => PlatformTime::toUtc("{$dStr} 13:00:00")->format('Y-m-d H:i:s'),
-                'slot_duration' => 60,
+                'slot_duration' => 30,
             ]);
 
             $slots = $slotService->getAvailableSlots($teacher->id, $dStr);
             $times = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($this->tz)->format('H:i'), $slots);
-            $this->assertEquals(['10:00', '11:00', '12:00'], $times);
+            $this->assertEquals(['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'], $times);
 
             $cursor->addDay();
         }
@@ -1079,11 +1079,11 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             $response->assertRedirect();
             $response->assertSessionHas('success');
 
-            // Today clamped to 15:00:00 (next 60-min boundary after 14:15)
+            // Today clamped to 14:30:00 (next 30-min boundary after 14:15)
             $this->assertDatabaseHas('teacher_availabilities', [
                 'teacher_id' => $teacher->id,
                 'type' => 'custom',
-                'start_at' => PlatformTime::toUtc('2026-09-15 15:00:00')->format('Y-m-d H:i:s'),
+                'start_at' => PlatformTime::toUtc('2026-09-15 14:30:00')->format('Y-m-d H:i:s'),
                 'end_at' => PlatformTime::toUtc('2026-09-15 18:00:00')->format('Y-m-d H:i:s'),
             ]);
 
@@ -1100,8 +1100,8 @@ class TeacherAvailabilityEdgeCasesTest extends TestCase
             $tomorrowTimes = array_map(fn ($s) => Carbon::parse($s['start_at'])->setTimezone($this->tz)->format('H:i'), $tomorrowSlots);
 
             $this->assertContains('10:00', $tomorrowTimes);
-            $this->assertContains('17:00', $tomorrowTimes);
-            $this->assertCount(8, $tomorrowTimes);
+            $this->assertContains('17:30', $tomorrowTimes);
+            $this->assertCount(16, $tomorrowTimes);
         } finally {
             Carbon::setTestNow();
         }

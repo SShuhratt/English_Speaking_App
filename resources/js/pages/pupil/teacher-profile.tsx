@@ -2046,7 +2046,10 @@ export default function TeacherProfile({
                             {hasEligibleTrial && (
                                 <div
                                     className={`ltype trial ${lessonType === 'trial' ? 'sel' : ''}`}
-                                    onClick={() => setLessonType('trial')}
+                                    onClick={() => {
+                                        setLessonType('trial');
+                                        setPickedSlot(null);
+                                    }}
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -2077,7 +2080,7 @@ export default function TeacherProfile({
                                         20 minutes to meet{' '}
                                         {teacher.full_name?.split(' ')[0] ||
                                             'teacher'}{' '}
-                                        — ⅓ of {genderPronoun} lesson price. One
+                                        — ⅓ of {genderPronoun} hourly lesson price. One
                                         per teacher.
                                     </div>
                                 </div>
@@ -2085,7 +2088,10 @@ export default function TeacherProfile({
 
                             <div
                                 className={`ltype ${lessonType === 'full' ? 'sel' : ''}`}
-                                onClick={() => setLessonType('full')}
+                                onClick={() => {
+                                    setLessonType('full');
+                                    setPickedSlot(null);
+                                }}
                             >
                                 <div className="flex items-center justify-between gap-2">
                                     <span
@@ -2136,6 +2142,7 @@ export default function TeacherProfile({
                                             onClick={() => {
                                                 setSelectedDuration(dItem.mins);
                                                 setLessonType('full');
+                                                setPickedSlot(null);
                                             }}
                                         >
                                             {dItem.label}

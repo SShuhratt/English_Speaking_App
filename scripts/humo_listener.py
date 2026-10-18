@@ -153,7 +153,16 @@ async def run_listener():
     await client.run_until_disconnected()
 
 def authorize_client():
-    from telethon import TelegramClient
+    from telethon.sync import TelegramClient
+    from telethon.tl.types.auth import (
+        SentCodeTypeApp,
+        SentCodeTypeSms,
+        SentCodeTypeCall,
+        SentCodeTypeFlashCall,
+        SentCodeTypeMissedCall,
+        SentCodeTypeEmailCode,
+    )
+    import getpass
 
     if not TELEGRAM_API_ID or not TELEGRAM_API_HASH:
         print("Missing TELEGRAM_API_ID or TELEGRAM_API_HASH.")
@@ -164,9 +173,53 @@ def authorize_client():
         api_hash_input = TELEGRAM_API_HASH
 
     client = TelegramClient(str(SESSION_FILE), int(api_id_input), str(api_hash_input))
-    client.start()
-    print("\n✅ Authorization successful! Session saved to:", SESSION_FILE)
-    client.disconnect()
+    client.connect()
+
+    if client.is_user_authorized():
+        me = client.get_me()
+        print(f"\n✅ Already authorized as: {me.first_name} (@{me.username or me.id})")
+        client.disconnect()
+        return
+
+    phone = input("\nEnter your phone number (e.g. +998901234567): ").strip()
+
+    print(f"\nRequesting login code from Telegram for {phone}...")
+    try:
+        sent_code = client.send_code_request(phone)
+        code_type = type(sent_code.type)
+
+        if code_type == SentCodeTypeApp:
+            print("📩 Telegram sent the code inside the official TELEGRAM APP.")
+            print(f"👉 On your phone, switch to account {phone} and check the chat named 'Telegram'.")
+        elif code_type == SentCodeTypeSms:
+            print(f"📱 Telegram sent the code via SMS to {phone}.")
+        elif code_type == SentCodeTypeEmailCode:
+            print("📧 Telegram sent the code to your EMAIL address linked to this Telegram account.")
+        elif code_type in (SentCodeTypeCall, SentCodeTypeFlashCall, SentCodeTypeMissedCall):
+            print("📞 Telegram is calling your phone with the verification code.")
+        else:
+            print(f"ℹ️ Telegram code delivery method: {code_type.__name__}")
+
+        code = input("\nEnter the code you received: ").strip()
+        try:
+            client.sign_in(phone=phone, code=code, phone_code_hash=sent_code.phone_code_hash)
+        except Exception as e:
+            if "SessionPasswordNeeded" in type(e).__name__:
+                pwd = getpass.getpass("\n🔐 Two-step verification (2FA) is enabled. Enter your Telegram password: ")
+                client.sign_in(password=pwd)
+            else:
+                raise e
+
+        me = client.get_me()
+        print(f"\n✅ Authorization successful! Logged in as: {me.first_name} (@{me.username or me.id})")
+        print(f"Session saved to: {SESSION_FILE}")
+    except Exception as e:
+        print(f"\n❌ Authorization failed: {e}")
+    finally:
+        try:
+            client.disconnect()
+        except Exception:
+            pass
 
 def main():
     parser = argparse.ArgumentParser(description="Humo Telegram notification listener daemon.")

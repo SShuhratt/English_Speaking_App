@@ -3074,69 +3074,6 @@ export default function Availability({
                                 </div>
                             </div>
 
-                            {/* Slot Duration */}
-                            <div className="grid gap-1.5">
-                                <Label
-                                    htmlFor="slot_duration"
-                                    className="text-xs font-semibold"
-                                >
-                                    {t.slotDuration}
-                                </Label>
-                                <div className="flex gap-2">
-                                    <Select
-                                        value={
-                                            isCustomDuration
-                                                ? 'custom'
-                                                : String(data.slot_duration)
-                                        }
-                                        onValueChange={handleSlotDurationChange}
-                                    >
-                                        <SelectTrigger className="w-full rounded-xl">
-                                            <SelectValue
-                                                placeholder={t.slotDuration}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="15">
-                                                15 {t.minSlots}
-                                            </SelectItem>
-                                            <SelectItem value="30">
-                                                30 {t.minSlots}
-                                            </SelectItem>
-                                            <SelectItem value="45">
-                                                45 {t.minSlots}
-                                            </SelectItem>
-                                            <SelectItem value="60">
-                                                60 {t.minSlots}
-                                            </SelectItem>
-                                            <SelectItem value="0">
-                                                {t.slotDurationAll}
-                                            </SelectItem>
-                                            <SelectItem value="custom">
-                                                {t.slotDurationCustom}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {isCustomDuration && (
-                                        <div className="w-32 shrink-0">
-                                            <Input
-                                                type="number"
-                                                min="1"
-                                                max="720"
-                                                value={customMinutes}
-                                                onChange={(e) =>
-                                                    handleCustomMinutesChange(
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder={t.enterMinutes}
-                                                className="rounded-xl"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
                             {/* Dynamic Past-Time Filter Notice */}
                             {(() => {
                                 const notice = getPastTimeNotice();

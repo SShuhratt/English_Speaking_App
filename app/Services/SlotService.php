@@ -225,28 +225,20 @@ class SlotService
                 $tz
             );
 
-            $slotDur = (isset($availability->slot_duration) && $availability->slot_duration !== null) ? (int) $availability->slot_duration : 30;
+            $slotDur = 30;
 
-            if ($slotDur === 0) {
+            while (
+                $current
+                    ->copy()
+                    ->addMinutes($slotDur)
+                    ->lte($end)
+            ) {
                 $slots->push([
                     'start_at' => $current->copy(),
-                    'end_at' => $end->copy(),
-                    'is_all_time' => true,
+                    'end_at' => $current->copy()->addMinutes($slotDur),
                 ]);
-            } else {
-                while (
-                    $current
-                        ->copy()
-                        ->addMinutes($slotDur)
-                        ->lte($end)
-                ) {
-                    $slots->push([
-                        'start_at' => $current->copy(),
-                        'end_at' => $current->copy()->addMinutes($slotDur),
-                    ]);
 
-                    $current = $current->addMinutes($slotDur);
-                }
+                $current = $current->addMinutes($slotDur);
             }
         }
 
@@ -263,28 +255,20 @@ class SlotService
             $tz = $availability->timezone ?: PlatformTime::businessTimezone();
             $current = $availability->start_at->copy()->setTimezone($tz);
             $end = $availability->end_at->copy()->setTimezone($tz);
-            $slotDur = (isset($availability->slot_duration) && $availability->slot_duration !== null) ? (int) $availability->slot_duration : 30;
+            $slotDur = 30;
 
-            if ($slotDur === 0) {
+            while (
+                $current
+                    ->copy()
+                    ->addMinutes($slotDur)
+                    ->lte($end)
+            ) {
                 $slots->push([
                     'start_at' => $current->copy(),
-                    'end_at' => $end->copy(),
-                    'is_all_time' => true,
+                    'end_at' => $current->copy()->addMinutes($slotDur),
                 ]);
-            } else {
-                while (
-                    $current
-                        ->copy()
-                        ->addMinutes($slotDur)
-                        ->lte($end)
-                ) {
-                    $slots->push([
-                        'start_at' => $current->copy(),
-                        'end_at' => $current->copy()->addMinutes($slotDur),
-                    ]);
 
-                    $current = $current->addMinutes($slotDur);
-                }
+                $current = $current->addMinutes($slotDur);
             }
         }
 

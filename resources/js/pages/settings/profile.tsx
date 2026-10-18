@@ -131,7 +131,7 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<PageProps>().props;
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const [selectedCertForPreview, setSelectedCertForPreview] = React.useState<CertificateData | null>(null);
 
     const isImageFile = (url: string) => {
@@ -1511,20 +1511,36 @@ export default function Profile({
                                     <div className="space-y-4 pt-4">
                                         <div>
                                             <h2 className="text-xl font-bold tracking-tight text-[#1E2A5A] dark:text-white">
-                                                Your rate
+                                                {locale === 'uz'
+                                                    ? 'Soatlik narxingiz'
+                                                    : locale === 'ru'
+                                                      ? 'Ваша почасовая ставка'
+                                                      : 'Hourly rate'}
                                             </h2>
                                             <p className="text-[13.5px] text-[#6B7394] dark:text-gray-400">
-                                                Per 30-minute session. You can
-                                                change it anytime — existing
-                                                bookings keep their price.
+                                                {locale === 'uz'
+                                                    ? '60 daqiqalik dars uchun. Istalgan vaqtda o‘zgartirishingiz mumkin — mavjud bandlovlar o‘z narxini saqlab qoladi.'
+                                                    : locale === 'ru'
+                                                      ? 'За 60-минутный урок. Вы можете изменить её в любое время — текущие бронирования сохранят прежнюю цену.'
+                                                      : 'Per 60-minute session. You can change it anytime — existing bookings keep their price.'}
                                             </p>
                                         </div>
                                         <div className="rounded-[22px] border border-[#E6E9F2] bg-white p-6 dark:border-white/10 dark:bg-card">
                                             <div className="space-y-1.5">
                                                 <label className="text-sm font-bold text-[#22284A] dark:text-white">
-                                                    Price per session{' '}
+                                                    {locale === 'uz'
+                                                        ? 'Soatlik narx'
+                                                        : locale === 'ru'
+                                                          ? 'Почасовая ставка'
+                                                          : 'Hourly rate'}{' '}
                                                     <span className="ml-1 text-xs font-normal text-[#6B7394] dark:text-gray-400">
-                                                        (optional)
+                                                        (
+                                                        {locale === 'uz'
+                                                            ? 'ixtiyoriy'
+                                                            : locale === 'ru'
+                                                              ? 'необязательно'
+                                                              : 'optional'}
+                                                        )
                                                     </span>
                                                 </label>
                                                 <div className="relative">
@@ -1540,11 +1556,15 @@ export default function Profile({
                                                             )
                                                         }
                                                         inputMode="numeric"
-                                                        placeholder="45 000"
+                                                        placeholder="80 000"
                                                         className="w-full rounded-[14px] border border-[#E6E9F2] bg-white py-3.5 pr-28 pl-4 text-base text-[#22284A] transition-all focus:border-[#1E2A5A] focus:ring-3 focus:ring-[#A9C6E8]/35 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-brand-yellow dark:focus:ring-brand-yellow/20"
                                                     />
                                                     <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[13.5px] font-bold text-[#6B7394] dark:text-gray-400">
-                                                        so'm / 30 min
+                                                        {locale === 'uz'
+                                                            ? "so'm / soat"
+                                                            : locale === 'ru'
+                                                              ? 'сум / час'
+                                                              : "so'm / hour"}
                                                     </span>
                                                     <input
                                                         type="hidden"
@@ -1556,12 +1576,53 @@ export default function Profile({
                                                     />
                                                 </div>
                                                 <div className="mt-2 text-[12.5px] text-[#6B7394] select-none dark:text-gray-400">
-                                                    Most teachers with your
-                                                    scores charge{' '}
-                                                    <b className="dark:text-white">40 000 – 60 000 so'm</b>.
-                                                    New teachers often start
-                                                    lower to collect first
-                                                    reviews.
+                                                    {locale === 'uz' ? (
+                                                        <>
+                                                            Sizning
+                                                            darajangizdagi
+                                                            o‘qituvchilar
+                                                            odatda{' '}
+                                                            <b className="dark:text-white">
+                                                                80 000 – 120 000
+                                                                so‘m
+                                                            </b>{' '}
+                                                            soatlik haq oladi.
+                                                            Yangi o‘qituvchilar
+                                                            dastlabki
+                                                            fikr-mulohazalarni
+                                                            to‘plash uchun
+                                                            pastroq narxdan
+                                                            boshlashadi.
+                                                        </>
+                                                    ) : locale === 'ru' ? (
+                                                        <>
+                                                            Преподаватели с
+                                                            вашим уровнем обычно
+                                                            берут{' '}
+                                                            <b className="dark:text-white">
+                                                                80 000 – 120 000
+                                                                сум
+                                                            </b>{' '}
+                                                            в час. Новые
+                                                            преподаватели часто
+                                                            начинают с меньшей
+                                                            суммы для первых
+                                                            отзывов.
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            Most teachers with
+                                                            your scores charge{' '}
+                                                            <b className="dark:text-white">
+                                                                80 000 – 120 000
+                                                                so'm
+                                                            </b>{' '}
+                                                            per hour. New
+                                                            teachers often start
+                                                            lower to collect
+                                                            first reviews.
+                                                        </>
+                                                    )}
                                                 </div>
                                                 <InputError
                                                     message={errors.price}

@@ -102,7 +102,7 @@ class TeacherSectionsTest extends TestCase
             'days_of_week' => $allDays,
             'start_time' => '10:00',
             'end_time' => '21:00',
-            'slot_duration' => 60,
+            'slot_duration' => 30,
         ]);
 
         $response->assertRedirect();
@@ -111,7 +111,7 @@ class TeacherSectionsTest extends TestCase
             ->where('type', 'recurring')
             ->where('start_time', '10:00:00')
             ->where('end_time', '21:00:00')
-            ->where('slot_duration', 60)
+            ->where('slot_duration', 30)
             ->count();
 
         $this->assertEquals(7, $count);
@@ -259,7 +259,7 @@ class TeacherSectionsTest extends TestCase
             'day_of_week' => 'tuesday',
             'start_time' => '10:00',
             'end_time' => '18:00',
-            'slot_duration' => 45,
+            'slot_duration' => 30,
         ]);
 
         $response->assertRedirect();
@@ -269,7 +269,7 @@ class TeacherSectionsTest extends TestCase
             'day_of_week' => 'tuesday',
             'start_time' => '10:00:00',
             'end_time' => '18:00:00',
-            'slot_duration' => 45,
+            'slot_duration' => 30,
         ]);
     }
 
