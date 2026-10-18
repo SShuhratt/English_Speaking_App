@@ -9,10 +9,11 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\SerializesModels;
 
 class BookingRequestedNotification extends Notification implements ShouldQueue
 {
-    use HasNotificationTips, Queueable;
+    use HasNotificationTips, Queueable, SerializesModels;
 
     public function __construct(
         public Appointment $appointment

@@ -328,6 +328,7 @@ class BookingService
                     Log::error('Failed to broadcast booking update on approval: '.$e->getMessage());
                 }
                 try {
+                    $appointment->loadMissing(['teacher', 'pupil']);
                     $appointment->pupil?->notify(new TeacherApprovedNotification($appointment));
                 } catch (\Exception $e) {
                     Log::error('Failed to dispatch TeacherApprovedNotification: '.$e->getMessage());

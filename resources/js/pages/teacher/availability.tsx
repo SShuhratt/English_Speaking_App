@@ -466,6 +466,79 @@ const localeMap = {
     ru: 'ru-RU',
 };
 
+const DAY_NAMES_BY_INDEX = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+] as const;
+
+const tashkentFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tashkent',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+});
+
+const parseDateCache = new Map<string, Date>();
+
+export function parseUtcDate(dateStr: string): Date {
+    if (!dateStr) return new Date();
+    const cached = parseDateCache.get(dateStr);
+    if (cached) return new Date(cached.getTime());
+
+    let d: Date;
+    if (
+        !dateStr.endsWith('Z') &&
+        !dateStr.includes('+') &&
+        !/-\d{2}:\d{2}$/.test(dateStr)
+    ) {
+        d = new Date(dateStr.replace(' ', 'T') + 'Z');
+    } else {
+        d = new Date(dateStr);
+    }
+
+    try {
+        const parts = tashkentFormatter.formatToParts(d);
+        const getPart = (type: string) =>
+            parts.find((p) => p.type === type)?.value || '0';
+        const year = parseInt(getPart('year'), 10);
+        const month = parseInt(getPart('month'), 10) - 1;
+        const day = parseInt(getPart('day'), 10);
+        let hour = parseInt(getPart('hour'), 10);
+        if (hour === 24) hour = 0;
+        const minute = parseInt(getPart('minute'), 10);
+        const second = parseInt(getPart('second'), 10);
+        const parsed = new Date(year, month, day, hour, minute, second);
+
+        if (parseDateCache.size > 2000) {
+            parseDateCache.clear();
+        }
+        parseDateCache.set(dateStr, parsed);
+        return new Date(parsed.getTime());
+    } catch {
+        return d;
+    }
+}
+
+export function formatDateString(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+export function getWeekdayName(date: Date): string {
+    return DAY_NAMES_BY_INDEX[date.getDay()];
+}
+
 export default function Availability({
     availabilities,
     appointments = [],
@@ -716,58 +789,6 @@ export default function Availability({
         });
     };
 
-    const getWeekdayName = (date: Date) => {
-        return date
-            .toLocaleDateString('en-US', { weekday: 'long' })
-            .toLowerCase();
-    };
-
-    const formatDateString = (date: Date) => {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    };
-
-    const parseUtcDate = (dateStr: string) => {
-        if (!dateStr) return new Date();
-        let d: Date;
-        if (
-            !dateStr.endsWith('Z') &&
-            !dateStr.includes('+') &&
-            !/-\d{2}:\d{2}$/.test(dateStr)
-        ) {
-            d = new Date(dateStr.replace(' ', 'T') + 'Z');
-        } else {
-            d = new Date(dateStr);
-        }
-
-        try {
-            const formatter = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'Asia/Tashkent',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false,
-            });
-            const parts = formatter.formatToParts(d);
-            const getPart = (type: string) =>
-                parts.find((p) => p.type === type)?.value || '0';
-            const year = parseInt(getPart('year'), 10);
-            const month = parseInt(getPart('month'), 10) - 1;
-            const day = parseInt(getPart('day'), 10);
-            let hour = parseInt(getPart('hour'), 10);
-            if (hour === 24) hour = 0;
-            const minute = parseInt(getPart('minute'), 10);
-            const second = parseInt(getPart('second'), 10);
-            return new Date(year, month, day, hour, minute, second);
-        } catch {
-            return d;
-        }
-    };
 
     const [rangeStartVal, setRangeStartVal] = useState('');
     const [rangeEndVal, setRangeEndVal] = useState('');
@@ -1007,34 +1028,75 @@ export default function Availability({
         return weekDays;
     };
 
-    const matchCustomAvailability = (avail: any, dateStr: string) => {
-        if (!avail.start_at) return false;
-        const localDate = parseUtcDate(avail.start_at);
-        return formatDateString(localDate) === dateStr;
-    };
+    const {
+        activeCustomByDate,
+        blackoutsByDate,
+        activeRecurringByDay,
+    } = useMemo(() => {
+        const activeCustom = new Map<string, any[]>();
+        const blackouts = new Map<string, any[]>();
+        const activeRecurring = new Map<string, any[]>();
 
-    const getAvailabilitiesForDate = (date: Date) => {
-        const dayName = getWeekdayName(date);
-        const dateStr = formatDateString(date);
-
-        const hasActiveCustomOnDate = availabilities.some(
-            (avail) =>
-                avail.type === 'custom' &&
-                avail.is_active !== false &&
-                matchCustomAvailability(avail, dateStr),
-        );
-
-        return availabilities.filter((avail) => {
-            if (avail.is_active === false) return false;
+        (availabilities || []).forEach((avail) => {
             if (avail.type === 'custom') {
-                return showCustom && matchCustomAvailability(avail, dateStr);
-            } else {
-                if (hasActiveCustomOnDate) {
-                    return false;
+                if (!avail.start_at) return;
+                const localDate = parseUtcDate(avail.start_at);
+                const dateStr = formatDateString(localDate);
+                if (avail.is_active === false) {
+                    const list = blackouts.get(dateStr) || [];
+                    list.push({
+                        ...avail,
+                        startMs: parseUtcDate(avail.start_at).getTime(),
+                        endMs: parseUtcDate(avail.end_at).getTime(),
+                    });
+                    blackouts.set(dateStr, list);
+                } else {
+                    const list = activeCustom.get(dateStr) || [];
+                    list.push(avail);
+                    activeCustom.set(dateStr, list);
                 }
-                return showRecurring && avail.day_of_week === dayName;
+            } else if (avail.type === 'recurring') {
+                if (avail.is_active !== false && avail.day_of_week) {
+                    const dayKey = avail.day_of_week.toLowerCase();
+                    const list = activeRecurring.get(dayKey) || [];
+                    list.push(avail);
+                    activeRecurring.set(dayKey, list);
+                }
             }
         });
+
+        return {
+            activeCustomByDate: activeCustom,
+            blackoutsByDate: blackouts,
+            activeRecurringByDay: activeRecurring,
+        };
+    }, [availabilities]);
+
+    const parsedAppointments = useMemo(() => {
+        return (appointments || []).map((app: any) => ({
+            raw: app,
+            status: app.status,
+            cancellation_reason: app.cancellation_reason,
+            payment_status: app.payment_status,
+            startMs: parseUtcDate(app.start_at).getTime(),
+            endMs: parseUtcDate(app.end_at).getTime(),
+            updatedMs: app.updated_at ? parseUtcDate(app.updated_at).getTime() : 0,
+        }));
+    }, [appointments]);
+
+    const getAvailabilitiesForDate = (date: Date) => {
+        const dateStr = formatDateString(date);
+        const dayName = getWeekdayName(date);
+
+        const customForDate = activeCustomByDate.get(dateStr) || [];
+        const hasActiveCustomOnDate = customForDate.length > 0;
+
+        if (hasActiveCustomOnDate) {
+            return showCustom ? customForDate : [];
+        }
+
+        if (!showRecurring) return [];
+        return activeRecurringByDay.get(dayName) || [];
     };
 
     const hasAvailability = (date: Date) => {
@@ -1042,21 +1104,32 @@ export default function Availability({
         return slots.length > 0;
     };
 
+    const slotCache = useMemo(() => new Map<string, any[]>(), [
+        availabilities,
+        appointments,
+        showCustom,
+        showRecurring,
+        nowTime,
+    ]);
+
     const getSlotsWithStatusForDate = (colDate: Date) => {
+        const dateStr = formatDateString(colDate);
+        if (slotCache.has(dateStr)) {
+            return slotCache.get(dateStr)!;
+        }
+
         const avails = getAvailabilitiesForDate(colDate);
-        if (avails.length === 0) return [];
+        if (avails.length === 0) {
+            slotCache.set(dateStr, []);
+            return [];
+        }
 
         const now = parseUtcDate(new Date().toISOString());
-        const dateStr = formatDateString(colDate);
+        const nowMs = now.getTime();
         const slotsList: any[] = [];
 
         // Inactive custom overrides (blackout windows for specific dates)
-        const blackouts = availabilities.filter(
-            (avail) =>
-                avail.type === 'custom' &&
-                avail.is_active === false &&
-                matchCustomAvailability(avail, dateStr),
-        );
+        const blackouts = blackoutsByDate.get(dateStr) || [];
 
         avails.forEach((avail) => {
             let startH = 9,
@@ -1120,14 +1193,12 @@ export default function Availability({
                     eM,
                     0,
                 );
+                const sStartMs = slotStart.getTime();
+                const sEndMs = slotEnd.getTime();
 
                 // Check if this slot overlaps with any blackout custom record
                 const isBlackedOut = blackouts.some((b) => {
-                    const bStart = parseUtcDate(b.start_at).getTime();
-                    const bEnd = parseUtcDate(b.end_at).getTime();
-                    return (
-                        bStart < slotEnd.getTime() && bEnd > slotStart.getTime()
-                    );
+                    return b.startMs < sEndMs && b.endMs > sStartMs;
                 });
 
                 if (isBlackedOut) {
@@ -1135,7 +1206,7 @@ export default function Availability({
                     continue;
                 }
 
-                const matchingApp = (appointments || []).find((app: any) => {
+                const matchingParsedApp = parsedAppointments.find((app) => {
                     if (app.status === 'cancelled') {
                         if (
                             app.cancellation_reason ===
@@ -1143,27 +1214,20 @@ export default function Availability({
                         ) {
                             // Keep matching expired bookings so they render as expired on the schedule
                         } else {
-                            const cancelledAt = app.updated_at
-                                ? parseUtcDate(app.updated_at)
-                                : now;
-                            const appStart = parseUtcDate(app.start_at);
-                            if (cancelledAt.getTime() <= appStart.getTime()) {
+                            const cancelledAtMs = app.updatedMs || nowMs;
+                            if (cancelledAtMs <= app.startMs) {
                                 return false; // restored slot!
                             }
                         }
                     }
-                    const appStart = parseUtcDate(app.start_at).getTime();
-                    const appEnd = parseUtcDate(app.end_at).getTime();
-                    const sStartMs = slotStart.getTime();
-                    const sEndMs = slotEnd.getTime();
-                    return appStart < sEndMs && appEnd > sStartMs;
+                    return app.startMs < sEndMs && app.endMs > sStartMs;
                 });
+
+                const matchingApp = matchingParsedApp ? matchingParsedApp.raw : null;
 
                 let status = 'available';
                 if (matchingApp) {
-                    const isConvExpired =
-                        now.getTime() >=
-                        parseUtcDate(matchingApp.end_at).getTime();
+                    const isConvExpired = nowMs >= matchingParsedApp!.endMs;
 
                     if (
                         matchingApp.cancellation_reason ===
@@ -1185,7 +1249,7 @@ export default function Availability({
                         matchingApp.status === 'confirmed' ||
                         matchingApp.payment_status === 'paid'
                     ) {
-                        if (now.getTime() >= slotEnd.getTime()) {
+                        if (nowMs >= sEndMs) {
                             status = 'completed';
                         } else {
                             status = 'booked';
@@ -1193,7 +1257,7 @@ export default function Availability({
                     }
                 } else {
                     // Omit unbooked past slots so the UI is not cluttered with expired badges
-                    if (now.getTime() >= slotStart.getTime()) {
+                    if (nowMs >= sStartMs) {
                         currMinutes += slotDur;
                         continue;
                     }
@@ -1218,6 +1282,7 @@ export default function Availability({
             }
         });
 
+        slotCache.set(dateStr, slotsList);
         return slotsList;
     };
 
@@ -1355,6 +1420,7 @@ export default function Availability({
     };
 
     const upcomingDaysList = useMemo(() => {
+        if (!isClearDaysModalOpen) return [];
         const list: {
             dateStr: string;
             dayLabel: string;
@@ -1376,11 +1442,8 @@ export default function Availability({
                 day: 'numeric',
             });
             const slots = getSlotsWithStatusForDate(d);
-            const hasRecurring = availabilities.some(
-                (a) =>
-                    a.type === 'recurring' &&
-                    a.day_of_week === dayName &&
-                    a.is_active !== false,
+            const hasRecurring = Boolean(
+                activeRecurringByDay.get(dayName)?.length,
             );
             list.push({
                 dateStr,
@@ -1390,7 +1453,15 @@ export default function Availability({
             });
         }
         return list;
-    }, [availabilities, appointments, showCustom, showRecurring, lang]);
+    }, [
+        isClearDaysModalOpen,
+        availabilities,
+        appointments,
+        showCustom,
+        showRecurring,
+        lang,
+        activeRecurringByDay,
+    ]);
 
     const handleSelectAllDaysWithSlots = () => {
         const daysWithSlots = upcomingDaysList

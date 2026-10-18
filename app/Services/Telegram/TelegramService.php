@@ -71,7 +71,30 @@ class TelegramService
             ];
 
             if ($replyMarkup) {
-                $payload['reply_markup'] = json_encode($replyMarkup);
+                if (isset($replyMarkup['inline_keyboard']) && is_array($replyMarkup['inline_keyboard'])) {
+                    $sanitizedKeyboard = [];
+                    foreach ($replyMarkup['inline_keyboard'] as $row) {
+                        $sanitizedRow = [];
+                        foreach ($row as $button) {
+                            if (isset($button['url']) && ! str_starts_with($button['url'], 'https://') && ! str_starts_with($button['url'], 'tg://')) {
+                                continue;
+                            }
+                            $sanitizedRow[] = $button;
+                        }
+                        if (! empty($sanitizedRow)) {
+                            $sanitizedKeyboard[] = $sanitizedRow;
+                        }
+                    }
+                    if (empty($sanitizedKeyboard)) {
+                        $replyMarkup = null;
+                    } else {
+                        $replyMarkup['inline_keyboard'] = $sanitizedKeyboard;
+                    }
+                }
+
+                if ($replyMarkup) {
+                    $payload['reply_markup'] = json_encode($replyMarkup, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                }
             }
 
             $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->token}/sendMessage", $payload);
