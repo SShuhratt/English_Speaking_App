@@ -221,37 +221,6 @@ class TeacherAvailabilityController extends Controller
             $errKey = $cDay['error_key'];
             $dayName = strtolower(Carbon::parse($dayStr, $tz)->format('l'));
 
-            // Check if there is an active recurring rule for this weekday
-            $recurringRule = TeacherAvailability::where('teacher_id', $teacherId)
-                ->where('type', 'recurring')
-                ->where('is_active', true)
-                ->where('day_of_week', $dayName)
-                ->first();
-
-            if ($recurringRule) {
-                // Must be cleared for this date first (blackout covering the recurring window or whole day)
-                $recStartUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->start_time}");
-                $recEndUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->end_time}");
-
-                $isDateCleared = TeacherAvailability::where('teacher_id', $teacherId)
-                    ->where('type', 'custom')
-                    ->where('is_active', false)
-                    ->where('start_at', '<=', $recStartUtc)
-                    ->where('end_at', '>=', $recEndUtc)
-                    ->exists();
-
-                if (! $isDateCleared) {
-                    return back()->withErrors([
-                        $errKey => __('availability.recurring_clear_required', [
-                            'day' => __('availability.days.'.$dayName),
-                            'start' => substr($recurringRule->start_time, 0, 5),
-                            'end' => substr($recurringRule->end_time, 0, 5),
-                            'date' => $dayStr,
-                        ]),
-                    ]);
-                }
-            }
-
             // Check if any overlapping custom chunks have booked appointments outside the new window
             $dayStartUtc = PlatformTime::toUtc($dayStart);
             $dayEndUtc = PlatformTime::toUtc($dayEnd);
@@ -443,35 +412,6 @@ class TeacherAvailabilityController extends Controller
             $newEndLocal = PlatformTime::toLocal($newEndUtc);
             $dayStr = $newStartLocal->format('Y-m-d');
             $dayName = strtolower($newStartLocal->format('l'));
-
-            $recurringRule = TeacherAvailability::where('teacher_id', $teacherId)
-                ->where('type', 'recurring')
-                ->where('is_active', true)
-                ->where('day_of_week', $dayName)
-                ->first();
-
-            if ($recurringRule) {
-                $recStartUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->start_time}");
-                $recEndUtc = PlatformTime::toUtc("{$dayStr} {$recurringRule->end_time}");
-
-                $isDateCleared = TeacherAvailability::where('teacher_id', $teacherId)
-                    ->where('type', 'custom')
-                    ->where('is_active', false)
-                    ->where('start_at', '<=', $recStartUtc)
-                    ->where('end_at', '>=', $recEndUtc)
-                    ->exists();
-
-                if (! $isDateCleared) {
-                    return back()->withErrors([
-                        'start_at' => __('availability.recurring_clear_required', [
-                            'day' => __('availability.days.'.$dayName),
-                            'start' => substr($recurringRule->start_time, 0, 5),
-                            'end' => substr($recurringRule->end_time, 0, 5),
-                            'date' => $dayStr,
-                        ]),
-                    ]);
-                }
-            }
 
             $overlappingCustoms = TeacherAvailability::where('teacher_id', $teacherId)
                 ->where('type', 'custom')

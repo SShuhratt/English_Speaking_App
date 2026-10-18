@@ -68,6 +68,30 @@ class SlotService
                     $recurringSlots
                 );
 
+                $dayRange = PlatformTime::localDayRangeInUtc($day->format('Y-m-d'));
+                $activeCustoms = TeacherAvailability::query()
+                    ->where('teacher_id', $teacherId)
+                    ->where('type', 'custom')
+                    ->where('is_active', true)
+                    ->where('start_at', '<=', $dayRange['end'])
+                    ->where('end_at', '>=', $dayRange['start'])
+                    ->get();
+
+                if ($activeCustoms->isNotEmpty()) {
+                    $recurringSlots = $recurringSlots->filter(function ($slot) use ($activeCustoms) {
+                        $slotStart = $slot['start_at'];
+                        $slotEnd = $slot['end_at'];
+
+                        foreach ($activeCustoms as $custom) {
+                            if ($slotStart < $custom->end_at && $slotEnd > $custom->start_at) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    });
+                }
+
                 $slots = $slots->merge($recurringSlots);
 
                 $slots = $slots->merge(
@@ -132,19 +156,6 @@ class SlotService
         $slots = collect();
         $dateStr = $date->format('Y-m-d');
         $dayRange = PlatformTime::localDayRangeInUtc($dateStr);
-
-        // If this specific date has active custom availability, custom hours override recurring rules
-        $hasActiveCustom = TeacherAvailability::query()
-            ->where('teacher_id', $teacherId)
-            ->where('type', 'custom')
-            ->where('is_active', true)
-            ->where('start_at', '<=', $dayRange['end'])
-            ->where('end_at', '>=', $dayRange['start'])
-            ->exists();
-
-        if ($hasActiveCustom) {
-            return collect();
-        }
 
         // Generate recurring slots for yesterday, today, and tomorrow to handle timezone shifts
         foreach ([$date->copy()->subDay(), $date, $date->copy()->addDay()] as $targetDate) {

@@ -568,12 +568,8 @@ function PupilDashboard({
                 </div>
             )}
 
-            {/* Mobile Upcoming Session (Displayed on top below greeting/reminders when sessions exist) */}
-            {appointments.length > 0 && (
-                <div className="md:hidden">
-                    {renderUpcomingSessions()}
-                </div>
-            )}
+            {/* Upcoming Sessions (Displayed on top above speaking overview and packs when sessions exist) */}
+            {appointments.length > 0 && renderUpcomingSessions()}
 
             {/* Stats Cards Grid */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -765,13 +761,7 @@ function PupilDashboard({
                 return (
                     <>
                         {activePacksSection}
-                        {appointments.length > 0 ? (
-                            <div className="hidden md:block">
-                                {renderUpcomingSessions()}
-                            </div>
-                        ) : (
-                            renderUpcomingSessions()
-                        )}
+                        {appointments.length === 0 && renderUpcomingSessions()}
                     </>
                 );
             })()}
@@ -894,6 +884,205 @@ function TeacherDashboard({
         }
     };
 
+    const renderScheduleCard = (isTop: boolean) => (
+        <div className="shadow-ambient flex flex-col justify-between rounded-3xl bg-white p-6 md:p-8 dark:border dark:border-white/10 dark:bg-card">
+            <div>
+                <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                    <div>
+                        <h2 className="flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f] dark:text-white">
+                            <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445] dark:bg-brand-yellow"></span>
+                            <span>{t('dashboard.todays_schedule')}</span>
+                        </h2>
+                        {isTop && (
+                            <p className="mt-1 text-xs text-[#6B7394] dark:text-slate-400">
+                                {appointments.length === 1
+                                    ? t('dashboard.one_session_today') || 'You have 1 session scheduled today'
+                                    : `${appointments.length} sessions scheduled today`}
+                            </p>
+                        )}
+                    </div>
+                    {isTop && (
+                        <Link
+                            href="/teacher/schedule"
+                            className="inline-flex items-center gap-1.5 self-start rounded-full border border-brand-lightblue bg-brand-lightblue/30 px-3.5 py-1.5 text-xs font-bold text-brand-brown transition duration-150 hover:bg-[#d0e4ff]/60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 sm:self-auto"
+                        >
+                            <span>{t('dashboard.view_calendar')}</span>
+                            <ChevronRight className="h-3.5 w-3.5" />
+                        </Link>
+                    )}
+                </div>
+
+                {appointments.length > 0 ? (
+                    <div className="flex flex-col gap-4">
+                        {appointments.map((apt) => {
+                            const start = new Date(apt.start_at);
+                            const end = new Date(apt.end_at);
+                            const durationMin = Math.round(
+                                (end.getTime() - start.getTime()) /
+                                    60000,
+                            );
+
+                            return (
+                                <div
+                                    key={apt.id}
+                                    className="hover:shadow-ambient-md flex items-center gap-4 rounded-3xl border border-[#d0e4ff] bg-[#d0e4ff]/5 p-4 transition-all dark:border-white/10 dark:bg-[#070e24]"
+                                >
+                                    <div className="flex flex-col items-center justify-center rounded-2xl border border-[#c6c5d0]/60 bg-white px-3 py-2.5 text-center shadow-sm dark:border-white/10 dark:bg-card">
+                                        <span className="text-xs font-bold text-[#061445] uppercase dark:text-white">
+                                            {start.toLocaleTimeString(
+                                                locale,
+                                                {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                },
+                                            )}
+                                        </span>
+                                        <span className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
+                                            {formatDuration(durationMin, locale)}
+                                        </span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-sm font-bold text-[#1b1b1f] dark:text-white">
+                                            {t(
+                                                'dashboard.conversation_practice',
+                                            )}
+                                        </h4>
+                                        <p className="text-xs font-semibold text-[#45464f] dark:text-muted-foreground">
+                                            {(() => {
+                                                const textWithPlaceholder =
+                                                    t(
+                                                        'dashboard.with_pupil',
+                                                        {
+                                                            name: '__NAME__',
+                                                        },
+                                                    );
+                                                const parts =
+                                                    textWithPlaceholder.split(
+                                                        '__NAME__',
+                                                    );
+                                                const pupilLink =
+                                                    apt.pupil ? (
+                                                        <Link
+                                                            href={`/profile/${apt.pupil.id}`}
+                                                            className="font-bold text-[#061445] dark:text-brand-yellow hover:underline"
+                                                        >
+                                                            {
+                                                                apt
+                                                                    .pupil
+                                                                    .full_name
+                                                            }
+                                                        </Link>
+                                                    ) : (
+                                                        'Pupil'
+                                                    );
+
+                                                return (
+                                                    <>
+                                                        {parts[0]}
+                                                        {pupilLink}
+                                                        {parts[1] || ''}
+                                                    </>
+                                                );
+                                            })()}
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {apt.status === 'accepted' ? (
+                                            <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[10px] font-black tracking-wider text-amber-800 uppercase dark:border-amber-500/30 dark:bg-amber-950/60 dark:text-amber-300">
+                                                {t('sessions.awaiting_payment')}
+                                            </span>
+                                        ) : (
+                                            <TeacherMeetingButton
+                                                apt={apt}
+                                                handleStart={
+                                                    handleStart
+                                                }
+                                                startingAptId={
+                                                    startingAptId
+                                                }
+                                            />
+                                        )}
+                                        <button
+                                            onClick={() =>
+                                                handleCancel(apt.id)
+                                            }
+                                            className="cursor-pointer rounded-full border border-destructive/20 px-3 py-2 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
+                                        >
+                                            {t(
+                                                'dashboard.cancel_button',
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center space-y-4 px-4 py-10 text-center">
+                        <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-brand-lightblue/30 bg-brand-lightblue/25 text-3xl text-brand-brown dark:border-white/10 dark:bg-white/10 dark:text-white">
+                            🗓️
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="font-bold text-[#1b1b1f] dark:text-white">
+                                {t('dashboard.no_appointments_today')}
+                            </h4>
+                            <p className="mx-auto max-w-xs text-sm text-[#45464f] dark:text-slate-400">
+                                {t(
+                                    'dashboard.no_appointments_today_desc',
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {!isTop && (
+                <Link
+                    href="/teacher/schedule"
+                    className="mt-4 block w-full rounded-full border border-brand-lightblue bg-brand-lightblue/30 py-3 text-center font-semibold text-brand-brown transition duration-150 hover:bg-[#d0e4ff]/60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                >
+                    {t('dashboard.view_calendar')}
+                </Link>
+            )}
+        </div>
+    );
+
+    const renderFeedbackCard = () => (
+        <div className="shadow-ambient flex flex-col justify-between rounded-3xl bg-white p-6 md:p-8 dark:border dark:border-white/10 dark:bg-card">
+            <div>
+                <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f] dark:text-white">
+                    <span className="inline-block h-5 w-2.5 rounded-sm bg-emerald-500"></span>
+                    <span>{t('dashboard.pending_feedback')}</span>
+                </h2>
+
+                <div className="flex flex-col items-center space-y-4 px-4 py-10 text-center">
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-4xl text-emerald-500 shadow-inner dark:bg-emerald-950/50 dark:text-emerald-400">
+                        <CheckCircle2 className="h-10 w-10 text-emerald-500 dark:text-emerald-400" />
+                        <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs shadow-sm">
+                            🎉
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <h4 className="text-lg font-extrabold text-emerald-900 dark:text-emerald-300">
+                            {t('dashboard.all_caught_up')}
+                        </h4>
+                        <p className="mx-auto max-w-xs text-sm font-medium text-emerald-700/70 dark:text-emerald-400/80">
+                            {t('dashboard.all_caught_up_desc')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <Link
+                href="/teacher/sessions"
+                className="mt-4 block w-full rounded-full bg-emerald-600 py-3 text-center font-bold text-white shadow-md shadow-emerald-100 transition duration-150 hover:bg-emerald-700 dark:bg-emerald-600"
+            >
+                {t('dashboard.check_history')}
+            </Link>
+        </div>
+    );
+
     return (
         <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8">
             {/* Header Banner */}
@@ -962,6 +1151,9 @@ function TeacherDashboard({
 
             {/* Phone Number Reminder Banner */}
             <PhoneNumberReminderBanner user={user} />
+
+            {/* Upcoming Sessions / Today's Schedule (Displayed above speaking overview when sessions exist) */}
+            {appointments.length > 0 && renderScheduleCard(true)}
 
             {/* Stats grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -1092,182 +1284,62 @@ function TeacherDashboard({
             </div>
 
             {/* Schedule and feedback sections */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Schedule column */}
-                <div className="shadow-ambient flex flex-col justify-between rounded-3xl bg-white p-6 md:p-8 dark:border dark:border-white/10 dark:bg-card">
-                    <div>
-                        <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f] dark:text-white">
-                            <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445] dark:bg-brand-yellow"></span>
-                            <span>{t('dashboard.todays_schedule')}</span>
-                        </h2>
-
-                        {appointments.length > 0 ? (
-                            <div className="flex flex-col gap-4">
-                                {appointments.map((apt) => {
-                                    const start = new Date(apt.start_at);
-                                    const end = new Date(apt.end_at);
-                                    const durationMin = Math.round(
-                                        (end.getTime() - start.getTime()) /
-                                            60000,
-                                    );
-
-                                    return (
-                                        <div
-                                            key={apt.id}
-                                            className="hover:shadow-ambient-md flex items-center gap-4 rounded-3xl border border-[#d0e4ff] bg-[#d0e4ff]/5 p-4 transition-all dark:border-white/10 dark:bg-[#070e24]"
-                                        >
-                                            <div className="flex flex-col items-center justify-center rounded-2xl border border-[#c6c5d0]/60 bg-white px-3 py-2.5 text-center shadow-sm dark:border-white/10 dark:bg-card">
-                                                <span className="text-xs font-bold text-[#061445] uppercase dark:text-white">
-                                                    {start.toLocaleTimeString(
-                                                        locale,
-                                                        {
-                                                            hour: '2-digit',
-                                                            minute: '2-digit',
-                                                        },
-                                                    )}
-                                                </span>
-                                                <span className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-                                                    {formatDuration(durationMin, locale)}
-                                                </span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="text-sm font-bold text-[#1b1b1f] dark:text-white">
-                                                    {t(
-                                                        'dashboard.conversation_practice',
-                                                    )}
-                                                </h4>
-                                                <p className="text-xs font-semibold text-[#45464f] dark:text-muted-foreground">
-                                                    {(() => {
-                                                        const textWithPlaceholder =
-                                                            t(
-                                                                'dashboard.with_pupil',
-                                                                {
-                                                                    name: '__NAME__',
-                                                                },
-                                                            );
-                                                        const parts =
-                                                            textWithPlaceholder.split(
-                                                                '__NAME__',
-                                                            );
-                                                        const pupilLink =
-                                                            apt.pupil ? (
-                                                                <Link
-                                                                    href={`/profile/${apt.pupil.id}`}
-                                                                    className="font-bold text-[#061445] dark:text-brand-yellow hover:underline"
-                                                                >
-                                                                    {
-                                                                        apt
-                                                                            .pupil
-                                                                            .full_name
-                                                                    }
-                                                                </Link>
-                                                            ) : (
-                                                                'Pupil'
-                                                            );
-
-                                                        return (
-                                                            <>
-                                                                {parts[0]}
-                                                                {pupilLink}
-                                                                {parts[1] || ''}
-                                                            </>
-                                                        );
-                                                    })()}
-                                                </p>
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                {apt.status === 'accepted' ? (
-                                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[10px] font-black tracking-wider text-amber-800 uppercase dark:border-amber-500/30 dark:bg-amber-950/60 dark:text-amber-300">
-                                                        {t('sessions.awaiting_payment')}
-                                                    </span>
-                                                ) : (
-                                                    <TeacherMeetingButton
-                                                        apt={apt}
-                                                        handleStart={
-                                                            handleStart
-                                                        }
-                                                        startingAptId={
-                                                            startingAptId
-                                                        }
-                                                    />
-                                                )}
-                                                <button
-                                                    onClick={() =>
-                                                        handleCancel(apt.id)
-                                                    }
-                                                    className="cursor-pointer rounded-full border border-destructive/20 px-3 py-2 text-xs font-bold text-destructive transition-all hover:bg-destructive hover:text-white"
-                                                >
-                                                    {t(
-                                                        'dashboard.cancel_button',
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center space-y-4 px-4 py-10 text-center">
-                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-brand-lightblue/30 bg-brand-lightblue/25 text-3xl text-brand-brown dark:border-white/10 dark:bg-white/10 dark:text-white">
-                                    🗓️
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="font-bold text-[#1b1b1f] dark:text-white">
-                                        {t('dashboard.no_appointments_today')}
-                                    </h4>
-                                    <p className="mx-auto max-w-xs text-sm text-[#45464f] dark:text-slate-400">
-                                        {t(
-                                            'dashboard.no_appointments_today_desc',
-                                        )}
-                                    </p>
+            {appointments.length > 0 ? (
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {/* Availability & Calendar Quick Access */}
+                    <div className="shadow-ambient flex flex-col justify-between rounded-3xl bg-white p-6 md:p-8 dark:border dark:border-white/10 dark:bg-card">
+                        <div>
+                            <h2 className="mb-4 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f] dark:text-white">
+                                <span className="inline-block h-5 w-2.5 rounded-sm bg-[#061445] dark:bg-brand-yellow"></span>
+                                <span>{t('dashboard.manage_availability')}</span>
+                            </h2>
+                            <p className="mb-6 text-xs text-[#6B7394] dark:text-slate-400">
+                                {t('dashboard.availability_desc') ||
+                                    'Keep your teaching schedule up to date to receive more student bookings.'}
+                            </p>
+                            <div className="rounded-2xl border border-brand-lightblue/30 bg-brand-lightblue/10 p-5 dark:border-white/10 dark:bg-white/5">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-yellow font-bold text-[#061445]">
+                                        <Clock className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-[#1b1b1f] dark:text-white">
+                                            {t('nav.availability')}
+                                        </h4>
+                                        <p className="text-xs text-[#6B7394] dark:text-slate-400">
+                                            {t(
+                                                'dashboard.manage_availability_hint',
+                                            ) || 'Set recurring shifts or custom dates'}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        )}
-                    </div>
-
-                    <Link
-                        href="/teacher/schedule"
-                        className="mt-4 block w-full rounded-full border border-brand-lightblue bg-brand-lightblue/30 py-3 text-center font-semibold text-brand-brown transition duration-150 hover:bg-[#d0e4ff]/60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-                    >
-                        {t('dashboard.view_calendar')}
-                    </Link>
-                </div>
-
-                {/* Feedback column */}
-                <div className="shadow-ambient flex flex-col justify-between rounded-3xl bg-white p-6 md:p-8 dark:border dark:border-white/10 dark:bg-card">
-                    <div>
-                        <h2 className="mb-6 flex items-center space-x-2 text-lg font-bold tracking-tight text-[#1b1b1f] dark:text-white">
-                            <span className="inline-block h-5 w-2.5 rounded-sm bg-emerald-500"></span>
-                            <span>{t('dashboard.pending_feedback')}</span>
-                        </h2>
-
-                        <div className="flex flex-col items-center space-y-4 px-4 py-10 text-center">
-                            <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-4xl text-emerald-500 shadow-inner dark:bg-emerald-950/50 dark:text-emerald-400">
-                                <CheckCircle2 className="h-10 w-10 text-emerald-500 dark:text-emerald-400" />
-                                <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs shadow-sm">
-                                    🎉
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <h4 className="text-lg font-extrabold text-emerald-900 dark:text-emerald-300">
-                                    {t('dashboard.all_caught_up')}
-                                </h4>
-                                <p className="mx-auto max-w-xs text-sm font-medium text-emerald-700/70 dark:text-emerald-400/80">
-                                    {t('dashboard.all_caught_up_desc')}
-                                </p>
-                            </div>
+                        </div>
+                        <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
+                            <Link
+                                href="/teacher/availability"
+                                className="flex-1 rounded-full bg-[#061445] py-3 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#061445]/90 dark:bg-brand-yellow dark:text-[#061445] dark:hover:bg-[#f0d070]"
+                            >
+                                {t('dashboard.manage_availability')}
+                            </Link>
+                            <Link
+                                href="/teacher/schedule"
+                                className="flex-1 rounded-full border border-gray-200 bg-white py-3 text-center text-xs font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-white/10 dark:bg-card dark:text-white"
+                            >
+                                {t('dashboard.view_calendar')}
+                            </Link>
                         </div>
                     </div>
 
-                    <Link
-                        href="/teacher/sessions"
-                        className="mt-4 block w-full rounded-full bg-emerald-600 py-3 text-center font-bold text-white shadow-md shadow-emerald-100 transition duration-150 hover:bg-emerald-700 dark:bg-emerald-600"
-                    >
-                        {t('dashboard.check_history')}
-                    </Link>
+                    {/* Feedback column */}
+                    {renderFeedbackCard()}
                 </div>
-            </div>
+            ) : (
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {renderScheduleCard(false)}
+                    {renderFeedbackCard()}
+                </div>
+            )}
         </div>
     );
 }

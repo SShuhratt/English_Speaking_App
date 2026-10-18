@@ -85,7 +85,7 @@ class TeacherAvailabilityValidationTest extends TestCase
         $this->assertEquals(2, TeacherAvailability::where('teacher_id', $teacher->id)->where('type', 'recurring')->count());
     }
 
-    public function test_cannot_store_custom_availability_when_recurring_exists_without_clearing_first(): void
+    public function test_can_store_custom_availability_when_recurring_exists_without_clearing_first(): void
     {
         $teacher = User::factory()->create(['role' => 'teacher']);
         $targetDate = '2026-10-12'; // Next Monday
@@ -101,18 +101,19 @@ class TeacherAvailabilityValidationTest extends TestCase
             'is_active' => true,
         ]);
 
-        // Attempt custom availability on that Monday without clearing first
+        // Attempt custom availability on that Monday (e.g. 20:30 - 22:30) without needing to clear first
         $response = $this->actingAs($teacher)->post('/teacher/availability', [
             'type' => 'custom',
             'start_date' => $targetDate,
             'end_date' => $targetDate,
-            'start_time' => '12:45',
-            'end_time' => '18:00',
+            'start_time' => '20:30',
+            'end_time' => '22:30',
             'slot_duration' => 30,
         ]);
 
-        $response->assertSessionHasErrors(['start_date']);
-        $this->assertEquals(0, TeacherAvailability::where('teacher_id', $teacher->id)->where('type', 'custom')->count());
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+        $this->assertEquals(1, TeacherAvailability::where('teacher_id', $teacher->id)->where('type', 'custom')->count());
     }
 
     public function test_can_store_custom_availability_after_recurring_is_cleared_for_that_date(): void
@@ -555,5 +556,50 @@ class TeacherAvailabilityValidationTest extends TestCase
         $this->assertCount(1, $activeChunks);
         $this->assertEquals('09:00', PlatformTime::toLocal($activeChunks->first()->start_at)->format('H:i'));
         $this->assertEquals('18:00', PlatformTime::toLocal($activeChunks->first()->end_at)->format('H:i'));
+    }
+
+    public function test_teacher_with_recurring_can_add_custom_availability_outside_recurring_hours_and_both_slots_are_generated(): void
+    {
+        $teacher = User::factory()->create(['role' => 'teacher']);
+        $targetDate = '2026-10-11'; // Sunday
+
+        // Active recurring schedule for Sunday: 10:00 - 21:00
+        TeacherAvailability::create([
+            'teacher_id' => $teacher->id,
+            'type' => 'recurring',
+            'day_of_week' => 'sunday',
+            'start_time' => '10:00',
+            'end_time' => '21:00',
+            'slot_duration' => 30,
+            'is_active' => true,
+        ]);
+
+        // Add custom availability: Sunday 21:30 - 23:30
+        $response = $this->actingAs($teacher)->post('/teacher/availability', [
+            'type' => 'custom',
+            'start_date' => $targetDate,
+            'end_date' => $targetDate,
+            'start_time' => '21:30',
+            'end_time' => '23:30',
+            'slot_duration' => 30,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        // Verify both recurring and custom exist
+        $this->assertEquals(1, TeacherAvailability::where('teacher_id', $teacher->id)->where('type', 'recurring')->count());
+        $this->assertEquals(1, TeacherAvailability::where('teacher_id', $teacher->id)->where('type', 'custom')->count());
+
+        // Verify SlotService generates slots from both
+        $slotService = app(SlotService::class);
+        $slots = $slotService->getAvailableSlots($teacher->id, $targetDate);
+
+        // Should include recurring slots (10:00) and custom slots (21:30)
+        $startTimes = collect($slots)->map(fn ($s) => PlatformTime::toLocal($s['start_at'])->format('H:i'))->toArray();
+        $this->assertContains('10:00', $startTimes);
+        $this->assertContains('20:30', $startTimes);
+        $this->assertContains('21:30', $startTimes);
+        $this->assertContains('23:00', $startTimes);
     }
 }
