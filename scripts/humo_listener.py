@@ -107,7 +107,13 @@ async def run_listener():
     api_hash = str(TELEGRAM_API_HASH)
 
     client = TelegramClient(str(SESSION_FILE), api_id, api_hash)
-    await client.connect()
+    try:
+        await client.connect()
+    except Exception as e:
+        if "AuthKeyDuplicated" in type(e).__name__:
+            logger.error("Session authorization key was revoked by Telegram. Please re-authorize by running: python3 scripts/humo_listener.py --auth")
+            sys.exit(1)
+        raise e
 
     if not await client.is_user_authorized():
         logger.error("Client is not authorized. Please run: python3 scripts/humo_listener.py --auth")
@@ -117,6 +123,19 @@ async def run_listener():
     logger.info(f"Connected to Telegram as: {me.first_name} (@{me.username or me.id})")
     logger.info(f"Listening exclusively for notifications from @{TARGET_BOT}...")
     logger.info(f"Target webhook URL: {WEBHOOK_URL}")
+
+    loop = asyncio.get_running_loop()
+
+    # Catch up on any recent notifications received while listener was offline
+    try:
+        logger.info(f"Catching up on recent notifications from @{TARGET_BOT}...")
+        async for msg in client.iter_messages(TARGET_BOT, limit=10):
+            raw = msg.raw_text or ""
+            if "To'ldirish" in raw or "To‘ldirish" in raw or "To\'ldirish" in raw or "UZS" in raw:
+                logger.info(f"Relaying recent notification ({msg.date}): {raw.splitlines()[0] if raw else ''}")
+                await loop.run_in_executor(None, send_to_webhook, raw)
+    except Exception as e:
+        logger.warning(f"Could not catch up on recent messages: {e}")
 
     # Resolve target entity
     try:
@@ -147,7 +166,6 @@ async def run_listener():
         logger.info(f"⚡ Received message from @{TARGET_BOT}:\n{text}")
 
         # Send to webhook in thread to avoid blocking async loop
-        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, send_to_webhook, text)
 
     await client.run_until_disconnected()
@@ -172,8 +190,19 @@ def authorize_client():
         api_id_input = TELEGRAM_API_ID
         api_hash_input = TELEGRAM_API_HASH
 
-    client = TelegramClient(str(SESSION_FILE), int(api_id_input), str(api_hash_input))
-    client.connect()
+    session_file_path = Path(str(SESSION_FILE) + ".session")
+    try:
+        client = TelegramClient(str(SESSION_FILE), int(api_id_input), str(api_hash_input))
+        client.connect()
+    except Exception as e:
+        if "AuthKeyDuplicated" in type(e).__name__:
+            print("\n⚠️ Previous session key was revoked by Telegram. Resetting session file for fresh login...")
+            if session_file_path.exists():
+                session_file_path.unlink()
+            client = TelegramClient(str(SESSION_FILE), int(api_id_input), str(api_hash_input))
+            client.connect()
+        else:
+            raise e
 
     if client.is_user_authorized():
         me = client.get_me()
