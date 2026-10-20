@@ -165,12 +165,13 @@ class ProfileController extends Controller
             }
 
             // Validate certificate uploads if present
-            if ($request->hasFile('certificate_files') || $request->hasFile('ielts_certificates')) {
+            if ($request->hasFile('certificate_files') || $request->hasFile('ielts_certificates') || $request->hasFile('certificates')) {
                 $request->validate([
                     'certificate_files' => ['nullable', 'array'],
                     'certificate_files.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'],
                     'ielts_certificates' => ['nullable', 'array'],
                     'ielts_certificates.*' => ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'],
+                    'certificates.*.file' => ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'],
                 ]);
             }
 
@@ -194,6 +195,7 @@ class ProfileController extends Controller
             }
 
             $finalCertificates = [];
+            $disk = config('filesystems.default', 'public');
 
             if (is_string($certsInput)) {
                 $certsList = array_filter(array_map('trim', explode(',', $certsInput)));
@@ -219,7 +221,6 @@ class ProfileController extends Controller
                 }
                 if (! empty($uploadedFiles)) {
                     foreach ($uploadedFiles as $file) {
-                        $disk = env('FILESYSTEM_DISK', 'public');
                         $path = $file->store('certificates', $disk);
                         $finalCertificates[] = [
                             'type' => 'ielts',
@@ -258,18 +259,32 @@ class ProfileController extends Controller
                             'status' => 'verified',
                         ];
                     } else {
-                        // Find matching existing cert in DB by file_url or title/type if present
+                        // Find matching existing cert in DB by file_url, id, index or title/type if present
                         $matchedExisting = null;
-                        foreach ($existingCerts as $ex) {
+                        foreach ($existingCerts as $exIdx => $ex) {
                             if (is_array($ex)) {
+                                $idMatch = ! empty($certData['id']) && ! empty($ex['id']) && (string) $certData['id'] === (string) $ex['id'];
                                 $urlMatch = ! empty($certData['file_url']) && ! empty($ex['file_url']) && $certData['file_url'] === $ex['file_url'];
                                 $titleMatch = ! empty($certData['title']) && ! empty($ex['title']) && $certData['title'] === $ex['title'];
                                 $typeMatch = ! empty($certData['type']) && ! empty($ex['type']) && $certData['type'] === $ex['type'];
-                                if ($urlMatch || ($titleMatch && $typeMatch)) {
+                                $indexMatch = ($exIdx === $index && ! empty($certData['isExisting']));
+                                if ($idMatch || $urlMatch || ($titleMatch && $typeMatch) || $indexMatch) {
                                     $matchedExisting = $ex;
                                     break;
                                 }
                             }
+                        }
+
+                        // Determine any newly uploaded file for this certificate
+                        $file = null;
+                        if ($request->hasFile("certificates.{$index}.file")) {
+                            $file = $request->file("certificates.{$index}.file");
+                        } elseif (isset($request->file('certificates')[$index]['file'])) {
+                            $file = $request->file('certificates')[$index]['file'];
+                        } elseif ($request->hasFile("certificate_files.{$index}")) {
+                            $file = $request->file("certificate_files.{$index}");
+                        } elseif (isset($uploadedFiles[$index])) {
+                            $file = $uploadedFiles[$index];
                         }
 
                         if ($matchedExisting) {
@@ -282,9 +297,7 @@ class ProfileController extends Controller
                             $fileName = $matchedExisting['file_name'] ?? null;
                             $status = $matchedExisting['status'] ?? 'pending';
 
-                            if (isset($uploadedFiles[$index])) {
-                                $file = $uploadedFiles[$index];
-                                $disk = env('FILESYSTEM_DISK', 'public');
+                            if ($file) {
                                 $path = $file->store('certificates', $disk);
                                 $fileUrl = Storage::disk($disk)->url($path);
                                 $fileName = $file->getClientOriginalName();
@@ -322,9 +335,7 @@ class ProfileController extends Controller
                             $fileName = $certData['file_name'] ?? null;
                             $status = 'pending';
 
-                            if (isset($uploadedFiles[$index])) {
-                                $file = $uploadedFiles[$index];
-                                $disk = env('FILESYSTEM_DISK', 'public');
+                            if ($file) {
                                 $path = $file->store('certificates', $disk);
                                 $fileUrl = Storage::disk($disk)->url($path);
                                 $fileName = $file->getClientOriginalName();
@@ -362,7 +373,6 @@ class ProfileController extends Controller
             // Fallback if certificates input was empty but files uploaded
             if (empty($certsInput) && ! empty($uploadedFiles)) {
                 foreach ($uploadedFiles as $file) {
-                    $disk = env('FILESYSTEM_DISK', 'public');
                     $path = $file->store('certificates', $disk);
                     $finalCertificates[] = [
                         'type' => 'ielts',

@@ -825,6 +825,7 @@ export default function Profile({
                 <Form
                     {...ProfileController.update.form()}
                     method="post"
+                    encType="multipart/form-data"
                     options={{
                         preserveScroll: true,
                     }}
@@ -1243,10 +1244,16 @@ export default function Profile({
                                                                 index={index}
                                                                 cert={c}
                                                                 readOnly={Boolean(c.isExisting)}
+                                                                fileFieldName={`certificates[${index}][file]`}
                                                                 canRemove={true}
                                                                 onChange={(updated) => updateCert(index, updated)}
                                                                 onRemove={() => removeCertificate(index)}
                                                                 onPreview={(certToPreview) => setSelectedCertForPreview(certToPreview)}
+                                                            />
+                                                            <input
+                                                                type="hidden"
+                                                                name={`certificates[${index}][isExisting]`}
+                                                                value={c.isExisting ? '1' : '0'}
                                                             />
                                                             <input
                                                                 type="hidden"

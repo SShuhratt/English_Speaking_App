@@ -359,4 +359,48 @@ class RegistrationTest extends TestCase
             'email' => 'lowercase_test@example.com',
         ]);
     }
+
+    public function test_teacher_registration_stores_uploaded_certificate_file()
+    {
+        $disk = config('filesystems.default', 'public');
+        Storage::fake($disk);
+
+        $fakePdf = UploadedFile::fake()->create('my_ielts_cert.pdf', 500, 'application/pdf');
+
+        $response = $this->post(route('register.store'), [
+            'name' => 'Certified Teacher',
+            'email' => 'certified_teacher@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 26,
+            'phone_number' => '+998901234567',
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.0',
+                    'listening' => '8.5',
+                    'reading' => '8.0',
+                    'writing' => '7.5',
+                    'speaking' => '8.0',
+                    'file' => $fakePdf,
+                ],
+            ],
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $user = User::where('email', 'certified_teacher@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertNotNull($user->teacherProfile);
+
+        $certs = $user->teacherProfile->certificates;
+        $this->assertIsArray($certs);
+        $this->assertCount(1, $certs);
+        $this->assertEquals('my_ielts_cert.pdf', $certs[0]['file_name']);
+        $this->assertNotEmpty($certs[0]['file_url']);
+        $this->assertEquals('pending', $certs[0]['status']);
+    }
 }

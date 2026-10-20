@@ -148,8 +148,8 @@ export default function Register({ passwordRules }: Props) {
                     locale === 'uz'
                         ? `Minimal yosh talabi: ${role === 'teacher' ? "O'qituvchilar uchun 18 yosh" : "O'quvchilar uchun 8 yosh"}.`
                         : locale === 'ru'
-                            ? `Минимальный возраст: ${role === 'teacher' ? '18 лет для преподавателей' : '8 лет для учеников'}.`
-                            : `Minimum age required: ${role === 'teacher' ? '18 years for teachers' : '8 years for pupils'}.`;
+                            ? `Минимальный возраст: ${role === 'teacher' ? '18 лет для преподавателей' : '8 лет для студентов'}.`
+                            : `Minimum age required: ${role === 'teacher' ? '18 years for teachers' : '8 years for students'}.`;
             }
             setAgeError(message);
             ageInput?.focus();

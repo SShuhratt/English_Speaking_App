@@ -432,7 +432,6 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                     type="file"
                     name={fileFieldName || `certificate_files[${index}]`}
                     accept=".pdf,.png,.jpg,.jpeg,.webp"
-                    disabled={readOnly}
                     onChange={handleFileChange}
                     className="hidden"
                 />
@@ -508,55 +507,59 @@ export const CertificateInputCard: React.FC<CertificateInputCardProps> = ({
                                             <span>{t('teacher.view_certificate', 'View Certificate')}</span>
                                         </button>
                                     )}
-                                    {!readOnly && (
-                                        <>
-                                            <button
-                                                type="button"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                            >
-                                                <RefreshCw className="h-3 w-3" />
-                                                {t('auth.replace_file', 'Replace')}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={handleRemoveFile}
-                                                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
-                                                title={t('auth.remove_file', 'Remove')}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        </>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                    >
+                                        <RefreshCw className="h-3 w-3" />
+                                        {t('auth.replace_file', 'Replace')}
+                                    </button>
+                                    {(!readOnly || cert.file) && (
+                                        <button
+                                            type="button"
+                                            onClick={handleRemoveFile}
+                                            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                                            title={t('auth.remove_file', 'Remove')}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
                                     )}
                                 </div>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    !readOnly && (
-                        <div
-                            onClick={() => fileInputRef.current?.click()}
-                            className="group flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50/50 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/30 dark:border-gray-700 dark:bg-gray-800/30"
-                        >
-                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-gray-400 shadow-2xs group-hover:text-indigo-600 dark:bg-gray-800 dark:group-hover:text-indigo-400">
-                                <Upload className="h-4 w-4" />
-                            </span>
-                            <div className="text-left">
-                                <p className="text-xs font-bold text-gray-700 group-hover:text-indigo-600 dark:text-gray-300 dark:group-hover:text-indigo-400">
-                                    {t(
-                                        'auth.drop_cert_file',
-                                        'Drop your certificate here or browse',
-                                    )}
-                                </p>
-                                <p className="text-[10px] font-medium text-gray-400">
-                                    {t(
-                                        'auth.drop_cert_hint',
-                                        'PDF, JPG, or PNG · up to 10 MB',
-                                    )}
-                                </p>
-                            </div>
+                    <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => fileInputRef.current?.click()}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                fileInputRef.current?.click();
+                            }
+                        }}
+                        className="group flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/70 dark:border-indigo-900/40 dark:bg-indigo-950/20"
+                    >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-indigo-500 shadow-2xs group-hover:text-indigo-600 dark:bg-gray-800 dark:group-hover:text-indigo-400">
+                            <Upload className="h-4 w-4" />
+                        </span>
+                        <div className="text-left">
+                            <p className="text-xs font-bold text-gray-800 group-hover:text-indigo-600 dark:text-gray-200 dark:group-hover:text-indigo-400">
+                                {t(
+                                    'auth.drop_cert_file',
+                                    'Drop your certificate here or browse',
+                                )}
+                            </p>
+                            <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                                {t(
+                                    'auth.drop_cert_hint',
+                                    'PDF, JPG, or PNG · up to 10 MB',
+                                )}
+                            </p>
                         </div>
-                    )
+                    </div>
                 )}
             </div>
         </div>

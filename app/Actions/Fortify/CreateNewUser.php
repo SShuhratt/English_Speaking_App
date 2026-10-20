@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\WelcomeNotification;
 use App\Services\CertificateValidationService;
 use App\Services\GamificationService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -93,6 +94,8 @@ class CreateNewUser implements CreatesNewUsers
             $rules['price'] = ['nullable', 'integer', 'min:0'];
             $rules['labels'] = ['nullable', 'array'];
             $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english,practice q&a,job interview prep'];
+            $rules['certificates'] = ['nullable', 'array'];
+            $rules['certificates.*.file'] = ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
             $rules['certificate_files'] = ['nullable', 'array'];
             $rules['certificate_files.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
@@ -177,7 +180,7 @@ class CreateNewUser implements CreatesNewUsers
             }
 
             $certificates = null;
-            $disk = env('FILESYSTEM_DISK', 'public');
+            $disk = config('filesystems.default', 'public');
 
             if ($role === 'teacher') {
                 $certsInput = request()->input('certificates');
@@ -191,8 +194,17 @@ class CreateNewUser implements CreatesNewUsers
                     foreach ($certsInput as $index => $certItem) {
                         $fileUrl = null;
                         $fileName = '';
-                        if (isset($uploadedFiles[$index])) {
+
+                        $file = null;
+                        if (request()->hasFile("certificates.{$index}.file")) {
+                            $file = request()->file("certificates.{$index}.file");
+                        } elseif (isset($certItem['file']) && $certItem['file'] instanceof UploadedFile) {
+                            $file = $certItem['file'];
+                        } elseif (isset($uploadedFiles[$index])) {
                             $file = $uploadedFiles[$index];
+                        }
+
+                        if ($file) {
                             $path = $file->store('certificates', $disk);
                             $fileUrl = Storage::disk($disk)->url($path);
                             $fileName = $file->getClientOriginalName();

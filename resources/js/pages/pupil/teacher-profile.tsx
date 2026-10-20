@@ -1542,6 +1542,17 @@ export default function TeacherProfile({
                                                             </span>
                                                         )}
 
+                                                        {cert.file_url && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedCertForPreview(cert)}
+                                                                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50/90 px-2.5 py-1 text-xs font-bold text-indigo-700 shadow-2xs transition hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
+                                                            >
+                                                                <Eye className="h-3.5 w-3.5" />
+                                                                <span>{t('teacher.view_certificate', 'View Certificate')}</span>
+                                                            </button>
+                                                        )}
+
                                                         {auth?.user?.role === 'admin' && (
                                                             <Button
                                                                 size="sm"
@@ -1608,7 +1619,7 @@ export default function TeacherProfile({
                                                 </div>
 
                                                 {/* Certificate Document Action & Small Frame (Accessible to all pupils & admins/teachers) */}
-                                                {cert.file_url && (() => {
+                                                {cert.file_url ? (() => {
                                                     const isCertPdf = Boolean(
                                                         cert.file_name?.toLowerCase().endsWith('.pdf') ||
                                                         cert.file_url?.toLowerCase().includes('.pdf')
@@ -1677,7 +1688,49 @@ export default function TeacherProfile({
                                                             </div>
                                                         </div>
                                                     );
-                                                })()}
+                                                })() : (
+                                                    <div className="mt-3">
+                                                        {auth?.user?.id === teacher.id ? (
+                                                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 rounded-xl border border-dashed border-amber-300 bg-amber-50/70 p-3 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-200">
+                                                                <div className="flex items-center gap-2">
+                                                                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                                                                    <span>
+                                                                        {t(
+                                                                            'teacher.certificate_file_missing_owner',
+                                                                            'Certificate document file is not attached yet. Please upload it in your profile settings.',
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                                <Link
+                                                                    href="/settings/profile"
+                                                                    className="inline-flex items-center gap-1 shrink-0 font-bold text-indigo-700 underline hover:text-indigo-900 dark:text-indigo-300"
+                                                                >
+                                                                    {t('teacher.upload_document', 'Upload in Settings')} →
+                                                                </Link>
+                                                            </div>
+                                                        ) : auth?.user?.role === 'admin' ? (
+                                                            <div className="flex items-center gap-2 rounded-xl border border-dashed border-gray-200 bg-gray-50/60 p-3 text-xs text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                                                                <FileText className="h-4 w-4 text-gray-400 shrink-0" />
+                                                                <span>
+                                                                    {t(
+                                                                        'teacher.certificate_file_not_uploaded',
+                                                                        'No certificate document file uploaded.',
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/50 p-2.5 text-xs text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                                                                <FileText className="h-4 w-4 text-gray-400 shrink-0" />
+                                                                <span>
+                                                                    {t(
+                                                                        'teacher.certificate_document_pending',
+                                                                        'Certificate document file is being updated.',
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}

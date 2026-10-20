@@ -531,4 +531,64 @@ class ProfileUpdateTest extends TestCase
         $this->assertEquals('State Certificate B2', $certs[2]['custom_type_name']);
         $this->assertEquals('Pass with Merit', $certs[2]['overall']);
     }
+
+    public function test_teacher_can_attach_file_to_existing_certificate_with_missing_document()
+    {
+        $disk = config('filesystems.default', 'public');
+        Storage::fake($disk);
+
+        $user = User::factory()->create(['role' => 'teacher']);
+        $user->teacherProfile()->create([
+            'age' => 26,
+            'phone_number' => '+998901234567',
+            'certificates' => [
+                [
+                    'id' => 0,
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'title' => 'IELTS (Academic / General)',
+                    'overall' => '7.5',
+                    'listening' => '8.0',
+                    'reading' => '8.5',
+                    'writing' => '6.5',
+                    'speaking' => '7.0',
+                    'file_url' => null,
+                    'file_name' => '',
+                    'status' => 'verified',
+                ],
+            ],
+        ]);
+
+        $uploadedPdf = UploadedFile::fake()->create('abdulfayz_ielts.pdf', 300, 'application/pdf');
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Abdulfayz Teacher',
+                'email' => $user->email,
+                'certificates' => [
+                    [
+                        'id' => 0,
+                        'isExisting' => '1',
+                        'type' => 'ielts',
+                        'title' => 'IELTS (Academic / General)',
+                        'file_url' => '',
+                        'file_name' => '',
+                        'file' => $uploadedPdf,
+                    ],
+                ],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('profile.edit'));
+
+        $user->refresh();
+        $certs = $user->teacherProfile->certificates;
+
+        $this->assertCount(1, $certs);
+        $this->assertEquals('abdulfayz_ielts.pdf', $certs[0]['file_name']);
+        $this->assertNotEmpty($certs[0]['file_url']);
+        $this->assertEquals('7.5', $certs[0]['overall']);
+        $this->assertEquals('verified', $certs[0]['status']);
+    }
 }

@@ -1,27 +1,23 @@
-import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useTranslation } from '@/hooks/use-translation';
 import {
     Globe,
     Check,
     ShieldCheck,
-    Video,
-    Calendar,
-    User,
     ArrowRight,
     Star,
-    PhoneOff,
-    Camera,
-    Mic,
     Menu,
     X,
 } from 'lucide-react';
+import { useState } from 'react';
+import { HeroIllustration3D } from '@/components/landing/HeroIllustration3D';
+import { TiltCard3D, DepthLayer } from '@/components/landing/TiltCard3D';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface CertifiedTeacher {
     id: string;
@@ -46,9 +42,18 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const getBookLessonLink = (teacherId?: string) => {
-        if (!auth.user) return teacherId ? `/register?teacher=${teacherId}` : '/register';
-        if ((auth.user as any).role === 'teacher') return '/dashboard';
-        if ((auth.user as any).role === 'admin') return '/admin/dashboard';
+        if (!auth.user) {
+return teacherId ? `/register?teacher=${teacherId}` : '/register';
+}
+
+        if ((auth.user as any).role === 'teacher') {
+return '/dashboard';
+}
+
+        if ((auth.user as any).role === 'admin') {
+return '/admin/dashboard';
+}
+
         return teacherId ? `/pupil/teachers/${teacherId}` : '/pupil/teachers';
     };
 
@@ -156,6 +161,25 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                   align-items: flex-end;
                   padding: 16px;
                   overflow: hidden;
+                }
+
+                @keyframes audio-wave {
+                  0% { transform: scale(1); opacity: 0.65; }
+                  60%, 100% { transform: scale(1.65); opacity: 0; }
+                }
+
+                @keyframes float-3d {
+                  0%, 100% { transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px); }
+                  50% { transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-6px); }
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                  *, ::before, ::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                    scroll-behavior: auto !important;
+                  }
                 }
 
                 html { scroll-behavior: smooth; }
@@ -440,73 +464,15 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                             </p>
                         </div>
 
-                        {/* Exact Hero Illustration Matchingconvomate_home_v3.html & Uploaded Image */}
-                        <div
-                            className="naqsh relative p-2"
-                            data-purpose="hero-illustration"
-                        >
-                            {/* Live lesson badge */}
-                            <span className="absolute top-[-14px] left-[10px] z-[30] flex items-center gap-2 rounded-full bg-[#1E2A5A] px-4 py-2 text-sm font-bold text-white shadow-md">
-                                <span className="h-2 w-2 animate-pulse rounded-full bg-[#7BD98E]"></span>{' '}
-                                {t('welcome.live_lesson')}
-                            </span>
-
-                            {/* Dialogue Callout 1 (Teacher - Top Right) */}
-                            <div className="absolute top-[-6px] right-[-4px] z-[30] max-w-[230px] rotate-[2deg] rounded-2xl bg-white p-3 text-[14.5px] font-semibold text-[#1E2A5A] shadow-xl md:p-4">
-                                {t('welcome.hero_dialogue_teacher')}
-                                <small className="mt-1 block text-xs font-medium text-[#5C6480]">
-                                    {t('welcome.teacher_label')}
-                                </small>
-                            </div>
-
-                            {/* Dialogue Callout 2 (Student - Bottom Left) */}
-                            <div className="absolute bottom-[-28px] left-[-10px] z-[30] max-w-[230px] -rotate-[2deg] rounded-2xl bg-white p-3 text-[14.5px] font-semibold text-[#1E2A5A] shadow-xl md:p-4">
-                                {t('welcome.hero_dialogue_student')}
-                                <small className="mt-1 block text-xs font-medium text-[#5C6480]">
-                                    {t('welcome.hero_student_callout_label')}
-                                </small>
-                            </div>
-
-                            {/* Teacher & Student Video Tiles */}
-                            <div className="grid grid-cols-2 gap-4">
-                                {/* Student tile (Left) */}
-                                <div className="tile relative bg-gradient-to-br from-[#A9C6E8] to-[#C9DCF2]">
-                                    <img
-                                        alt="Student portrait"
-                                        className="absolute bottom-12 left-1/2 aspect-square w-[76%] max-w-[170px] -translate-x-1/2 rounded-full object-cover shadow-lg"
-                                        src="/hero_avatar_1.jpg"
-                                    />
-                                    <span className="relative z-[2] rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-[#1E2A5A]">
-                                        {t('welcome.student_label')}
-                                    </span>
-                                </div>
-
-                                {/* Teacher tile (Right) */}
-                                <div className="tile relative translate-y-[26px] bg-gradient-to-br from-[#F7DE8B] to-[#FBEDBC]">
-                                    <img
-                                        alt="Teacher portrait"
-                                        className="absolute bottom-12 left-1/2 aspect-square w-[76%] max-w-[170px] -translate-x-1/2 rounded-full object-cover shadow-lg"
-                                        src="/hero_avatar_2.jpg"
-                                    />
-                                    <span className="relative z-[2] rounded-full bg-[#1E2A5A] px-3 py-1.5 text-xs font-bold text-white">
-                                        {t('welcome.teacher_label')}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Call Control Buttons (Floating Bottom Center) */}
-                            <div className="absolute bottom-[-36px] left-1/2 z-[30] flex -translate-x-1/2 items-center gap-3">
-                                <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-white text-[#1E2A5A] shadow-lg">
-                                    <Mic className="h-5 w-5 fill-[#1E2A5A]" />
-                                </div>
-                                <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-white text-[#1E2A5A] shadow-lg">
-                                    <Video className="h-5 w-5 fill-[#1E2A5A]" />
-                                </div>
-                                <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#E5484D] text-white shadow-lg">
-                                    <PhoneOff className="h-5 w-5 fill-white" />
-                                </div>
-                            </div>
-                        </div>
+                        {/* 3D Interactive Hero Illustration with Multi-layer Parallax & Audio Waves */}
+                        <HeroIllustration3D
+                            liveLessonText={t('welcome.live_lesson')}
+                            teacherDialogueText={t('welcome.hero_dialogue_teacher')}
+                            teacherLabelText={t('welcome.teacher_label')}
+                            studentDialogueText={t('welcome.hero_dialogue_student')}
+                            studentCalloutLabelText={t('welcome.hero_student_callout_label')}
+                            studentLabelText={t('welcome.student_label')}
+                        />
                     </div>
                 </section>
 
@@ -543,52 +509,72 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                         </div>
 
                         <div className="grid gap-6 md:grid-cols-3">
-                            <div className="rounded-[22px] border-[1.5px] border-[#FBEDBC] bg-[#FDF7E4] p-8 transition-colors hover:border-[#F7DE8B]">
-                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBEDBC] text-2xl">
+                            <TiltCard3D
+                                glare={true}
+                                className="rounded-[22px] border-[1.5px] border-[#FBEDBC] bg-[#FDF7E4] p-8 shadow-xs hover:shadow-xl hover:border-[#F7DE8B] transition-all"
+                            >
+                                <DepthLayer z={22} className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBEDBC] text-2xl shadow-xs">
                                     ⚡
-                                </div>
-                                <h3 className="mb-3 text-xl font-bold">
-                                    {t('welcome.why_f1_title')}
-                                </h3>
-                                <p className="text-[15.5px] text-[#5C6480]">
-                                    {t('welcome.why_f1_desc')}
-                                </p>
-                            </div>
-                            <div className="rounded-[22px] border-[1.5px] border-[#E3EDF8] bg-[#E3EDF8] p-8 transition-colors hover:border-[#F7DE8B]">
-                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBEDBC] text-2xl">
+                                </DepthLayer>
+                                <DepthLayer z={14}>
+                                    <h3 className="mb-3 text-xl font-bold">
+                                        {t('welcome.why_f1_title')}
+                                    </h3>
+                                    <p className="text-[15.5px] text-[#5C6480]">
+                                        {t('welcome.why_f1_desc')}
+                                    </p>
+                                </DepthLayer>
+                            </TiltCard3D>
+                            <TiltCard3D
+                                glare={true}
+                                className="rounded-[22px] border-[1.5px] border-[#E3EDF8] bg-[#E3EDF8] p-8 shadow-xs hover:shadow-xl hover:border-[#F7DE8B] transition-all"
+                            >
+                                <DepthLayer z={22} className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBEDBC] text-2xl shadow-xs">
                                     🎓
-                                </div>
-                                <h3 className="mb-3 text-xl font-bold">
-                                    {t('welcome.why_f2_title')}
-                                </h3>
-                                <p className="text-[15.5px] text-[#5C6480]">
-                                    {t('welcome.why_f2_desc')}
-                                </p>
-                            </div>
-                            <div className="rounded-[22px] border-[1.5px] border-[#EAE4D2] bg-white p-8 transition-colors hover:border-[#F7DE8B]">
-                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBEDBC] text-2xl">
+                                </DepthLayer>
+                                <DepthLayer z={14}>
+                                    <h3 className="mb-3 text-xl font-bold">
+                                        {t('welcome.why_f2_title')}
+                                    </h3>
+                                    <p className="text-[15.5px] text-[#5C6480]">
+                                        {t('welcome.why_f2_desc')}
+                                    </p>
+                                </DepthLayer>
+                            </TiltCard3D>
+                            <TiltCard3D
+                                glare={true}
+                                className="rounded-[22px] border-[1.5px] border-[#EAE4D2] bg-white p-8 shadow-xs hover:shadow-xl hover:border-[#F7DE8B] transition-all"
+                            >
+                                <DepthLayer z={22} className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBEDBC] text-2xl shadow-xs">
                                     🤝
-                                </div>
-                                <h3 className="mb-3 text-xl font-bold">
-                                    {t('welcome.why_f3_title')}
-                                </h3>
-                                <p className="text-[15.5px] text-[#5C6480]">
-                                    {t('welcome.why_f3_desc')}
-                                </p>
-                            </div>
+                                </DepthLayer>
+                                <DepthLayer z={14}>
+                                    <h3 className="mb-3 text-xl font-bold">
+                                        {t('welcome.why_f3_title')}
+                                    </h3>
+                                    <p className="text-[15.5px] text-[#5C6480]">
+                                        {t('welcome.why_f3_desc')}
+                                    </p>
+                                </DepthLayer>
+                            </TiltCard3D>
                         </div>
 
-                        <div className="mt-10 flex flex-col items-center gap-6 rounded-[22px] bg-[#F7DE8B] p-8 sm:flex-row">
-                            <ShieldCheck className="h-10 w-10 shrink-0 text-[#1E2A5A]" />
-                            <div>
+                        <TiltCard3D
+                            glare={false}
+                            className="mt-10 flex flex-col items-center gap-6 rounded-[22px] bg-[#F7DE8B] p-8 sm:flex-row shadow-sm hover:shadow-md transition-all"
+                        >
+                            <DepthLayer z={18}>
+                                <ShieldCheck className="h-10 w-10 shrink-0 text-[#1E2A5A]" />
+                            </DepthLayer>
+                            <DepthLayer z={12}>
                                 <b className="mb-1 block font-['Bricolage_Grotesque'] text-lg text-[#1E2A5A]">
                                     {t('welcome.verified_title')}
                                 </b>
                                 <p className="text-[15px] text-[#1E2A5A]/80">
                                     {t('welcome.verified_desc')}
                                 </p>
-                            </div>
-                        </div>
+                            </DepthLayer>
+                        </TiltCard3D>
                     </div>
                 </section>
 
@@ -606,9 +592,12 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
 
                         <div className="grid items-stretch gap-6 lg:grid-cols-3">
                             {/* Step 1 */}
-                            <div className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6">
-                                <div className="mb-6 flex h-[248px] flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-[#EAE4D2] bg-[#FBFAF6] p-5">
-                                    <div className="rounded-xl border border-[#EAE4D2] bg-white px-3.5 py-2.5 text-[13px] text-[#5C6480]">
+                            <TiltCard3D
+                                glare={true}
+                                className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6 shadow-xs hover:shadow-xl transition-all"
+                            >
+                                <DepthLayer z={16} className="mb-6 flex h-[248px] flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-[#EAE4D2] bg-[#FBFAF6] p-5 shadow-xs">
+                                    <div className="rounded-xl border border-[#EAE4D2] bg-white px-3.5 py-2.5 text-[13px] text-[#5C6480] shadow-2xs">
                                         <b className="text-[#1E2A5A]">{t('welcome.mock_name')}</b> ·
                                         Aziza
                                     </div>
@@ -616,40 +605,45 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                                         {t('welcome.mock_level')}
                                     </div>
                                     <div className="flex gap-2">
-                                        <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold">
+                                        <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs">
                                             A2
                                         </span>
-                                        <span className="rounded-lg border border-[#F7DE8B] bg-[#F7DE8B] px-2.5 py-1.5 text-xs font-semibold text-[#1E2A5A]">
+                                        <span className="rounded-lg border border-[#F7DE8B] bg-[#F7DE8B] px-2.5 py-1.5 text-xs font-semibold text-[#1E2A5A] shadow-2xs">
                                             B1
                                         </span>
-                                        <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold">
+                                        <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs">
                                             B2
                                         </span>
                                     </div>
-                                    <div className="rounded-xl bg-[#1E2A5A] py-2.5 text-center text-[13px] font-bold text-white">
+                                    <div className="rounded-xl bg-[#1E2A5A] py-2.5 text-center text-[13px] font-bold text-white shadow-xs">
                                         {t('welcome.mock_create_acc')}
                                     </div>
-                                </div>
-                                <div className="mb-3 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] font-['Bricolage_Grotesque'] text-lg font-extrabold text-[#1E2A5A]">
+                                </DepthLayer>
+                                <DepthLayer z={22} className="mb-3 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] font-['Bricolage_Grotesque'] text-lg font-extrabold text-[#1E2A5A] shadow-xs">
                                         1
                                     </div>
                                     <h3 className="text-xl font-bold">
                                         {t('welcome.how_step_1_title')}
                                     </h3>
-                                </div>
-                                <p className="text-[15.5px] text-[#5C6480]">
-                                    {t('welcome.how_step_1_desc')}
-                                </p>
-                            </div>
+                                </DepthLayer>
+                                <DepthLayer z={10}>
+                                    <p className="text-[15.5px] text-[#5C6480]">
+                                        {t('welcome.how_step_1_desc')}
+                                    </p>
+                                </DepthLayer>
+                            </TiltCard3D>
 
                             {/* Step 2 */}
-                            <div className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6">
-                                <div className="mb-6 flex h-[248px] flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-[#EAE4D2] bg-[#FBFAF6] p-5">
+                            <TiltCard3D
+                                glare={true}
+                                className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6 shadow-xs hover:shadow-xl transition-all"
+                            >
+                                <DepthLayer z={16} className="mb-6 flex h-[248px] flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-[#EAE4D2] bg-[#FBFAF6] p-5 shadow-xs">
                                     <div className="flex items-center gap-3">
                                         <img
                                             alt="Kamola"
-                                            className="h-11 w-11 shrink-0 rounded-full object-cover"
+                                            className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
                                             src="/hero_avatar_3.jpg"
                                         />
                                         <div>
@@ -665,34 +659,39 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                                         {t('welcome.teacher_kamola_desc')}
                                     </p>
                                     <div className="flex gap-2">
-                                        <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold">
+                                        <span className="rounded-lg border border-[#EAE4D2] bg-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs">
                                             15:00
                                         </span>
-                                        <span className="rounded-lg border border-[#F7DE8B] bg-[#F7DE8B] px-2.5 py-1.5 text-xs font-semibold text-[#1E2A5A]">
+                                        <span className="rounded-lg border border-[#F7DE8B] bg-[#F7DE8B] px-2.5 py-1.5 text-xs font-semibold text-[#1E2A5A] shadow-2xs">
                                             17:30
                                         </span>
                                     </div>
-                                    <div className="rounded-xl bg-[#1E2A5A] py-2.5 text-center text-[13px] font-bold text-white">
+                                    <div className="rounded-xl bg-[#1E2A5A] py-2.5 text-center text-[13px] font-bold text-white shadow-xs">
                                         {t('welcome.mock_book_btn')}
                                     </div>
-                                </div>
-                                <div className="mb-3 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] font-['Bricolage_Grotesque'] text-lg font-extrabold text-[#1E2A5A]">
+                                </DepthLayer>
+                                <DepthLayer z={22} className="mb-3 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] font-['Bricolage_Grotesque'] text-lg font-extrabold text-[#1E2A5A] shadow-xs">
                                         2
                                     </div>
                                     <h3 className="text-xl font-bold">
                                         {t('welcome.how_step_2_title')}
                                     </h3>
-                                </div>
-                                <p className="text-[15.5px] text-[#5C6480]">
-                                    {t('welcome.how_step_2_desc')}
-                                </p>
-                            </div>
+                                </DepthLayer>
+                                <DepthLayer z={10}>
+                                    <p className="text-[15.5px] text-[#5C6480]">
+                                        {t('welcome.how_step_2_desc')}
+                                    </p>
+                                </DepthLayer>
+                            </TiltCard3D>
 
                             {/* Step 3 */}
-                            <div className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6">
-                                <div className="mb-6 flex h-[248px] flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-[#EAE4D2] bg-[#FBFAF6] p-5">
-                                    <div className="flex items-center justify-between gap-2 rounded-xl border border-[#EAE4D2] bg-white p-3">
+                            <TiltCard3D
+                                glare={true}
+                                className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6 shadow-xs hover:shadow-xl transition-all"
+                            >
+                                <DepthLayer z={16} className="mb-6 flex h-[248px] flex-col justify-center gap-3 overflow-hidden rounded-2xl border border-[#EAE4D2] bg-[#FBFAF6] p-5 shadow-xs">
+                                    <div className="flex items-center justify-between gap-2 rounded-xl border border-[#EAE4D2] bg-white p-3 shadow-2xs">
                                         <div className="min-w-0">
                                             <b className="block text-[13px] leading-tight text-[#1E2A5A]">
                                                 {t('welcome.mock_starts_in')}
@@ -701,39 +700,41 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                                                 {t('welcome.mock_freestyle')}
                                             </small>
                                         </div>
-                                        <span className="shrink-0 rounded-full bg-[#F7DE8B] px-3.5 py-2 text-[12px] font-extrabold text-[#1E2A5A]">
+                                        <span className="shrink-0 rounded-full bg-[#F7DE8B] px-3.5 py-2 text-[12px] font-extrabold text-[#1E2A5A] shadow-xs">
                                             {t('welcome.mock_join')}
                                         </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2.5">
-                                        <div className="h-[118px] overflow-hidden rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#C9DCF2]">
+                                        <div className="h-[118px] overflow-hidden rounded-xl bg-gradient-to-br from-[#A9C6E8] to-[#C9DCF2] shadow-sm">
                                             <img
                                                 alt="Student"
-                                                className="h-full w-full object-cover"
+                                                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                                                 src="/hero_avatar_4.jpg"
                                             />
                                         </div>
-                                        <div className="h-[118px] overflow-hidden rounded-xl bg-gradient-to-br from-[#F7DE8B] to-[#FBEDBC]">
+                                        <div className="h-[118px] overflow-hidden rounded-xl bg-gradient-to-br from-[#F7DE8B] to-[#FBEDBC] shadow-sm">
                                             <img
                                                 alt="Teacher"
-                                                className="h-full w-full object-cover"
+                                                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                                                 src="/hero_avatar_5.jpg"
                                             />
                                         </div>
                                     </div>
-                                </div>
-                                <div className="mb-3 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] font-['Bricolage_Grotesque'] text-lg font-extrabold text-[#1E2A5A]">
+                                </DepthLayer>
+                                <DepthLayer z={22} className="mb-3 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7DE8B] font-['Bricolage_Grotesque'] text-lg font-extrabold text-[#1E2A5A] shadow-xs">
                                         3
                                     </div>
                                     <h3 className="text-xl font-bold">
                                         {t('welcome.how_step_3_title')}
                                     </h3>
-                                </div>
-                                <p className="text-[15.5px] text-[#5C6480]">
-                                    {t('welcome.how_step_3_desc')}
-                                </p>
-                            </div>
+                                </DepthLayer>
+                                <DepthLayer z={10}>
+                                    <p className="text-[15.5px] text-[#5C6480]">
+                                        {t('welcome.how_step_3_desc')}
+                                    </p>
+                                </DepthLayer>
+                            </TiltCard3D>
                         </div>
                     </div>
                 </section>
@@ -773,15 +774,16 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                                 </div>
                             ) : (
                                 certifiedTeachers.map((teacher) => (
-                                    <div
+                                    <TiltCard3D
                                         key={teacher.id}
-                                        className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                                        glare={true}
+                                        className="flex h-full flex-col rounded-[22px] border border-[#EAE4D2] bg-white p-6 shadow-xs hover:shadow-xl transition-all"
                                     >
-                                        <div className="mb-4 flex items-center gap-4">
+                                        <DepthLayer z={20} className="mb-4 flex items-center gap-4">
                                             {teacher.avatar ? (
                                                 <img
                                                     alt={teacher.name}
-                                                    className="h-16 w-16 shrink-0 rounded-full object-cover"
+                                                    className="h-16 w-16 shrink-0 rounded-full object-cover shadow-sm ring-2 ring-[#EAE4D2]"
                                                     src={teacher.avatar}
                                                 />
                                             ) : (
@@ -799,11 +801,13 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                                                         : teacher.overall_level || t('welcome.certified_teacher')}
                                                 </span>
                                             </div>
-                                        </div>
-                                        <p className="mb-4 flex-1 text-sm font-medium text-[#5C6480] line-clamp-3">
-                                            {teacher.headline || teacher.bio || t('welcome.default_teacher_desc')}
-                                        </p>
-                                        <div className="mb-4 flex items-center justify-between border-t border-[#EAE4D2] pt-3 text-xs font-semibold text-[#5C6480]">
+                                        </DepthLayer>
+                                        <DepthLayer z={10} className="mb-4 flex-1">
+                                            <p className="text-sm font-medium text-[#5C6480] line-clamp-3">
+                                                {teacher.headline || teacher.bio || t('welcome.default_teacher_desc')}
+                                            </p>
+                                        </DepthLayer>
+                                        <DepthLayer z={15} className="mb-4 flex items-center justify-between border-t border-[#EAE4D2] pt-3 text-xs font-semibold text-[#5C6480]">
                                             <span className="flex items-center gap-1 font-bold text-[#1E2A5A]">
                                                 <Star className="h-3.5 w-3.5 fill-[#F7DE8B] text-[#F7DE8B]" />{' '}
                                                 {teacher.rating || '5.0'} ({teacher.reviews || '12'}{' '}
@@ -812,16 +816,18 @@ export default function Welcome({ certifiedTeachers = [] }: WelcomeProps) {
                                             <span className="font-bold text-[#1D9E75]">
                                                 {t('welcome.slots_available')}
                                             </span>
-                                        </div>
-                                        <Link
-                                            href={getBookLessonLink(teacher.id)}
-                                            className="btn-primary rounded-xl py-2.5 text-center text-xs font-bold transition-transform hover:scale-[1.02]"
-                                        >
-                                            {t('welcome.book_with_teacher', {
-                                                name: teacher.name,
-                                            })}
-                                        </Link>
-                                    </div>
+                                        </DepthLayer>
+                                        <DepthLayer z={22}>
+                                            <Link
+                                                href={getBookLessonLink(teacher.id)}
+                                                className="btn-primary block w-full rounded-xl py-2.5 text-center text-xs font-bold transition-all hover:scale-[1.02] shadow-xs hover:shadow-md"
+                                            >
+                                                {t('welcome.book_with_teacher', {
+                                                    name: teacher.name,
+                                                })}
+                                            </Link>
+                                        </DepthLayer>
+                                    </TiltCard3D>
                                 ))
                             )}
                         </div>
