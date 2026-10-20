@@ -91,21 +91,43 @@ class RebindCertificatesCommand extends Command
             }
         }
 
+        $totalStorageFilesCount = count($availableFiles);
+
         // Map all existing file URLs / paths in database to avoid re-assigning already bound files
         $alreadyBoundFiles = [];
-        $allProfiles = TeacherProfile::all();
+        $allProfiles = TeacherProfile::with('user')->get();
+        $profilesWithFilesCount = 0;
+        $profilesWithMissingUrlCount = 0;
+        $profilesWithEmptyCertsCount = 0;
+
         foreach ($allProfiles as $prof) {
             $certs = $prof->certificates;
-            if (is_array($certs)) {
-                foreach ($certs as $c) {
-                    if (! empty($c['file_url'])) {
-                        $parsedPath = parse_url($c['file_url'], PHP_URL_PATH) ?? '';
-                        $alreadyBoundFiles[basename($parsedPath)] = true;
-                    }
-                    if (! empty($c['file_name'])) {
-                        $alreadyBoundFiles[$c['file_name']] = true;
-                    }
+            if (! is_array($certs) || empty($certs)) {
+                $profilesWithEmptyCertsCount++;
+
+                continue;
+            }
+
+            $hasFile = false;
+            $hasMissing = false;
+            foreach ($certs as $c) {
+                if (! empty($c['file_url']) && $c['file_url'] !== 'null') {
+                    $hasFile = true;
+                    $parsedPath = parse_url($c['file_url'], PHP_URL_PATH) ?? '';
+                    $alreadyBoundFiles[basename($parsedPath)] = true;
+                } else {
+                    $hasMissing = true;
                 }
+                if (! empty($c['file_name'])) {
+                    $alreadyBoundFiles[$c['file_name']] = true;
+                }
+            }
+
+            if ($hasFile) {
+                $profilesWithFilesCount++;
+            }
+            if ($hasMissing) {
+                $profilesWithMissingUrlCount++;
             }
         }
 
@@ -115,7 +137,9 @@ class RebindCertificatesCommand extends Command
             }));
         }
 
-        $this->line('Found '.count($availableFiles).' unassigned certificate file(s) in storage.');
+        $totalProfilesCount = $allProfiles->count();
+        $this->info("Database Teachers: {$totalProfilesCount} total ({$profilesWithFilesCount} already have files, {$profilesWithMissingUrlCount} missing file URLs, {$profilesWithEmptyCertsCount} uninitialized).");
+        $this->line("Storage: {$totalStorageFilesCount} files in certificates/ (".count($alreadyBoundFiles).' bound, '.count($availableFiles).' unassigned).');
 
         // Query candidate teacher profiles
         $query = TeacherProfile::with('user');
@@ -147,22 +171,19 @@ class RebindCertificatesCommand extends Command
         foreach ($profiles as $profile) {
             $certs = $profile->certificates;
 
-            // Handle uninitialized certificates array when an explicit file is specified
-            if ((! is_array($certs) || empty($certs)) && $specificFile) {
+            $hadNoCerts = false;
+            if (! is_array($certs) || empty($certs)) {
+                $hadNoCerts = true;
                 $certs = [[
                     'type' => 'ielts',
                     'title' => 'Certificate',
-                    'overall' => null,
-                    'speaking' => null,
-                    'verified' => false,
-                    'status' => 'pending',
+                    'overall' => $profile->overall_level ?: null,
+                    'speaking' => $profile->speaking_band ?: null,
+                    'verified' => (bool) $profile->is_verified,
+                    'status' => $profile->is_verified ? 'verified' : 'pending',
                     'file_url' => null,
                     'file_name' => null,
                 ]];
-            }
-
-            if (! is_array($certs) || empty($certs)) {
-                continue;
             }
 
             $updatedCerts = $certs;

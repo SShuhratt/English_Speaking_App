@@ -316,4 +316,40 @@ class RebindCertificatesCommandTest extends TestCase
         $this->assertNotNull($fresh->certificates[1]['file_url']);
         $this->assertNotEquals($fresh->certificates[0]['file_url'], $fresh->certificates[1]['file_url']);
     }
+
+    public function test_rebind_matches_profiles_with_null_or_empty_certificates(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('certificates/uninitialized.pdf', 'pdf-bytes');
+
+        $teacher = User::factory()->teacher()->create([
+            'email' => 'null_certs@example.com',
+            'full_name' => 'Null Certs Teacher',
+        ]);
+        $profile = TeacherProfile::create([
+            'user_id' => $teacher->id,
+            'age' => 28,
+            'phone_number' => '+998908888888',
+            'certificates' => null,
+            'overall_level' => '8.0',
+            'speaking_band' => '8.5',
+            'is_verified' => true,
+        ]);
+
+        $this->artisan('certificates:rebind', [
+            '--force' => true,
+            '--disk' => 'public',
+            '--window' => 168,
+        ])
+            ->expectsOutputToContain('Successfully rebound 1 certificate(s)')
+            ->assertSuccessful();
+
+        $fresh = $profile->fresh();
+        $this->assertIsArray($fresh->certificates);
+        $this->assertCount(1, $fresh->certificates);
+        $this->assertStringContainsString('uninitialized.pdf', $fresh->certificates[0]['file_url']);
+        $this->assertEquals('8.0', $fresh->certificates[0]['overall']);
+        $this->assertEquals('8.5', $fresh->certificates[0]['speaking']);
+        $this->assertTrue($fresh->certificates[0]['verified']);
+    }
 }
