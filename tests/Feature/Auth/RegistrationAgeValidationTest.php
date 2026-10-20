@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class RegistrationAgeValidationTest extends TestCase
@@ -108,6 +109,15 @@ class RegistrationAgeValidationTest extends TestCase
             'phone_number' => '+998901234567',
             'overall_level' => 'IELTS 8.0',
             'speaking_band' => 8.0,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.0',
+                    'speaking' => '8.0',
+                    'file' => UploadedFile::fake()->create('cert_min.pdf', 100, 'application/pdf'),
+                ],
+            ],
         ]);
 
         $this->assertAuthenticated();
@@ -126,6 +136,15 @@ class RegistrationAgeValidationTest extends TestCase
             'phone_number' => '+998901234568',
             'overall_level' => 'IELTS 8.5',
             'speaking_band' => 8.5,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.5',
+                    'speaking' => '8.5',
+                    'file' => UploadedFile::fake()->create('cert_max.pdf', 100, 'application/pdf'),
+                ],
+            ],
         ]);
 
         $this->assertAuthenticated();

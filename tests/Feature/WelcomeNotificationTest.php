@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Fortify\Features;
 use Tests\TestCase;
@@ -74,6 +75,15 @@ class WelcomeNotificationTest extends TestCase
             'phone_number' => '+998909876543',
             'overall_level' => 'IELTS 8.0',
             'speaking_band' => 8.0,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.0',
+                    'speaking' => '8.0',
+                    'file' => UploadedFile::fake()->create('cert.pdf', 100, 'application/pdf'),
+                ],
+            ],
         ]);
 
         $response->assertSessionHasNoErrors();

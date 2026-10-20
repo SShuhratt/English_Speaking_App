@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -55,6 +56,17 @@ class AuthPageLocalizationTest extends TestCase
             'age' => 29,
             'phone_number' => '+998901234567',
             'price' => 50000,
+            'overall_level' => 'IELTS 8.0',
+            'speaking_band' => 8.0,
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.0',
+                    'speaking' => '8.0',
+                    'file' => UploadedFile::fake()->create('cert.pdf', 100, 'application/pdf'),
+                ],
+            ],
         ]);
 
         $this->assertAuthenticated();

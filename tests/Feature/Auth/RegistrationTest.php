@@ -53,6 +53,19 @@ class RegistrationTest extends TestCase
         ]);
     }
 
+    private function defaultTeacherCertificate(): array
+    {
+        return [
+            [
+                'type' => 'ielts',
+                'language' => 'english',
+                'overall' => '8.5',
+                'speaking' => '8.5',
+                'file' => UploadedFile::fake()->create('cert.pdf', 100, 'application/pdf'),
+            ],
+        ];
+    }
+
     public function test_new_users_can_register_as_teacher()
     {
         $response = $this->post(route('register.store'), [
@@ -65,6 +78,7 @@ class RegistrationTest extends TestCase
             'phone_number' => '+987654321',
             'overall_level' => 'IELTS 8.5',
             'speaking_band' => 8.5,
+            'certificates' => $this->defaultTeacherCertificate(),
         ]);
 
         $this->assertAuthenticated();
@@ -108,6 +122,7 @@ class RegistrationTest extends TestCase
             'overall_level' => 'IELTS 8.5',
             'speaking_band' => 8.5,
             'labels' => ['mock', 'freestyle'],
+            'certificates' => $this->defaultTeacherCertificate(),
         ]);
 
         $this->assertAuthenticated();
@@ -133,6 +148,7 @@ class RegistrationTest extends TestCase
             'phone_number' => '+987654321',
             'overall_level' => 'IELTS 8.5',
             'speaking_band' => 8.5,
+            'certificates' => $this->defaultTeacherCertificate(),
         ]);
 
         $this->assertAuthenticated();
@@ -156,6 +172,7 @@ class RegistrationTest extends TestCase
             'overall_level' => 'IELTS 8.0',
             'speaking_band' => 8.0,
             'labels' => ['practice q&a', 'lessons'],
+            'certificates' => $this->defaultTeacherCertificate(),
         ]);
 
         $this->assertAuthenticated();
@@ -216,6 +233,7 @@ class RegistrationTest extends TestCase
                     'reading' => '70',
                     'listening' => '75',
                     'writing' => '65',
+                    'file' => UploadedFile::fake()->create('topik.pdf', 100, 'application/pdf'),
                 ],
                 [
                     'type' => 'cefr',
@@ -225,6 +243,7 @@ class RegistrationTest extends TestCase
                     'reading' => 'B2',
                     'writing' => 'B1',
                     'speaking' => 'B2',
+                    'file' => UploadedFile::fake()->create('cefr.png', 100, 'image/png'),
                 ],
             ],
         ]);
@@ -259,6 +278,7 @@ class RegistrationTest extends TestCase
             'age' => 30,
             'phone_number' => '+998901234567',
             'price' => '65 000',
+            'certificates' => $this->defaultTeacherCertificate(),
         ]);
 
         $this->assertAuthenticated();
@@ -279,6 +299,7 @@ class RegistrationTest extends TestCase
             'age' => 25,
             'phone_number' => '+998907654321',
             'price' => '',
+            'certificates' => $this->defaultTeacherCertificate(),
         ]);
 
         $this->assertAuthenticated();
@@ -286,6 +307,99 @@ class RegistrationTest extends TestCase
 
         $teacher = User::where('email', 'free_teacher@example.com')->first();
         $this->assertSame(0, $teacher->teacherProfile->price);
+    }
+
+    public function test_teacher_registration_fails_without_certificates(): void
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'No Cert Teacher',
+            'email' => 'nocert@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 28,
+            'phone_number' => '+998901234567',
+            'overall_level' => 'IELTS 8.0',
+            'speaking_band' => 8.0,
+        ]);
+
+        $response->assertSessionHasErrors(['certificates']);
+        $this->assertGuest();
+    }
+
+    public function test_teacher_registration_fails_when_certificate_has_no_file(): void
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'No File Teacher',
+            'email' => 'nofile@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 28,
+            'phone_number' => '+998901234567',
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.0',
+                    'speaking' => '8.0',
+                    'file' => null,
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors(['certificates.0.file']);
+        $this->assertGuest();
+    }
+
+    public function test_teacher_registration_fails_with_invalid_file_extension(): void
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Bad File Teacher',
+            'email' => 'badfile@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 28,
+            'phone_number' => '+998901234567',
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.0',
+                    'speaking' => '8.0',
+                    'file' => UploadedFile::fake()->create('malicious.exe', 100, 'application/octet-stream'),
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors(['certificates.0.file']);
+        $this->assertGuest();
+    }
+
+    public function test_teacher_registration_fails_when_file_exceeds_max_size(): void
+    {
+        $response = $this->post(route('register.store'), [
+            'name' => 'Oversized Teacher',
+            'email' => 'oversized@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'teacher',
+            'age' => 28,
+            'phone_number' => '+998901234567',
+            'certificates' => [
+                [
+                    'type' => 'ielts',
+                    'language' => 'english',
+                    'overall' => '8.0',
+                    'speaking' => '8.0',
+                    'file' => UploadedFile::fake()->create('huge.pdf', 15000, 'application/pdf'),
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors(['certificates.0.file']);
+        $this->assertGuest();
     }
 
     public function test_registration_rejects_invalid_phone_numbers()

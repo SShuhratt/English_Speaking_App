@@ -6,6 +6,7 @@ use App\Models\TeacherProfile;
 use App\Models\User;
 use App\Services\CertificateValidationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class CertificateScoreValidationTest extends TestCase
@@ -33,6 +34,7 @@ class CertificateScoreValidationTest extends TestCase
                     'reading' => '9.0',
                     'writing' => '8.0',
                     'speaking' => '8.5',
+                    'file' => UploadedFile::fake()->create('cert.pdf', 100, 'application/pdf'),
                 ],
             ],
         ]);
@@ -58,6 +60,7 @@ class CertificateScoreValidationTest extends TestCase
                     'type' => 'ielts',
                     'title' => 'IELTS Academic',
                     'overall' => '7.3',
+                    'file' => UploadedFile::fake()->create('cert.pdf', 100, 'application/pdf'),
                 ],
             ],
         ]);
@@ -87,6 +90,7 @@ class CertificateScoreValidationTest extends TestCase
                     'listening' => '25',
                     'speaking' => '25',
                     'writing' => '25',
+                    'file' => UploadedFile::fake()->create('cert.pdf', 100, 'application/pdf'),
                 ],
             ],
         ]);
@@ -116,6 +120,7 @@ class CertificateScoreValidationTest extends TestCase
                     'reading' => '8.5',
                     'writing' => '8.0',
                     'speaking' => '8.5',
+                    'file' => UploadedFile::fake()->create('cert.pdf', 100, 'application/pdf'),
                 ],
             ],
         ]);

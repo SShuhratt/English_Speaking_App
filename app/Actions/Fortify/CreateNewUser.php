@@ -114,9 +114,52 @@ class CreateNewUser implements CreatesNewUsers
             'phone_number.regex' => 'Please enter a valid phone number (e.g. +998 90 123 45 67).',
             'email.email' => 'Please enter a valid email address.',
             'age.max' => 'Age cannot exceed 100 years.',
+            'certificates.required' => 'Please upload your certificate file (PDF or image up to 10MB).',
+            'certificates.min' => 'Please provide at least one certificate with an uploaded file.',
+            'certificates.*.file.required' => 'Certificate file upload is required (PDF or image up to 10MB).',
+            'certificates.*.file.mimes' => 'Certificate file must be a PDF or image (PNG, JPG, JPEG, WEBP).',
+            'certificates.*.file.max' => 'Certificate file size must not exceed 10MB.',
+            'certificate_files.*.mimes' => 'Certificate file must be a PDF or image (PNG, JPG, JPEG, WEBP).',
+            'certificate_files.*.max' => 'Certificate file size must not exceed 10MB.',
+            'ielts_certificates.*.mimes' => 'Certificate file must be a PDF or image (PNG, JPG, JPEG, WEBP).',
+            'ielts_certificates.*.max' => 'Certificate file size must not exceed 10MB.',
         ];
 
-        Validator::make($input, $rules, $messages)->validate();
+        $validator = Validator::make($input, $rules, $messages);
+
+        if ($role === 'teacher') {
+            $validator->after(function ($validator) use ($input) {
+                $hasDirectFiles = ! empty($input['certificate_files'] ?? request()->file('certificate_files'))
+                    || ! empty($input['ielts_certificates'] ?? request()->file('ielts_certificates'));
+
+                if ($hasDirectFiles) {
+                    return;
+                }
+
+                $certs = $input['certificates'] ?? request()->file('certificates') ?? request()->input('certificates');
+                if (is_string($certs)) {
+                    $certs = json_decode($certs, true) ?? [];
+                }
+
+                if (empty($certs) || ! is_array($certs)) {
+                    $validator->errors()->add('certificates', 'Please provide at least one certificate with an uploaded file.');
+
+                    return;
+                }
+
+                foreach ($certs as $index => $cert) {
+                    $hasFile = request()->hasFile("certificates.{$index}.file")
+                        || (isset($cert['file']) && $cert['file'] instanceof UploadedFile)
+                        || ! empty($cert['file_url']);
+
+                    if (! $hasFile) {
+                        $validator->errors()->add("certificates.{$index}.file", 'Certificate file upload is required (PDF or image up to 10MB).');
+                    }
+                }
+            });
+        }
+
+        $validator->validate();
 
         $certsInput = $input['certificates'] ?? request()->input('certificates');
         if (is_string($certsInput)) {
