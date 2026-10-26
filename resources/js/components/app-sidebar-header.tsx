@@ -36,7 +36,7 @@ export function AppSidebarHeader({
                     variant="ghost"
                     size="sm"
                     onClick={toggleTheme}
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+                    className="group flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg p-0 text-muted-foreground hover:bg-accent hover:text-[#061445]"
                     title={
                         resolvedAppearance === 'dark'
                             ? t('appearance.light')
@@ -49,9 +49,9 @@ export function AppSidebarHeader({
                     }
                 >
                     {resolvedAppearance === 'dark' ? (
-                        <Sun className="h-4 w-4 text-brand-yellow transition-transform hover:rotate-45" />
+                        <Sun className="h-4 w-4 text-brand-yellow transition-all duration-200 hover:rotate-45 group-hover:text-[#061445]" />
                     ) : (
-                        <Moon className="h-4 w-4 text-muted-foreground transition-transform hover:-rotate-12" />
+                        <Moon className="h-4 w-4 text-muted-foreground transition-all duration-200 hover:-rotate-12 group-hover:text-[#061445]" />
                     )}
                 </Button>
 

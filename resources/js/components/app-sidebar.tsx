@@ -177,7 +177,7 @@ export function AppSidebar() {
                     prefetch
                     className="flex items-center"
                 >
-                    <AppLogo />
+                    <AppLogo variant="white" size="md" />
                 </Link>
             </SidebarHeader>
 

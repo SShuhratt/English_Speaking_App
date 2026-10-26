@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Globe, Check } from 'lucide-react';
-import AppLogoIcon from '@/components/app-logo-icon';
+import AppLogo from '@/components/app-logo';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -50,7 +50,7 @@ export default function AuthSimpleLayout({
                             onClick={() => setLanguage('uz')}
                             className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold"
                         >
-                            <span>O'zbek (UZ)</span>
+                            <span>O'zbekcha (UZ)</span>
                             {locale === 'uz' && (
                                 <Check className="h-3.5 w-3.5 text-brand-navy dark:text-sky-400" />
                             )}
@@ -73,13 +73,9 @@ export default function AuthSimpleLayout({
                     <div className="flex flex-col items-center gap-4">
                         <Link
                             href={home()}
-                            className="flex flex-col items-center gap-2.5 font-medium"
+                            className="flex items-center justify-center transition-transform hover:scale-105"
                         >
-                            <AppLogoIcon className="h-12 w-12 border-2 border-brand-navy/10 transition-transform hover:scale-105" />
-                            <span className="text-xl font-black tracking-tight text-brand-navy">
-                                Convo
-                                <span className="text-brand-yellow">Mate</span>
-                            </span>
+                            <AppLogo size="xl" />
                         </Link>
 
                         <div className="space-y-2 text-center">

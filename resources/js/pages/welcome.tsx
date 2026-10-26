@@ -9,6 +9,7 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
+import AppLogo from '@/components/app-logo';
 import { HeroIllustration3D } from '@/components/landing/HeroIllustration3D';
 import { TiltCard3D, DepthLayer } from '@/components/landing/TiltCard3D';
 import {
@@ -191,18 +192,8 @@ return '/admin/dashboard';
                 {/* ── Main Header ── */}
                 <header className="sticky top-0 z-50 border-b border-[#EAE4D2] bg-white/95 backdrop-blur-md">
                     <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6 lg:gap-8 lg:px-8">
-                        <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-                            <div className="flex h-[34px] w-[34px] sm:h-[38px] sm:w-[38px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#1E2A5A]/10 bg-white p-1 shadow-md shadow-[#1E2A5A]/10 transition-transform hover:scale-105">
-                                <img
-                                    src="/images/logo.png"
-                                    alt="ConvoMate"
-                                    className="h-full w-full object-contain"
-                                />
-                            </div>
-                            <span className="font-['Bricolage_Grotesque'] text-[18px] sm:text-[22px] font-extrabold text-[#1E2A5A]">
-                                Convo
-                                <span className="text-[#D9B437]">Mate</span>
-                            </span>
+                        <Link href="/" className="flex shrink-0 items-center transition-transform hover:scale-[1.02]">
+                            <AppLogo size="lg" variant="navy" />
                         </Link>
 
                         <nav className="hidden items-center justify-center gap-6 text-[14px] font-semibold text-[#5C6480] whitespace-nowrap lg:flex xl:gap-8 xl:text-[15px]">

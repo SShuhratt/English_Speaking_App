@@ -12,6 +12,7 @@ import {
     UserCheck,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import AppLogo from '@/components/app-logo';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -62,17 +63,8 @@ export default function PrivacyPolicy() {
                                 <span>Back to Home</span>
                             </Link>
                             <div className="hidden h-5 w-px bg-[#EAE4D2] sm:block" />
-                            <Link href="/" className="flex items-center gap-2.5">
-                                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-[#1E2A5A]/10 bg-white p-0.5 shadow-sm">
-                                    <img
-                                        src="/images/logo.png"
-                                        alt="ConvoMate"
-                                        className="h-full w-full object-contain"
-                                    />
-                                </div>
-                                <span className="text-lg font-black tracking-tight text-[#1E2A5A]">
-                                    Convo<span className="text-[#FF9F43]">Mate</span>
-                                </span>
+                            <Link href="/" className="flex items-center transition-transform hover:scale-[1.02]">
+                                <AppLogo size="md" variant="navy" />
                             </Link>
                         </div>
 

@@ -14,6 +14,7 @@ import {
     ArrowLeft,
     CheckCircle2,
 } from 'lucide-react';
+import AppLogo from '@/components/app-logo';
 import { VerifiedCredentialData } from '@/components/gamification/VerifiedFluencyCardModal';
 
 interface Props {
@@ -49,13 +50,8 @@ export default function CredentialPage({ credential }: Props) {
             {/* Top Navigation */}
             <header className="border-b border-white/10 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold shadow-md shadow-indigo-500/20 group-hover:scale-105 transition">
-                            C
-                        </div>
-                        <span className="font-extrabold text-lg tracking-tight text-white">
-                            Convo<span className="text-indigo-400">Mate</span>
-                        </span>
+                    <Link href="/" className="flex items-center transition hover:opacity-90">
+                        <AppLogo variant="white" size="md" />
                     </Link>
 
                     <div className="flex items-center gap-3">

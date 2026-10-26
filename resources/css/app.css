@@ -334,3 +334,32 @@
 .animate-spin-slow {
     animation: spin-slow 30s linear infinite;
 }
+
+/* ── 3D Y-Axis Horizontal Rotation Animation with 5s Static Pause ───── */
+@keyframes spin-y-pause {
+    0% {
+        transform: perspective(800px) rotateY(0deg);
+    }
+    16.67% {
+        transform: perspective(800px) rotateY(360deg);
+    }
+    100% {
+        transform: perspective(800px) rotateY(360deg);
+    }
+}
+
+.animate-spin-y {
+    animation: spin-y-pause 6s cubic-bezier(0.45, 0.05, 0.2, 1) infinite;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-spin-y {
+        animation: none !important;
+    }
+}
+

@@ -96,7 +96,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     Navigation menu
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
-                                    <AppLogoIcon className="h-6 w-6 fill-current text-black" />
+                                    <AppLogo variant="white" size="md" />
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
@@ -223,16 +223,16 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                         : 'dark',
                                 )
                             }
-                            className="h-9 w-9 cursor-pointer text-muted-foreground hover:bg-accent hover:text-foreground"
+                            className="group h-9 w-9 cursor-pointer text-muted-foreground hover:bg-accent hover:text-[#061445]"
                             title={
                                 resolvedAppearance === 'dark' ? 'Light' : 'Dark'
                             }
                             aria-label="Toggle theme"
                         >
                             {resolvedAppearance === 'dark' ? (
-                                <Sun className="h-4 w-4 text-brand-yellow transition-transform hover:rotate-45" />
+                                <Sun className="h-4 w-4 text-brand-yellow transition-all duration-200 hover:rotate-45 group-hover:text-[#061445]" />
                             ) : (
-                                <Moon className="h-4 w-4 transition-transform hover:-rotate-12" />
+                                <Moon className="h-4 w-4 text-muted-foreground transition-all duration-200 hover:-rotate-12 group-hover:text-[#061445]" />
                             )}
                         </Button>
                         <DropdownMenu>

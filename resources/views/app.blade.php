@@ -33,16 +33,20 @@
         </script>
 
         {{-- Preconnect to Google Fonts domains for instant TLS handshake --}}
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-        {{-- Direct high-priority font stylesheet loading with display=swap --}}
-        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+        {{-- Non-render-blocking font loading with display=swap and fallback --}}
+        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" media="print" onload="this.media='all'">
+        <noscript>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+        </noscript>
 
-        <link rel="icon" type="image/png" href="/images/logo.png">
-        <link rel="apple-touch-icon" href="/images/logo.png">
-
-        @fonts
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+        <link rel="icon" type="image/png" sizes="192x192" href="/images/logo.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
         {{-- Inject Pusher/Echo credentials dynamically from the server --}}
         <script>
