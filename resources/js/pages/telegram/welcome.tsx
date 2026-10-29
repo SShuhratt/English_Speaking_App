@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import '@/types/telegram.d';
+import convomateLogo from '../../../images/logo.png';
 
 export default function TelegramWelcome() {
     const [activeTab, setActiveTab] = useState<'register' | 'link'>('register');
@@ -209,7 +210,7 @@ export default function TelegramWelcome() {
                 {/* Header Branding */}
                 <div className="w-full max-w-md text-center pt-3 pb-4">
                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white shadow-md border border-brand-brown/10 mb-3">
-                        <img src="/images/logo.png" alt="ConvoMate" className="w-9 h-9 object-contain" />
+                        <img src={convomateLogo} alt="ConvoMate" className="w-9 h-9 object-contain" />
                     </div>
                     <h1 className="text-2xl font-extrabold tracking-tight text-foreground font-display">
                         ConvoMate

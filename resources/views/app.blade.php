@@ -43,10 +43,11 @@
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
         </noscript>
 
-        <link rel="icon" type="image/x-icon" href="/favicon.ico">
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-        <link rel="icon" type="image/png" sizes="192x192" href="/images/logo.png">
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+        <link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=3">
+        <link rel="icon" type="image/png" sizes="192x192" href="/images/logo.png?v=3">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
 
         {{-- Inject Pusher/Echo credentials dynamically from the server --}}
         <script>

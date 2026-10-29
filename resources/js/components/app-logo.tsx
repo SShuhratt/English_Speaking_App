@@ -1,6 +1,7 @@
 import React from 'react';
 import { useOptionalSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import convomateLogo from '../../images/logo.png';
 
 export interface AppLogoProps extends React.HTMLAttributes<HTMLDivElement> {
     size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -53,7 +54,7 @@ export default function AppLogo({
             >
                 <div className="flex h-9 w-9 items-center justify-center">
                     <img
-                        src="/images/logo.png"
+                        src={convomateLogo}
                         alt="ConvoMate"
                         className={cn(
                             'h-8 w-8 object-contain drop-shadow-sm',
@@ -97,7 +98,7 @@ export default function AppLogo({
                 aria-label="O"
             >
                 <img
-                    src="/images/logo.png"
+                    src={convomateLogo}
                     alt="O"
                     className={cn(
                         'object-contain select-none pointer-events-none drop-shadow-xs',

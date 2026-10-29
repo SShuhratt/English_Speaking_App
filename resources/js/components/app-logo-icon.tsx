@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import convomateLogo from '../../images/logo.png';
 
 interface AppLogoIconProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -13,7 +14,7 @@ export default function AppLogoIcon({ className, ...props }: AppLogoIconProps) {
             {...props}
         >
             <img
-                src="/images/logo.png"
+                src={convomateLogo}
                 alt="ConvoMate Logo"
                 className="h-full w-full object-contain"
             />
