@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminOffPlatformReportController;
 use App\Http\Controllers\AdminOverviewController;
 use App\Http\Controllers\AdminSupportController;
 use App\Http\Controllers\AdminUserController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GamificationController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MatchmakingController;
+use App\Http\Controllers\OffPlatformReportController;
 use App\Http\Controllers\PaymentLinkController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\PupilBookingController;
@@ -135,6 +137,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/support', [AdminSupportController::class, 'index'])->name('support');
         Route::post('/support/reply', [AdminSupportController::class, 'reply'])->name('support.reply');
         Route::post('/support/broadcast', [AdminSupportController::class, 'broadcast'])->name('support.broadcast');
+
+        Route::get('/off-platform-reports', [AdminOffPlatformReportController::class, 'index'])->name('off-platform-reports.index');
+        Route::post('/off-platform-reports/{id}/verify', [AdminOffPlatformReportController::class, 'verify'])->name('off-platform-reports.verify');
+        Route::post('/off-platform-reports/{id}/reject', [AdminOffPlatformReportController::class, 'reject'])->name('off-platform-reports.reject');
     });
 
     // Teacher Routes
@@ -214,6 +220,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/bookings/{id}', [BookingController::class, 'cancel']);
     Route::delete('/appointments/{id}', [BookingController::class, 'destroy']);
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+    Route::post('/off-platform-reports', [OffPlatformReportController::class, 'store'])->name('off-platform-reports.store');
     Route::post('/auth/google/disconnect', [GoogleOAuthController::class, 'disconnect'])->name('google.disconnect');
     Route::get('/telegram/connect', TelegramConnectController::class)
         ->middleware('signed')

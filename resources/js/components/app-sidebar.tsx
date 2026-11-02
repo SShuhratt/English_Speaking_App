@@ -15,6 +15,7 @@ import {
     GraduationCap,
     UserCheck,
     LayoutDashboard,
+    ShieldAlert,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -123,6 +124,11 @@ export function AppSidebar() {
                 title: t('nav.pupils'),
                 href: '/admin/pupils',
                 icon: Users,
+            },
+            {
+                title: 'Violation Reports',
+                href: '/admin/off-platform-reports',
+                icon: ShieldAlert,
             },
             {
                 title: t('support.title'),

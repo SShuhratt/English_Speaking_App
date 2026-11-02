@@ -115,4 +115,9 @@ class Appointment extends Model
     {
         return $this->hasMany(AppointmentMaterial::class, 'appointment_id')->latest();
     }
+
+    public function offPlatformReport()
+    {
+        return $this->hasOne(OffPlatformReport::class, 'appointment_id');
+    }
 }

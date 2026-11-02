@@ -10,6 +10,7 @@ import {
     MessageSquare,
     Trash2,
     Sparkles,
+    ShieldAlert,
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -34,6 +35,10 @@ export default function Sessions({ sessions }: Props) {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [selectedApt, setSelectedApt] = useState<any>(null);
+    const [reportOffPlatform, setReportOffPlatform] = useState(false);
+    const [reportedContact, setReportedContact] = useState('');
+    const [reportDescription, setReportDescription] = useState('');
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm({
@@ -49,6 +54,9 @@ export default function Sessions({ sessions }: Props) {
             comment_text: '',
         });
         clearErrors();
+        setReportOffPlatform(false);
+        setReportedContact('');
+        setReportDescription('');
         setSelectedApt(apt);
         setIsOpen(true);
     };
@@ -66,12 +74,58 @@ export default function Sessions({ sessions }: Props) {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (reportOffPlatform) {
+            if (!reportedContact.trim() || reportDescription.trim().length < 10) {
+                toast.error(
+                    'Please enter the contact handle and at least 10 characters describing the off-platform proposal.',
+                );
+                return;
+            }
+
+            try {
+                setIsSubmittingReport(true);
+                await axios.post('/off-platform-reports', {
+                    appointment_id: data.appointment_id,
+                    reported_contact: reportedContact.trim(),
+                    description: reportDescription.trim(),
+                });
+                toast.success(
+                    'Off-platform report submitted for review. If verified, a 100% free lesson voucher will be credited!',
+                );
+            } catch (err: any) {
+                toast.error(
+                    err.response?.data?.message ||
+                        'Failed to submit off-platform report.',
+                );
+                setIsSubmittingReport(false);
+                return;
+            } finally {
+                setIsSubmittingReport(false);
+            }
+        }
+
+        // If pupil feedback was already submitted (e.g. they opened modal solely to report), close and reload
+        const hasExistingFeedback = selectedApt?.feedbacks?.some(
+            (f: any) => f.pupil_id === auth.user?.id,
+        );
+
+        if (hasExistingFeedback) {
+            setIsOpen(false);
+            reset();
+            router.reload();
+            return;
+        }
+
         post('/feedback', {
             onSuccess: () => {
                 setIsOpen(false);
                 reset();
+                setReportOffPlatform(false);
+                setReportedContact('');
+                setReportDescription('');
             },
         });
     };
@@ -183,7 +237,36 @@ export default function Sessions({ sessions }: Props) {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2.5 self-end md:self-auto">
+                                        <div className="flex flex-wrap items-center gap-2.5 self-end md:self-auto">
+                                            {apt.off_platform_report ? (
+                                                <span
+                                                    className={`rounded-xl border px-3 py-1.5 text-[10px] font-bold tracking-wide uppercase ${
+                                                        apt.off_platform_report.status === 'pending'
+                                                            ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                                                            : apt.off_platform_report.status === 'verified'
+                                                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                                            : 'border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-400'
+                                                    }`}
+                                                >
+                                                    {apt.off_platform_report.status === 'pending'
+                                                        ? 'Report Under Review'
+                                                        : apt.off_platform_report.status === 'verified'
+                                                        ? 'Violation Verified (+1 Free Lesson)'
+                                                        : 'Report Reviewed'}
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleOpenFeedbackModal(apt);
+                                                        setReportOffPlatform(true);
+                                                    }}
+                                                    className="cursor-pointer text-[11px] font-bold text-brand-blue hover:text-brand-navy hover:underline inline-flex items-center gap-1 dark:text-brand-pale-blue dark:hover:text-white"
+                                                >
+                                                    <ShieldAlert className="h-3.5 w-3.5" /> Report off-platform
+                                                </button>
+                                            )}
+
                                             {!pupilFeedback ? (
                                                 <button
                                                     onClick={() =>
@@ -275,62 +358,120 @@ export default function Sessions({ sessions }: Props) {
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="mt-4 space-y-6">
-                        <div className="space-y-2.5">
-                            <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                                {t('sessions.rating_label', {
-                                    score: data.rating_score,
-                                })}
-                            </label>
-                            <div className="mt-1.5 grid grid-cols-5 gap-2">
-                                {Array.from(
-                                    { length: 10 },
-                                    (_, i) => i + 1,
-                                ).map((val) => (
-                                    <button
-                                        key={val}
-                                        type="button"
-                                        onClick={() =>
-                                            setData(
-                                                'rating_score',
-                                                val.toString(),
-                                            )
-                                        }
-                                        className={`cursor-pointer rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
-                                            data.rating_score === val.toString()
-                                                ? 'border-transparent bg-brand-brown text-white shadow-md shadow-brand-brown/10 dark:bg-brand-yellow dark:text-[#061445]'
-                                                : 'border-border bg-card text-muted-foreground hover:bg-muted'
-                                        }`}
-                                    >
-                                        {val}
-                                    </button>
-                                ))}
-                            </div>
-                            {errors.rating_score && (
-                                <p className="text-xs font-bold text-destructive">
-                                    {errors.rating_score}
-                                </p>
-                            )}
-                        </div>
+                        {!selectedApt?.feedbacks?.some(
+                            (f: any) => f.pupil_id === auth.user?.id,
+                        ) && (
+                            <>
+                                <div className="space-y-2.5">
+                                    <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                        {t('sessions.rating_label', {
+                                            score: data.rating_score,
+                                        })}
+                                    </label>
+                                    <div className="mt-1.5 grid grid-cols-5 gap-2">
+                                        {Array.from(
+                                            { length: 10 },
+                                            (_, i) => i + 1,
+                                        ).map((val) => (
+                                            <button
+                                                key={val}
+                                                type="button"
+                                                onClick={() =>
+                                                    setData(
+                                                        'rating_score',
+                                                        val.toString(),
+                                                    )
+                                                }
+                                                className={`cursor-pointer rounded-xl border py-2.5 text-xs font-bold transition-all duration-200 ${
+                                                    data.rating_score === val.toString()
+                                                        ? 'border-transparent bg-brand-brown text-white shadow-md shadow-brand-brown/10 dark:bg-brand-yellow dark:text-[#061445]'
+                                                        : 'border-border bg-card text-muted-foreground hover:bg-muted'
+                                                }`}
+                                            >
+                                                {val}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {errors.rating_score && (
+                                        <p className="text-xs font-bold text-destructive">
+                                            {errors.rating_score}
+                                        </p>
+                                    )}
+                                </div>
 
-                        <div className="space-y-2.5">
-                            <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                                {t('sessions.comments_label')}
-                            </label>
-                            <textarea
-                                value={data.comment_text}
-                                onChange={(e) =>
-                                    setData('comment_text', e.target.value)
-                                }
-                                placeholder={t('sessions.comments_placeholder')}
-                                className="min-h-[120px] w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm font-medium transition-all focus:ring-2 focus:ring-brand-button focus:outline-none"
-                                required
-                            />
-                            {errors.comment_text && (
-                                <p className="text-xs font-bold text-destructive">
-                                    {errors.comment_text}
-                                </p>
-                            )}
-                        </div>
+                                <div className="space-y-2.5">
+                                    <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                        {t('sessions.comments_label')}
+                                    </label>
+                                    <textarea
+                                        value={data.comment_text}
+                                        onChange={(e) =>
+                                            setData('comment_text', e.target.value)
+                                        }
+                                        placeholder={t('sessions.comments_placeholder')}
+                                        className="min-h-[100px] w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm font-medium transition-all focus:ring-2 focus:ring-brand-button focus:outline-none"
+                                        required={!reportOffPlatform}
+                                    />
+                                    {errors.comment_text && (
+                                        <p className="text-xs font-bold text-destructive">
+                                            {errors.comment_text}
+                                        </p>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {/* Off-Platform Solicitation Bounty Section */}
+                        {!selectedApt?.off_platform_report && (
+                            <div className="rounded-2xl border border-brand-pale-blue bg-brand-pale-blue/20 p-4 space-y-3 dark:border-white/10 dark:bg-white/5">
+                                <label className="flex items-center gap-2.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={reportOffPlatform}
+                                        onChange={(e) => setReportOffPlatform(e.target.checked)}
+                                        className="h-4 w-4 rounded border-brand-blue text-brand-navy focus:ring-brand-navy"
+                                    />
+                                    <span className="text-xs font-bold text-brand-navy dark:text-brand-pale-blue">
+                                        Did this teacher ask to conduct lessons outside ConvoMate?
+                                    </span>
+                                </label>
+
+                                {reportOffPlatform && (
+                                    <div className="space-y-3 pt-2 border-t border-brand-pale-blue dark:border-white/10">
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-muted-foreground uppercase">
+                                                Teacher's Contact / Handle Offered
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={reportedContact}
+                                                onChange={(e) => setReportedContact(e.target.value)}
+                                                placeholder="e.g. Telegram @username, phone number, card..."
+                                                className="w-full rounded-xl border border-border bg-background p-2.5 text-xs focus:ring-2 focus:ring-brand-navy focus:outline-none"
+                                                required={reportOffPlatform}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-muted-foreground uppercase">
+                                                What did the teacher propose?
+                                            </label>
+                                            <textarea
+                                                value={reportDescription}
+                                                onChange={(e) => setReportDescription(e.target.value)}
+                                                placeholder="Explain how the teacher asked to pay or move outside ConvoMate..."
+                                                className="min-h-[70px] w-full resize-none rounded-xl border border-border bg-background p-2.5 text-xs focus:ring-2 focus:ring-brand-navy focus:outline-none"
+                                                required={reportOffPlatform}
+                                            />
+                                        </div>
+
+                                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                            🛡️ <strong>Safety Guarantee:</strong> All reports undergo safety verification. If verified, a <strong>100% Free Lesson Voucher</strong> will be credited to your account. Submitting false reports results in account suspension.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <DialogFooter className="gap-2 border-t border-border/55 pt-2 sm:gap-0">
                             <button

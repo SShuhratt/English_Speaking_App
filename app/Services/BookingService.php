@@ -178,11 +178,17 @@ class BookingService
                     'appointment_id' => $appointment->id,
                 ]);
 
-                $appointment->update([
+                $appointmentUpdates = [
                     'price' => $finalPrice,
                     'discount_voucher_id' => $voucher->id,
                     'discount_amount' => $discountAmount,
-                ]);
+                ];
+
+                if ($finalPrice === 0) {
+                    $appointmentUpdates['payment_status'] = 'paid';
+                }
+
+                $appointment->update($appointmentUpdates);
             }
 
             // 4. Clear slot cache
@@ -247,6 +253,7 @@ class BookingService
             ]);
 
             $this->refundPackageMinutesIfNeeded($appointment);
+            $this->refundVoucherIfNeeded($appointment);
 
             // Clear cache
             $current = $appointment->start_at->copy()->subDay();
@@ -595,6 +602,25 @@ class BookingService
                     if ($pupilPackage->status === 'exhausted' && $pupilPackage->remaining_minutes > 0) {
                         $pupilPackage->update(['status' => 'active']);
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Refund discount voucher if appointment was booked using a voucher and cancelled before start
+     */
+    protected function refundVoucherIfNeeded(Appointment $appointment): void
+    {
+        if ($appointment->discount_voucher_id) {
+            if ($appointment->status === 'rejected' || $appointment->start_at->isFuture()) {
+                $voucher = UserDiscountVoucher::find($appointment->discount_voucher_id);
+                if ($voucher && $voucher->is_redeemed && $voucher->appointment_id === $appointment->id) {
+                    $voucher->update([
+                        'is_redeemed' => false,
+                        'redeemed_at' => null,
+                        'appointment_id' => null,
+                    ]);
                 }
             }
         }

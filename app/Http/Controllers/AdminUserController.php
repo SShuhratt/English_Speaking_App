@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OffPlatformReport;
 use App\Models\SupportMessage;
 use App\Models\User;
 use App\Services\CertificateValidationService;
 use App\Services\FileStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -62,12 +64,59 @@ class AdminUserController extends Controller
 
         $teachers = $query->latest('users.created_at')->paginate($perPage)->withQueryString();
 
-        $teachers->getCollection()->transform(function ($teacher) {
+        $teacherIds = $teachers->getCollection()->pluck('id')->all();
+
+        $pupilSessionCounts = DB::table('appointments')
+            ->whereIn('teacher_id', $teacherIds)
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                    ->orWhere(function ($q2) {
+                        $q2->whereNotIn('status', ['cancelled', 'rejected'])
+                            ->where('end_at', '<', now());
+                    });
+            })
+            ->select('teacher_id', 'pupil_id', DB::raw('count(*) as session_count'))
+            ->groupBy('teacher_id', 'pupil_id')
+            ->get()
+            ->groupBy('teacher_id');
+
+        $reportsCountByTeacher = DB::table('off_platform_reports')
+            ->whereIn('teacher_id', $teacherIds)
+            ->select(
+                'teacher_id',
+                DB::raw("count(case when status = 'pending' then 1 end) as pending_reports"),
+                DB::raw("count(case when status = 'verified' then 1 end) as verified_reports")
+            )
+            ->groupBy('teacher_id')
+            ->get()
+            ->keyBy('teacher_id');
+
+        $teachers->getCollection()->transform(function ($teacher) use ($pupilSessionCounts, $reportsCountByTeacher) {
             $teacher->unread_messages_count = SupportMessage::where('user_id', $teacher->id)
                 ->where('is_read_by_admin', false)
                 ->count();
             $teacher->is_new = $teacher->created_at >= now()->subDays(7);
             $teacher->phone_number = $teacher->phone_number ?: $teacher->teacherProfile?->phone_number;
+
+            $records = $pupilSessionCounts->get($teacher->id, collect());
+            $distinctPupils = $records->count();
+            $repeatPupils = $records->where('session_count', '>=', 2)->count();
+            $repeatRate = $distinctPupils > 0 ? round(($repeatPupils / $distinctPupils) * 100, 1) : null;
+
+            $isHighRisk = ($distinctPupils >= 5 && ($repeatRate === null || $repeatRate < 15.0));
+
+            $teacherReports = $reportsCountByTeacher->get($teacher->id);
+            $pendingReports = $teacherReports ? (int) $teacherReports->pending_reports : 0;
+            $verifiedReports = $teacherReports ? (int) $teacherReports->verified_reports : 0;
+
+            $teacher->stats = [
+                'distinct_students' => $distinctPupils,
+                'repeat_students' => $repeatPupils,
+                'repeat_rate' => $repeatRate,
+                'poaching_risk' => $isHighRisk ? 'high' : ($distinctPupils >= 3 && $repeatRate < 25.0 ? 'monitor' : 'normal'),
+                'pending_reports_count' => $pendingReports,
+                'verified_reports_count' => $verifiedReports,
+            ];
 
             return $teacher;
         });
@@ -77,6 +126,7 @@ class AdminUserController extends Controller
             'currentFilter' => $statusFilter,
             'filterCounts' => $filterCounts,
             'perPage' => $perPageParam,
+            'pendingReportsCount' => OffPlatformReport::where('status', 'pending')->count(),
         ]);
     }
 

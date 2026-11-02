@@ -72,6 +72,15 @@ interface TeacherProfile {
     phone_number?: string | null;
 }
 
+interface TeacherStats {
+    distinct_students: number;
+    repeat_students: number;
+    repeat_rate: number | null;
+    poaching_risk: 'high' | 'monitor' | 'normal';
+    pending_reports_count: number;
+    verified_reports_count: number;
+}
+
 interface Teacher {
     id: string;
     full_name: string;
@@ -84,6 +93,7 @@ interface Teacher {
     teacher_profile?: TeacherProfile;
     unread_messages_count?: number;
     is_new?: boolean;
+    stats?: TeacherStats;
 }
 
 interface FilterCounts {
@@ -107,6 +117,7 @@ interface Props {
     currentFilter: string;
     filterCounts?: FilterCounts;
     perPage?: string | number;
+    pendingReportsCount?: number;
 }
 
 export default function AdminTeachers({
@@ -114,6 +125,7 @@ export default function AdminTeachers({
     currentFilter,
     filterCounts,
     perPage,
+    pendingReportsCount,
 }: Props) {
     const { t, locale } = useTranslation();
     const [editingTeacherId, setEditingTeacherId] = useState<string | null>(
@@ -345,6 +357,31 @@ export default function AdminTeachers({
                     </div>
                 </div>
 
+                {/* Pending Reports Alert Banner */}
+                {pendingReportsCount && pendingReportsCount > 0 ? (
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-brand-pale-blue bg-brand-pale-blue/30 p-4 text-brand-navy dark:border-white/10 dark:bg-white/5 dark:text-white shadow-xs">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-xl bg-brand-navy p-2 text-brand-yellow">
+                                <ShieldAlert className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold">
+                                    {pendingReportsCount} Off-Platform Violation Report{pendingReportsCount > 1 ? 's' : ''} Awaiting Review
+                                </p>
+                                <p className="text-xs text-brand-blue dark:text-brand-pale-blue/80">
+                                    Students reported teachers attempting to take sessions off ConvoMate. Review evidence to award free lesson vouchers or discipline teachers.
+                                </p>
+                            </div>
+                        </div>
+                        <Link
+                            href="/admin/off-platform-reports?status=pending"
+                            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-navy px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-brand-navy/90 shrink-0 dark:bg-brand-yellow dark:text-brand-navy dark:hover:bg-brand-yellow-hover"
+                        >
+                            Review Reports <ExternalLink className="h-3.5 w-3.5" />
+                        </Link>
+                    </div>
+                ) : null}
+
                 {/* Filter & List Card */}
                 <Card className="shadow-md">
                     <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -535,6 +572,46 @@ export default function AdminTeachers({
                                                                             8,
                                                                         )}
                                                                     </span>
+
+                                                                    {teacher.stats && (
+                                                                        <>
+                                                                            {teacher.stats.poaching_risk === 'high' ? (
+                                                                                <span
+                                                                                    title="Teacher completed sessions with 5+ distinct students with <15% repeat booking rate. High risk of off-platform poaching."
+                                                                                    className="inline-flex items-center gap-1 rounded-md border border-brand-navy bg-brand-navy px-2 py-0.5 text-[10px] font-black text-brand-yellow shadow-xs"
+                                                                                >
+                                                                                    <ShieldAlert className="h-3 w-3 text-brand-yellow" />
+                                                                                    High Poaching Risk (Repeat: {teacher.stats.repeat_rate ?? 0}%)
+                                                                                </span>
+                                                                            ) : teacher.stats.poaching_risk === 'monitor' ? (
+                                                                                <span
+                                                                                    title="Student retention rate is below benchmark."
+                                                                                    className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-300"
+                                                                                >
+                                                                                    <Clock className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                                                                                    Repeat: {teacher.stats.repeat_rate ?? 0}% ({teacher.stats.repeat_students}/{teacher.stats.distinct_students})
+                                                                                </span>
+                                                                            ) : teacher.stats.distinct_students > 0 ? (
+                                                                                <span
+                                                                                    title="Healthy repeat student booking rate."
+                                                                                    className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                                                                >
+                                                                                    <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                                                                    Repeat: {teacher.stats.repeat_rate ?? 0}% ({teacher.stats.repeat_students}/{teacher.stats.distinct_students})
+                                                                                </span>
+                                                                            ) : null}
+
+                                                                            {teacher.stats.pending_reports_count > 0 && (
+                                                                                <Link
+                                                                                    href="/admin/off-platform-reports?status=pending"
+                                                                                    className="inline-flex items-center gap-1 rounded-md border border-amber-500/50 bg-amber-500/20 px-2 py-0.5 text-[10px] font-black text-amber-800 hover:underline dark:text-amber-300"
+                                                                                >
+                                                                                    <AlertCircle className="h-3 w-3 text-amber-600" />
+                                                                                    {teacher.stats.pending_reports_count} Pending Report{teacher.stats.pending_reports_count > 1 ? 's' : ''}
+                                                                                </Link>
+                                                                            )}
+                                                                        </>
+                                                                    )}
                                                                 </div>
                                                                 <p className="text-xs text-gray-500">
                                                                     {
