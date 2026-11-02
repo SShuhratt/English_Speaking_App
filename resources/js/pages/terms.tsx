@@ -31,14 +31,15 @@ export default function TermsOfService() {
         { id: 'acceptance', title: '1. Acceptance of Terms' },
         { id: 'services', title: '2. Description of Services' },
         { id: 'accounts', title: '3. User Accounts & Eligibility' },
-        { id: 'bookings', title: '4. Bookings & Cancellations' },
-        { id: 'conduct', title: '5. Code of Conduct' },
-        { id: 'third-party', title: '6. Third-Party Integrations' },
-        { id: 'intellectual-property', title: '7. Intellectual Property' },
-        { id: 'disclaimer', title: '8. Disclaimers & Liability' },
-        { id: 'termination', title: '9. Termination' },
-        { id: 'governing-law', title: '10. Governing Law' },
-        { id: 'contact', title: '11. Contact Information' },
+        { id: 'bookings', title: '4. Bookings, Payments & Cancellations' },
+        { id: 'conduct', title: '5. Code of Conduct & Prohibited Uses' },
+        { id: 'platform-integrity', title: '6. Platform Integrity & Anti-Circumvention' },
+        { id: 'third-party', title: '7. Third-Party Integrations' },
+        { id: 'intellectual-property', title: '8. Intellectual Property' },
+        { id: 'disclaimer', title: '9. Disclaimers & Liability' },
+        { id: 'termination', title: '10. Termination & Enforcement' },
+        { id: 'governing-law', title: '11. Governing Law' },
+        { id: 'contact', title: '12. Contact Information' },
     ];
 
     const currentLangLabel =
@@ -242,12 +243,15 @@ export default function TermsOfService() {
                                         <Clock className="h-5 w-5 text-[#FF9F43]" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1E2A5A]">
-                                        4. Bookings, Attendance & Cancellations
+                                        4. Bookings, Payments & Cancellations
                                     </h2>
                                 </div>
                                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-[#5C6480]">
                                     <p>
                                         <strong>Lesson Appointments:</strong> When a pupil requests a lesson slot with a teacher, the appointment is confirmed upon teacher approval or platform booking confirmation.
+                                    </p>
+                                    <p>
+                                        <strong>Platform Payments:</strong> All lesson payments, package purchases, and transactions between pupils and teachers must be processed exclusively through ConvoMate. Off-platform financial transactions are strictly prohibited.
                                     </p>
                                     <p>
                                         <strong>Punctuality & Attendance:</strong> Both pupils and teachers must join scheduled sessions on time via the provided Google Meet or platform video link.
@@ -273,6 +277,9 @@ export default function TermsOfService() {
                                     <ul className="list-inside list-disc space-y-1.5 pl-2 text-[#232A45]">
                                         <li>Engage in harassment, hate speech, bullying, defamation, or discriminatory behavior toward any student or teacher.</li>
                                         <li>Record, photograph, or capture video/audio of other users during speaking sessions without explicit mutual written consent.</li>
+                                        <li>Solicit, suggest, or accept private lessons, direct payments (e.g. personal card transfers, cash, or wire transfers), or off-platform tutoring arrangements with learners or instructors met on ConvoMate.</li>
+                                        <li>Share personal banking details, card numbers, or external contact handles during sessions for the purpose of avoiding platform fees or disintermediation.</li>
+                                        <li>Submit knowingly false, deceptive, or retaliatory violation reports against any teacher or student. False reporting is grounds for immediate account suspension.</li>
                                         <li>Transmit sexually explicit, violent, obscene, or unlawful material.</li>
                                         <li>Attempt to exploit, scrape, reverse engineer, or disrupt the platform’s security or infrastructure.</li>
                                         <li>Misrepresent your identity, certifications, IELTS/CEFR scores, or background.</li>
@@ -280,14 +287,45 @@ export default function TermsOfService() {
                                 </div>
                             </section>
 
-                            {/* Section 6: Third-Party Integrations */}
+                            {/* Section 6: Platform Integrity & Anti-Circumvention */}
+                            <section id="platform-integrity" className="rounded-3xl border border-[#EAE4D2] bg-white p-6 shadow-sm sm:p-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDF7E4] text-[#1E2A5A]">
+                                        <Shield className="h-5 w-5 text-[#FF9F43]" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-[#1E2A5A]">
+                                        6. Platform Integrity & Anti-Circumvention
+                                    </h2>
+                                </div>
+                                <div className="mt-4 space-y-4 text-sm leading-relaxed text-[#5C6480]">
+                                    <p>
+                                        ConvoMate invests substantial resources in discovering, vetting, certifying, and connecting teachers with language learners. To safeguard platform safety, scheduling reliability, and fair marketplace standards, all users agree to the following non-circumvention rules:
+                                    </p>
+                                    <div className="space-y-3 rounded-2xl border border-[#EAE4D2] bg-[#FDFBF7] p-4 text-xs text-[#232A45]">
+                                        <p>
+                                            <strong>Non-Circumvention Obligation:</strong> For any student or teacher relationship initiated on ConvoMate, all subsequent lessons, tutoring sessions, and related payments must occur exclusively through ConvoMate for a minimum of 24 months from the first session date.
+                                        </p>
+                                        <p>
+                                            <strong>Off-Platform Solicitation Prohibited:</strong> Teachers and students may not solicit, request, or offer to move tutoring sessions, card-to-card payments, or communication outside ConvoMate (e.g., via personal Telegram, WhatsApp, phone, or bank transfer).
+                                        </p>
+                                        <p>
+                                            <strong>Violation Reporting & Student Protection:</strong> Pupils who are solicited by teachers to conduct paid lessons outside ConvoMate are encouraged to report the incident via the lesson feedback mechanism. Confirmed and verified reports reward the reporting student with a complimentary single-use 100% Free Lesson Voucher. Submitting fabricated or malicious reports is strictly prohibited and results in immediate account suspension.
+                                        </p>
+                                        <p>
+                                            <strong>Sanctions for Non-Compliance:</strong> Any teacher found soliciting or accepting off-platform lessons or payments will face immediate account suspension, removal from search results, and permanent de-platforming.
+                                        </p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Section 7: Third-Party Integrations */}
                             <section id="third-party" className="rounded-3xl border border-[#EAE4D2] bg-white p-6 shadow-sm sm:p-8">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDF7E4] text-[#1E2A5A]">
                                         <CheckCircle2 className="h-5 w-5 text-[#4285F4]" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1E2A5A]">
-                                        6. Third-Party Services (Google Calendar & Meet)
+                                        7. Third-Party Services (Google Calendar & Meet)
                                     </h2>
                                 </div>
                                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-[#5C6480]">
@@ -302,21 +340,21 @@ export default function TermsOfService() {
                                             rel="noopener noreferrer"
                                             className="font-bold text-[#1E2A5A] underline"
                                         >
-                                            Google API Services User Data Policy
+                                             Google API Services User Data Policy
                                         </a>{' '}
                                         and Limited Use requirements.
                                     </p>
                                 </div>
                             </section>
 
-                            {/* Section 7: Intellectual Property */}
+                            {/* Section 8: Intellectual Property */}
                             <section id="intellectual-property" className="rounded-3xl border border-[#EAE4D2] bg-white p-6 shadow-sm sm:p-8">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDF7E4] text-[#1E2A5A]">
                                         <FileText className="h-5 w-5 text-[#FF9F43]" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1E2A5A]">
-                                        7. Intellectual Property
+                                        8. Intellectual Property
                                     </h2>
                                 </div>
                                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-[#5C6480]">
@@ -326,14 +364,14 @@ export default function TermsOfService() {
                                 </div>
                             </section>
 
-                            {/* Section 8: Disclaimer */}
+                            {/* Section 9: Disclaimer */}
                             <section id="disclaimer" className="rounded-3xl border border-[#EAE4D2] bg-white p-6 shadow-sm sm:p-8">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDF7E4] text-[#1E2A5A]">
                                         <Shield className="h-5 w-5 text-[#FF9F43]" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1E2A5A]">
-                                        8. Disclaimers & Limitation of Liability
+                                        9. Disclaimers & Limitation of Liability
                                     </h2>
                                 </div>
                                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-[#5C6480]">
@@ -346,14 +384,14 @@ export default function TermsOfService() {
                                 </div>
                             </section>
 
-                            {/* Section 9: Termination */}
+                            {/* Section 10: Termination */}
                             <section id="termination" className="rounded-3xl border border-[#EAE4D2] bg-white p-6 shadow-sm sm:p-8">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDF7E4] text-[#1E2A5A]">
                                         <Lock className="h-5 w-5 text-[#FF9F43]" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1E2A5A]">
-                                        9. Termination
+                                        10. Termination & Enforcement
                                     </h2>
                                 </div>
                                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-[#5C6480]">
@@ -361,19 +399,19 @@ export default function TermsOfService() {
                                         You may terminate your account at any time via <strong>Settings &gt; Profile &gt; Delete Account</strong>.
                                     </p>
                                     <p>
-                                        We reserve the right to suspend or terminate accounts that violate our Code of Conduct, submit falsified credentials, or engage in fraudulent activities without prior notice.
+                                        We reserve the right to immediately suspend or terminate accounts without prior notice if a user violates our Code of Conduct, attempts off-platform fee evasion or student solicitation, submits falsified teaching credentials or IELTS scores, or files fraudulent abuse reports.
                                     </p>
                                 </div>
                             </section>
 
-                            {/* Section 10: Governing Law */}
+                            {/* Section 11: Governing Law */}
                             <section id="governing-law" className="rounded-3xl border border-[#EAE4D2] bg-white p-6 shadow-sm sm:p-8">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDF7E4] text-[#1E2A5A]">
                                         <Scale className="h-5 w-5 text-[#1E2A5A]" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1E2A5A]">
-                                        10. Governing Law & Dispute Resolution
+                                        11. Governing Law & Dispute Resolution
                                     </h2>
                                 </div>
                                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-[#5C6480]">
@@ -383,14 +421,14 @@ export default function TermsOfService() {
                                 </div>
                             </section>
 
-                            {/* Section 11: Contact */}
+                            {/* Section 12: Contact */}
                             <section id="contact" className="rounded-3xl border border-[#EAE4D2] bg-white p-6 shadow-sm sm:p-8">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDF7E4] text-[#1E2A5A]">
                                         <Mail className="h-5 w-5 text-[#FF9F43]" />
                                     </div>
                                     <h2 className="text-xl font-bold text-[#1E2A5A]">
-                                        11. Contact Information
+                                        12. Contact Information
                                     </h2>
                                 </div>
                                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-[#5C6480]">

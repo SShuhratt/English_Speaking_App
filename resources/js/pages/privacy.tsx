@@ -202,6 +202,7 @@ export default function PrivacyPolicy() {
                                         <li><strong>Role & Learning Preferences:</strong> Account role (Pupil or Teacher), target English proficiency level (e.g. Beginner, Intermediate, IELTS, CEFR Band), and target goals.</li>
                                         <li><strong>Teacher Credentials:</strong> Hourly rate, teaching specializations, and uploaded language certificates (e.g., IELTS, CEFR, TOEFL test reports).</li>
                                         <li><strong>Communications:</strong> Messages submitted via ConvoMate support tickets, session feedback, and lesson notes.</li>
+                                        <li><strong>Safety & Policy Violation Reports:</strong> Details submitted regarding platform policy violations, including reported teacher/pupil identifiers, off-platform contact handles (e.g. Telegram handles, phone numbers), incident descriptions, and submitted verification evidence.</li>
                                     </ul>
                                 </div>
                             </section>
@@ -312,6 +313,7 @@ export default function PrivacyPolicy() {
                                         <li>Managing user authentication, sessions, and security settings (passkeys, 2FA).</li>
                                         <li>Sending essential transactional notifications (lesson bookings, reminders, and confirmations).</li>
                                         <li>Providing responsive customer support and resolving technical issues.</li>
+                                        <li>Investigating policy violation reports, enforcing platform integrity and anti-circumvention rules, preventing fraudulent conduct, and awarding student safety reward vouchers.</li>
                                     </ul>
                                 </div>
                             </section>
