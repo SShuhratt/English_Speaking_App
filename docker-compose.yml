@@ -11,7 +11,7 @@ services:
       - "POSTGRES_USER=postgres"
       - "POSTGRES_PASSWORD=postgress"
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -26,14 +26,22 @@ services:
     image: redis:7-alpine
     container_name: edtech-redis
     restart: unless-stopped
+    command: >
+      sh -c 'if [ -n "$$REDIS_PASSWORD" ]; then
+        exec redis-server --requirepass "$$REDIS_PASSWORD"
+      else
+        exec redis-server
+      fi'
+    environment:
+      - "REDIS_PASSWORD=${REDIS_PASSWORD:-}"
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     networks:
       - edtech
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: [ "CMD-SHELL", "if [ -n \"$$REDIS_PASSWORD\" ]; then redis-cli -a \"$$REDIS_PASSWORD\" ping; else redis-cli ping; fi" ]
       interval: 10s
       timeout: 5s
       retries: 5
