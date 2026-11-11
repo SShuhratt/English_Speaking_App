@@ -81,3 +81,8 @@ cloudflared
 # Telegram Session Files
 *.session
 *.session-journal
+
+# Off-Platform Violation Defence Documentation
+Off_Platform_Violation_Defence*
+*off_platform_violation*
+*Off_Platform_Violation*
