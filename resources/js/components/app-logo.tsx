@@ -12,22 +12,22 @@ export interface AppLogoProps extends React.HTMLAttributes<HTMLDivElement> {
 const sizeConfig = {
     sm: {
         text: 'text-base sm:text-lg',
-        icon: 'h-5 w-5 sm:h-6 sm:w-6',
+        icon: 'h-6 w-6 sm:h-7 sm:w-7',
         margin: 'mx-0',
     },
     md: {
         text: 'text-xl sm:text-2xl',
-        icon: 'h-7 w-7 sm:h-8 sm:w-8',
+        icon: 'h-8 w-8 sm:h-9 sm:w-9',
         margin: 'mx-0 sm:mx-0.5',
     },
     lg: {
         text: 'text-2xl sm:text-3xl',
-        icon: 'h-8 w-8 sm:h-9 sm:w-9',
+        icon: 'h-9 w-9 sm:h-11 sm:w-11',
         margin: 'mx-0.5',
     },
     xl: {
         text: 'text-3xl sm:text-4xl',
-        icon: 'h-10 w-10 sm:h-11 sm:w-11',
+        icon: 'h-11 w-11 sm:h-13 sm:w-13',
         margin: 'mx-0.5 sm:mx-1',
     },
 };
@@ -57,7 +57,7 @@ export default function AppLogo({
                         src={convomateLogo}
                         alt="ConvoMate"
                         className={cn(
-                            'h-8 w-8 rounded-full object-cover shadow-sm ring-1 ring-white/15',
+                            'h-9 w-9 object-contain drop-shadow-sm',
                             animate && 'animate-spin-y',
                         )}
                     />
@@ -100,7 +100,7 @@ export default function AppLogo({
                     src={convomateLogo}
                     alt="O"
                     className={cn(
-                        'rounded-full object-cover select-none pointer-events-none shadow-xs ring-1 ring-[#F5A623]/30',
+                        'object-contain select-none pointer-events-none drop-shadow-xs',
                         currentSize.icon,
                         animate && 'animate-spin-y',
                     )}
