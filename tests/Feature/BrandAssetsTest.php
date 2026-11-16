@@ -18,6 +18,7 @@ class BrandAssetsTest extends TestCase
             public_path('images/logo-nz.png'),
             public_path('apple-touch-icon-nz.png'),
             resource_path('images/logo-nz.png'),
+            resource_path('images/logo-nz-rays.png'),
         ];
 
         foreach ($newFiles as $path) {
@@ -44,10 +45,10 @@ class BrandAssetsTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('/favicon-nz.ico?v=5', false);
-        $response->assertSee('/favicon-nz.png?v=5', false);
-        $response->assertSee('/images/logo-nz.png?v=5', false);
-        $response->assertSee('/apple-touch-icon-nz.png?v=5', false);
+        $response->assertSee('/favicon-nz.ico?v=6', false);
+        $response->assertSee('/favicon-nz.png?v=6', false);
+        $response->assertSee('/images/logo-nz.png?v=6', false);
+        $response->assertSee('/apple-touch-icon-nz.png?v=6', false);
         $response->assertDontSee('/favicon.svg?v=3', false);
     }
 }

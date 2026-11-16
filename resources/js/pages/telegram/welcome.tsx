@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import '@/types/telegram.d';
 import convomateLogo from '../../../images/logo-nz.png';
+import convomateRays from '../../../images/logo-nz-rays.png';
 
 export default function TelegramWelcome() {
     const [activeTab, setActiveTab] = useState<'register' | 'link'>('register');
@@ -209,8 +210,18 @@ export default function TelegramWelcome() {
             <div className="min-h-screen bg-gradient-to-b from-brand-cream/40 via-background to-background text-foreground flex flex-col items-center justify-start p-4 sm:p-6 select-none">
                 {/* Header Branding */}
                 <div className="w-full max-w-md text-center pt-3 pb-4">
-                    <div className="inline-flex items-center justify-center w-16 h-16 mb-3">
-                        <img src={convomateLogo} alt="ConvoMate" className="w-full h-full object-contain drop-shadow-sm" />
+                    <div className="relative inline-flex items-center justify-center w-20 h-20 mb-3">
+                        <img
+                            src={convomateRays}
+                            alt=""
+                            aria-hidden="true"
+                            className="pointer-events-none h-full w-full object-contain select-none"
+                        />
+                        <img
+                            src={convomateLogo}
+                            alt="ConvoMate"
+                            className="absolute left-1/2 top-1/2 w-[64%] h-[64%] -translate-x-1/2 -translate-y-1/2 object-contain drop-shadow-sm animate-spin-y"
+                        />
                     </div>
                     <h1 className="text-2xl font-extrabold tracking-tight text-foreground font-display">
                         ConvoMate
