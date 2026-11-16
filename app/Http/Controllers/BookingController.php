@@ -32,6 +32,7 @@ class BookingController extends Controller
             'duration_minutes' => ['nullable', 'integer', 'in:20,30,45,60,90,120'],
             'voucher_id' => ['nullable', 'uuid', 'exists:user_discount_vouchers,id'],
             'voucher_code' => ['nullable', 'string', 'max:64'],
+            'partner_voucher_code' => ['nullable', 'string', 'max:64'],
         ]);
 
         try {
@@ -47,6 +48,7 @@ class BookingController extends Controller
                     'duration_minutes' => $validated['duration_minutes'] ?? null,
                     'discount_voucher_id' => $validated['voucher_id'] ?? null,
                     'discount_voucher_code' => $validated['voucher_code'] ?? null,
+                    'partner_voucher_code' => $validated['partner_voucher_code'] ?? null,
                 ]
             );
 

@@ -53,7 +53,7 @@ class HandleInertiaRequests extends Middleware
                 $user->load('pupilProfile');
             }
             $userArray = $user->toArray();
-            if ($user->role !== 'admin') {
+            if (! in_array($user->role, ['admin', 'partner'], true)) {
                 $userArray['streak_count'] = StreakService::calculateForUser($user);
             }
             $userShared = $userArray;
@@ -86,6 +86,9 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'google_register' => $request->session()->get('google_register'),
             'telegram_register' => $request->session()->get('telegram_register'),
+            'integrations' => [
+                'writing_mentor_enabled' => (bool) config('monetization.writing_mentor.enabled', false),
+            ],
             'payment' => [
                 'card_number' => (string) config('services.humo.card_number'),
                 'card_holder' => (string) config('services.humo.card_holder'),

@@ -7,6 +7,7 @@ use App\Events\ConversationApproved;
 use App\Events\ConversationBooked;
 use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
+use App\Models\PartnerVoucher;
 use App\Models\PupilPackage;
 use App\Models\TeacherAvailability;
 use App\Models\User;
@@ -78,11 +79,34 @@ class BookingService
                 $price = $hourlyRate > 0 ? (int) (round(($hourlyRate * $duration / 60) / 1000) * 1000) : 0;
             }
 
+            // Check explicit voucher inputs & prevent stacking multiple vouchers on a single lesson
+            $hasPersonalVoucher = ! empty($meta['discount_voucher_id']) || ! empty($meta['discount_voucher_code']);
+            $explicitPartnerVoucherCode = ! empty($meta['partner_voucher_code'])
+                ? strtoupper(trim((string) $meta['partner_voucher_code']))
+                : null;
+            $rawVoucherCode = ! empty($meta['discount_voucher_code'])
+                ? strtoupper(trim((string) $meta['discount_voucher_code']))
+                : null;
+
+            if ($explicitPartnerVoucherCode && $hasPersonalVoucher) {
+                throw ValidationException::withMessages([
+                    'voucher_code' => ['Multiple vouchers cannot be combined on a single booking.'],
+                ]);
+            }
+
+            // Detect Track B2 institutional bulk voucher when submitted via generic voucher_code
+            $partnerVoucherCode = $explicitPartnerVoucherCode;
+            if (! $partnerVoucherCode && $rawVoucherCode && (str_starts_with($rawVoucherCode, 'B2-') || PartnerVoucher::where('code', $rawVoucherCode)->exists())) {
+                $partnerVoucherCode = $rawVoucherCode;
+                $hasPersonalVoucher = false;
+            }
+
             // Check if pupil has active paid packages for this teacher with enough cumulative remaining minutes
+            // (Skip automatic package deduction when explicitly redeeming a Track B2 institutional voucher)
             $isPackageBooking = false;
             $pupilPackageId = null;
 
-            if (! $isTrial) {
+            if (! $isTrial && ! $partnerVoucherCode) {
                 $activePackages = PupilPackage::where('pupil_id', $pupil->id)
                     ->where('teacher_id', $teacher->id)
                     ->where('status', 'active')
@@ -128,6 +152,12 @@ class BookingService
             // 2. Prevent overlaps
             $this->ensureNoConflicts($teacher->id, $start, $end);
 
+            $calculator = app(MonetizationCalculator::class);
+            $breakdown = $calculator->calculateBreakdown(
+                grossAmount: $isPackageBooking ? 0 : (int) $price,
+                gatewayProvider: $isPackageBooking ? 'wholesale_bundle' : 'humo_p2p',
+            );
+
             $appointment = Appointment::create([
                 'teacher_id' => $teacher->id,
                 'pupil_id' => $pupil->id,
@@ -139,6 +169,12 @@ class BookingService
                 'is_trial' => $isTrial,
                 'duration_minutes' => $duration,
                 'price' => $price,
+                'gross_amount' => $breakdown['gross_amount'],
+                'gateway_provider' => $isPackageBooking ? 'humo_p2p' : 'humo_p2p',
+                'gateway_fee_bps' => $isPackageBooking ? 0 : $breakdown['gateway_fee_bps'],
+                'gateway_fee_amount' => $isPackageBooking ? 0 : $breakdown['gateway_fee_amount'],
+                'net_cash_amount' => $isPackageBooking ? 0 : $breakdown['net_cash_amount'],
+                'is_promotional_zero_cash' => false,
                 'pupil_package_id' => $pupilPackageId,
                 'is_package_booking' => $isPackageBooking,
                 'payment_status' => $isPackageBooking ? 'paid' : 'pending',
@@ -149,8 +185,33 @@ class BookingService
                 'provider' => 'google',
             ]);
 
-            // Apply discount voucher if provided
-            if (! $isPackageBooking && (! empty($meta['discount_voucher_id']) || ! empty($meta['discount_voucher_code']))) {
+            // Apply Track B2 institutional wholesale voucher OR personal XP/bounty discount voucher
+            if (! $isPackageBooking && $partnerVoucherCode) {
+                $partnerVoucherService = app(PartnerVoucherService::class);
+                $partnerVoucher = $partnerVoucherService->validateForBooking(
+                    code: $partnerVoucherCode,
+                    pupil: $pupil,
+                    teacher: $teacher,
+                    durationMinutes: $duration,
+                    lessonPrice: (int) $price,
+                    isTrial: $isTrial,
+                );
+
+                $partnerVoucherService->redeemForAppointment($partnerVoucher, $pupil, $appointment);
+
+                $appointment->update([
+                    'price' => 0,
+                    'gross_amount' => 0,
+                    'gateway_provider' => 'wholesale_bundle',
+                    'gateway_fee_bps' => 0,
+                    'gateway_fee_amount' => 0,
+                    'net_cash_amount' => 0,
+                    'is_promotional_zero_cash' => false,
+                    'partner_voucher_id' => $partnerVoucher->id,
+                    'discount_amount' => (int) $price,
+                    'payment_status' => 'paid',
+                ]);
+            } elseif (! $isPackageBooking && $hasPersonalVoucher) {
                 $voucherQuery = UserDiscountVoucher::where('user_id', $pupil->id)
                     ->where('is_redeemed', false)
                     ->lockForUpdate();
@@ -171,6 +232,10 @@ class BookingService
 
                 $discountAmount = (int) round(($price * $voucher->discount_percent) / 100);
                 $finalPrice = max(0, $price - $discountAmount);
+                $discountedBreakdown = $calculator->calculateBreakdown(
+                    grossAmount: $finalPrice,
+                    gatewayProvider: $finalPrice === 0 ? 'free_voucher' : 'humo_p2p',
+                );
 
                 $voucher->update([
                     'is_redeemed' => true,
@@ -180,8 +245,16 @@ class BookingService
 
                 $appointmentUpdates = [
                     'price' => $finalPrice,
+                    'original_price' => (int) $price,
+                    'gross_amount' => $discountedBreakdown['gross_amount'],
+                    'gateway_provider' => $finalPrice === 0 ? 'free_voucher' : 'humo_p2p',
+                    'gateway_fee_bps' => $discountedBreakdown['gateway_fee_bps'],
+                    'gateway_fee_amount' => $discountedBreakdown['gateway_fee_amount'],
+                    'net_cash_amount' => $discountedBreakdown['net_cash_amount'],
+                    'is_promotional_zero_cash' => $finalPrice === 0,
                     'discount_voucher_id' => $voucher->id,
                     'discount_amount' => $discountAmount,
+                    'platform_subsidy_amount' => $discountAmount,
                 ];
 
                 if ($finalPrice === 0) {
@@ -316,15 +389,16 @@ class BookingService
                 throw new \Exception('Cannot approve an expired appointment.');
             }
 
-            $isPaidPackage = $appointment->is_package_booking && $appointment->payment_status === 'paid';
+            $isPrepaidSession = ($appointment->is_package_booking || $appointment->partner_voucher_id !== null || ($appointment->discount_voucher_id !== null && (int) $appointment->price === 0))
+                && $appointment->payment_status === 'paid';
 
             $appointment->update([
-                'status' => $isPaidPackage ? 'confirmed' : 'accepted',
-                'payment_status' => $isPaidPackage ? 'paid' : 'verifying',
+                'status' => $isPrepaidSession ? 'confirmed' : 'accepted',
+                'payment_status' => $isPrepaidSession ? 'paid' : 'verifying',
             ]);
 
-            DB::afterCommit(function () use ($appointment, $isPaidPackage) {
-                if ($isPaidPackage) {
+            DB::afterCommit(function () use ($appointment, $isPrepaidSession) {
+                if ($isPrepaidSession) {
                     SyncAppointmentToGoogleJob::dispatch($appointment);
                 }
 
@@ -362,10 +436,25 @@ class BookingService
                 throw new \Exception("Cannot confirm payment for an appointment with status '{$appointment->status}'. Only 'accepted' sessions can be confirmed.");
             }
 
-            $appointment->update([
+            $updates = [
                 'status' => 'confirmed',
                 'payment_status' => 'paid',
-            ]);
+            ];
+
+            if ($appointment->gross_amount === null || $appointment->net_cash_amount === null) {
+                $provider = $appointment->gateway_provider ?: 'humo_p2p';
+                $breakdown = app(MonetizationCalculator::class)->calculateBreakdown(
+                    grossAmount: (int) ($appointment->price ?? 0),
+                    gatewayProvider: $provider,
+                );
+                $updates['gross_amount'] = $breakdown['gross_amount'];
+                $updates['gateway_provider'] = $provider;
+                $updates['gateway_fee_bps'] = $breakdown['gateway_fee_bps'];
+                $updates['gateway_fee_amount'] = $breakdown['gateway_fee_amount'];
+                $updates['net_cash_amount'] = $breakdown['net_cash_amount'];
+            }
+
+            $appointment->update($updates);
 
             DB::afterCommit(function () use ($appointment) {
                 SyncAppointmentToGoogleJob::dispatch($appointment);
@@ -415,6 +504,7 @@ class BookingService
             ]);
 
             $this->refundPackageMinutesIfNeeded($appointment);
+            $this->refundVoucherIfNeeded($appointment);
 
             // Clear slot cache
             $current = $appointment->start_at->copy()->subDay();
@@ -483,6 +573,7 @@ class BookingService
             ]);
 
             $this->refundPackageMinutesIfNeeded($appointment);
+            $this->refundVoucherIfNeeded($appointment);
 
             // Clear cache to make slot available again
             $current = $appointment->start_at->copy()->subDay();
@@ -608,7 +699,7 @@ class BookingService
     }
 
     /**
-     * Refund discount voucher if appointment was booked using a voucher and cancelled before start
+     * Refund discount voucher or wholesale B2 voucher if appointment was cancelled/rejected before start.
      */
     protected function refundVoucherIfNeeded(Appointment $appointment): void
     {
@@ -621,6 +712,15 @@ class BookingService
                         'redeemed_at' => null,
                         'appointment_id' => null,
                     ]);
+                }
+            }
+        }
+
+        if ($appointment->partner_voucher_id) {
+            if ($appointment->status === 'rejected' || $appointment->start_at->isFuture()) {
+                $partnerVoucher = PartnerVoucher::lockForUpdate()->find($appointment->partner_voucher_id);
+                if ($partnerVoucher && $partnerVoucher->redeemed_appointment_id === $appointment->id) {
+                    app(PartnerVoucherService::class)->refundIfEligible($partnerVoucher);
                 }
             }
         }

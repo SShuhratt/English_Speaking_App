@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentAssessment;
 use App\Models\Conversation;
 use App\Models\ConversationEndorsement;
+use App\Models\PartnerOrganization;
 use App\Models\PupilProfile;
 use App\Models\ReferralRecord;
 use App\Models\User;
@@ -820,7 +821,10 @@ class GamificationService
         do {
             $suffix = (string) rand(1000, 9999);
             $candidate = $prefix.$suffix;
-        } while (User::where('referral_code', $candidate)->exists());
+        } while (
+            User::where('referral_code', $candidate)->exists()
+            || PartnerOrganization::where('partner_code', $candidate)->exists()
+        );
 
         return $candidate;
     }
@@ -938,22 +942,11 @@ class GamificationService
                 'title_key' => 'gamification.store_voucher_10_title',
                 'default_title' => '10% Lesson Discount Voucher',
                 'desc_key' => 'gamification.store_voucher_10_desc',
-                'default_desc' => 'Redeem 10% off any upcoming live 1-on-1 teacher lesson.',
+                'default_desc' => 'Redeem 10% off any upcoming live 1-on-1 teacher lesson (single lessons only).',
                 'cost_xp' => 1000,
                 'discount_percent' => 10,
                 'icon' => '🎟️',
                 'can_afford' => $availableXp >= 1000,
-            ],
-            [
-                'key' => 'voucher_25',
-                'title_key' => 'gamification.store_voucher_25_title',
-                'default_title' => '25% Lesson Discount Voucher',
-                'desc_key' => 'gamification.store_voucher_25_desc',
-                'default_desc' => 'Redeem 25% off any upcoming live 1-on-1 teacher lesson.',
-                'cost_xp' => 2500,
-                'discount_percent' => 25,
-                'icon' => '🌟',
-                'can_afford' => $availableXp >= 2500,
             ],
         ];
 
@@ -985,7 +978,6 @@ class GamificationService
         $costs = [
             'streak_shield' => 500,
             'voucher_10' => 1000,
-            'voucher_25' => 2500,
         ];
 
         if (! isset($costs[$itemKey])) {

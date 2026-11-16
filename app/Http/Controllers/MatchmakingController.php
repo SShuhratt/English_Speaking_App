@@ -8,9 +8,11 @@ use App\Models\PupilProfile;
 use App\Models\User;
 use App\Services\GamificationService;
 use App\Services\MatchmakingService;
+use App\Services\P2pQuotaService;
 use App\Services\TopicService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 
 class MatchmakingController extends Controller
@@ -19,8 +21,19 @@ class MatchmakingController extends Controller
      * Create a new controller instance.
      */
     public function __construct(
-        protected MatchmakingService $matchmakingService
+        protected MatchmakingService $matchmakingService,
+        protected P2pQuotaService $p2pQuotaService,
     ) {}
+
+    /**
+     * Get the pupil's current daily P2P speaking quota summary.
+     */
+    public function quota(Request $request): JsonResponse
+    {
+        return response()->json(
+            $this->p2pQuotaService->checkAllowance($request->user())
+        );
+    }
 
     /**
      * Get available matchmaking topics.
@@ -35,9 +48,19 @@ class MatchmakingController extends Controller
      */
     public function join(Request $request): JsonResponse
     {
+        $allowance = $this->p2pQuotaService->checkAllowance($request->user());
+        if (! $allowance['allowed']) {
+            return response()->json([
+                'status' => 'quota_exceeded',
+                'message' => 'You have reached your daily peer speaking limit. Activate a Partner Pass for unlimited practice.',
+                'quota' => $allowance,
+            ], 429);
+        }
+
         $userId = (string) auth()->id();
         $topic = (string) $request->input('topic', 'free_talk');
         $result = $this->matchmakingService->enterQueue($userId, $topic);
+        $result['quota'] = $allowance;
 
         return response()->json($result);
     }
@@ -197,14 +220,43 @@ class MatchmakingController extends Controller
                     'reason' => 'partner_offline',
                     'online_pupils' => $onlinePupils,
                     'incoming_requests' => $incomingRequests,
+                    'quota' => $this->p2pQuotaService->checkAllowance($request->user()),
                 ]);
             }
+
+            $hbKey = "p2p_hb_at:{$userId}";
+            $nowTs = now()->timestamp;
+            $lastTs = Cache::get($hbKey);
+            $elapsed = $lastTs ? max(1, min(15, $nowTs - (int) $lastTs)) : 5;
+            Cache::put($hbKey, $nowTs, 60);
+
+            $quota = $this->p2pQuotaService->recordUsageSeconds($request->user(), $elapsed);
+            if (! $quota['allowed']) {
+                Redis::del("active_speaking_session:{$userId}");
+                Redis::del("active_speaking_session:{$partnerId}");
+
+                return response()->json([
+                    'status' => 'terminated',
+                    'reason' => 'quota_exceeded',
+                    'online_pupils' => $onlinePupils,
+                    'incoming_requests' => $incomingRequests,
+                    'quota' => $quota,
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'alive',
+                'online_pupils' => $onlinePupils,
+                'incoming_requests' => $incomingRequests,
+                'quota' => $quota,
+            ]);
         }
 
         return response()->json([
             'status' => 'alive',
             'online_pupils' => $onlinePupils,
             'incoming_requests' => $incomingRequests,
+            'quota' => $this->p2pQuotaService->checkAllowance($request->user()),
         ]);
     }
 
@@ -230,6 +282,14 @@ class MatchmakingController extends Controller
      */
     public function acceptRequest(Request $request): JsonResponse
     {
+        $allowance = $this->p2pQuotaService->checkAllowance($request->user());
+        if (! $allowance['allowed']) {
+            return response()->json([
+                'error' => 'You have reached your daily peer speaking limit. Activate a Partner Pass for unlimited practice.',
+                'quota' => $allowance,
+            ], 429);
+        }
+
         $receiverId = (string) auth()->id();
         $senderId = (string) $request->input('sender_id');
 

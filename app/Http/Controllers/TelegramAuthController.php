@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Notifications\TelegramLinkOtpNotification;
 use App\Notifications\WelcomeNotification;
+use App\Services\PartnerAttributionService;
 use App\Services\Telegram\TelegramWebAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -296,6 +297,8 @@ class TelegramAuthController extends Controller
             'level' => ['nullable', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'],
             'age' => ['nullable', 'integer', 'min:8', 'max:100'],
             'phone_number' => ['nullable', 'string', 'max:30'],
+            'partner_code' => ['nullable', 'string', 'max:32'],
+            'ref' => ['nullable', 'string', 'max:32'],
         ]);
 
         $validated = $this->telegramWebAppService->validateInitData($request->input('initData'));
@@ -322,7 +325,14 @@ class TelegramAuthController extends Controller
         $phoneNumber = $request->input('phone_number') ?: '';
         $level = $request->input('level') ?: 'pre-intermediate';
 
-        $user = DB::transaction(function () use ($name, $email, $role, $telegramId, $telegramUsername, $age, $phoneNumber, $level) {
+        $partnerCode = $request->input('partner_code')
+            ?? $request->input('ref')
+            ?? $request->query('partner')
+            ?? $request->query('ref')
+            ?? ($validated['start_param'] ?? null)
+            ?? session(PartnerAttributionService::SESSION_KEY);
+
+        $user = DB::transaction(function () use ($name, $email, $role, $telegramId, $telegramUsername, $age, $phoneNumber, $level, $partnerCode) {
             $randomPassword = Str::random(24).'aA1!@#$';
 
             $user = User::create([
@@ -356,10 +366,21 @@ class TelegramAuthController extends Controller
                     'phone_number' => $phoneNumber,
                     'level' => $level,
                 ]);
+
+                if (! empty($partnerCode)) {
+                    app(PartnerAttributionService::class)->attributeNewPupil(
+                        pupil: $user,
+                        code: (string) $partnerCode,
+                        source: 'telegram_start',
+                    );
+                }
             }
 
             return $user;
         });
+
+        session()->forget(PartnerAttributionService::SESSION_KEY);
+        session()->forget(PartnerAttributionService::SESSION_CAPTURED_AT_KEY);
 
         $user->notify(new WelcomeNotification($role));
 

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\WelcomeNotification;
 use App\Services\CertificateValidationService;
 use App\Services\GamificationService;
+use App\Services\PartnerAttributionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -169,10 +170,21 @@ class CreateNewUser implements CreatesNewUsers
             CertificateValidationService::assertValidCertificates($certsInput);
         }
 
-        $refCode = $input['ref'] ?? request()->query('ref') ?? request()->input('ref') ?? session('referral_code');
+        $partnerService = app(PartnerAttributionService::class);
+        $partnerCode = $input['partner_code']
+            ?? request()->query('partner')
+            ?? request()->input('partner_code')
+            ?? session(PartnerAttributionService::SESSION_KEY)
+            ?? $input['ref']
+            ?? request()->query('ref')
+            ?? request()->input('ref')
+            ?? session('referral_code');
+
+        $partnerOrg = $role === 'pupil' ? $partnerService->findActiveOrganizationByCode($partnerCode) : null;
+        $refCode = $partnerOrg ? null : ($input['ref'] ?? request()->query('ref') ?? request()->input('ref') ?? session('referral_code'));
         $referrer = ! empty($refCode) ? User::where('referral_code', strtoupper(trim((string) $refCode)))->first() : null;
 
-        $user = DB::transaction(function () use ($input, $role, $referrer) {
+        $user = DB::transaction(function () use ($input, $role, $referrer, $partnerOrg, $partnerService) {
             $user = User::create([
                 'name' => $input['name'],
                 'full_name' => $input['name'],
@@ -196,7 +208,17 @@ class CreateNewUser implements CreatesNewUsers
                 );
             }
 
+            if ($partnerOrg && $role === 'pupil') {
+                $partnerService->attributeNewPupil(
+                    pupil: $user,
+                    code: $partnerOrg->partner_code,
+                    source: 'referral_link',
+                );
+            }
+
             session()->forget('referral_code');
+            session()->forget(PartnerAttributionService::SESSION_KEY);
+            session()->forget(PartnerAttributionService::SESSION_CAPTURED_AT_KEY);
 
             if (session()->has('google_register')) {
                 $googleData = session()->get('google_register');

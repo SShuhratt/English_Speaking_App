@@ -22,6 +22,10 @@ class DashboardController extends Controller
             return redirect()->route('admin.overview');
         }
 
+        if ($user->role === 'partner') {
+            return redirect()->route('partner.dashboard');
+        }
+
         if ($user->role === 'teacher') {
             $appointments = Appointment::where('teacher_id', $user->id)
                 ->whereIn('status', ['accepted', 'confirmed'])

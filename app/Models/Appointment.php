@@ -31,12 +31,24 @@ class Appointment extends Model
         'is_trial',
         'duration_minutes',
         'price',
+        'original_price',
+        'gross_amount',
+        'gateway_provider',
+        'gateway_fee_bps',
+        'gateway_fee_amount',
+        'net_cash_amount',
+        'is_promotional_zero_cash',
+        'completed_at',
+        'completion_voided_at',
+        'completion_void_reason',
         'reminder_5min_sent_at',
         'reminder_started_sent_at',
         'pupil_package_id',
         'is_package_booking',
         'discount_voucher_id',
+        'partner_voucher_id',
         'discount_amount',
+        'platform_subsidy_amount',
         'receipt_path',
         'receipt_data',
     ];
@@ -44,13 +56,23 @@ class Appointment extends Model
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'completion_voided_at' => 'datetime',
         'reminder_5min_sent_at' => 'datetime',
         'reminder_started_sent_at' => 'datetime',
         'topics' => 'array',
         'is_trial' => 'boolean',
+        'meeting_started' => 'boolean',
         'duration_minutes' => 'integer',
         'price' => 'integer',
+        'original_price' => 'integer',
+        'gross_amount' => 'integer',
+        'gateway_fee_bps' => 'integer',
+        'gateway_fee_amount' => 'integer',
+        'net_cash_amount' => 'integer',
+        'is_promotional_zero_cash' => 'boolean',
         'discount_amount' => 'integer',
+        'platform_subsidy_amount' => 'integer',
         'is_package_booking' => 'boolean',
         'receipt_data' => 'array',
     ];
@@ -109,6 +131,16 @@ class Appointment extends Model
     public function discountVoucher()
     {
         return $this->belongsTo(UserDiscountVoucher::class, 'discount_voucher_id');
+    }
+
+    public function partnerVoucher()
+    {
+        return $this->belongsTo(PartnerVoucher::class, 'partner_voucher_id');
+    }
+
+    public function partnerCommissionEntry()
+    {
+        return $this->hasOne(PartnerCommissionEntry::class, 'appointment_id');
     }
 
     public function materials()

@@ -242,4 +242,76 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(UserDiscountVoucher::class, 'user_id');
     }
+
+    public function partnerAttribution()
+    {
+        return $this->hasOne(PartnerAttribution::class, 'pupil_id');
+    }
+
+    public function partnerPasses()
+    {
+        return $this->hasMany(PartnerPass::class, 'user_id');
+    }
+
+    public function activePartnerPass(): ?PartnerPass
+    {
+        return $this->partnerPasses()
+            ->where('status', 'active')
+            ->where('expires_at', '>', now())
+            ->orderByDesc('expires_at')
+            ->first();
+    }
+
+    public function hasActivePartnerPass(): bool
+    {
+        return $this->partnerPasses()
+            ->where('status', 'active')
+            ->where('expires_at', '>', now())
+            ->exists();
+    }
+
+    public function externalEntitlements()
+    {
+        return $this->hasMany(ExternalEntitlement::class, 'user_id');
+    }
+
+    public function directedPartnerOrganizations()
+    {
+        return $this->hasMany(PartnerOrganization::class, 'director_user_id');
+    }
+
+    public function partnerMemberships()
+    {
+        return $this->hasMany(PartnerOrganizationUser::class, 'user_id');
+    }
+
+    public function partnerOrganizations()
+    {
+        return $this->belongsToMany(PartnerOrganization::class, 'partner_organization_users')
+            ->withPivot(['id', 'staff_role', 'is_active'])
+            ->withTimestamps();
+    }
+
+    public function activePartnerMembership(): ?PartnerOrganizationUser
+    {
+        return $this->partnerMemberships()
+            ->with('partnerOrganization')
+            ->where('is_active', true)
+            ->orderBy('created_at')
+            ->first();
+    }
+
+    public function primaryPartnerOrganization(): ?PartnerOrganization
+    {
+        $membership = $this->activePartnerMembership();
+        if ($membership?->partnerOrganization) {
+            return $membership->partnerOrganization;
+        }
+
+        if ($this->partnerMemberships()->where('is_active', false)->exists()) {
+            return null;
+        }
+
+        return $this->directedPartnerOrganizations()->first();
+    }
 }

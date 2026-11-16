@@ -8,6 +8,7 @@ use App\Notifications\PackagePaymentConfirmedNotification;
 use App\Notifications\PackagePaymentRejectedNotification;
 use App\Notifications\TeacherPackagePurchasedNotification;
 use App\Services\BookingService;
+use App\Services\MonetizationCalculator;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -133,10 +134,25 @@ class AdminDashboardController extends Controller
                 throw new \Exception('Package payment is already confirmed.');
             }
 
-            $package->update([
+            $updates = [
                 'payment_status' => 'paid',
                 'status' => 'active',
-            ]);
+            ];
+
+            if ($package->gross_amount === null || $package->net_cash_amount === null) {
+                $provider = $package->gateway_provider ?: 'humo_p2p';
+                $breakdown = app(MonetizationCalculator::class)->calculateBreakdown(
+                    grossAmount: (int) $package->price_paid,
+                    gatewayProvider: $provider,
+                );
+                $updates['gross_amount'] = $breakdown['gross_amount'];
+                $updates['gateway_provider'] = $provider;
+                $updates['gateway_fee_bps'] = $breakdown['gateway_fee_bps'];
+                $updates['gateway_fee_amount'] = $breakdown['gateway_fee_amount'];
+                $updates['net_cash_amount'] = $breakdown['net_cash_amount'];
+            }
+
+            $package->update($updates);
 
             $package->load(['teacher.teacherProfile', 'pupil.pupilProfile']);
             $package->pupil?->notify(new PackagePaymentConfirmedNotification($package));

@@ -1,6 +1,5 @@
 import React from 'react';
-import { Form, Head, usePage } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Trash2,
     FileText,
@@ -10,8 +9,17 @@ import {
     Lock,
     Upload,
     Play,
+    Crown,
+    Building2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import { applyCode } from '@/actions/App/Http/Controllers/PartnerAttributionController';
+import {
+    purchaseRetail,
+    redeemCode,
+    uploadReceipt,
+} from '@/actions/App/Http/Controllers/PartnerPassController';
 import DeleteUser from '@/components/delete-user';
 import GoogleCalendarSettingsCard from '@/components/settings/GoogleCalendarSettingsCard';
 import TelegramSettingsCard from '@/components/settings/TelegramSettingsCard';
@@ -93,6 +101,7 @@ type PageProps = {
                 bio?: string;
                 intro_video_url?: string;
                 price?: number;
+                accepts_institutional_vouchers?: boolean;
             };
             pupil_profile?: {
                 age?: number;
@@ -126,13 +135,35 @@ type PageProps = {
 export default function Profile({
     mustVerifyEmail,
     status,
+    activePartnerPass,
+    pendingPartnerPass,
+    p2pQuota,
+    partnerPassPricing,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    activePartnerPass?: any;
+    pendingPartnerPass?: any;
+    p2pQuota?: {
+        tier?: string;
+        unlimited?: boolean;
+        daily_limit_minutes?: number | null;
+        remaining_minutes?: number | null;
+        partner_name?: string | null;
+    } | null;
+    partnerPassPricing?: {
+        partner_pass_b2c_price_uzs: number;
+        partner_pass_default_days: number;
+    };
 }) {
-    const { auth } = usePage<PageProps>().props;
+    const pageProps = usePage<PageProps & { integrations?: { writing_mentor_enabled?: boolean }; payment?: { card_number?: string } }>().props;
+    const { auth } = pageProps;
     const { t, locale } = useTranslation();
     const [selectedCertForPreview, setSelectedCertForPreview] = React.useState<CertificateData | null>(null);
+    const [partnerCodeInput, setPartnerCodeInput] = React.useState('');
+    const [passCodeInput, setPassCodeInput] = React.useState('');
+    const [receiptTextInput, setReceiptTextInput] = React.useState('');
+    const [receiptFile, setReceiptFile] = React.useState<File | null>(null);
 
     const isImageFile = (url: string) => {
         const cleanUrl = url.split('?')[0];
@@ -1636,6 +1667,36 @@ export default function Profile({
                                                 />
                                             </div>
                                         </div>
+
+                                        <div className="mt-4 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                                            <input
+                                                type="hidden"
+                                                name="accepts_institutional_vouchers"
+                                                value="0"
+                                            />
+                                            <input
+                                                id="accepts_institutional_vouchers"
+                                                type="checkbox"
+                                                name="accepts_institutional_vouchers"
+                                                value="1"
+                                                defaultChecked={Boolean(
+                                                    auth.user.teacher_profile
+                                                        ?.accepts_institutional_vouchers,
+                                                )}
+                                                className="mt-1 h-4 w-4 rounded border-slate-300"
+                                            />
+                                            <label
+                                                htmlFor="accepts_institutional_vouchers"
+                                                className="cursor-pointer text-sm"
+                                            >
+                                                <div className="font-semibold text-slate-900 dark:text-white">
+                                                    Accept Partner Center Bulk Vouchers
+                                                </div>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    Opt in to receive students booking with prepaid learning center vouchers (within each batch price cap).
+                                                </p>
+                                            </label>
+                                        </div>
                                     </div>
                                 </>
                             ) : (
@@ -2346,6 +2407,216 @@ export default function Profile({
                         </>
                     )}
                 </Form>
+
+                {/* Section: Partner Center & Partner Pass Membership (Pupils) */}
+                {auth?.user?.role === 'pupil' && (
+                    <div className="mx-auto max-w-[760px] px-4 pb-12">
+                        <div className="grid grid-cols-1 gap-8 border-t border-brand-pale-blue/20 pt-12 lg:grid-cols-12 dark:border-white/10">
+                            <div className="space-y-2 lg:col-span-4">
+                                <h3 className="text-xl font-extrabold text-[#1E2A5A] dark:text-white">
+                                    Partner Pass & Center Perk
+                                </h3>
+                                <p className="text-sm font-medium text-[#6B7394] dark:text-gray-400">
+                                    Link your learning center code or activate a monthly Partner Pass for unlimited peer speaking practice.
+                                </p>
+                            </div>
+                            <div className="shadow-ambient space-y-6 rounded-[32px] border border-brand-pale-blue/30 bg-white p-8 lg:col-span-8 dark:border-white/10 dark:bg-card">
+                                {/* Current P2P Quota / Membership Tier */}
+                                <div className="flex flex-col justify-between gap-3 rounded-2xl border border-[#D4E2F4] bg-[#EEF4FB] p-4 sm:flex-row sm:items-center dark:border-white/10 dark:bg-white/5">
+                                    <div className="flex items-start gap-3">
+                                        <Crown className="mt-0.5 h-5 w-5 text-[#1E2A5A] dark:text-brand-yellow" />
+                                        <div>
+                                            <div className="text-sm font-bold text-[#1E2A5A] dark:text-white">
+                                                {activePartnerPass
+                                                    ? 'Partner Pass Active · Unlimited P2P Practice'
+                                                    : p2pQuota?.tier === 'partner_attributed'
+                                                      ? `${p2pQuota.partner_name || 'Partner Center'} Member · 2x Daily P2P (${p2pQuota.daily_limit_minutes} min/day)`
+                                                      : `Standard Plan · ${p2pQuota?.daily_limit_minutes ?? 60} min/day P2P Speaking`}
+                                            </div>
+                                            <div className="text-xs text-[#6B7394] dark:text-slate-400">
+                                                {activePartnerPass
+                                                    ? `Expires ${new Date(activePartnerPass.expires_at).toLocaleDateString()}`
+                                                    : `Remaining today: ${p2pQuota?.remaining_minutes ?? 60} minutes`}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {pageProps.integrations?.writing_mentor_enabled && (
+                                        <a
+                                            href="/integrations/writing-mentor/launch"
+                                            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1E2A5A] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#1E2A5A]/90 dark:bg-brand-yellow dark:text-[#061445]"
+                                        >
+                                            Open WritingMentor
+                                        </a>
+                                    )}
+                                </div>
+
+                                {/* Activate Partner Pass Code */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-[#1E2A5A] dark:text-white">
+                                        Activate Partner Pass Seat Code
+                                    </label>
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                        <input
+                                            type="text"
+                                            value={passCodeInput}
+                                            onChange={(e) => setPassCodeInput(e.target.value)}
+                                            placeholder="Enter PASS-XXXXXX code"
+                                            className="flex-1 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] px-3.5 py-2.5 text-sm dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (!passCodeInput.trim()) return;
+                                                router.post(
+                                                    redeemCode.url(),
+                                                    { pass_code: passCodeInput },
+                                                    {
+                                                        preserveScroll: true,
+                                                        onSuccess: () => {
+                                                            setPassCodeInput('');
+                                                            toast.success('Partner Pass activated!');
+                                                        },
+                                                        onError: (err: any) =>
+                                                            toast.error(err.pass_code || Object.values(err)[0] || 'Invalid code'),
+                                                    },
+                                                );
+                                            }}
+                                            className="cursor-pointer rounded-xl bg-[#1E2A5A] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1E2A5A]/90 dark:bg-brand-yellow dark:text-[#061445]"
+                                        >
+                                            Activate Pass
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Self-Purchase B2C Partner Pass */}
+                                {!activePartnerPass && (
+                                    <div className="rounded-2xl border border-[#E6E9F2] p-4 dark:border-white/10">
+                                        {pendingPartnerPass ? (
+                                            <div className="space-y-3">
+                                                <div className="text-sm font-bold text-amber-700 dark:text-amber-300">
+                                                    Pending Partner Pass Order ·{' '}
+                                                    {new Intl.NumberFormat('en-US').format(pendingPartnerPass.gross_amount)} UZS
+                                                </div>
+                                                <p className="text-xs text-[#6B7394] dark:text-slate-400">
+                                                    Transfer to card {pageProps.payment?.card_number || 'provided by ConvoMate'} and upload your receipt or transfer note below.
+                                                </p>
+                                                <div className="flex flex-col gap-2 sm:flex-row">
+                                                    <input
+                                                        type="text"
+                                                        value={receiptTextInput}
+                                                        onChange={(e) => setReceiptTextInput(e.target.value)}
+                                                        placeholder="Transfer time / last 4 digits"
+                                                        className="flex-1 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5"
+                                                    />
+                                                    <input
+                                                        type="file"
+                                                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                                        onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+                                                        className="text-xs"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            router.post(
+                                                                uploadReceipt.url(pendingPartnerPass.id),
+                                                                {
+                                                                    receipt_text: receiptTextInput,
+                                                                    receipt: receiptFile,
+                                                                },
+                                                                {
+                                                                    forceFormData: true,
+                                                                    preserveScroll: true,
+                                                                    onSuccess: () => {
+                                                                        setReceiptTextInput('');
+                                                                        setReceiptFile(null);
+                                                                        toast.success('Receipt submitted for confirmation.');
+                                                                    },
+                                                                    onError: (err: any) =>
+                                                                        toast.error(String(Object.values(err)[0] || 'Upload failed')),
+                                                                },
+                                                            );
+                                                        }}
+                                                        className="cursor-pointer rounded-xl bg-[#F7DE8B] px-4 py-2 text-xs font-bold text-[#1E2A5A]"
+                                                    >
+                                                        Submit Receipt
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                                                <div>
+                                                    <div className="text-sm font-bold text-[#1E2A5A] dark:text-white">
+                                                        Get Unlimited Partner Pass ({partnerPassPricing?.partner_pass_default_days ?? 30} days)
+                                                    </div>
+                                                    <div className="text-xs text-[#6B7394] dark:text-slate-400">
+                                                        {new Intl.NumberFormat('en-US').format(partnerPassPricing?.partner_pass_b2c_price_uzs ?? 30000)} UZS · Unlimited daily P2P speaking sessions
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        router.post(
+                                                            purchaseRetail.url(),
+                                                            {},
+                                                            {
+                                                                preserveScroll: true,
+                                                                onSuccess: () => toast.success('Partner Pass order created!'),
+                                                                onError: (err: any) =>
+                                                                    toast.error(String(Object.values(err)[0] || 'Could not start order')),
+                                                            },
+                                                        )
+                                                    }
+                                                    className="cursor-pointer rounded-xl bg-[#F7DE8B] px-4 py-2 text-xs font-bold text-[#1E2A5A] hover:bg-[#F0CE5F]"
+                                                >
+                                                    Buy Partner Pass
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Link Partner Center Promo Code (24h Window) */}
+                                <div className="space-y-2 border-t border-[#E6E9F2] pt-4 dark:border-white/10">
+                                    <label className="flex items-center gap-1.5 text-sm font-bold text-[#1E2A5A] dark:text-white">
+                                        <Building2 className="h-4 w-4" />
+                                        Learning Center Promo Code (2x Daily P2P Bonus)
+                                    </label>
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                        <input
+                                            type="text"
+                                            value={partnerCodeInput}
+                                            onChange={(e) => setPartnerCodeInput(e.target.value)}
+                                            placeholder="Enter center promo code"
+                                            className="flex-1 rounded-xl border border-[#E6E9F2] bg-[#FAFBFD] px-3.5 py-2.5 text-sm dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (!partnerCodeInput.trim()) return;
+                                                router.post(
+                                                    applyCode.url(),
+                                                    { partner_code: partnerCodeInput },
+                                                    {
+                                                        preserveScroll: true,
+                                                        onSuccess: () => {
+                                                            setPartnerCodeInput('');
+                                                            toast.success('Account linked to learning center!');
+                                                        },
+                                                        onError: (err: any) =>
+                                                            toast.error(err.partner_code || Object.values(err)[0] || 'Could not apply code'),
+                                                    },
+                                                );
+                                            }}
+                                            className="cursor-pointer rounded-xl border border-[#E6E9F2] px-4 py-2.5 text-sm font-bold text-[#1E2A5A] hover:bg-[#EEF4FB] dark:border-white/10 dark:text-white dark:hover:bg-white/10"
+                                        >
+                                            Link Center
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Section: Connected Services & Notifications */}
                 <div className="mx-auto max-w-[760px] px-4 pb-12">

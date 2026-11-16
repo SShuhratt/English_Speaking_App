@@ -10,6 +10,8 @@ use App\Models\PupilPackage;
 use App\Services\CertificateValidationService;
 use App\Services\FileStorageService;
 use App\Services\GoogleOAuthService;
+use App\Services\P2pQuotaService;
+use App\Services\PartnerPassService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +31,10 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $activePackages = [];
+        $activePartnerPass = null;
+        $pendingPartnerPass = null;
+        $p2pQuota = null;
+        $partnerPassPricing = app(PartnerPassService::class)->getPricingConfig();
 
         if ($user->role === 'teacher') {
             $user->load('teacherProfile');
@@ -41,12 +47,24 @@ class ProfileController extends Controller
                 ->with(['teacher.teacherProfile'])
                 ->orderBy('created_at', 'asc')
                 ->get();
+            $activePartnerPass = $user->activePartnerPass()?->load('partnerOrganization:id,name,partner_code');
+            $pendingPartnerPass = $user->partnerPasses()
+                ->where('source', 'b2c_retail')
+                ->where('status', 'pending_payment')
+                ->where('payment_status', 'verifying')
+                ->latest()
+                ->first();
+            $p2pQuota = app(P2pQuotaService::class)->getQuotaSummary($user);
         }
 
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'activePackages' => $activePackages,
+            'activePartnerPass' => $activePartnerPass,
+            'pendingPartnerPass' => $pendingPartnerPass,
+            'p2pQuota' => $p2pQuota,
+            'partnerPassPricing' => $partnerPassPricing,
         ]);
     }
 
@@ -136,6 +154,7 @@ class ProfileController extends Controller
                 'country_code' => ['nullable', 'string', 'max:10'],
                 'city' => ['nullable', 'string', 'max:100'],
                 'price' => ['nullable', 'integer', 'min:0'],
+                'accepts_institutional_vouchers' => ['nullable', 'boolean'],
                 'intro_video_url' => ['nullable', 'string'],
                 'delete_intro_video' => ['nullable', 'boolean'],
             ]);

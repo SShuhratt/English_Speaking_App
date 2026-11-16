@@ -16,6 +16,10 @@ import {
     UserCheck,
     LayoutDashboard,
     ShieldAlert,
+    Building2,
+    Sparkles,
+    Ticket,
+    Wallet,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -30,7 +34,7 @@ import {
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
-    const { auth } = usePage<any>().props;
+    const { auth, integrations } = usePage<any>().props;
     const { t } = useTranslation();
     const role = (auth.user?.role as string) || 'pupil';
     const pendingCount = auth.pending_requests_count || 0;
@@ -54,7 +58,12 @@ export function AppSidebar() {
     const baseItems: NavItem[] = [
         {
             title: t('nav.dashboard'),
-            href: role === 'admin' ? '/admin/dashboard' : '/dashboard',
+            href:
+                role === 'admin'
+                    ? '/admin/dashboard'
+                    : role === 'partner'
+                      ? '/partner/dashboard'
+                      : '/dashboard',
             icon: LayoutGrid,
         },
     ];
@@ -131,8 +140,42 @@ export function AppSidebar() {
                 icon: ShieldAlert,
             },
             {
+                title: 'Partner Centers',
+                href: '/admin/partners',
+                icon: Building2,
+            },
+            {
                 title: t('support.title'),
                 href: '/admin/support',
+                icon: HelpCircle,
+                badge: unreadSupportCount,
+            },
+        ];
+    } else if (role === 'partner') {
+        mainNavItems = [
+            {
+                title: 'Partner Overview',
+                href: '/partner/dashboard',
+                icon: LayoutDashboard,
+            },
+            {
+                title: 'Attributed Students',
+                href: '/partner/students',
+                icon: Users,
+            },
+            {
+                title: 'Vouchers & Passes',
+                href: '/partner/codes',
+                icon: Ticket,
+            },
+            {
+                title: 'Commissions & Payouts',
+                href: '/partner/payouts',
+                icon: Wallet,
+            },
+            {
+                title: t('support.title'),
+                href: '/support',
                 icon: HelpCircle,
                 badge: unreadSupportCount,
             },
@@ -166,6 +209,15 @@ export function AppSidebar() {
                 href: '/pupil/progress',
                 icon: BookOpen,
             },
+            ...(integrations?.writing_mentor_enabled
+                ? [
+                      {
+                          title: 'WritingMentor AI',
+                          href: '/integrations/writing-mentor/launch',
+                          icon: Sparkles,
+                      },
+                  ]
+                : []),
             {
                 title: t('support.title'),
                 href: '/support',

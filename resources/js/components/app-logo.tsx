@@ -1,7 +1,7 @@
 import React from 'react';
 import { useOptionalSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import convomateLogo from '../../images/logo.png';
+import convomateLogo from '../../images/logo-nz.png';
 
 export interface AppLogoProps extends React.HTMLAttributes<HTMLDivElement> {
     size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -57,10 +57,9 @@ export default function AppLogo({
                         src={convomateLogo}
                         alt="ConvoMate"
                         className={cn(
-                            'h-8 w-8 object-contain drop-shadow-sm',
+                            'h-8 w-8 rounded-full object-cover shadow-sm ring-1 ring-white/15',
                             animate && 'animate-spin-y',
                         )}
-                        style={{ imageRendering: 'high-quality' }}
                     />
                 </div>
             </div>
@@ -101,11 +100,10 @@ export default function AppLogo({
                     src={convomateLogo}
                     alt="O"
                     className={cn(
-                        'object-contain select-none pointer-events-none drop-shadow-xs',
+                        'rounded-full object-cover select-none pointer-events-none shadow-xs ring-1 ring-[#F5A623]/30',
                         currentSize.icon,
                         animate && 'animate-spin-y',
                     )}
-                    style={{ imageRendering: 'high-quality' }}
                 />
             </span>
 

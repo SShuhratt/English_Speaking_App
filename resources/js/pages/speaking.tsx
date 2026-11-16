@@ -179,6 +179,15 @@ export default function Speaking() {
     const [onlinePupils, setOnlinePupils] = useState<any[]>([]);
     const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
     const [requestedUserIds, setRequestedUserIds] = useState<number[]>([]);
+    const [p2pQuota, setP2pQuota] = useState<{
+        allowed?: boolean;
+        tier?: string;
+        unlimited?: boolean;
+        daily_limit_minutes?: number | null;
+        remaining_minutes?: number | null;
+        used_seconds?: number;
+        partner_name?: string | null;
+    } | null>(null);
 
     const statusRef = useRef<'idle' | 'searching' | 'connecting' | 'connected'>(
         'idle',
@@ -258,16 +267,25 @@ export default function Speaking() {
                 if (response.data.incoming_requests) {
                     setIncomingRequests(response.data.incoming_requests);
                 }
+                if (response.data.quota) {
+                    setP2pQuota(response.data.quota);
+                }
 
                 // Handle session termination if we were connected
                 if (
                     statusRef.current === 'connected' &&
                     response.data.status === 'terminated'
                 ) {
-                    toast.error(
-                        t('speaking.partner_disconnected') ||
-                            'Partner left the conversation.',
-                    );
+                    if (response.data.reason === 'quota_exceeded') {
+                        toast.error(
+                            'Daily speaking time limit reached. Activate a Partner Pass in Profile Settings for unlimited practice.',
+                        );
+                    } else {
+                        toast.error(
+                            t('speaking.partner_disconnected') ||
+                                'Partner left the conversation.',
+                        );
+                    }
                     handleCallEnded();
                 }
             } catch (err) {
@@ -838,9 +856,17 @@ export default function Speaking() {
                     );
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             if (statusRef.current === 'searching') {
-                toast.error('Failed to join speaking matchmaking queue.');
+                const quotaMsg =
+                    error?.response?.status === 429
+                        ? error?.response?.data?.message ||
+                          'Daily speaking limit reached. Activate a Partner Pass for unlimited sessions.'
+                        : 'Failed to join speaking matchmaking queue.';
+                if (error?.response?.data?.quota) {
+                    setP2pQuota(error.response.data.quota);
+                }
+                toast.error(quotaMsg);
                 stopLocalStream();
                 setStatus('idle');
             }
@@ -980,11 +1006,17 @@ export default function Speaking() {
                     response.data.topic || 'free_talk',
                 );
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to accept speaking request:', err);
-            toast.error(
-                'Could not accept request. Partner may have gone offline.',
-            );
+            if (err?.response?.data?.quota) {
+                setP2pQuota(err.response.data.quota);
+            }
+            const errMsg =
+                err?.response?.status === 429
+                    ? err?.response?.data?.error ||
+                      'Daily speaking limit reached. Activate a Partner Pass for unlimited sessions.'
+                    : 'Could not accept request. Partner may have gone offline.';
+            toast.error(errMsg);
         }
     };
 
@@ -1078,17 +1110,38 @@ export default function Speaking() {
                     <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-brand-lightblue/10 blur-xl" />
                     <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-brand-yellow/10 blur-xl" />
 
-                    <div className="relative z-10 space-y-1">
-                        <span className="text-[10px] font-black tracking-widest text-[#F7DE8B] uppercase">
-                            SPEAKING CLUB
-                        </span>
-                        <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl md:text-3xl">
-                            {t('speaking.title') || 'Start Speaking'}
-                        </h1>
-                        <p className="text-xs font-medium text-brand-lightblue/80 sm:text-sm dark:text-slate-300">
-                            {t('speaking.desc') ||
-                                'Practice speaking English with random students in real-time.'}
-                        </p>
+                    <div className="relative z-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-black tracking-widest text-[#F7DE8B] uppercase">
+                                SPEAKING CLUB
+                            </span>
+                            <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl md:text-3xl">
+                                {t('speaking.title') || 'Start Speaking'}
+                            </h1>
+                            <p className="text-xs font-medium text-brand-lightblue/80 sm:text-sm dark:text-slate-300">
+                                {t('speaking.desc') ||
+                                    'Practice speaking English with random students in real-time.'}
+                            </p>
+                        </div>
+                        {p2pQuota && (
+                            <div className="flex flex-col items-start gap-1 rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs backdrop-blur-xs sm:items-end">
+                                <span className="font-bold text-[#F7DE8B]">
+                                    {p2pQuota.unlimited
+                                        ? 'Partner Pass · Unlimited Daily Practice'
+                                        : p2pQuota.tier === 'partner_attributed'
+                                          ? `${p2pQuota.partner_name || 'Partner'} Perk · ${p2pQuota.daily_limit_minutes} min/day (2x)`
+                                          : `Daily Limit · ${p2pQuota.daily_limit_minutes} min/day`}
+                                </span>
+                                {!p2pQuota.unlimited && (
+                                    <span className="text-white/80">
+                                        Remaining today: {p2pQuota.remaining_minutes ?? 0} min ·{' '}
+                                        <Link href="/settings/profile" className="underline hover:text-[#F7DE8B]">
+                                            Upgrade to Partner Pass
+                                        </Link>
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 

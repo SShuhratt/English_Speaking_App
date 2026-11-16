@@ -33,11 +33,14 @@ frankenphp
 frankenphp-worker.php
 
 # AI and Assistant Directories & Files
+.agent
 .agents
 .codex
 .gemini
 .claude
 .junie
+.mcp.json
+boost.json
 AGENTS.md
 CLAUDE.md
 GEMINI.md
@@ -90,4 +93,8 @@ Off_Platform_Violation_Defence*
 # Application & Demonstration Notes
 convomate_att.md
 *convomate_att*
+
+# Monetization Strategy Documentation (Local)
+ConvoMate_monetization_strategy*
+*ConvoMate_monetization_strategy*
 

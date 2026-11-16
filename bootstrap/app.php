@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Middleware\CapturePartnerAttribution;
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsurePartner;
 use App\Http\Middleware\EnsurePupil;
 use App\Http\Middleware\EnsureTeacher;
 use App\Http\Middleware\HandleAppearance;
@@ -32,10 +34,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'teacher' => EnsureTeacher::class,
             'pupil' => EnsurePupil::class,
             'admin' => EnsureAdmin::class,
+            'partner' => EnsurePartner::class,
         ]);
 
         $middleware->web(append: [
             SetLocale::class,
+            CapturePartnerAttribution::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
         ]);

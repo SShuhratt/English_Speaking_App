@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminOffPlatformReportController;
 use App\Http\Controllers\AdminOverviewController;
+use App\Http\Controllers\AdminPartnerController;
 use App\Http\Controllers\AdminSupportController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\BookingController;
@@ -12,6 +13,9 @@ use App\Http\Controllers\GamificationController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MatchmakingController;
 use App\Http\Controllers\OffPlatformReportController;
+use App\Http\Controllers\PartnerAttributionController;
+use App\Http\Controllers\PartnerPassController;
+use App\Http\Controllers\PartnerPortalController;
 use App\Http\Controllers\PaymentLinkController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\PupilBookingController;
@@ -26,6 +30,7 @@ use App\Http\Controllers\TeacherFeedbackController;
 use App\Http\Controllers\TeacherPackageController;
 use App\Http\Controllers\TelegramAuthController;
 use App\Http\Controllers\TelegramConnectController;
+use App\Http\Controllers\WritingMentorController;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -141,6 +146,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/off-platform-reports', [AdminOffPlatformReportController::class, 'index'])->name('off-platform-reports.index');
         Route::post('/off-platform-reports/{id}/verify', [AdminOffPlatformReportController::class, 'verify'])->name('off-platform-reports.verify');
         Route::post('/off-platform-reports/{id}/reject', [AdminOffPlatformReportController::class, 'reject'])->name('off-platform-reports.reject');
+
+        Route::get('/partners', [AdminPartnerController::class, 'index'])->name('partners.index');
+        Route::post('/partners', [AdminPartnerController::class, 'storePartner'])->name('partners.store');
+        Route::put('/partners/{partner}', [AdminPartnerController::class, 'updatePartner'])->name('partners.update');
+        Route::post('/partners/{partner}/voucher-batches', [AdminPartnerController::class, 'storeVoucherBatch'])->name('partners.batches.store');
+        Route::post('/partner-batches/{batch}/activate', [AdminPartnerController::class, 'activateVoucherBatch'])->name('partners.batches.activate');
+        Route::post('/partners/sync-completed', [AdminPartnerController::class, 'syncCompletedAppointments'])->name('partners.sync-completed');
+        Route::post('/appointments/{appointment}/void-no-show', [AdminPartnerController::class, 'voidUnstartedAppointment'])->name('appointments.void-no-show');
+        Route::post('/partner-payouts/generate', [AdminPartnerController::class, 'generatePayouts'])->name('partners.payouts.generate');
+        Route::post('/partner-payouts/{payout}/mark-paid', [AdminPartnerController::class, 'markPayoutPaid'])->name('partners.payouts.mark-paid');
+        Route::get('/partner-payouts/{payout}/export-csv', [AdminPartnerController::class, 'exportPayoutCsv'])->name('partners.payouts.export-csv');
+        Route::post('/partner-settings', [AdminPartnerController::class, 'updateMonetizationSettings'])->name('partners.settings.update');
+        Route::post('/partners/{partner}/pass-batches', [AdminPartnerController::class, 'storePassBatch'])->name('partners.pass-batches.store');
+        Route::post('/partner-pass-batches/{batch}/activate', [AdminPartnerController::class, 'activatePassBatch'])->name('partners.pass-batches.activate');
+        Route::post('/partner-passes/{partnerPass}/confirm', [AdminPartnerController::class, 'confirmRetailPass'])->name('partners.passes.confirm');
+        Route::post('/partner-passes/{partnerPass}/reject', [AdminPartnerController::class, 'rejectRetailPass'])->name('partners.passes.reject');
+        Route::post('/partners/{partner}/staff', [AdminPartnerController::class, 'storeStaff'])->name('partners.staff.store');
+        Route::patch('/partner-staff/{membership}/toggle', [AdminPartnerController::class, 'toggleStaffStatus'])->name('partners.staff.toggle');
+        Route::delete('/partner-staff/{membership}', [AdminPartnerController::class, 'destroyStaff'])->name('partners.staff.destroy');
+    });
+
+    // Partner Portal Routes
+    Route::prefix('partner')->name('partner.')->middleware('partner')->group(function () {
+        Route::get('/dashboard', [PartnerPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/students', [PartnerPortalController::class, 'students'])->name('students');
+        Route::get('/codes', [PartnerPortalController::class, 'codes'])->name('codes');
+        Route::get('/payouts', [PartnerPortalController::class, 'payouts'])->name('payouts');
+        Route::get('/export/ledger-csv', [PartnerPortalController::class, 'exportLedgerCsv'])->name('export.ledger-csv');
+        Route::get('/export/students-csv', [PartnerPortalController::class, 'exportStudentsCsv'])->name('export.students-csv');
     });
 
     // Teacher Routes
@@ -188,6 +222,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/appointments/{id}/join', [PupilSessionController::class, 'join'])->name('appointments.join');
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');
         Route::post('/progress/goal', [PupilProgressController::class, 'updateGoal'])->name('progress.goal');
+        Route::post('/partner-code', [PartnerAttributionController::class, 'applyCode'])->name('partner-code.apply');
+        Route::post('/partner-pass/redeem', [PartnerPassController::class, 'redeemCode'])->name('partner-pass.redeem');
+        Route::post('/partner-pass/purchase', [PartnerPassController::class, 'purchaseRetail'])->name('partner-pass.purchase');
+        Route::post('/partner-pass/{partnerPass}/receipt', [PartnerPassController::class, 'uploadReceipt'])->name('partner-pass.receipt');
     });
 
     // Speaking & Matchmaking Routes (only for Pupils)
@@ -195,6 +233,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/speaking', function () {
             return Inertia::render('speaking');
         })->name('speaking');
+
+        Route::get('/matchmaking/quota', [MatchmakingController::class, 'quota'])->name('matchmaking.quota');
 
         Route::get('/matchmaking/topics', [MatchmakingController::class, 'topics'])->name('matchmaking.topics');
         Route::post('/matchmaking/join', [MatchmakingController::class, 'join'])->name('matchmaking.join');
@@ -226,6 +266,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('signed')
         ->name('telegram.connect');
     Route::post('/voucher/validate', [PupilPackageController::class, 'validateVoucher'])->name('voucher.validate');
+    Route::get('/integrations/writing-mentor/launch', [WritingMentorController::class, 'launch'])->name('integrations.writing-mentor.launch');
 });
 
 Route::get('/credential/{id}', [GamificationController::class, 'showCredential'])->name('credential.show');

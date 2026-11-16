@@ -27,6 +27,7 @@ class TeacherProfile extends Model
         'intro_video_url',
         'price',
         'is_verified',
+        'accepts_institutional_vouchers',
         'country_code',
         'city',
     ];
@@ -36,6 +37,7 @@ class TeacherProfile extends Model
         'labels' => 'array',
         'rating_cache' => 'float',
         'is_verified' => 'boolean',
+        'accepts_institutional_vouchers' => 'boolean',
         'experience_years' => 'integer',
         'age' => 'integer',
     ];
