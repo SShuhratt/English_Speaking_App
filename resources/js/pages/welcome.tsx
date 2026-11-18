@@ -221,8 +221,8 @@ return '/admin/dashboard';
                             {/* 1. Language Dropdown */}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border-2 border-[#EAE4D2] bg-white px-2.5 py-1 text-[11px] font-bold text-[#5C6480] sm:px-3 sm:py-1.5 sm:text-xs">
-                                        <Globe className="h-3.5 w-3.5 text-[#1E2A5A]" />
+                                    <button className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border-2 border-[#EAE4D2] bg-white px-2.5 py-1 text-[11px] font-bold text-[#061445] sm:px-3 sm:py-1.5 sm:text-xs">
+                                        <Globe className="h-3.5 w-3.5 text-[#061445]" />
                                         <span className="font-extrabold uppercase">
                                             {locale}
                                         </span>
@@ -230,33 +230,33 @@ return '/admin/dashboard';
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                     align="end"
-                                    className="z-[60] rounded-2xl border border-[#EAE4D2] bg-white p-1.5 shadow-xl"
+                                    className="z-[60] rounded-2xl border border-[#EAE4D2] bg-white p-1.5 text-[#061445] shadow-xl"
                                 >
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('en')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold"
+                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold text-[#061445] hover:bg-[#FDF7E4] hover:text-[#061445] focus:bg-[#FDF7E4] focus:text-[#061445]"
                                     >
                                         <span>English (EN)</span>
                                         {locale === 'en' && (
-                                            <Check className="h-3.5 w-3.5 text-[#1E2A5A]" />
+                                            <Check className="h-3.5 w-3.5 text-[#061445]" />
                                         )}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('uz')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold"
+                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold text-[#061445] hover:bg-[#FDF7E4] hover:text-[#061445] focus:bg-[#FDF7E4] focus:text-[#061445]"
                                     >
                                         <span>O'zbek (UZ)</span>
                                         {locale === 'uz' && (
-                                            <Check className="h-3.5 w-3.5 text-[#1E2A5A]" />
+                                            <Check className="h-3.5 w-3.5 text-[#061445]" />
                                         )}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('ru')}
-                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold"
+                                        className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold text-[#061445] hover:bg-[#FDF7E4] hover:text-[#061445] focus:bg-[#FDF7E4] focus:text-[#061445]"
                                     >
                                         <span>Русский (RU)</span>
                                         {locale === 'ru' && (
-                                            <Check className="h-3.5 w-3.5 text-[#1E2A5A]" />
+                                            <Check className="h-3.5 w-3.5 text-[#061445]" />
                                         )}
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>

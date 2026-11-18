@@ -70,26 +70,26 @@ export default function PrivacyPolicy() {
 
                         <div className="flex items-center gap-3">
                             <DropdownMenu>
-                                <DropdownMenuTrigger className="flex cursor-pointer items-center gap-1.5 rounded-full border border-[#EAE4D2] bg-white px-3 py-1.5 text-xs font-bold text-[#5C6480] shadow-sm transition-colors hover:border-[#1E2A5A] hover:text-[#1E2A5A]">
-                                    <Globe className="h-3.5 w-3.5 text-[#5C6480]" />
+                                <DropdownMenuTrigger className="flex cursor-pointer items-center gap-1.5 rounded-full border border-[#EAE4D2] bg-white px-3 py-1.5 text-xs font-bold text-[#061445] shadow-sm transition-colors hover:border-[#1E2A5A] hover:text-[#061445]">
+                                    <Globe className="h-3.5 w-3.5 text-[#061445]" />
                                     <span>{currentLangLabel}</span>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-xl border-[#EAE4D2] bg-white p-1 shadow-lg">
+                                <DropdownMenuContent align="end" className="rounded-xl border-[#EAE4D2] bg-white p-1 text-[#061445] shadow-lg">
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('en')}
-                                        className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold hover:bg-[#FDF7E4]"
+                                        className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold text-[#061445] hover:bg-[#FDF7E4] hover:text-[#061445] focus:bg-[#FDF7E4] focus:text-[#061445]"
                                     >
                                         English
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('uz')}
-                                        className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold hover:bg-[#FDF7E4]"
+                                        className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold text-[#061445] hover:bg-[#FDF7E4] hover:text-[#061445] focus:bg-[#FDF7E4] focus:text-[#061445]"
                                     >
                                         O'zbekcha
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         onClick={() => setLanguage('ru')}
-                                        className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold hover:bg-[#FDF7E4]"
+                                        className="cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold text-[#061445] hover:bg-[#FDF7E4] hover:text-[#061445] focus:bg-[#FDF7E4] focus:text-[#061445]"
                                     >
                                         Русский
                                     </DropdownMenuItem>

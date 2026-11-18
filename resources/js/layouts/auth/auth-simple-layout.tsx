@@ -35,11 +35,11 @@ export default function AuthSimpleLayout({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                         align="end"
-                        className="z-[70] min-w-[140px] rounded-2xl border border-border bg-popover p-1.5 shadow-xl"
+                        className="z-[70] min-w-[140px] rounded-2xl border border-border bg-popover p-1.5 text-[#061445] shadow-xl dark:text-slate-100"
                     >
                         <DropdownMenuItem
                             onClick={() => setLanguage('en')}
-                            className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold"
+                            className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold text-[#061445] focus:text-[#061445] dark:text-slate-100 dark:focus:text-[#061445]"
                         >
                             <span>English (EN)</span>
                             {locale === 'en' && (
@@ -48,7 +48,7 @@ export default function AuthSimpleLayout({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => setLanguage('uz')}
-                            className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold"
+                            className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold text-[#061445] focus:text-[#061445] dark:text-slate-100 dark:focus:text-[#061445]"
                         >
                             <span>O'zbekcha (UZ)</span>
                             {locale === 'uz' && (
@@ -57,7 +57,7 @@ export default function AuthSimpleLayout({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => setLanguage('ru')}
-                            className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold"
+                            className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-1.5 text-xs font-bold text-[#061445] focus:text-[#061445] dark:text-slate-100 dark:focus:text-[#061445]"
                         >
                             <span>Русский (RU)</span>
                             {locale === 'ru' && (

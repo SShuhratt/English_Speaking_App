@@ -68,10 +68,13 @@ export function AppSidebarHeader({
                             </span>
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl">
+                    <DropdownMenuContent
+                        align="end"
+                        className="rounded-xl bg-popover text-[#061445] dark:text-slate-100"
+                    >
                         <DropdownMenuItem
                             onClick={() => setLanguage('en')}
-                            className="flex items-center justify-between rounded-lg"
+                            className="flex items-center justify-between rounded-lg text-[#061445] focus:text-[#061445] dark:text-slate-100 dark:focus:text-[#061445]"
                         >
                             <span className="text-sm">English</span>
                             {locale === 'en' && (
@@ -80,7 +83,7 @@ export function AppSidebarHeader({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => setLanguage('uz')}
-                            className="flex items-center justify-between rounded-lg"
+                            className="flex items-center justify-between rounded-lg text-[#061445] focus:text-[#061445] dark:text-slate-100 dark:focus:text-[#061445]"
                         >
                             <span className="text-sm">O'zbek</span>
                             {locale === 'uz' && (
@@ -89,7 +92,7 @@ export function AppSidebarHeader({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => setLanguage('ru')}
-                            className="flex items-center justify-between rounded-lg"
+                            className="flex items-center justify-between rounded-lg text-[#061445] focus:text-[#061445] dark:text-slate-100 dark:focus:text-[#061445]"
                         >
                             <span className="text-sm">Русский</span>
                             {locale === 'ru' && (
