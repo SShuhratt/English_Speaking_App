@@ -43,10 +43,11 @@
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400..800&family=Schibsted+Grotesk:wght@400..700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
         </noscript>
 
-        <link rel="icon" type="image/x-icon" href="/favicon-nz.ico?v=6">
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-nz.png?v=6">
-        <link rel="icon" type="image/png" sizes="192x192" href="/images/logo-nz.png?v=6">
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-nz.png?v=6">
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon-nz-48.png?v=7">
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-nz-96.png?v=7">
+        <link rel="icon" type="image/png" sizes="192x192" href="/images/logo-nz.png?v=7">
+        <link rel="icon" type="image/x-icon" href="/favicon-nz.ico?v=7">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-nz.png?v=7">
 
         {{-- Inject Pusher/Echo credentials dynamically from the server --}}
         <script>
@@ -66,19 +67,32 @@
         <meta property="og:site_name" content="ConvoMate">
         <meta property="og:url" content="https://convomate.uz">
         <meta property="og:type" content="website">
+        <meta property="og:image" content="https://convomate.uz/images/logo-nz.png?v=7">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:image" content="https://convomate.uz/images/logo-nz.png?v=7">
 
         {{-- JSON-LD Structured Data for Google OAuth & Search Verification --}}
+        @php
+            $schemaData = [
+                '@'.'context' => 'https://schema.org',
+                '@'.'type' => 'WebApplication',
+                'name' => 'ConvoMate',
+                'alternateName' => 'ConvoMate English Speaking Platform',
+                'url' => 'https://convomate.uz',
+                'image' => 'https://convomate.uz/images/logo-nz.png?v=7',
+                'description' => 'ConvoMate is an interactive English speaking practice platform connecting students with IELTS-verified teachers for live 1-on-1 speaking practice, real-time feedback, and fluency coaching.',
+                'applicationCategory' => 'EducationalApplication',
+                'operatingSystem' => 'All',
+                'publisher' => [
+                    '@'.'type' => 'Organization',
+                    'name' => 'ConvoMate',
+                    'url' => 'https://convomate.uz',
+                    'logo' => 'https://convomate.uz/images/logo-nz.png?v=7',
+                ],
+            ];
+        @endphp
         <script type="application/ld+json">
-        {!! json_encode([
-            '@context' => 'https://schema.org',
-            '@type' => 'WebApplication',
-            'name' => 'ConvoMate',
-            'alternateName' => 'ConvoMate English Speaking Platform',
-            'url' => 'https://convomate.uz',
-            'description' => 'ConvoMate is an interactive English speaking practice platform connecting students with IELTS-verified teachers for live 1-on-1 speaking practice, real-time feedback, and fluency coaching.',
-            'applicationCategory' => 'EducationalApplication',
-            'operatingSystem' => 'All'
-        ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+        {!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
         </script>
 
         <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
