@@ -45,6 +45,11 @@ class HumoAutomatedPaymentTest extends TestCase
             'status' => 'accepted',
             'payment_status' => 'verifying',
             'price' => 120000,
+            'receipt_data' => [
+                'is_payment_receipt' => true,
+                'amount' => 120000,
+                'time' => '18:29',
+            ],
         ]);
 
         $humoMsg = "🎉 To'ldirish\n➕ 120.000,00 UZS\n📍 CLICK P2P\n💳 HUMOCARD *6751\n🕓 18:30 12.10.2026";
@@ -94,14 +99,14 @@ class HumoAutomatedPaymentTest extends TestCase
         $humoMsg = "🎉 To'ldirish\n➕ 100.000,00 UZS\n📍 PAYME P2P\n💳 HUMOCARD *6751\n🕓 18:40 12.10.2026";
         $result = $this->humoService->process($humoMsg);
 
-        // Crucial: Must NOT blindly confirm apt1!
-        $this->assertSame('quarantined', $result['status']);
+        // Crucial: Must NOT blindly confirm apt1 without a matching pupil receipt!
+        $this->assertSame('unmatched', $result['status']);
         $this->assertSame('verifying', $apt1->fresh()->payment_status);
         $this->assertSame('verifying', $apt2->fresh()->payment_status);
 
         $this->assertDatabaseHas('humo_transactions', [
             'amount' => 100000,
-            'status' => 'quarantined',
+            'status' => 'unmatched',
         ]);
     }
 
@@ -240,6 +245,11 @@ class HumoAutomatedPaymentTest extends TestCase
             'price_paid' => 450000,
             'payment_status' => 'verifying',
             'status' => 'pending',
+            'receipt_data' => [
+                'is_payment_receipt' => true,
+                'amount' => 450000,
+                'time' => '19:29',
+            ],
         ]);
 
         $humoMsg = "🎉 To'ldirish\n➕ 450.000,00 UZS\n📍 CLICK P2P\n💳 HUMOCARD *6751\n🕓 19:30 12.10.2026";

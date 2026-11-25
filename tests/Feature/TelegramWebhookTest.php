@@ -191,6 +191,11 @@ class TelegramWebhookTest extends TestCase
             'status' => 'accepted',
             'payment_status' => 'verifying',
             'price' => 75000,
+            'receipt_data' => [
+                'is_payment_receipt' => true,
+                'amount' => 75000,
+                'time' => '18:39',
+            ],
         ]);
 
         $payload = [

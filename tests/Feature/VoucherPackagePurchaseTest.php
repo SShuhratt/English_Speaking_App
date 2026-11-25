@@ -136,7 +136,7 @@ class VoucherPackagePurchaseTest extends TestCase
         ]);
     }
 
-    public function test_purchase_with_valid_voucher_applies_discount(): void
+    public function test_purchase_with_valid_voucher_is_rejected_on_conversation_packs(): void
     {
         $teacher = $this->makeVerifiedTeacher();
         $package = $this->makeActivePackage($teacher, 500_000);
@@ -148,18 +148,17 @@ class VoucherPackagePurchaseTest extends TestCase
             'voucher_code' => $voucher->voucher_code,
         ]);
 
-        $response->assertStatus(201);
-        // 25% of 500_000 = 125_000 → price_paid = 375_000
-        $this->assertDatabaseHas('pupil_packages', [
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['voucher_code']);
+
+        $this->assertDatabaseMissing('pupil_packages', [
             'pupil_id' => $pupil->id,
-            'price_paid' => 375_000,
-            'discount_amount' => 125_000,
-            'discount_voucher_id' => $voucher->id,
         ]);
-        // Voucher must be marked redeemed
+
+        // Voucher must remain unredeemed for single 1-on-1 lesson bookings
         $this->assertDatabaseHas('user_discount_vouchers', [
             'id' => $voucher->id,
-            'is_redeemed' => true,
+            'is_redeemed' => false,
         ]);
     }
 
@@ -206,7 +205,7 @@ class VoucherPackagePurchaseTest extends TestCase
         ]);
     }
 
-    public function test_voucher_cannot_be_used_twice(): void
+    public function test_voucher_cannot_be_stacked_across_multiple_pack_attempts(): void
     {
         $teacher = $this->makeVerifiedTeacher();
         $package1 = $this->makeActivePackage($teacher, 300_000);
@@ -214,19 +213,22 @@ class VoucherPackagePurchaseTest extends TestCase
         $pupil = User::factory()->create(['role' => 'pupil']);
         $voucher = $this->makeVoucher($pupil, 10);
 
-        // First purchase — succeeds
         $this->actingAs($pupil)->postJson('/pupil/packages/purchase', [
             'teacher_package_id' => $package1->id,
             'voucher_code' => $voucher->voucher_code,
-        ])->assertStatus(201);
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors(['voucher_code']);
 
-        // Second purchase with same voucher — must fail
         $this->actingAs($pupil)->postJson('/pupil/packages/purchase', [
             'teacher_package_id' => $package2->id,
             'voucher_code' => $voucher->voucher_code,
-        ])->assertStatus(422);
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors(['voucher_code']);
 
-        // Only one pupil_package created
-        $this->assertCount(1, PupilPackage::where('pupil_id', $pupil->id)->get());
+        $this->assertCount(0, PupilPackage::where('pupil_id', $pupil->id)->get());
+        $this->assertDatabaseHas('user_discount_vouchers', [
+            'id' => $voucher->id,
+            'is_redeemed' => false,
+        ]);
     }
 }

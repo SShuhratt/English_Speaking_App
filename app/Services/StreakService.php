@@ -35,8 +35,8 @@ class StreakService
                 $q->where('meeting_started', true)
                     ->orWhereIn('status', ['confirmed', 'completed']);
             })
-            ->pluck('start_at')
-            ->map(fn ($dt) => Carbon::parse($dt)->toDateString());
+            ->selectRaw('DISTINCT DATE(start_at) as active_date')
+            ->pluck('active_date');
 
         // 2. Conversation Dates
         $conversationQuery = Conversation::query();
@@ -51,12 +51,13 @@ class StreakService
         }
 
         $conversationDates = $conversationQuery
-            ->pluck('started_at')
-            ->map(fn ($dt) => Carbon::parse($dt)->toDateString());
+            ->selectRaw('DISTINCT DATE(started_at) as active_date')
+            ->pluck('active_date');
 
         // 3. Combine unique active dates
         $allDates = $appointmentDates
             ->concat($conversationDates)
+            ->map(fn ($date) => is_string($date) ? substr($date, 0, 10) : (string) $date)
             ->filter()
             ->unique()
             ->values()

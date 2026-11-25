@@ -199,12 +199,29 @@ class StageFourGamificationTest extends TestCase
 
         // No speaking XP
         $response = $this->actingAs($pupil)->postJson('/gamification/store/redeem', [
-            'item_key' => 'voucher_25',
+            'item_key' => 'voucher_10',
         ]);
 
         $response->assertStatus(422)
             ->assertJsonPath('success', false)
             ->assertJsonPath('message', 'Insufficient XP balance.');
+    }
+
+    public function test_retired_voucher_25_is_rejected_from_xp_store(): void
+    {
+        $pupil = User::factory()->create(['role' => 'pupil']);
+        PupilProfile::create([
+            'user_id' => $pupil->id,
+            'spent_xp' => 0,
+        ]);
+
+        $response = $this->actingAs($pupil)->postJson('/gamification/store/redeem', [
+            'item_key' => 'voucher_25',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Invalid store item selected.');
     }
 
     public function test_pupil_can_apply_voucher_to_appointment(): void

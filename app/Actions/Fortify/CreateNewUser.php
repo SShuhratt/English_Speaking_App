@@ -13,10 +13,12 @@ use App\Services\PartnerAttributionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Throwable;
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -96,17 +98,17 @@ class CreateNewUser implements CreatesNewUsers
             $rules['labels'] = ['nullable', 'array'];
             $rules['labels.*'] = ['string', 'in:mock,freestyle,lessons,business english,practice q&a,job interview prep'];
             $rules['certificates'] = ['nullable', 'array'];
-            $rules['certificates.*.file'] = ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
+            $rules['certificates.*.file'] = ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg,webp,gif', 'max:10240'];
             $rules['certificate_files'] = ['nullable', 'array'];
-            $rules['certificate_files.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
+            $rules['certificate_files.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,webp,gif', 'max:10240'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
-            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
+            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,webp,gif', 'max:10240'];
         } elseif ($role === 'pupil') {
             $rules['age'] = ['required', 'integer', 'min:1', 'max:100'];
             $rules['phone_number'] = $phoneRule;
             $rules['level'] = ['required', 'string', 'in:beginner,pre-intermediate,upper-intermediate,advanced,ielts_band,cefr_band'];
             $rules['ielts_certificates'] = ['nullable', 'array'];
-            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,svg,webp,gif', 'max:10240'];
+            $rules['ielts_certificates.*'] = ['file', 'mimes:pdf,png,jpg,jpeg,webp,gif', 'max:10240'];
         }
 
         $messages = [
@@ -184,199 +186,260 @@ class CreateNewUser implements CreatesNewUsers
         $refCode = $partnerOrg ? null : ($input['ref'] ?? request()->query('ref') ?? request()->input('ref') ?? session('referral_code'));
         $referrer = ! empty($refCode) ? User::where('referral_code', strtoupper(trim((string) $refCode)))->first() : null;
 
-        $user = DB::transaction(function () use ($input, $role, $referrer, $partnerOrg, $partnerService) {
-            $user = User::create([
-                'name' => $input['name'],
-                'full_name' => $input['name'],
-                'email' => $input['email'],
-                'password' => Hash::make($input['password']),
-                'role' => $role,
-                'gender' => $input['gender'] ?? 'prefer_not_to_say',
-                'referred_by_id' => $referrer?->id,
-            ]);
+        $disk = config('filesystems.default', 'public');
+        $storedPaths = [];
 
-            $user->referral_code = GamificationService::generateReferralCode($user);
-            $user->save();
+        try {
+            $certificates = $this->storeRegistrationCertificates($role, $disk, $input, $storedPaths);
 
-            if ($referrer && $referrer->id !== $user->id) {
-                ReferralRecord::firstOrCreate(
-                    ['referred_user_id' => $user->id],
-                    [
-                        'referrer_id' => $referrer->id,
-                        'reward_granted' => false,
-                    ]
-                );
-            }
+            $user = DB::transaction(function () use ($input, $role, $referrer, $partnerOrg, $partnerService, $certificates) {
+                $user = User::create([
+                    'name' => $input['name'],
+                    'full_name' => $input['name'],
+                    'email' => $input['email'],
+                    'password' => Hash::make($input['password']),
+                    'role' => $role,
+                    'gender' => $input['gender'] ?? 'prefer_not_to_say',
+                    'referred_by_id' => $referrer?->id,
+                ]);
 
-            if ($partnerOrg && $role === 'pupil') {
-                $partnerService->attributeNewPupil(
-                    pupil: $user,
-                    code: $partnerOrg->partner_code,
-                    source: 'referral_link',
-                );
-            }
-
-            session()->forget('referral_code');
-            session()->forget(PartnerAttributionService::SESSION_KEY);
-            session()->forget(PartnerAttributionService::SESSION_CAPTURED_AT_KEY);
-
-            if (session()->has('google_register')) {
-                $googleData = session()->get('google_register');
-                $user->has_password = false;
-                $user->google_connected = false; // Basic login scopes granted; calendar connection is managed from dashboard
-                $user->google_access_token = $googleData['google_token'] ?? $googleData['access_token'] ?? null;
-                $user->google_refresh_token = $googleData['google_refresh_token'] ?? $googleData['refresh_token'] ?? null;
-                $expiresIn = $googleData['google_expires_in'] ?? $googleData['expires_in'] ?? null;
-                $user->google_token_expires_at = $expiresIn ? now()->addSeconds((int) $expiresIn) : null;
-                $user->google_scopes = $googleData['scopes'] ?? null;
-                $user->email_verified_at = now();
+                $user->referral_code = GamificationService::generateReferralCode($user);
                 $user->save();
 
-                session()->forget('google_register');
-            }
-
-            if (session()->has('telegram_register')) {
-                $telegramData = session()->get('telegram_register');
-                $user->telegram_chat_id = $telegramData['telegram_chat_id'] ?? null;
-                $user->telegram_username = $telegramData['telegram_username'] ?? null;
-                $user->save();
-
-                session()->forget('telegram_register');
-            }
-
-            $certificates = null;
-            $disk = config('filesystems.default', 'public');
-
-            if ($role === 'teacher') {
-                $certsInput = request()->input('certificates');
-                if (is_string($certsInput)) {
-                    $certsInput = json_decode($certsInput, true) ?? [];
+                if ($referrer && $referrer->id !== $user->id) {
+                    ReferralRecord::firstOrCreate(
+                        ['referred_user_id' => $user->id],
+                        [
+                            'referrer_id' => $referrer->id,
+                            'reward_granted' => false,
+                        ]
+                    );
                 }
-                $uploadedFiles = request()->file('certificate_files') ?? request()->file('ielts_certificates') ?? [];
 
-                $finalCertificates = [];
-                if (is_array($certsInput) && ! empty($certsInput)) {
-                    foreach ($certsInput as $index => $certItem) {
-                        $fileUrl = null;
-                        $fileName = '';
+                if ($partnerOrg && $role === 'pupil') {
+                    $partnerService->attributeNewPupil(
+                        pupil: $user,
+                        code: $partnerOrg->partner_code,
+                        source: 'referral_link',
+                    );
+                }
 
-                        $file = null;
-                        if (request()->hasFile("certificates.{$index}.file")) {
-                            $file = request()->file("certificates.{$index}.file");
-                        } elseif (isset($certItem['file']) && $certItem['file'] instanceof UploadedFile) {
-                            $file = $certItem['file'];
-                        } elseif (isset($uploadedFiles[$index])) {
-                            $file = $uploadedFiles[$index];
+                session()->forget('referral_code');
+                session()->forget(PartnerAttributionService::SESSION_KEY);
+                session()->forget(PartnerAttributionService::SESSION_CAPTURED_AT_KEY);
+
+                if (session()->has('google_register')) {
+                    $googleData = session()->get('google_register');
+                    $user->has_password = false;
+                    $user->google_connected = false; // Basic login scopes granted; calendar connection is managed from dashboard
+                    $user->google_access_token = $googleData['google_token'] ?? $googleData['access_token'] ?? null;
+                    $user->google_refresh_token = $googleData['google_refresh_token'] ?? $googleData['refresh_token'] ?? null;
+                    $expiresIn = $googleData['google_expires_in'] ?? $googleData['expires_in'] ?? null;
+                    $user->google_token_expires_at = $expiresIn ? now()->addSeconds((int) $expiresIn) : null;
+                    $user->google_scopes = $googleData['scopes'] ?? null;
+                    $user->email_verified_at = now();
+                    $user->save();
+
+                    session()->forget('google_register');
+                }
+
+                if (session()->has('telegram_register')) {
+                    $telegramData = session()->get('telegram_register');
+                    $user->telegram_chat_id = $telegramData['telegram_chat_id'] ?? null;
+                    $user->telegram_username = $telegramData['telegram_username'] ?? null;
+                    $user->save();
+
+                    session()->forget('telegram_register');
+                }
+
+                if ($role === 'teacher') {
+                    $overallLevel = $input['overall_level'] ?? null;
+                    $speakingBand = $input['speaking_band'] ?? null;
+
+                    if (! empty($certificates) && is_array($certificates)) {
+                        $firstCert = $certificates[0];
+                        if (empty($overallLevel) && ! empty($firstCert['overall'])) {
+                            $overallLevel = $firstCert['overall'];
                         }
-
-                        if ($file) {
-                            $path = $file->store('certificates', $disk);
-                            $fileUrl = Storage::disk($disk)->url($path);
-                            $fileName = $file->getClientOriginalName();
+                        if (empty($speakingBand) && ! empty($firstCert['speaking'])) {
+                            $speakingBand = $firstCert['speaking'];
                         }
-
-                        $certType = $certItem['type'] ?? 'ielts';
-                        $language = $certItem['language'] ?? 'english';
-                        $customName = $certItem['custom_type_name'] ?? '';
-                        $customLanguage = $certItem['custom_language'] ?? '';
-                        $title = $certType === 'other' && ! empty($customName) ? $customName : strtoupper($certType);
-
-                        $subScores = is_array($certItem['sub_scores'] ?? null) ? $certItem['sub_scores'] : [];
-                        $standardKeys = ['type', 'language', 'custom_type_name', 'custom_language', 'title', 'overall', 'listening', 'reading', 'writing', 'speaking', 'file_url', 'file_name', 'status', 'sub_scores', 'id', 'isExisting', 'file'];
-                        foreach ($certItem as $k => $v) {
-                            if (! in_array($k, $standardKeys, true) && is_scalar($v) && $v !== '') {
-                                $subScores[$k] = (string) $v;
-                            }
-                        }
-
-                        $finalCertificates[] = [
-                            'type' => $certType,
-                            'language' => $language,
-                            'custom_type_name' => $customName,
-                            'custom_language' => $customLanguage,
-                            'title' => $title,
-                            'overall' => (string) ($certItem['overall'] ?? ''),
-                            'listening' => (string) ($certItem['listening'] ?? ''),
-                            'reading' => (string) ($certItem['reading'] ?? ''),
-                            'writing' => (string) ($certItem['writing'] ?? ''),
-                            'speaking' => (string) ($certItem['speaking'] ?? ''),
-                            'sub_scores' => $subScores,
-                            'file_url' => $fileUrl,
-                            'file_name' => $fileName,
-                            'status' => 'pending',
-                        ];
                     }
-                } elseif (! empty($uploadedFiles)) {
-                    foreach ($uploadedFiles as $file) {
-                        $path = $file->store('certificates', $disk);
-                        $finalCertificates[] = [
-                            'type' => 'ielts',
-                            'language' => 'english',
-                            'custom_type_name' => '',
-                            'custom_language' => '',
-                            'title' => $file->getClientOriginalName(),
-                            'overall' => '',
-                            'listening' => '',
-                            'reading' => '',
-                            'writing' => '',
-                            'speaking' => '',
-                            'file_url' => Storage::disk($disk)->url($path),
-                            'file_name' => $file->getClientOriginalName(),
-                            'status' => 'pending',
-                        ];
-                    }
-                }
-                $certificates = $finalCertificates;
-            } elseif ($role === 'pupil') {
-                if (request()->hasFile('ielts_certificates')) {
-                    $certsArray = [];
-                    foreach (request()->file('ielts_certificates') as $file) {
-                        $path = $file->store('certificates', $disk);
-                        $certsArray[] = Storage::disk($disk)->url($path);
-                    }
-                    $certificates = $certsArray;
-                }
-            }
 
-            if ($role === 'teacher') {
-                $overallLevel = $input['overall_level'] ?? null;
-                $speakingBand = $input['speaking_band'] ?? null;
-
-                if (! empty($certificates) && is_array($certificates)) {
-                    $firstCert = $certificates[0];
-                    if (empty($overallLevel) && ! empty($firstCert['overall'])) {
-                        $overallLevel = $firstCert['overall'];
-                    }
-                    if (empty($speakingBand) && ! empty($firstCert['speaking'])) {
-                        $speakingBand = $firstCert['speaking'];
-                    }
+                    $user->teacherProfile()->create([
+                        'age' => $input['age'],
+                        'phone_number' => $input['phone_number'],
+                        'overall_level' => $overallLevel ?? 'CEFR C1',
+                        'speaking_band' => $speakingBand ?? 7.5,
+                        'price' => isset($input['price']) && $input['price'] !== '' ? (int) $input['price'] : 0,
+                        'labels' => $input['labels'] ?? null,
+                        'certificates' => $certificates,
+                        'experience_years' => 0.0,
+                        'rating_cache' => 0.0,
+                    ]);
+                } elseif ($role === 'pupil') {
+                    $user->pupilProfile()->create([
+                        'age' => $input['age'],
+                        'phone_number' => $input['phone_number'],
+                        'level' => $input['level'],
+                        'certificates' => $certificates,
+                    ]);
                 }
 
-                $user->teacherProfile()->create([
-                    'age' => $input['age'],
-                    'phone_number' => $input['phone_number'],
-                    'overall_level' => $overallLevel ?? 'CEFR C1',
-                    'speaking_band' => $speakingBand ?? 7.5,
-                    'price' => isset($input['price']) && $input['price'] !== '' ? (int) $input['price'] : 0,
-                    'labels' => $input['labels'] ?? null,
-                    'certificates' => $certificates,
-                    'experience_years' => 0.0,
-                    'rating_cache' => 0.0,
-                ]);
-            } elseif ($role === 'pupil') {
-                $user->pupilProfile()->create([
-                    'age' => $input['age'],
-                    'phone_number' => $input['phone_number'],
-                    'level' => $input['level'],
-                    'certificates' => $certificates,
-                ]);
-            }
+                return $user;
+            });
+        } catch (Throwable $e) {
+            $this->cleanupStoredFiles($disk, $storedPaths);
 
-            return $user;
-        });
+            throw $e;
+        }
 
         $user->notify(new WelcomeNotification($role));
 
         return $user;
+    }
+
+    /**
+     * Store uploaded registration certificates outside the DB transaction so I/O does not hold row locks.
+     *
+     * @param  array<string, mixed>  $input
+     * @param  array<int, string>  $storedPaths
+     * @return array<int, mixed>|null
+     */
+    private function storeRegistrationCertificates(?string $role, string $disk, array $input, array &$storedPaths): ?array
+    {
+        if ($role === 'teacher') {
+            $certsInput = $input['certificates'] ?? request()->input('certificates');
+            if (is_string($certsInput)) {
+                $certsInput = json_decode($certsInput, true) ?? [];
+            }
+
+            $uploadedFiles = $input['certificate_files']
+                ?? $input['ielts_certificates']
+                ?? request()->file('certificate_files')
+                ?? request()->file('ielts_certificates')
+                ?? [];
+
+            $finalCertificates = [];
+            if (is_array($certsInput) && ! empty($certsInput)) {
+                foreach ($certsInput as $index => $certItem) {
+                    $fileUrl = null;
+                    $fileName = '';
+
+                    $file = null;
+                    if (request()->hasFile("certificates.{$index}.file")) {
+                        $file = request()->file("certificates.{$index}.file");
+                    } elseif (isset($certItem['file']) && $certItem['file'] instanceof UploadedFile) {
+                        $file = $certItem['file'];
+                    } elseif (isset($uploadedFiles[$index])) {
+                        $file = $uploadedFiles[$index];
+                    }
+
+                    if ($file) {
+                        $path = $file->store('certificates', $disk);
+                        if ($path) {
+                            $storedPaths[] = $path;
+                            $fileUrl = Storage::disk($disk)->url($path);
+                        }
+                        $fileName = $file->getClientOriginalName();
+                    }
+
+                    $certType = $certItem['type'] ?? 'ielts';
+                    $language = $certItem['language'] ?? 'english';
+                    $customName = $certItem['custom_type_name'] ?? '';
+                    $customLanguage = $certItem['custom_language'] ?? '';
+                    $title = $certType === 'other' && ! empty($customName) ? $customName : strtoupper($certType);
+
+                    $subScores = is_array($certItem['sub_scores'] ?? null) ? $certItem['sub_scores'] : [];
+                    $standardKeys = ['type', 'language', 'custom_type_name', 'custom_language', 'title', 'overall', 'listening', 'reading', 'writing', 'speaking', 'file_url', 'file_name', 'status', 'sub_scores', 'id', 'isExisting', 'file'];
+                    foreach ($certItem as $k => $v) {
+                        if (! in_array($k, $standardKeys, true) && is_scalar($v) && $v !== '') {
+                            $subScores[$k] = (string) $v;
+                        }
+                    }
+
+                    $finalCertificates[] = [
+                        'type' => $certType,
+                        'language' => $language,
+                        'custom_type_name' => $customName,
+                        'custom_language' => $customLanguage,
+                        'title' => $title,
+                        'overall' => (string) ($certItem['overall'] ?? ''),
+                        'listening' => (string) ($certItem['listening'] ?? ''),
+                        'reading' => (string) ($certItem['reading'] ?? ''),
+                        'writing' => (string) ($certItem['writing'] ?? ''),
+                        'speaking' => (string) ($certItem['speaking'] ?? ''),
+                        'sub_scores' => $subScores,
+                        'file_url' => $fileUrl,
+                        'file_name' => $fileName,
+                        'status' => 'pending',
+                    ];
+                }
+            } elseif (! empty($uploadedFiles)) {
+                foreach ($uploadedFiles as $file) {
+                    $path = $file->store('certificates', $disk);
+                    if ($path) {
+                        $storedPaths[] = $path;
+                    }
+                    $finalCertificates[] = [
+                        'type' => 'ielts',
+                        'language' => 'english',
+                        'custom_type_name' => '',
+                        'custom_language' => '',
+                        'title' => $file->getClientOriginalName(),
+                        'overall' => '',
+                        'listening' => '',
+                        'reading' => '',
+                        'writing' => '',
+                        'speaking' => '',
+                        'file_url' => $path ? Storage::disk($disk)->url($path) : null,
+                        'file_name' => $file->getClientOriginalName(),
+                        'status' => 'pending',
+                    ];
+                }
+            }
+
+            return $finalCertificates;
+        }
+
+        if ($role === 'pupil') {
+            $pupilFiles = $input['ielts_certificates'] ?? request()->file('ielts_certificates');
+            if (! empty($pupilFiles) && is_array($pupilFiles)) {
+                $certsArray = [];
+                foreach ($pupilFiles as $file) {
+                    $path = $file->store('certificates', $disk);
+                    if ($path) {
+                        $storedPaths[] = $path;
+                        $certsArray[] = Storage::disk($disk)->url($path);
+                    }
+                }
+
+                return $certsArray;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Delete uploaded files if user creation fails after storage I/O.
+     *
+     * @param  array<int, string>  $storedPaths
+     */
+    private function cleanupStoredFiles(string $disk, array $storedPaths): void
+    {
+        if (empty($storedPaths)) {
+            return;
+        }
+
+        try {
+            Storage::disk($disk)->delete($storedPaths);
+        } catch (Throwable $cleanupException) {
+            Log::warning('Failed to clean up registration certificate files after rollback.', [
+                'disk' => $disk,
+                'paths' => $storedPaths,
+                'error' => $cleanupException->getMessage(),
+            ]);
+        }
     }
 }

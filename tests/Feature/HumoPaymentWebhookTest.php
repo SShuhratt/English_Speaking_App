@@ -61,6 +61,11 @@ class HumoPaymentWebhookTest extends TestCase
             'status' => 'accepted',
             'payment_status' => 'verifying',
             'price' => 150000,
+            'receipt_data' => [
+                'is_payment_receipt' => true,
+                'amount' => 150000,
+                'time' => '18:16',
+            ],
         ]);
 
         $message = "🎉 To'ldirish\n➕ 150.000,00 UZS\n📍 CLICK P2P\n💳 HUMOCARD *4458\n🕓 18:17 12.10.2026";
@@ -101,6 +106,11 @@ class HumoPaymentWebhookTest extends TestCase
             'price_paid' => 500000,
             'payment_status' => 'verifying',
             'status' => 'pending',
+            'receipt_data' => [
+                'is_payment_receipt' => true,
+                'amount' => 500000,
+                'time' => '18:24',
+            ],
         ]);
 
         $message = "🎉 To'ldirish\n➕ 500.000,00 UZS\n📍 PAYME P2P\n💳 HUMOCARD *4458\n🕓 18:25 12.10.2026";
@@ -135,6 +145,11 @@ class HumoPaymentWebhookTest extends TestCase
             'status' => 'accepted',
             'payment_status' => 'verifying',
             'price' => 100000,
+            'receipt_data' => [
+                'is_payment_receipt' => true,
+                'amount' => 100000,
+                'time' => '18:29',
+            ],
         ]);
 
         $message = "🎉 To'ldirish\n➕ 100.000,00 UZS\n📍 PAYNET P2P\n💳 HUMOCARD *4458\n🕓 18:30 12.10.2026";

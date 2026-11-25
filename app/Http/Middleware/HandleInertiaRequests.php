@@ -11,6 +11,7 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -99,12 +100,17 @@ class HandleInertiaRequests extends Middleware
                         if (empty($card)) {
                             return null;
                         }
-                        $renderer = new ImageRenderer(
-                            new RendererStyle(200, 1),
-                            new SvgImageBackEnd
-                        );
 
-                        return (new Writer($renderer))->writeString(url('/pupil/bookings'));
+                        $bookingUrl = url('/pupil/bookings');
+
+                        return Cache::rememberForever('payment_qr_svg:'.md5($card.'|'.$bookingUrl), function () use ($bookingUrl) {
+                            $renderer = new ImageRenderer(
+                                new RendererStyle(200, 1),
+                                new SvgImageBackEnd
+                            );
+
+                            return (new Writer($renderer))->writeString($bookingUrl);
+                        });
                     } catch (\Throwable) {
                         return null;
                     }
