@@ -1,6 +1,12 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import {
+    evaluatePasswordRules,
+    PasswordConfirmationStatus,
+    PasswordRequirements,
+} from '@/components/password-requirements';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +23,36 @@ type Props = {
 
 export default function ResetPassword({ token, email, passwordRules }: Props) {
     const { t } = useTranslation();
+    const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [passwordTouched, setPasswordTouched] = useState(false);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const [passwordConfirmationError, setPasswordConfirmationError] = useState<string | null>(null);
+
+    const validatePasswords = (): boolean => {
+        setPasswordError(null);
+        setPasswordConfirmationError(null);
+
+        const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+        const confirmInput = document.getElementById('password_confirmation') as HTMLInputElement | null;
+        const currentPassword = passwordInput?.value ?? password;
+        const currentConfirm = confirmInput?.value ?? passwordConfirmation;
+
+        if (!evaluatePasswordRules(currentPassword).isValid) {
+            setPasswordTouched(true);
+            setPasswordError(t('auth.password_rules_invalid'));
+            passwordInput?.focus();
+            return false;
+        }
+
+        if (currentPassword !== currentConfirm) {
+            setPasswordConfirmationError(t('auth.password_mismatch'));
+            confirmInput?.focus();
+            return false;
+        }
+
+        return true;
+    };
 
     return (
         <>
@@ -26,6 +62,18 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                 {...update.form()}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
+                onBefore={() => {
+                    if (!validatePasswords()) {
+                        return false;
+                    }
+                }}
+                onSuccess={() => {
+                    setPassword('');
+                    setPasswordConfirmation('');
+                    setPasswordTouched(false);
+                    setPasswordError(null);
+                    setPasswordConfirmationError(null);
+                }}
             >
                 {({ processing, errors }) => (
                     <div className="grid gap-6">
@@ -54,10 +102,28 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 autoFocus
+                                value={password}
+                                onChange={(e) => {
+                                    const nextValue = e.target.value;
+                                    setPassword(nextValue);
+                                    if (passwordError && evaluatePasswordRules(nextValue).isValid) {
+                                        setPasswordError(null);
+                                    }
+                                    if (passwordConfirmationError && nextValue === passwordConfirmation) {
+                                        setPasswordConfirmationError(null);
+                                    }
+                                }}
+                                onBlur={() => setPasswordTouched(true)}
+                                aria-describedby="reset-password-requirements"
                                 placeholder={t('auth.password')}
                                 passwordrules={passwordRules}
                             />
-                            <InputError message={errors.password} />
+                            <PasswordRequirements
+                                id="reset-password-requirements"
+                                password={password}
+                                highlightUnmet={passwordTouched || Boolean(passwordError || errors.password)}
+                            />
+                            <InputError message={passwordError || errors.password} />
                         </div>
 
                         <div className="grid gap-2">
@@ -69,11 +135,25 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 name="password_confirmation"
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
+                                value={passwordConfirmation}
+                                onChange={(e) => {
+                                    const nextValue = e.target.value;
+                                    setPasswordConfirmation(nextValue);
+                                    if (passwordConfirmationError && nextValue === password) {
+                                        setPasswordConfirmationError(null);
+                                    }
+                                }}
                                 placeholder={t('auth.confirm_password')}
                                 passwordrules={passwordRules}
                             />
+                            {!(passwordConfirmationError || errors.password_confirmation) && (
+                                <PasswordConfirmationStatus
+                                    password={password}
+                                    confirmPassword={passwordConfirmation}
+                                />
+                            )}
                             <InputError
-                                message={errors.password_confirmation}
+                                message={passwordConfirmationError || errors.password_confirmation}
                                 className="mt-2"
                             />
                         </div>

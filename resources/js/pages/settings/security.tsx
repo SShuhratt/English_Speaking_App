@@ -1,11 +1,15 @@
 import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
 import ManageTwoFactor from '@/components/manage-two-factor';
 import PasswordInput from '@/components/password-input';
+import {
+    PasswordConfirmationStatus,
+    PasswordRequirements,
+} from '@/components/password-requirements';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
@@ -21,6 +25,9 @@ export default function Security(props: Props) {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
     const { t } = useTranslation();
+    const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [passwordTouched, setPasswordTouched] = useState(false);
 
     return (
         <>
@@ -58,7 +65,16 @@ export default function Security(props: Props) {
                             : ['password', 'password_confirmation']
                     }
                     resetOnSuccess
+                    onSuccess={() => {
+                        setPassword('');
+                        setPasswordConfirmation('');
+                        setPasswordTouched(false);
+                    }}
                     onError={(errors) => {
+                        setPassword('');
+                        setPasswordConfirmation('');
+                        setPasswordTouched(false);
+
                         if (errors.password) {
                             passwordInput.current?.focus();
                         }
@@ -105,8 +121,18 @@ export default function Security(props: Props) {
                                     name="password"
                                     className="mt-1 block w-full"
                                     autoComplete="new-password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    onBlur={() => setPasswordTouched(true)}
+                                    aria-describedby="security-password-requirements"
                                     placeholder={t('security.new_password')}
                                     passwordrules={props.passwordRules}
+                                />
+
+                                <PasswordRequirements
+                                    id="security-password-requirements"
+                                    password={password}
+                                    highlightUnmet={passwordTouched || Boolean(errors.password)}
                                 />
 
                                 <InputError message={errors.password} />
@@ -122,9 +148,18 @@ export default function Security(props: Props) {
                                     name="password_confirmation"
                                     className="mt-1 block w-full"
                                     autoComplete="new-password"
+                                    value={passwordConfirmation}
+                                    onChange={(e) => setPasswordConfirmation(e.target.value)}
                                     placeholder={t('security.confirm_password')}
                                     passwordrules={props.passwordRules}
                                 />
+
+                                {!errors.password_confirmation && (
+                                    <PasswordConfirmationStatus
+                                        password={password}
+                                        confirmPassword={passwordConfirmation}
+                                    />
+                                )}
 
                                 <InputError
                                     message={errors.password_confirmation}

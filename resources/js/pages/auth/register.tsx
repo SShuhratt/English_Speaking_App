@@ -4,6 +4,11 @@ import { AlertTriangle } from 'lucide-react';
 import '@/types/telegram.d';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import {
+    evaluatePasswordRules,
+    PasswordConfirmationStatus,
+    PasswordRequirements,
+} from '@/components/password-requirements';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +47,11 @@ export default function Register({ passwordRules }: Props) {
     const [age, setAge] = useState('');
     const [ageError, setAgeError] = useState<string | null>(null);
     const [certError, setCertError] = useState<string | null>(null);
+    const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [passwordTouched, setPasswordTouched] = useState(false);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const [passwordConfirmationError, setPasswordConfirmationError] = useState<string | null>(null);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
     const minAge = role === 'teacher' ? 18 : 8;
@@ -127,6 +137,8 @@ export default function Register({ passwordRules }: Props) {
     const validateForm = (): boolean => {
         setAgeError(null);
         setCertError(null);
+        setPasswordError(null);
+        setPasswordConfirmationError(null);
 
         // 1. Age Restriction Validation
         const ageInput = document.getElementById('age') as HTMLInputElement | null;
@@ -202,6 +214,27 @@ export default function Register({ passwordRules }: Props) {
                     });
                     return false;
                 }
+            }
+        }
+
+        // 3. Password Rules & Confirmation Validation
+        if (!google_register) {
+            const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+            const confirmInput = document.getElementById('password_confirmation') as HTMLInputElement | null;
+            const currentPassword = passwordInput?.value ?? password;
+            const currentConfirm = confirmInput?.value ?? passwordConfirmation;
+
+            if (!evaluatePasswordRules(currentPassword).isValid) {
+                setPasswordTouched(true);
+                setPasswordError(t('auth.password_rules_invalid'));
+                passwordInput?.focus();
+                return false;
+            }
+
+            if (currentPassword !== currentConfirm) {
+                setPasswordConfirmationError(t('auth.password_mismatch'));
+                confirmInput?.focus();
+                return false;
             }
         }
 
@@ -406,6 +439,13 @@ export default function Register({ passwordRules }: Props) {
                 encType="multipart/form-data"
                 noValidate
                 resetOnSuccess={['password', 'password_confirmation']}
+                onSuccess={() => {
+                    setPassword('');
+                    setPasswordConfirmation('');
+                    setPasswordTouched(false);
+                    setPasswordError(null);
+                    setPasswordConfirmationError(null);
+                }}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
                 // 1. Inertia Visit Interceptor (Cancels request if false)
@@ -689,10 +729,28 @@ export default function Register({ passwordRules }: Props) {
                                             tabIndex={3}
                                             autoComplete="new-password"
                                             name="password"
+                                            value={password}
+                                            onChange={(e) => {
+                                                const nextValue = e.target.value;
+                                                setPassword(nextValue);
+                                                if (passwordError && evaluatePasswordRules(nextValue).isValid) {
+                                                    setPasswordError(null);
+                                                }
+                                                if (passwordConfirmationError && nextValue === passwordConfirmation) {
+                                                    setPasswordConfirmationError(null);
+                                                }
+                                            }}
+                                            onBlur={() => setPasswordTouched(true)}
+                                            aria-describedby="register-password-requirements"
                                             placeholder={t('auth.password')}
                                             passwordrules={passwordRules}
                                         />
-                                        <InputError message={errors.password} />
+                                        <PasswordRequirements
+                                            id="register-password-requirements"
+                                            password={password}
+                                            highlightUnmet={passwordTouched || Boolean(passwordError || errors.password)}
+                                        />
+                                        <InputError message={passwordError || errors.password} />
                                     </div>
 
                                     <div className="grid gap-2">
@@ -703,10 +761,24 @@ export default function Register({ passwordRules }: Props) {
                                             tabIndex={4}
                                             autoComplete="new-password"
                                             name="password_confirmation"
+                                            value={passwordConfirmation}
+                                            onChange={(e) => {
+                                                const nextValue = e.target.value;
+                                                setPasswordConfirmation(nextValue);
+                                                if (passwordConfirmationError && nextValue === password) {
+                                                    setPasswordConfirmationError(null);
+                                                }
+                                            }}
                                             placeholder={t('auth.confirm_password')}
                                             passwordrules={passwordRules}
                                         />
-                                        <InputError message={errors.password_confirmation} />
+                                        {!(passwordConfirmationError || errors.password_confirmation) && (
+                                            <PasswordConfirmationStatus
+                                                password={password}
+                                                confirmPassword={passwordConfirmation}
+                                            />
+                                        )}
+                                        <InputError message={passwordConfirmationError || errors.password_confirmation} />
                                     </div>
                                 </>
                             )}

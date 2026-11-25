@@ -18,8 +18,8 @@ class CertificateScoreValidationTest extends TestCase
         $response = $this->post(route('register.store'), [
             'name' => 'John Teacher',
             'email' => 'john.ielts.invalid@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
             'role' => 'teacher',
             'age' => 29,
             'phone_number' => '+998901234567',
@@ -48,8 +48,8 @@ class CertificateScoreValidationTest extends TestCase
         $response = $this->post(route('register.store'), [
             'name' => 'Step Teacher',
             'email' => 'step.invalid@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
             'role' => 'teacher',
             'age' => 31,
             'phone_number' => '+998901234568',
@@ -74,8 +74,8 @@ class CertificateScoreValidationTest extends TestCase
         $response = $this->post(route('register.store'), [
             'name' => 'Toefl Teacher',
             'email' => 'toefl.invalid@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
             'role' => 'teacher',
             'age' => 27,
             'phone_number' => '+998901234569',
@@ -104,8 +104,8 @@ class CertificateScoreValidationTest extends TestCase
         $response = $this->post(route('register.store'), [
             'name' => 'Valid Teacher',
             'email' => 'valid.teacher@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
             'role' => 'teacher',
             'age' => 30,
             'phone_number' => '+998901234570',

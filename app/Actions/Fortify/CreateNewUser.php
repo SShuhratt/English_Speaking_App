@@ -30,8 +30,8 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         if (session()->has('google_register')) {
-            // Generate a secure random password that satisfies all strict validation rules:
-            // min length of 12, mixed case, letters, numbers, and symbols.
+            // Generate a secure random password that satisfies all password rules:
+            // min length of 6, mixed case, letters, and numbers.
             $randomPassword = Str::random(24).'aA1!@#$';
             $input['password'] = $input['password'] ?? $randomPassword;
             $input['password_confirmation'] = $input['password_confirmation'] ?? $randomPassword;

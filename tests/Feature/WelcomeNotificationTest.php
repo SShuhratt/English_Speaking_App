@@ -29,8 +29,8 @@ class WelcomeNotificationTest extends TestCase
         $response = $this->post(route('register.store'), [
             'name' => 'Alice Pupil',
             'email' => 'alice@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
             'role' => 'pupil',
             'age' => 17,
             'phone_number' => '+998901234567',
@@ -68,8 +68,8 @@ class WelcomeNotificationTest extends TestCase
         $response = $this->post(route('register.store'), [
             'name' => 'Bob Teacher',
             'email' => 'bob@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
             'role' => 'teacher',
             'age' => 29,
             'phone_number' => '+998909876543',
