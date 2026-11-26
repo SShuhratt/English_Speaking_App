@@ -37,9 +37,11 @@ fi
 # ─── STEP 4: Create storage symlink ──────────────────────────────────────────
 php /app/artisan storage:link --no-interaction 2>/dev/null || true
 
-# ─── STEP 5: Run database migrations ─────────────────────────────────────────
-echo "Running database migrations..."
-php /app/artisan migrate --force --no-interaction || echo "Warning: Migrations could not complete at startup."
+# ─── STEP 5: Run database migrations (skip in worker/scheduler replicas) ────
+if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
+    echo "Running database migrations..."
+    php /app/artisan migrate --force --no-interaction || echo "Warning: Migrations could not complete at startup."
+fi
 
 # ─── STEP 6: Boot the main process ───────────────────────────────────────────
 exec "$@"

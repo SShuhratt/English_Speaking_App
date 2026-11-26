@@ -448,4 +448,24 @@ class TelegramAuthTest extends TestCase
                 && $request['menu_button']['web_app']['url'] === 'https://convomate.uz/tma';
         });
     }
+
+    public function test_telegram_set_webhook_artisan_command(): void
+    {
+        Http::fake([
+            'https://api.telegram.org/bot'.$this->botToken.'/setWebhook' => Http::response(['ok' => true, 'result' => true], 200),
+        ]);
+
+        $this->artisan('telegram:set-webhook', [
+            '--url' => 'https://beta.convomate.uz/api/telegram/webhook',
+            '--drop' => true,
+        ])
+            ->expectsOutputToContain('Setting Telegram webhook to: https://beta.convomate.uz/api/telegram/webhook')
+            ->expectsOutputToContain('Successfully configured Telegram webhook')
+            ->assertSuccessful();
+
+        Http::assertSent(function ($request) {
+            return $request['url'] === 'https://beta.convomate.uz/api/telegram/webhook'
+                && $request['drop_pending_updates'] === true;
+        });
+    }
 }

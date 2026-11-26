@@ -1,0 +1,227 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "10000"
+    environment:
+      - SERVICE_FQDN_API_10000
+      - RUN_MIGRATIONS=true
+      - APP_NAME=${APP_NAME:-ConvoMate}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_KEY=${APP_KEY:?APP_KEY is required}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL:?APP_URL is required}
+      - ASSET_URL=${ASSET_URL:-}
+      - APP_TIMEZONE=${APP_TIMEZONE:-UTC}
+      - OCTANE_SERVER=frankenphp
+      - BCRYPT_ROUNDS=${BCRYPT_ROUNDS:-12}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-edtech}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}
+      - REDIS_CLIENT=phpredis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      - REDIS_PORT=6379
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SESSION_LIFETIME=${SESSION_LIFETIME:-120}
+      - SESSION_ENCRYPT=${SESSION_ENCRYPT:-true}
+      - SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-true}
+      - BROADCAST_CONNECTION=${BROADCAST_CONNECTION:-log}
+      - FILESYSTEM_DISK=${FILESYSTEM_DISK:-local}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-asia-south2}
+      - AWS_BUCKET=${AWS_BUCKET:-}
+      - AWS_URL=${AWS_URL:-}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT:-true}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_HOST=${MAIL_HOST:-127.0.0.1}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@convomate.uz}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-ConvoMate}
+      - SMS_DRIVER=${SMS_DRIVER:-log}
+      - ESKIZ_EMAIL=${ESKIZ_EMAIL:-}
+      - ESKIZ_PASSWORD=${ESKIZ_PASSWORD:-}
+      - ESKIZ_FROM=${ESKIZ_FROM:-4546}
+      - ESKIZ_API_URL=${ESKIZ_API_URL:-https://notify.eskiz.uz/api/}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-ConvomateAdminBot}
+      - HUMO_CARD_LAST_DIGITS=${HUMO_CARD_LAST_DIGITS:-}
+      - HUMO_WEBHOOK_SECRET=${HUMO_WEBHOOK_SECRET:-}
+      - PAYMENT_CARD_NUMBER=${PAYMENT_CARD_NUMBER:-}
+      - PAYMENT_CARD_HOLDER=${PAYMENT_CARD_HOLDER:-ConvoMate}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-flash-latest}
+    volumes:
+      - storage_data:/app/storage/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:10000/up') === false ? 1 : 0);"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["php", "artisan", "horizon"]
+    environment:
+      - RUN_MIGRATIONS=false
+      - APP_NAME=${APP_NAME:-ConvoMate}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_KEY=${APP_KEY:?APP_KEY is required}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL:?APP_URL is required}
+      - ASSET_URL=${ASSET_URL:-}
+      - APP_TIMEZONE=${APP_TIMEZONE:-UTC}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-edtech}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}
+      - REDIS_CLIENT=phpredis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      - REDIS_PORT=6379
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - BROADCAST_CONNECTION=${BROADCAST_CONNECTION:-log}
+      - FILESYSTEM_DISK=${FILESYSTEM_DISK:-local}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-asia-south2}
+      - AWS_BUCKET=${AWS_BUCKET:-}
+      - AWS_URL=${AWS_URL:-}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT:-true}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_HOST=${MAIL_HOST:-127.0.0.1}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@convomate.uz}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-ConvoMate}
+      - SMS_DRIVER=${SMS_DRIVER:-log}
+      - ESKIZ_EMAIL=${ESKIZ_EMAIL:-}
+      - ESKIZ_PASSWORD=${ESKIZ_PASSWORD:-}
+      - ESKIZ_FROM=${ESKIZ_FROM:-4546}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-ConvomateAdminBot}
+      - HUMO_CARD_LAST_DIGITS=${HUMO_CARD_LAST_DIGITS:-}
+      - HUMO_WEBHOOK_SECRET=${HUMO_WEBHOOK_SECRET:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    volumes:
+      - storage_data:/app/storage/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    environment:
+      - RUN_MIGRATIONS=false
+      - APP_NAME=${APP_NAME:-ConvoMate}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_KEY=${APP_KEY:?APP_KEY is required}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL:?APP_URL is required}
+      - APP_TIMEZONE=${APP_TIMEZONE:-UTC}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-edtech}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}
+      - REDIS_CLIENT=phpredis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      - REDIS_PORT=6379
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - BROADCAST_CONNECTION=${BROADCAST_CONNECTION:-log}
+      - FILESYSTEM_DISK=${FILESYSTEM_DISK:-local}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-asia-south2}
+      - AWS_BUCKET=${AWS_BUCKET:-}
+      - AWS_URL=${AWS_URL:-}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT:-true}
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@convomate.uz}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-ConvoMate}
+      - SMS_DRIVER=${SMS_DRIVER:-log}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-ConvomateAdminBot}
+    volumes:
+      - storage_data:/app/storage/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-edtech}
+      - POSTGRES_USER=${DB_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-edtech}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  storage_data:

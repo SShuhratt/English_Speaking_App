@@ -341,6 +341,35 @@ class TelegramService
     }
 
     /**
+     * Register or update the Telegram Bot webhook endpoint.
+     */
+    public function setWebhook(string $url, bool $dropPendingUpdates = false): bool
+    {
+        if (empty($this->token)) {
+            return false;
+        }
+
+        try {
+            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->token}/setWebhook", [
+                'url' => $url,
+                'drop_pending_updates' => $dropPendingUpdates,
+            ]);
+
+            if ($response->successful() && $response->json('ok')) {
+                return true;
+            }
+
+            Log::error('Failed to configure Telegram webhook: '.$response->body());
+
+            return false;
+        } catch (\Throwable $e) {
+            Log::error('Exception while configuring Telegram webhook: '.$e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
      * Download binary file content from Telegram API.
      */
     public function downloadFile(string $fileId): ?string

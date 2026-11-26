@@ -20,7 +20,7 @@ RUN APP_KEY=base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa= \
 FROM node:20-slim AS node-builder
 WORKDIR /app
 COPY package.json package-lock.json ./
-ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV NODE_OPTIONS="--max-old-space-size=1024"
 RUN npm install --no-audit --no-fund
 COPY . .
 COPY --from=composer-builder /app/resources/js/actions /app/resources/js/actions
