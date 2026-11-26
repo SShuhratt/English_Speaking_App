@@ -86,6 +86,8 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     command: ["php", "artisan", "horizon"]
+    healthcheck:
+      disable: true
     environment:
       - RUN_MIGRATIONS=false
       - APP_NAME=${APP_NAME:-ConvoMate}
@@ -150,6 +152,8 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     command: ["php", "artisan", "schedule:work"]
+    healthcheck:
+      disable: true
     environment:
       - RUN_MIGRATIONS=false
       - APP_NAME=${APP_NAME:-ConvoMate}
@@ -225,3 +229,4 @@ volumes:
   postgres_data:
   redis_data:
   storage_data:
+
