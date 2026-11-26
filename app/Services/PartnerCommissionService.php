@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\GroupSessionEnrollment;
 use App\Models\PartnerAttribution;
 use App\Models\PartnerCommissionEntry;
 use App\Models\PartnerOrganization;
@@ -142,6 +143,74 @@ class PartnerCommissionService
                 'pupil_package_id' => $locked->pupil_package_id,
                 'entry_source' => $entrySource,
                 'meeting_started' => (bool) $locked->meeting_started,
+                'gross_lesson_value' => $breakdown['gross_amount'],
+                'gateway_fee_bps' => $breakdown['gateway_fee_bps'],
+                'gateway_fee_amount' => $breakdown['gateway_fee_amount'],
+                'net_cash_basis' => $breakdown['net_cash_amount'],
+                'teacher_rate_bps' => $breakdown['teacher_rate_bps'],
+                'teacher_amount' => $breakdown['teacher_amount'],
+                'platform_rate_bps' => $breakdown['platform_rate_bps'],
+                'platform_amount' => $breakdown['platform_amount'],
+                'partner_rate_bps' => $breakdown['partner_rate_bps'],
+                'partner_amount' => $breakdown['partner_amount'],
+                'status' => 'accrued',
+                'accrued_at' => $locked->completed_at ?? now(),
+            ]);
+        });
+    }
+
+    /**
+     * Idempotently accrue Track A net-cash commission on a completed group session seat enrollment.
+     */
+    public function accrueForCompletedGroupEnrollment(GroupSessionEnrollment $enrollment): ?PartnerCommissionEntry
+    {
+        return DB::transaction(function () use ($enrollment) {
+            $locked = GroupSessionEnrollment::with('groupSession')
+                ->lockForUpdate()
+                ->findOrFail($enrollment->id);
+
+            $session = $locked->groupSession;
+            if (! $session || $locked->status !== 'completed' || $locked->payment_status !== 'paid') {
+                return null;
+            }
+
+            if (PartnerCommissionEntry::where('group_session_enrollment_id', $locked->id)->exists()) {
+                return PartnerCommissionEntry::where('group_session_enrollment_id', $locked->id)->first();
+            }
+
+            $attribution = PartnerAttribution::with('partnerOrganization')
+                ->where('pupil_id', $locked->pupil_id)
+                ->first();
+
+            if (! $attribution || ! $attribution->partnerOrganization?->isActive()) {
+                return null;
+            }
+
+            $partnerOrg = $attribution->partnerOrganization;
+            $grossValue = (int) ($locked->gross_amount ?? $locked->price_paid);
+            if ($grossValue <= 0) {
+                return null;
+            }
+
+            $breakdown = $this->calculator->calculateBreakdown(
+                grossAmount: $grossValue,
+                gatewayProvider: $locked->gateway_provider ?: 'humo_p2p',
+                gatewayFeeBps: $locked->gateway_fee_bps,
+                partnerRateBps: (int) $partnerOrg->commission_rate_bps,
+            );
+
+            if ($breakdown['net_cash_amount'] <= 0 || $breakdown['partner_amount'] <= 0) {
+                return null;
+            }
+
+            return PartnerCommissionEntry::create([
+                'partner_organization_id' => $partnerOrg->id,
+                'pupil_id' => $locked->pupil_id,
+                'teacher_id' => $session->teacher_id,
+                'appointment_id' => null,
+                'group_session_enrollment_id' => $locked->id,
+                'entry_source' => 'group_session',
+                'meeting_started' => (bool) $session->meeting_started,
                 'gross_lesson_value' => $breakdown['gross_amount'],
                 'gateway_fee_bps' => $breakdown['gateway_fee_bps'],
                 'gateway_fee_amount' => $breakdown['gateway_fee_amount'],

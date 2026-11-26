@@ -14,6 +14,7 @@ class Feedback extends Model
 
     protected $fillable = [
         'conversation_id',
+        'group_session_id',
         'pupil_id',
         'teacher_id',
         'rating_score',
@@ -36,6 +37,11 @@ class Feedback extends Model
     public function conversation()
     {
         return $this->belongsTo(Conversation::class);
+    }
+
+    public function groupSession()
+    {
+        return $this->belongsTo(GroupSession::class);
     }
 
     public function pupil()

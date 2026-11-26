@@ -151,19 +151,54 @@ function TeacherMeetingButton({
 function PupilDashboard({
     user,
     appointments = [],
+    groupEnrollments = [],
     stats = {},
     recentFeedback = null,
     activePackages = [],
 }: {
     user: any;
     appointments?: any[];
+    groupEnrollments?: any[];
     stats?: any;
     recentFeedback?: any;
     activePackages?: any[];
 }) {
     const { t, locale } = useTranslation();
     const [paymentBooking, setPaymentBooking] = useState<any | null>(null);
+    const [paymentGroupEnrollment, setPaymentGroupEnrollment] = useState<any | null>(null);
+    const [reviewGroupSession, setReviewGroupSession] = useState<any | null>(null);
+    const [reviewRating, setReviewRating] = useState<number>(10);
+    const [reviewComment, setReviewComment] = useState<string>('');
+    const [submittingReview, setSubmittingReview] = useState(false);
     const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
+
+    const handleSubmitGroupReview = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!reviewGroupSession) return;
+        setSubmittingReview(true);
+        router.post(
+            '/feedback',
+            {
+                group_session_id: reviewGroupSession.id,
+                rating_score: reviewRating,
+                comment_text: reviewComment,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Review submitted! Thank you.');
+                    setReviewGroupSession(null);
+                    setReviewComment('');
+                    router.reload({ only: ['groupEnrollments'] });
+                },
+                onError: (errors: any) => {
+                    const msg = Object.values(errors || {})[0] || 'Unable to submit review.';
+                    toast.error(String(msg));
+                },
+                onFinish: () => setSubmittingReview(false),
+            },
+        );
+    };
 
     const handleConnectTelegram = async () => {
         setIsConnectingTelegram(true);
@@ -761,6 +796,84 @@ function PupilDashboard({
                 return (
                     <>
                         {activePacksSection}
+                        {groupEnrollments && groupEnrollments.length > 0 && (
+                            <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-8 dark:border dark:border-white/10 dark:bg-card">
+                                <div className="mb-5 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                                    <div>
+                                        <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#1b1b1f] dark:text-white">
+                                            <Users className="h-5 w-5 text-indigo-600 dark:text-brand-yellow" />
+                                            Group Speaking Sessions
+                                        </h2>
+                                        <p className="mt-1 text-xs text-[#6B7394] dark:text-slate-400">
+                                            Your enrolled group conversations and seat reservations.
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href="/pupil/teachers?format=group"
+                                        className="inline-flex items-center gap-1 text-xs font-bold text-[#061445] hover:underline dark:text-brand-yellow"
+                                    >
+                                        <span>Explore Group Sessions</span>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Link>
+                                </div>
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    {groupEnrollments.map((ge: any) => {
+                                        const gs = ge.group_session;
+                                        if (!gs) return null;
+                                        const canJoin = ge.payment_status === 'paid' && gs.meeting_started && gs.google_meet_link && gs.status !== 'cancelled' && gs.status !== 'completed';
+                                        const canReview = ge.payment_status === 'paid' && (gs.meeting_started || gs.status === 'completed') && !ge.has_reviewed;
+                                        return (
+                                            <div key={ge.id} className="flex flex-col justify-between rounded-2xl border border-[#EAE4D2] bg-[#FAFBFD] p-4 dark:border-white/10 dark:bg-white/5">
+                                                <div className="space-y-1.5">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                                                            {gs.target_level} · {gs.duration_minutes} min
+                                                        </span>
+                                                        <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${ge.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'}`}>
+                                                            {ge.payment_status === 'paid' ? 'Confirmed' : 'Pending Payment'}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-[#1b1b1f] dark:text-white">{gs.title}</h3>
+                                                    <p className="text-xs text-[#6B7394] dark:text-slate-400">
+                                                        Teacher: {gs.teacher?.full_name} · {new Date(gs.start_at).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3 dark:border-white/10">
+                                                    {ge.payment_status !== 'paid' && gs.status === 'scheduled' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setPaymentGroupEnrollment({ id: ge.id, title: gs.title, amount: ge.price_paid, teacherName: gs.teacher?.full_name })}
+                                                            className="cursor-pointer rounded-xl bg-[#061445] px-3 py-1.5 text-xs font-bold text-white dark:bg-brand-yellow dark:text-[#061445]"
+                                                        >
+                                                            Upload Receipt
+                                                        </button>
+                                                    )}
+                                                    {canJoin && (
+                                                        <a
+                                                            href={gs.google_meet_link}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
+                                                        >
+                                                            Join Group Room
+                                                        </a>
+                                                    )}
+                                                    {canReview && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setReviewGroupSession(gs)}
+                                                            className="cursor-pointer rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                                                        >
+                                                            Leave Review
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                         {appointments.length === 0 && renderUpcomingSessions()}
                     </>
                 );
@@ -768,15 +881,79 @@ function PupilDashboard({
 
             {/* Payment Modal */}
             <PaymentModal
-                isOpen={!!paymentBooking}
-                onClose={() => setPaymentBooking(null)}
+                isOpen={!!paymentBooking || !!paymentGroupEnrollment}
+                onClose={() => {
+                    setPaymentBooking(null);
+                    setPaymentGroupEnrollment(null);
+                }}
                 appointmentId={paymentBooking?.id}
-                itemTitle={paymentBooking?.title || t('overview.single_session') || 'Speaking Session'}
-                amount={paymentBooking?.price || paymentBooking?.hourly_rate}
-                teacherName={paymentBooking?.teacher?.full_name || paymentBooking?.teacher?.name}
+                groupEnrollmentId={paymentGroupEnrollment?.id}
+                itemTitle={paymentGroupEnrollment?.title || paymentBooking?.title || t('overview.single_session') || 'Speaking Session'}
+                amount={paymentGroupEnrollment?.amount || paymentBooking?.price || paymentBooking?.hourly_rate}
+                teacherName={paymentGroupEnrollment?.teacherName || paymentBooking?.teacher?.full_name || paymentBooking?.teacher?.name}
                 pupilId={user.short_id || user.id.substring(0, 8).toUpperCase()}
                 pupilName={user.full_name}
+                onSuccess={() => router.reload({ only: ['appointments', 'groupEnrollments'] })}
             />
+
+            {reviewGroupSession && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <form
+                        onSubmit={handleSubmitGroupReview}
+                        className="w-full max-w-md space-y-4 rounded-3xl border bg-card p-6 shadow-2xl"
+                    >
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-bold">Review Group Session</h3>
+                            <button type="button" onClick={() => setReviewGroupSession(null)} className="cursor-pointer p-1 text-muted-foreground">
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {reviewGroupSession.title} · {reviewGroupSession.teacher?.full_name}
+                        </p>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold">Rating (1–10)</label>
+                            <input
+                                type="number"
+                                min={1}
+                                max={10}
+                                value={reviewRating}
+                                onChange={(e) => setReviewRating(Number(e.target.value))}
+                                className="w-full rounded-xl border px-3 py-2 text-sm bg-background"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold">Your Feedback</label>
+                            <textarea
+                                rows={3}
+                                minLength={3}
+                                required
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                                placeholder="Share how helpful the group conversation was..."
+                                className="w-full rounded-xl border px-3 py-2 text-sm bg-background"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setReviewGroupSession(null)}
+                                className="cursor-pointer rounded-xl border px-4 py-2 text-xs font-semibold"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={submittingReview}
+                                className="cursor-pointer rounded-xl bg-[#061445] px-4 py-2 text-xs font-bold text-white dark:bg-brand-yellow dark:text-[#061445]"
+                            >
+                                {submittingReview ? 'Submitting...' : 'Submit Review'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 }
@@ -784,10 +961,12 @@ function PupilDashboard({
 function TeacherDashboard({
     user,
     appointments = [],
+    teacherGroupSessions = [],
     stats = {},
 }: {
     user: any;
     appointments?: any[];
+    teacherGroupSessions?: any[];
     stats?: any;
 }) {
     const [startingAptId, setStartingAptId] = useState<string | null>(null);
@@ -1155,6 +1334,42 @@ function TeacherDashboard({
             {/* Upcoming Sessions / Today's Schedule (Displayed above speaking overview when sessions exist) */}
             {appointments.length > 0 && renderScheduleCard(true)}
 
+            {teacherGroupSessions && teacherGroupSessions.length > 0 && (
+                <div className="shadow-ambient rounded-3xl bg-white p-6 md:p-8 dark:border dark:border-white/10 dark:bg-card">
+                    <div className="mb-5 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                        <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#1b1b1f] dark:text-white">
+                            <Users className="h-5 w-5 text-emerald-600 dark:text-brand-yellow" />
+                            <span>Upcoming Group Conversations</span>
+                        </h2>
+                        <Link
+                            href="/teacher/availability"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-[#061445] hover:underline dark:text-brand-yellow"
+                        >
+                            <span>Manage Group Sessions</span>
+                            <ChevronRight className="h-4 w-4" />
+                        </Link>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {teacherGroupSessions.map((gs: any) => (
+                            <div key={gs.id} className="flex items-center justify-between gap-4 rounded-2xl border border-[#EAE4D2] bg-[#FAFBFD] p-4 dark:border-white/10 dark:bg-white/5">
+                                <div className="min-w-0">
+                                    <h3 className="truncate text-sm font-bold text-[#1b1b1f] dark:text-white">{gs.title}</h3>
+                                    <p className="mt-1 text-xs text-[#6B7394] tabular-nums dark:text-slate-400">
+                                        {new Date(gs.start_at).toLocaleString()} · {gs.occupied_seats ?? 0}/{gs.max_seats} seats
+                                    </p>
+                                </div>
+                                <Link
+                                    href="/teacher/availability"
+                                    className="shrink-0 rounded-xl bg-[#061445] px-3 py-1.5 text-xs font-bold text-white dark:bg-brand-yellow dark:text-[#061445]"
+                                >
+                                    Open
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Stats grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {/* Bugungi darslar */}
@@ -1346,11 +1561,15 @@ function TeacherDashboard({
 
 export default function Dashboard({
     appointments = [],
+    teacherGroupSessions = [],
+    groupEnrollments = [],
     stats = {},
     recentFeedback = null,
     activePackages = [],
 }: {
     appointments?: any[];
+    teacherGroupSessions?: any[];
+    groupEnrollments?: any[];
     stats?: any;
     recentFeedback?: any;
     activePackages?: any[];
@@ -1367,12 +1586,14 @@ export default function Dashboard({
                 <TeacherDashboard
                     user={auth.user}
                     appointments={appointments}
+                    teacherGroupSessions={teacherGroupSessions}
                     stats={stats}
                 />
             ) : (
                 <PupilDashboard
                     user={auth.user}
                     appointments={appointments}
+                    groupEnrollments={groupEnrollments}
                     stats={stats}
                     recentFeedback={recentFeedback}
                     activePackages={activePackages}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\GroupSession;
 use App\Models\TeacherAvailability;
 use App\Models\TeacherPackage;
 use App\Support\PlatformTime;
@@ -44,10 +45,26 @@ class TeacherAvailabilityController extends Controller
             $packages = collect();
         }
 
+        try {
+            $groupSessions = GroupSession::where('teacher_id', $request->user()->id)
+                ->with(['enrollments.pupil:id,full_name,avatar'])
+                ->orderByDesc('start_at')
+                ->get()
+                ->map(function (GroupSession $session) {
+                    $session->occupied_seats = $session->occupiedSeatsCount();
+                    $session->available_seats = $session->availableSeatsCount();
+
+                    return $session;
+                });
+        } catch (\Throwable $e) {
+            $groupSessions = collect();
+        }
+
         return Inertia::render('teacher/availability', [
             'availabilities' => $availabilities,
             'appointments' => $appointments,
             'packages' => $packages,
+            'groupSessions' => $groupSessions,
         ]);
     }
 
@@ -255,6 +272,29 @@ class TeacherAvailabilityController extends Controller
                         $errKey => __('availability.has_upcoming_appointments'),
                     ]);
                 }
+
+                $hasGroupSessionsOutsideNewRange = GroupSession::where('teacher_id', $teacherId)
+                    ->whereIn('status', ['scheduled', 'in_progress'])
+                    ->where('end_at', '>', PlatformTime::now())
+                    ->where(function ($q) use ($overlappingCustoms) {
+                        foreach ($overlappingCustoms as $chunk) {
+                            $q->orWhere(function ($sub) use ($chunk) {
+                                $sub->where('start_at', '<', $chunk->end_at)
+                                    ->where('end_at', '>', $chunk->start_at);
+                            });
+                        }
+                    })
+                    ->where(function ($q) use ($dayStartUtc, $dayEndUtc) {
+                        $q->where('start_at', '<', $dayStartUtc)
+                            ->orWhere('end_at', '>', $dayEndUtc);
+                    })
+                    ->exists();
+
+                if ($hasGroupSessionsOutsideNewRange) {
+                    return back()->withErrors([
+                        $errKey => 'Cannot shrink availability because a scheduled group session lies outside the new time range.',
+                    ]);
+                }
             }
         }
 
@@ -350,6 +390,17 @@ class TeacherAvailabilityController extends Controller
             if ($hasBookings) {
                 return back()->withErrors(['range' => __('availability.has_upcoming_appointments')]);
             }
+
+            $hasGroupConflicts = GroupSession::where('teacher_id', $teacherId)
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('end_at', '>', PlatformTime::now())
+                ->where('start_at', '<', $availability->end_at)
+                ->where('end_at', '>', $availability->start_at)
+                ->exists();
+
+            if ($hasGroupConflicts) {
+                return back()->withErrors(['range' => 'Cannot edit this availability block while a group session is scheduled in this time window.']);
+            }
         } elseif ($availability->type === 'recurring' && $availability->day_of_week) {
             $dayOfWeek = strtolower($availability->day_of_week);
 
@@ -380,6 +431,24 @@ class TeacherAvailabilityController extends Controller
 
             if ($hasBookings) {
                 return back()->withErrors(['range' => __('availability.has_upcoming_appointments')]);
+            }
+
+            $upcomingGroupSessions = GroupSession::where('teacher_id', $teacherId)
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('end_at', '>', PlatformTime::now())
+                ->get();
+
+            foreach ($upcomingGroupSessions as $gs) {
+                $gsStartLocal = PlatformTime::toLocal($gs->start_at);
+                $gsEndLocal = PlatformTime::toLocal($gs->end_at);
+
+                if (strtolower($gsStartLocal->format('l')) === $dayOfWeek) {
+                    $gsOpen = $gsStartLocal->hour * 3600 + $gsStartLocal->minute * 60 + $gsStartLocal->second;
+                    $gsClose = $gsEndLocal->hour * 3600 + $gsEndLocal->minute * 60 + $gsEndLocal->second;
+                    if ($gsOpen < $endSecs && $gsClose > $startSecs) {
+                        return back()->withErrors(['range' => 'Cannot edit this recurring schedule while a group session is scheduled in this time window.']);
+                    }
+                }
             }
         }
 
@@ -570,15 +639,24 @@ class TeacherAvailabilityController extends Controller
                 })
                 ->get();
 
+            $activeGroupSessions = GroupSession::where('teacher_id', $teacherId)
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('end_at', '>', PlatformTime::now())
+                ->where('start_at', '<', $blackoutEnd->copy()->utc())
+                ->where('end_at', '>', $blackoutStart->copy()->utc())
+                ->get();
+
+            $lockedSessions = $bookedAppts->concat($activeGroupSessions);
+
             $slotDur = $availability->slot_duration ?: 30;
             $isSingleSlot = ($deleteType === 'range') && ($blackoutEnd->diffInMinutes($blackoutStart) <= $slotDur);
 
-            if ($bookedAppts->isNotEmpty()) {
+            if ($lockedSessions->isNotEmpty()) {
                 if ($isSingleSlot || ! $keepBooked) {
                     return back()->withErrors(['range' => __('availability.slot_has_booking')]);
                 }
 
-                $freeIntervals = $this->computeFreeIntervals($blackoutStart, $blackoutEnd, $bookedAppts);
+                $freeIntervals = $this->computeFreeIntervals($blackoutStart, $blackoutEnd, $lockedSessions);
                 if (empty($freeIntervals)) {
                     return back()->with('info', __('availability.unbooked_removed_booked_preserved'));
                 }
@@ -654,20 +732,29 @@ class TeacherAvailabilityController extends Controller
                     ->where('end_at', '>', PlatformTime::toUtc($effectiveStart))
                     ->get();
 
+                $activeGroupSessions = GroupSession::where('teacher_id', $teacherId)
+                    ->whereIn('status', ['scheduled', 'in_progress'])
+                    ->where('end_at', '>', PlatformTime::now())
+                    ->where('start_at', '<', PlatformTime::toUtc($effectiveEnd))
+                    ->where('end_at', '>', PlatformTime::toUtc($effectiveStart))
+                    ->get();
+
+                $lockedSessions = $bookedAppts->concat($activeGroupSessions);
+
                 $isSingleSlot = $effectiveEnd->diffInMinutes($effectiveStart) <= $slotDur;
 
-                if ($bookedAppts->isNotEmpty()) {
+                if ($lockedSessions->isNotEmpty()) {
                     if ($isSingleSlot || ! $keepBooked) {
                         return back()->withErrors(['range' => __('availability.slot_has_booking')]);
                     }
 
                     $availability->delete();
-                    foreach ($bookedAppts as $appt) {
+                    foreach ($lockedSessions as $lockedSession) {
                         TeacherAvailability::create([
                             'teacher_id' => $teacherId,
                             'type' => 'custom',
-                            'start_at' => $appt->start_at,
-                            'end_at' => $appt->end_at,
+                            'start_at' => $lockedSession->start_at,
+                            'end_at' => $lockedSession->end_at,
                             'slot_duration' => $slotDur,
                             'is_active' => true,
                         ]);
@@ -704,15 +791,20 @@ class TeacherAvailabilityController extends Controller
                     ->where('start_at', '>=', Carbon::now($tz)->copy()->utc())
                     ->get();
 
+                $groupSessions = GroupSession::where('teacher_id', $teacherId)
+                    ->whereIn('status', ['scheduled', 'in_progress'])
+                    ->where('end_at', '>=', Carbon::now($tz)->copy()->utc())
+                    ->get();
+
                 $startSecs = $rangeStart->hour * 3600 + $rangeStart->minute * 60 + $rangeStart->second;
                 $endSecs = $rangeEnd->hour * 3600 + $rangeEnd->minute * 60 + $rangeEnd->second;
 
-                $bookedAppts = $appointments->filter(function ($appt) use ($tz, $dayOfWeek, $startSecs, $endSecs) {
-                    if (strtolower($appt->start_at->copy()->setTimezone($tz)->format('l')) === strtolower($dayOfWeek)) {
-                        $apptOpen = $appt->start_at->copy()->setTimezone($tz)->hour * 3600 + $appt->start_at->copy()->setTimezone($tz)->minute * 60;
-                        $apptClose = $appt->end_at->copy()->setTimezone($tz)->hour * 3600 + $appt->end_at->copy()->setTimezone($tz)->minute * 60;
+                $bookedAppts = $appointments->concat($groupSessions)->filter(function ($item) use ($tz, $dayOfWeek, $startSecs, $endSecs) {
+                    if (strtolower($item->start_at->copy()->setTimezone($tz)->format('l')) === strtolower($dayOfWeek)) {
+                        $itemOpen = $item->start_at->copy()->setTimezone($tz)->hour * 3600 + $item->start_at->copy()->setTimezone($tz)->minute * 60;
+                        $itemClose = $item->end_at->copy()->setTimezone($tz)->hour * 3600 + $item->end_at->copy()->setTimezone($tz)->minute * 60;
 
-                        return $apptOpen < $endSecs && $apptClose > $startSecs;
+                        return $itemOpen < $endSecs && $itemClose > $startSecs;
                     }
 
                     return false;
@@ -774,18 +866,27 @@ class TeacherAvailabilityController extends Controller
                     ->where('end_at', '>', $availability->start_at)
                     ->get();
 
-                if ($bookedAppts->isNotEmpty()) {
+                $activeGroupSessions = GroupSession::where('teacher_id', $teacherId)
+                    ->whereIn('status', ['scheduled', 'in_progress'])
+                    ->where('end_at', '>', PlatformTime::now())
+                    ->where('start_at', '<', $availability->end_at)
+                    ->where('end_at', '>', $availability->start_at)
+                    ->get();
+
+                $lockedSessions = $bookedAppts->concat($activeGroupSessions);
+
+                if ($lockedSessions->isNotEmpty()) {
                     if (! $keepBooked) {
                         return back()->withErrors(['range' => __('availability.cannot_delete_booked')]);
                     }
 
                     $availability->delete();
-                    foreach ($bookedAppts as $appt) {
+                    foreach ($lockedSessions as $lockedSession) {
                         TeacherAvailability::create([
                             'teacher_id' => $teacherId,
                             'type' => 'custom',
-                            'start_at' => $appt->start_at,
-                            'end_at' => $appt->end_at,
+                            'start_at' => $lockedSession->start_at,
+                            'end_at' => $lockedSession->end_at,
                             'slot_duration' => $slotDur,
                             'is_active' => true,
                         ]);
@@ -805,17 +906,22 @@ class TeacherAvailabilityController extends Controller
                     ->where('start_at', '>=', Carbon::now($tz)->copy()->utc())
                     ->get();
 
+                $groupSessions = GroupSession::where('teacher_id', $teacherId)
+                    ->whereIn('status', ['scheduled', 'in_progress'])
+                    ->where('end_at', '>=', Carbon::now($tz)->copy()->utc())
+                    ->get();
+
                 $origStart = Carbon::parse($availability->start_time, $tz);
                 $origEnd = Carbon::parse($availability->end_time, $tz);
                 $startSecs = $origStart->hour * 3600 + $origStart->minute * 60 + $origStart->second;
                 $endSecs = $origEnd->hour * 3600 + $origEnd->minute * 60 + $origEnd->second;
 
-                $bookedAppts = $appointments->filter(function ($appt) use ($tz, $dayOfWeek, $startSecs, $endSecs) {
-                    if (strtolower($appt->start_at->copy()->setTimezone($tz)->format('l')) === strtolower($dayOfWeek)) {
-                        $apptOpen = $appt->start_at->copy()->setTimezone($tz)->hour * 3600 + $appt->start_at->copy()->setTimezone($tz)->minute * 60;
-                        $apptClose = $appt->end_at->copy()->setTimezone($tz)->hour * 3600 + $appt->end_at->copy()->setTimezone($tz)->minute * 60;
+                $bookedAppts = $appointments->concat($groupSessions)->filter(function ($item) use ($tz, $dayOfWeek, $startSecs, $endSecs) {
+                    if (strtolower($item->start_at->copy()->setTimezone($tz)->format('l')) === strtolower($dayOfWeek)) {
+                        $itemOpen = $item->start_at->copy()->setTimezone($tz)->hour * 3600 + $item->start_at->copy()->setTimezone($tz)->minute * 60;
+                        $itemClose = $item->end_at->copy()->setTimezone($tz)->hour * 3600 + $item->end_at->copy()->setTimezone($tz)->minute * 60;
 
-                        return $apptOpen < $endSecs && $apptClose > $startSecs;
+                        return $itemOpen < $endSecs && $itemClose > $startSecs;
                     }
 
                     return false;
@@ -916,7 +1022,16 @@ class TeacherAvailabilityController extends Controller
                 ->where('end_at', '>', PlatformTime::toUtc($windowStart))
                 ->get();
 
-            if ($bookedAppts->isNotEmpty() && ! $keepBooked) {
+            $activeGroupSessions = GroupSession::where('teacher_id', $teacherId)
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('end_at', '>', PlatformTime::now())
+                ->where('start_at', '<', PlatformTime::toUtc($windowEnd))
+                ->where('end_at', '>', PlatformTime::toUtc($windowStart))
+                ->get();
+
+            $lockedSessions = $bookedAppts->concat($activeGroupSessions);
+
+            if ($lockedSessions->isNotEmpty() && ! $keepBooked) {
                 return back()->withErrors(['range' => __('availability.cannot_clear_booked', ['date' => $dateStr])]);
             }
 
@@ -929,7 +1044,7 @@ class TeacherAvailabilityController extends Controller
                 ->where('end_at', '>=', $dayUtc['start'])
                 ->get();
 
-            if ($bookedAppts->isNotEmpty()) {
+            if ($lockedSessions->isNotEmpty()) {
                 foreach ($customAvails as $custom) {
                     $origStart = PlatformTime::toLocal($custom->start_at);
                     $origEnd = PlatformTime::toLocal($custom->end_at);
@@ -959,8 +1074,8 @@ class TeacherAvailabilityController extends Controller
                         ]);
                     }
 
-                    // Re-create custom availability covering each booked appointment
-                    $cBookings = $bookedAppts->filter(fn ($b) => PlatformTime::toLocal($b->start_at)->lt($origEnd) && PlatformTime::toLocal($b->end_at)->gt($origStart));
+                    // Re-create custom availability covering each booked 1-on-1 or active group session
+                    $cBookings = $lockedSessions->filter(fn ($b) => PlatformTime::toLocal($b->start_at)->lt($origEnd) && PlatformTime::toLocal($b->end_at)->gt($origStart));
                     foreach ($cBookings as $bAppt) {
                         TeacherAvailability::create([
                             'teacher_id' => $teacherId,
@@ -1045,7 +1160,7 @@ class TeacherAvailabilityController extends Controller
                         ? Carbon::parse("{$dateStr} {$validated['end_time']}", $tz)
                         : Carbon::parse("{$dateStr} {$rec->end_time}", $tz);
 
-                    $freeIntervals = $this->computeFreeIntervals($bStart, $bEnd, $bookedAppts);
+                    $freeIntervals = $this->computeFreeIntervals($bStart, $bEnd, $lockedSessions);
                     foreach ($freeIntervals as $interval) {
                         TeacherAvailability::create([
                             'teacher_id' => $teacherId,
@@ -1069,7 +1184,13 @@ class TeacherAvailabilityController extends Controller
                     ->whereIn('status', ['pending', 'accepted', 'confirmed'])
                     ->where('start_at', '>=', Carbon::now($tz)->copy()->utc())
                     ->get()
-                    ->filter(fn ($app) => strtolower($app->start_at->copy()->setTimezone($tz)->format('l')) === strtolower($dow));
+                    ->concat(
+                        GroupSession::where('teacher_id', $teacherId)
+                            ->whereIn('status', ['scheduled', 'in_progress'])
+                            ->where('end_at', '>=', Carbon::now($tz)->copy()->utc())
+                            ->get()
+                    )
+                    ->filter(fn ($item) => strtolower($item->start_at->copy()->setTimezone($tz)->format('l')) === strtolower($dow));
 
                 if ($dayBookedAppts->isNotEmpty()) {
                     if (! $keepBooked) {
@@ -1115,7 +1236,7 @@ class TeacherAvailabilityController extends Controller
     private function computeFreeIntervals(Carbon $windowStart, Carbon $windowEnd, $appointments): array
     {
         $sortedAppts = collect($appointments)
-            ->filter(fn ($a) => in_array($a->status, ['pending', 'accepted', 'confirmed']))
+            ->filter(fn ($a) => in_array($a->status, ['pending', 'accepted', 'confirmed', 'scheduled', 'in_progress'], true))
             ->map(function ($a) {
                 return [
                     'start' => PlatformTime::toLocal($a->start_at),

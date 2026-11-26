@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\GroupSessionEnrollment;
 use App\Models\HumoTransaction;
 use App\Models\PupilPackage;
 use App\Models\User;
@@ -170,11 +171,20 @@ class HumoPaymentService
                     ->lockForUpdate()
                     ->get();
 
-                $totalCandidates = $pendingAppointments->count() + $pendingPackages->count();
+                $pendingGroupEnrollments = GroupSessionEnrollment::where('payment_status', 'verifying')
+                    ->where('price_paid', $parsed['amount'])
+                    ->where('created_at', '>=', now()->subHours(48))
+                    ->lockForUpdate()
+                    ->get();
 
                 // Strict Receipt Rule: An SMS alone NEVER blindly auto-confirms an order.
                 // Check if any candidate has submitted a verified matching receipt
-                $resolved = $this->resolveCandidateWithReceipt($pendingAppointments, $pendingPackages, $parsed);
+                $resolved = $this->resolveCandidateWithReceipt(
+                    $pendingAppointments,
+                    $pendingPackages,
+                    $parsed,
+                    $pendingGroupEnrollments,
+                );
 
                 if ($resolved) {
                     if ($resolved['type'] === 'appointment') {
@@ -192,6 +202,26 @@ class HumoPaymentService
                         return [
                             'status' => 'matched_appointment',
                             'appointment_id' => $appointment->id,
+                            'amount' => $parsed['amount'],
+                            'details' => $parsed,
+                        ];
+                    }
+
+                    if ($resolved['type'] === 'group_enrollment') {
+                        $enrollment = $resolved['model'];
+                        app(GroupSessionService::class)->confirmEnrollmentPayment($enrollment);
+
+                        $tx->update([
+                            'status' => 'matched',
+                            'matched_type' => 'group_enrollment',
+                            'matched_id' => $enrollment->id,
+                        ]);
+
+                        $this->notifyAdminsMatchedGroupEnrollment($enrollment, $parsed);
+
+                        return [
+                            'status' => 'matched_group_enrollment',
+                            'enrollment_id' => $enrollment->id,
                             'amount' => $parsed['amount'],
                             'details' => $parsed,
                         ];
@@ -240,7 +270,8 @@ class HumoPaymentService
         User $pupil,
         mixed $receiptDataOrText,
         ?string $appointmentId = null,
-        ?string $pupilPackageId = null
+        ?string $pupilPackageId = null,
+        ?string $groupSessionEnrollmentId = null
     ): array {
         // 1. Parse receipt details
         $receipt = null;
@@ -261,10 +292,11 @@ class HumoPaymentService
             ];
         }
 
-        // 2. Locate matching pending booking/package for this pupil
-        return DB::transaction(function () use ($pupil, $receipt, $appointmentId, $pupilPackageId) {
+        // 2. Locate matching pending booking/package/group enrollment for this pupil
+        return DB::transaction(function () use ($pupil, $receipt, $appointmentId, $pupilPackageId, $groupSessionEnrollmentId) {
             $appointment = null;
             $package = null;
+            $groupEnrollment = null;
 
             if ($appointmentId) {
                 $appointment = Appointment::where('id', $appointmentId)
@@ -274,6 +306,12 @@ class HumoPaymentService
                     ->first();
             } elseif ($pupilPackageId) {
                 $package = PupilPackage::where('id', $pupilPackageId)
+                    ->where('pupil_id', $pupil->id)
+                    ->where('payment_status', 'verifying')
+                    ->lockForUpdate()
+                    ->first();
+            } elseif ($groupSessionEnrollmentId) {
+                $groupEnrollment = GroupSessionEnrollment::where('id', $groupSessionEnrollmentId)
                     ->where('pupil_id', $pupil->id)
                     ->where('payment_status', 'verifying')
                     ->lockForUpdate()
@@ -294,68 +332,93 @@ class HumoPaymentService
                         ->orderBy('created_at', 'asc')
                         ->first();
                 }
+
+                if (! $appointment && ! $package) {
+                    $groupEnrollment = GroupSessionEnrollment::where('pupil_id', $pupil->id)
+                        ->where('payment_status', 'verifying')
+                        ->where('price_paid', $receipt['amount'])
+                        ->lockForUpdate()
+                        ->orderBy('created_at', 'asc')
+                        ->first();
+                }
             }
 
-            if (! $appointment && ! $package) {
+            if (! $appointment && ! $package && ! $groupEnrollment) {
                 return [
                     'status' => 'no_pending_booking',
                     'message' => 'Ushbu summaga mos keluvchi tasdiqlash kutilayotgan dars yoki paket topilmadi.',
                 ];
             }
 
-            $model = $appointment ?: $package;
+            $model = $appointment ?: ($package ?: $groupEnrollment);
             $model->update([
                 'receipt_data' => $receipt,
             ]);
 
             // 3. Check if there is an unmatched or quarantined HumoTransaction waiting in DB
-            $txQuery = HumoTransaction::whereIn('status', ['unmatched', 'quarantined'])
+            $candidateTxs = HumoTransaction::whereIn('status', ['unmatched', 'quarantined'])
                 ->where('amount', $receipt['amount'])
                 ->where('created_at', '>=', now()->subHours(48))
                 ->lockForUpdate()
-                ->orderBy('created_at', 'desc');
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-            $tx = $txQuery->first();
+            $tx = $candidateTxs->first(
+                fn (HumoTransaction $candidate) => $this->isTimeCompatible($candidate->bank_timestamp, $receipt['time'] ?? null)
+            );
 
             if ($tx) {
-                // Verify time compatibility if time is available
-                if ($this->isTimeCompatible($tx->bank_timestamp, $receipt['time'] ?? null)) {
-                    if ($appointment) {
-                        $this->confirmAppointment($appointment);
-                        $tx->update([
-                            'status' => 'matched',
-                            'matched_type' => 'appointment',
-                            'matched_id' => $appointment->id,
-                        ]);
-
-                        return [
-                            'status' => 'confirmed',
-                            'type' => 'appointment',
-                            'appointment_id' => $appointment->id,
-                            'message' => "To'lov muvaffaqiyatli tasdiqlandi!",
-                        ];
-                    }
-
-                    $this->confirmPackage($package);
+                if ($appointment) {
+                    $this->confirmAppointment($appointment);
                     $tx->update([
                         'status' => 'matched',
-                        'matched_type' => 'package',
-                        'matched_id' => $package->id,
+                        'matched_type' => 'appointment',
+                        'matched_id' => $appointment->id,
                     ]);
 
                     return [
                         'status' => 'confirmed',
-                        'type' => 'package',
-                        'package_id' => $package->id,
-                        'message' => "Paket to'lovi muvaffaqiyatli tasdiqlandi!",
+                        'type' => 'appointment',
+                        'appointment_id' => $appointment->id,
+                        'message' => "To'lov muvaffaqiyatli tasdiqlandi!",
                     ];
                 }
+
+                if ($groupEnrollment) {
+                    app(GroupSessionService::class)->confirmEnrollmentPayment($groupEnrollment);
+                    $tx->update([
+                        'status' => 'matched',
+                        'matched_type' => 'group_enrollment',
+                        'matched_id' => $groupEnrollment->id,
+                    ]);
+
+                    return [
+                        'status' => 'confirmed',
+                        'type' => 'group_enrollment',
+                        'enrollment_id' => $groupEnrollment->id,
+                        'message' => "Guruh mashg'uloti to'lovi muvaffaqiyatli tasdiqlandi!",
+                    ];
+                }
+
+                $this->confirmPackage($package);
+                $tx->update([
+                    'status' => 'matched',
+                    'matched_type' => 'package',
+                    'matched_id' => $package->id,
+                ]);
+
+                return [
+                    'status' => 'confirmed',
+                    'type' => 'package',
+                    'package_id' => $package->id,
+                    'message' => "Paket to'lovi muvaffaqiyatli tasdiqlandi!",
+                ];
             }
 
             // Receipt saved, waiting for matching bank notification
             return [
                 'status' => 'receipt_saved',
-                'type' => $appointment ? 'appointment' : 'package',
+                'type' => $appointment ? 'appointment' : ($package ? 'package' : 'group_enrollment'),
                 'model_id' => $model->id,
                 'message' => "Chek qabul qilindi. Bank tasdig'i kelishi bilan avtomatik tasdiqlanadi.",
             ];
@@ -368,8 +431,12 @@ class HumoPaymentService
      * @param  Collection<int, Appointment>  $appointments
      * @param  Collection<int, PupilPackage>  $packages
      */
-    protected function resolveCandidateWithReceipt(Collection $appointments, Collection $packages, array $parsed): ?array
-    {
+    protected function resolveCandidateWithReceipt(
+        Collection $appointments,
+        Collection $packages,
+        array $parsed,
+        ?Collection $groupEnrollments = null
+    ): ?array {
         foreach ($appointments as $apt) {
             if (! empty($apt->receipt_data) && is_array($apt->receipt_data)) {
                 $rTime = $apt->receipt_data['time'] ?? null;
@@ -384,6 +451,17 @@ class HumoPaymentService
                 $rTime = $pkg->receipt_data['time'] ?? null;
                 if ($this->isTimeCompatible($parsed['timestamp'] ?? null, $rTime)) {
                     return ['type' => 'package', 'model' => $pkg];
+                }
+            }
+        }
+
+        if ($groupEnrollments) {
+            foreach ($groupEnrollments as $enrollment) {
+                if (! empty($enrollment->receipt_data) && is_array($enrollment->receipt_data)) {
+                    $rTime = $enrollment->receipt_data['time'] ?? null;
+                    if ($this->isTimeCompatible($parsed['timestamp'] ?? null, $rTime)) {
+                        return ['type' => 'group_enrollment', 'model' => $enrollment];
+                    }
                 }
             }
         }
@@ -567,6 +645,23 @@ class HumoPaymentService
             "🕓 <b>Vaqt:</b> {$timestamp}".
             $discrepancyNotice."\n\n".
             'Iltimos, admin panel orqali tekshiring.';
+
+        $this->broadcastToAdmins($text);
+    }
+
+    protected function notifyAdminsMatchedGroupEnrollment(GroupSessionEnrollment $enrollment, array $parsed): void
+    {
+        $amountFormatted = number_format($parsed['amount'], 0, '', ' ');
+        $pupilName = htmlspecialchars($enrollment->pupil?->full_name ?? 'Pupil', ENT_QUOTES, 'UTF-8');
+        $title = htmlspecialchars($enrollment->groupSession?->title ?? 'Group Session', ENT_QUOTES, 'UTF-8');
+        $card = htmlspecialchars($parsed['card'] ?? '', ENT_QUOTES, 'UTF-8');
+
+        $text = "👥 <b>Avtomatik guruh mashg'uloti to'lovi tasdiqlandi!</b>\n\n".
+            "💰 <b>Summa:</b> {$amountFormatted} so'm\n".
+            "👤 <b>O'quvchi:</b> {$pupilName}\n".
+            "📚 <b>Mavzu:</b> {$title}\n".
+            "💳 <b>Karta:</b> *{$card}\n\n".
+            "✅ O'quvchi guruhga qo'shildi.";
 
         $this->broadcastToAdmins($text);
     }

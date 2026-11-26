@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GroupSession;
+use App\Models\GroupSessionEnrollment;
 use App\Models\PupilPackage;
 use App\Models\TeacherPackage;
 use App\Models\TeacherProfile;
@@ -34,8 +36,30 @@ class TeacherController extends Controller
             return $teacher;
         });
 
+        $currentUserId = $request->user()?->id;
+        $openGroupSessions = GroupSession::where('status', 'scheduled')
+            ->where('start_at', '>', now())
+            ->whereHas('teacher.teacherProfile', fn ($q) => $q->where('is_verified', true))
+            ->with(['teacher:id,full_name,avatar', 'teacher.teacherProfile'])
+            ->orderBy('start_at', 'asc')
+            ->limit(12)
+            ->get()
+            ->map(function (GroupSession $session) use ($currentUserId) {
+                $session->occupied_seats = $session->occupiedSeatsCount();
+                $session->available_seats = $session->availableSeatsCount();
+                $session->my_enrollment = $currentUserId
+                    ? GroupSessionEnrollment::where('group_session_id', $session->id)
+                        ->where('pupil_id', $currentUserId)
+                        ->where('status', '!=', 'cancelled')
+                        ->first()
+                    : null;
+
+                return $session;
+            });
+
         return Inertia::render('pupil/teachers', [
             'teachers' => $teachers,
+            'openGroupSessions' => $openGroupSessions,
             'currentFilters' => $filters,
             'currentFilter' => $filters['status'],
         ]);
@@ -139,12 +163,31 @@ class TeacherController extends Controller
                 ->get(['id', 'voucher_code', 'discount_percent'])
             : [];
 
+        $upcomingGroupSessions = GroupSession::where('teacher_id', $teacher->id)
+            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->where('end_at', '>', now())
+            ->orderBy('start_at', 'asc')
+            ->get()
+            ->map(function (GroupSession $session) use ($currentUser) {
+                $session->occupied_seats = $session->occupiedSeatsCount();
+                $session->available_seats = $session->availableSeatsCount();
+                $session->my_enrollment = $currentUser
+                    ? GroupSessionEnrollment::where('group_session_id', $session->id)
+                        ->where('pupil_id', $currentUser->id)
+                        ->where('status', '!=', 'cancelled')
+                        ->first()
+                    : null;
+
+                return $session;
+            });
+
         return Inertia::render('pupil/teacher-profile', [
             'teacher' => $teacher,
             'hasEligibleTrial' => $hasEligibleTrial,
             'trialPrice' => $trialPrice,
             'conversationStats' => $conversationStats,
             'packages' => $packages,
+            'upcomingGroupSessions' => $upcomingGroupSessions,
             'activePupilPackage' => $activePupilPackage,
             'activePupilPackages' => $activePupilPackages,
             'totalActivePackageMinutes' => $totalActivePackageMinutes,
@@ -226,6 +269,7 @@ class TeacherController extends Controller
         $status = $request->query('status', $request->query('filter', 'all'));
         $ieltsSort = $request->query('ielts_sort');
         $priceSort = $request->query('price_sort');
+        $format = $request->query('format', 'all');
         $search = trim((string) $request->query('search', ''));
 
         // Normalize legacy filter parameters if passed in 'filter' query string
@@ -244,7 +288,17 @@ class TeacherController extends Controller
         }
 
         $query = User::where('role', 'teacher')
-            ->whereHas('teacherProfile', fn ($q) => $q->where('is_verified', true))
+            ->whereHas('teacherProfile', function ($q) use ($format) {
+                $q->where('is_verified', true);
+                if ($format === 'group') {
+                    $q->where(function ($gq) {
+                        $gq->where('supports_group_sessions', true)
+                            ->orWhereIn('preferred_session_format', ['group', 'both']);
+                    });
+                } elseif ($format === 'one_on_one') {
+                    $q->whereIn('preferred_session_format', ['one_on_one', 'both']);
+                }
+            })
             ->with('teacherProfile');
 
         // Name Search Filter (case-insensitive)
@@ -283,6 +337,7 @@ class TeacherController extends Controller
                 'status' => $status,
                 'ielts_sort' => $ieltsSort,
                 'price_sort' => $priceSort,
+                'format' => $format,
                 'search' => $search !== '' ? $search : null,
             ],
         ];

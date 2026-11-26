@@ -16,6 +16,7 @@ class PartnerCommissionEntry extends Model
         'pupil_id',
         'teacher_id',
         'appointment_id',
+        'group_session_enrollment_id',
         'pupil_package_id',
         'partner_pass_id',
         'payout_id',
@@ -54,6 +55,11 @@ class PartnerCommissionEntry extends Model
             'accrued_at' => 'datetime',
             'voided_at' => 'datetime',
         ];
+    }
+
+    public function groupSessionEnrollment(): BelongsTo
+    {
+        return $this->belongsTo(GroupSessionEnrollment::class, 'group_session_enrollment_id');
     }
 
     public function partnerOrganization(): BelongsTo

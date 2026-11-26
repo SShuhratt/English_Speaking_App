@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage, router, Link } from '@inertiajs/react';
 import {
     User,
+    Users,
     Calendar,
     Clock,
     MessageSquare,
@@ -11,6 +12,10 @@ import {
     Check,
     Info,
 } from 'lucide-react';
+import TeacherGroupSessionsManager, {
+    type ExistingBookingSlot,
+    type GroupSessionItem,
+} from '@/components/teachers/TeacherGroupSessionsManager';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
@@ -29,9 +34,15 @@ interface Props {
     appointments: {
         data: any[];
     };
+    groupSessions?: GroupSessionItem[];
+    activeAppointments?: ExistingBookingSlot[];
 }
 
-export default function Sessions({ appointments }: Props) {
+export default function Sessions({
+    appointments,
+    groupSessions = [],
+    activeAppointments = [],
+}: Props) {
     const { auth } = usePage().props as any;
     const [isOpen, setIsOpen] = useState(false);
     const [selectedApt, setSelectedApt] = useState<any>(null);
@@ -39,8 +50,16 @@ export default function Sessions({ appointments }: Props) {
     const [assessmentApt, setAssessmentApt] = useState<any>(null);
     const [itemsList, setItemsList] = useState<any[]>(appointments.data || []);
     const [activeTab, setActiveTab] = useState<
-        'all' | 'upcoming' | 'completed'
-    >('all');
+        'all' | 'upcoming' | 'completed' | 'groups'
+    >(() => {
+        if (typeof window !== 'undefined') {
+            const tab = new URLSearchParams(window.location.search).get('tab');
+            if (tab === 'groups' || tab === 'upcoming' || tab === 'completed') {
+                return tab;
+            }
+        }
+        return 'all';
+    });
     const { t } = useTranslation();
 
     React.useEffect(() => {
@@ -250,9 +269,48 @@ export default function Sessions({ appointments }: Props) {
                             </span>
                         )}
                     </button>
+                    <button
+                        onClick={() => setActiveTab('groups')}
+                        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                            activeTab === 'groups'
+                                ? 'bg-[#1E2A5A] text-white shadow-sm dark:bg-brand-yellow dark:text-[#061445]'
+                                : 'text-[#6B7394] hover:bg-[#EEF4FB] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'
+                        }`}
+                    >
+                        <Users className="h-3.5 w-3.5" />
+                        <span>Group Sessions</span>
+                        {groupSessions.length > 0 && (
+                            <span
+                                className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                                    activeTab === 'groups'
+                                        ? 'bg-white/20 text-white dark:bg-[#061445]/20 dark:text-[#061445]'
+                                        : 'bg-[#EEF4FB] text-[#1E2A5A] dark:bg-white/10 dark:text-slate-300'
+                                }`}
+                            >
+                                {groupSessions.length}
+                            </span>
+                        )}
+                    </button>
                 </div>
 
-                {/* Main Content Grid */}
+                {activeTab === 'groups' ? (
+                    <TeacherGroupSessionsManager
+                        sessions={groupSessions}
+                        preferredFormat={
+                            auth?.user?.teacher_profile
+                                ?.preferred_session_format || 'one_on_one'
+                        }
+                        defaultPrice={Number(
+                            auth?.user?.teacher_profile?.price ?? 50000,
+                        )}
+                        existingAppointments={
+                            activeAppointments.length > 0
+                                ? activeAppointments
+                                : itemsList
+                        }
+                        googleConnected={Boolean(auth?.user?.google_connected)}
+                    />
+                ) : (
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     {/* Left List (2 cols) */}
                     <div className="space-y-4 lg:col-span-2">
@@ -532,6 +590,7 @@ export default function Sessions({ appointments }: Props) {
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* Floating Notification Toast for Trial Booking */}
                 {latestTrial && !toastDismissed && (

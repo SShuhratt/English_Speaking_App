@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Feedback;
+use App\Models\GroupSession;
+use App\Models\GroupSessionEnrollment;
 use App\Models\PupilPackage;
 use App\Models\TeacherProfile;
 use Illuminate\Http\Request;
@@ -49,8 +51,22 @@ class DashboardController extends Controller
 
             $convStats = TeacherProfile::getConversationStats($user->id);
 
+            $teacherGroupSessions = GroupSession::where('teacher_id', $user->id)
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('end_at', '>', now())
+                ->with(['enrollments' => fn ($q) => $q->where('status', '!=', 'cancelled')->with('pupil:id,full_name,avatar')])
+                ->orderBy('start_at', 'asc')
+                ->get()
+                ->map(function (GroupSession $session) {
+                    $session->occupied_seats = $session->occupiedSeatsCount();
+                    $session->available_seats = $session->availableSeatsCount();
+
+                    return $session;
+                });
+
             return Inertia::render('dashboard', [
                 'appointments' => $appointments,
+                'teacherGroupSessions' => $teacherGroupSessions,
                 'stats' => [
                     'sessions_today' => $sessionsTodayCount,
                     'total_pupils' => $totalPupilsCount,
@@ -90,8 +106,25 @@ class DashboardController extends Controller
                 ->orderBy('created_at', 'asc')
                 ->get();
 
+            $groupEnrollments = GroupSessionEnrollment::where('pupil_id', $user->id)
+                ->where('status', '!=', 'cancelled')
+                ->whereHas('groupSession', fn ($q) => $q->whereIn('status', ['scheduled', 'in_progress', 'completed']))
+                ->with(['groupSession.teacher:id,full_name,avatar'])
+                ->orderByDesc('created_at')
+                ->get()
+                ->map(function (GroupSessionEnrollment $enrollment) use ($user) {
+                    $enrollment->has_reviewed = $enrollment->groupSession
+                        ? Feedback::where('group_session_id', $enrollment->group_session_id)
+                            ->where('author_id', $user->id)
+                            ->exists()
+                        : false;
+
+                    return $enrollment;
+                });
+
             return Inertia::render('dashboard', [
                 'appointments' => $appointments,
+                'groupEnrollments' => $groupEnrollments,
                 'stats' => [
                     'speaking_sessions' => $totalSpeakingSessions,
                     'upcoming_sessions' => $upcomingSessionsCount,

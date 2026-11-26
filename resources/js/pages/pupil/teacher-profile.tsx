@@ -9,6 +9,7 @@ import {
     Video,
     User,
     Award,
+    Users,
     FileText,
     MessageCircle,
     Calendar,
@@ -130,6 +131,7 @@ interface Props {
         total_time_formatted: string;
     };
     packages?: TeacherPackage[];
+    upcomingGroupSessions?: any[];
     activePupilPackage?: PupilPackage | null;
     activePupilPackages?: PupilPackage[];
     totalActivePackageMinutes?: number;
@@ -142,6 +144,7 @@ export default function TeacherProfile({
     trialPrice,
     conversationStats,
     packages = [],
+    upcomingGroupSessions = [],
     activePupilPackage = null,
     activePupilPackages = [],
     totalActivePackageMinutes,
@@ -171,11 +174,13 @@ export default function TeacherProfile({
     const [selectedCertForPreview, setSelectedCertForPreview] = React.useState<any | null>(null);
     const [purchasingPackage, setPurchasingPackage] = React.useState<TeacherPackage | null>(null);
     const [submittingPurchase, setSubmittingPurchase] = React.useState(false);
+    const [enrollingGroupId, setEnrollingGroupId] = React.useState<string | null>(null);
     const [paymentModalPackage, setPaymentModalPackage] = React.useState<{
         title: string;
         price: number;
         teacherName: string;
         pupilPackageId?: string | number;
+        groupEnrollmentId?: string | number;
     } | null>(null);
 
     // Raw certificates normalization
@@ -589,6 +594,45 @@ export default function TeacherProfile({
                 },
             },
         );
+    };
+
+    const handleEnrollGroupSession = async (gs: any) => {
+        if (gs.my_enrollment?.status === 'pending_payment') {
+            setPaymentModalPackage({
+                title: gs.title,
+                price: Number(gs.price_per_seat),
+                teacherName: teacher.full_name,
+                groupEnrollmentId: gs.my_enrollment.id,
+            });
+            return;
+        }
+
+        setEnrollingGroupId(gs.id);
+        try {
+            const response = await axios.post(`/pupil/group-sessions/${gs.id}/enroll`);
+            const enrollment = response.data?.enrollment;
+            toast.success(
+                response.data?.message ||
+                    'Seat reserved! Please upload your payment receipt within 15 minutes.',
+            );
+            setPaymentModalPackage({
+                title: gs.title,
+                price: Number(gs.price_per_seat),
+                teacherName: teacher.full_name,
+                groupEnrollmentId: enrollment?.id,
+            });
+            router.reload({ only: ['upcomingGroupSessions'] });
+        } catch (err: any) {
+            const msg =
+                err?.response?.data?.message ||
+                (err?.response?.data?.errors
+                    ? Object.values(err.response.data.errors)[0]
+                    : null) ||
+                'Unable to reserve seat for this group session.';
+            toast.error(typeof msg === 'string' ? msg : 'Unable to reserve seat.');
+        } finally {
+            setEnrollingGroupId(null);
+        }
     };
 
     const genderPronoun =
@@ -1944,6 +1988,88 @@ export default function TeacherProfile({
                             </div>
                         )}
 
+                        {/* Group Conversations Section */}
+                        {upcomingGroupSessions && upcomingGroupSessions.length > 0 && (
+                            <div className="section">
+                                <div className="sec-title">
+                                    <span className="n">
+                                        <Users className="h-3.5 w-3.5" />
+                                    </span>
+                                    Upcoming Group Conversations
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {upcomingGroupSessions.map((gs: any) => (
+                                        <div
+                                            key={gs.id}
+                                            className="flex flex-col justify-between rounded-2xl border border-[#E6E9F2] bg-[#FAFBFD] p-4 dark:border-white/10 dark:bg-card"
+                                        >
+                                            <div>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="rounded-full bg-[#EEF4FB] px-2.5 py-0.5 text-[11px] font-bold text-[#1E2A5A] dark:bg-white/10 dark:text-brand-yellow">
+                                                        {gs.target_level}
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-emerald-700 tabular-nums dark:text-emerald-400">
+                                                        {gs.available_seats ?? 0} / {gs.max_seats} seats left
+                                                    </span>
+                                                </div>
+                                                <h4 className="mt-2 text-sm font-bold text-[#1E2A5A] dark:text-white">
+                                                    {gs.title}
+                                                </h4>
+                                                {gs.topic && (
+                                                    <p className="mt-1 text-xs text-[#6B7394] dark:text-slate-400">
+                                                        {gs.topic}
+                                                    </p>
+                                                )}
+                                                <p className="mt-2 text-xs font-semibold text-[#1E2A5A] tabular-nums dark:text-slate-300">
+                                                    {new Date(gs.start_at).toLocaleString()} · {gs.duration_minutes} min
+                                                </p>
+                                            </div>
+                                            <div className="mt-4 flex items-center justify-between border-t border-[#E6E9F2] pt-3 dark:border-white/10">
+                                                <div className="text-sm font-extrabold text-[#1E2A5A] tabular-nums dark:text-brand-yellow">
+                                                    {Number(gs.price_per_seat).toLocaleString('ru-RU').replace(/,/g, ' ')} so'm
+                                                </div>
+                                                {gs.my_enrollment?.status === 'enrolled' ? (
+                                                    gs.meeting_started && gs.google_meet_link ? (
+                                                        <a
+                                                            href={gs.google_meet_link}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
+                                                        >
+                                                            Join Group Meet
+                                                        </a>
+                                                    ) : (
+                                                        <span className="rounded-xl bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                            Seat Confirmed
+                                                        </span>
+                                                    )
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        disabled={
+                                                            enrollingGroupId === gs.id ||
+                                                            ((gs.available_seats ?? 0) <= 0 &&
+                                                                gs.my_enrollment?.status !== 'pending_payment')
+                                                        }
+                                                        onClick={() => handleEnrollGroupSession(gs)}
+                                                        className="cursor-pointer rounded-xl bg-[#1E2A5A] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#1E2A5A]/90 disabled:opacity-50 dark:bg-brand-yellow dark:text-[#061445]"
+                                                    >
+                                                        {gs.my_enrollment?.status === 'pending_payment'
+                                                            ? 'Upload Receipt'
+                                                            : (gs.available_seats ?? 0) <= 0
+                                                              ? 'Full'
+                                                              : enrollingGroupId === gs.id
+                                                                ? 'Reserving...'
+                                                                : 'Reserve Seat'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Section 4: Pupil feedback */}
                         <div className="section">
                             <div className="sec-title">
@@ -2824,11 +2950,13 @@ export default function TeacherProfile({
                     isOpen={!!paymentModalPackage}
                     onClose={() => setPaymentModalPackage(null)}
                     pupilPackageId={paymentModalPackage.pupilPackageId}
+                    groupEnrollmentId={paymentModalPackage.groupEnrollmentId}
                     itemTitle={paymentModalPackage.title}
                     amount={paymentModalPackage.price}
                     teacherName={paymentModalPackage.teacherName}
                     pupilId={auth?.user?.short_id || auth?.user?.id?.substring(0, 8).toUpperCase()}
                     pupilName={auth?.user?.full_name}
+                    onSuccess={() => router.reload({ only: ['upcomingGroupSessions', 'pendingPupilPackage'] })}
                 />
             )}
         </>

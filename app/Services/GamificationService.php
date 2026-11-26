@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentAssessment;
 use App\Models\Conversation;
 use App\Models\ConversationEndorsement;
+use App\Models\GroupSessionEnrollment;
 use App\Models\PartnerOrganization;
 use App\Models\PupilProfile;
 use App\Models\ReferralRecord;
@@ -139,8 +140,36 @@ class GamificationService
         });
         $completedConversationsCount = $conversations->count();
 
-        $totalMinutes = (int) ($appointmentMinutes + $conversationMinutes);
-        $totalSessions = (int) ($completedAppointmentsCount + $completedConversationsCount);
+        // 3. Calculate attended/completed group conversation enrollments
+        $groupEnrollments = GroupSessionEnrollment::query()
+            ->where('pupil_id', $userId)
+            ->where('payment_status', 'paid')
+            ->whereIn('status', ['enrolled', 'completed'])
+            ->whereHas('groupSession', function ($q) {
+                $q->where('meeting_started', true)
+                    ->orWhere('status', 'completed');
+            })
+            ->with('groupSession:id,start_at,end_at,duration_minutes')
+            ->get();
+
+        $groupMinutes = $groupEnrollments->sum(function ($enrollment) {
+            $session = $enrollment->groupSession;
+            if (! $session) {
+                return 0;
+            }
+            if ($session->duration_minutes && $session->duration_minutes > 0) {
+                return (int) $session->duration_minutes;
+            }
+            if ($session->start_at && $session->end_at) {
+                return max(1, $session->start_at->diffInMinutes($session->end_at));
+            }
+
+            return 60;
+        });
+        $completedGroupCount = $groupEnrollments->count();
+
+        $totalMinutes = (int) ($appointmentMinutes + $conversationMinutes + $groupMinutes);
+        $totalSessions = (int) ($completedAppointmentsCount + $completedConversationsCount + $completedGroupCount);
 
         // Balanced talk bonus count (+20 XP each)
         $balancedBonusCount = ConversationEndorsement::where(function ($q) use ($userId) {
@@ -313,7 +342,18 @@ class GamificationService
             ->whereBetween('started_at', [$startOfWeek, $endOfWeek])
             ->count();
 
-        $sessionsThisWeek = $appointmentSessions + $conversationSessions;
+        $groupSessionsThisWeek = GroupSessionEnrollment::where('pupil_id', $userId)
+            ->where('payment_status', 'paid')
+            ->whereIn('status', ['enrolled', 'completed'])
+            ->whereHas('groupSession', function ($q) use ($startOfWeek, $endOfWeek) {
+                $q->whereBetween('start_at', [$startOfWeek, $endOfWeek])
+                    ->where(function ($sq) {
+                        $sq->where('meeting_started', true)->orWhere('status', 'completed');
+                    });
+            })
+            ->count();
+
+        $sessionsThisWeek = $appointmentSessions + $conversationSessions + $groupSessionsThisWeek;
         $profile = $user->pupilProfile;
         $weeklyTarget = (int) ($profile?->weekly_goal ?? 3);
         if ($weeklyTarget <= 0) {
@@ -355,7 +395,18 @@ class GamificationService
                 ->whereBetween('started_at', [$wStart, $wEnd])
                 ->count();
 
-            if (($wApts + $wConvs) >= $weeklyTarget) {
+            $wGroup = GroupSessionEnrollment::where('pupil_id', $userId)
+                ->where('payment_status', 'paid')
+                ->whereIn('status', ['enrolled', 'completed'])
+                ->whereHas('groupSession', function ($q) use ($wStart, $wEnd) {
+                    $q->whereBetween('start_at', [$wStart, $wEnd])
+                        ->where(function ($sq) {
+                            $sq->where('meeting_started', true)->orWhere('status', 'completed');
+                        });
+                })
+                ->count();
+
+            if (($wApts + $wConvs + $wGroup) >= $weeklyTarget) {
                 $momentumWeeks++;
                 $checkDate->subWeek();
             } else {
@@ -610,6 +661,30 @@ class GamificationService
                     $minutes = max(1, $conv->started_at->diffInMinutes($conv->ended_at));
                 }
                 $userMinutesMap[$conv->pupil_id] = ($userMinutesMap[$conv->pupil_id] ?? 0) + $minutes;
+            }
+
+            // Aggregate attended group conversations this week
+            $weeklyGroupEnrollments = GroupSessionEnrollment::query()
+                ->where('payment_status', 'paid')
+                ->whereIn('status', ['enrolled', 'completed'])
+                ->whereHas('groupSession', function ($q) use ($startOfWeek, $endOfWeek) {
+                    $q->whereBetween('start_at', [$startOfWeek, $endOfWeek])
+                        ->where(function ($sq) {
+                            $sq->where('meeting_started', true)->orWhere('status', 'completed');
+                        });
+                })
+                ->with('groupSession:id,start_at,end_at,duration_minutes')
+                ->get(['id', 'pupil_id', 'group_session_id']);
+
+            foreach ($weeklyGroupEnrollments as $enrollment) {
+                if (! $enrollment->pupil_id || ! $enrollment->groupSession) {
+                    continue;
+                }
+                $session = $enrollment->groupSession;
+                $minutes = $session->duration_minutes > 0
+                    ? (int) $session->duration_minutes
+                    : max(1, $session->start_at->diffInMinutes($session->end_at));
+                $userMinutesMap[$enrollment->pupil_id] = ($userMinutesMap[$enrollment->pupil_id] ?? 0) + $minutes;
             }
 
             if (empty($userMinutesMap)) {

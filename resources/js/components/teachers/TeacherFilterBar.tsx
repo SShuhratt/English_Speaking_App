@@ -24,6 +24,7 @@ export interface FilterState {
     status?: string;
     ielts_sort?: string | null;
     price_sort?: string | null;
+    format?: string;
     search?: string | null;
 }
 
@@ -43,6 +44,7 @@ export default function TeacherFilterBar({
     const status = currentFilters.status || 'all';
     const ieltsSort = currentFilters.ielts_sort || null;
     const priceSort = currentFilters.price_sort || null;
+    const format = currentFilters.format || 'all';
     const initialSearch = currentFilters.search || '';
 
     const [searchValue, setSearchValue] = useState(initialSearch);
@@ -60,6 +62,8 @@ export default function TeacherFilterBar({
             updates.ielts_sort !== undefined ? updates.ielts_sort : ieltsSort;
         const nextPrice =
             updates.price_sort !== undefined ? updates.price_sort : priceSort;
+        const nextFormat =
+            updates.format !== undefined ? updates.format : format;
         const nextSearch =
             updates.search !== undefined
                 ? updates.search
@@ -74,6 +78,9 @@ export default function TeacherFilterBar({
         }
         if (nextPrice) {
             params.price_sort = nextPrice;
+        }
+        if (nextFormat && nextFormat !== 'all') {
+            params.format = nextFormat;
         }
         if (nextSearch) {
             params.search = nextSearch;
@@ -111,6 +118,7 @@ export default function TeacherFilterBar({
 
     const isAnyActive =
         status !== 'all' ||
+        format !== 'all' ||
         Boolean(ieltsSort) ||
         Boolean(priceSort) ||
         Boolean(searchValue.trim());
@@ -156,6 +164,7 @@ export default function TeacherFilterBar({
                                 setSearchValue('');
                                 applyFilters({
                                     status: 'all',
+                                    format: 'all',
                                     ielts_sort: null,
                                     price_sort: null,
                                     search: null,
@@ -212,6 +221,23 @@ export default function TeacherFilterBar({
                 >
                     <Sparkles className="mr-1 h-3.5 w-3.5" />
                     New (7 Days)
+                </Button>
+
+                <Button
+                    size="sm"
+                    variant={format === 'group' ? 'default' : 'outline'}
+                    onClick={() =>
+                        applyFilters({
+                            format: format === 'group' ? 'all' : 'group',
+                        })
+                    }
+                    className={`h-8 rounded-full text-xs font-bold ${
+                        format === 'group'
+                            ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            : 'border-[#EAE4D2] bg-white text-[#1E2A5A] hover:bg-[#FDF7E4] dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/5'
+                    }`}
+                >
+                    Group Sessions
                 </Button>
 
                 {showUnverified && (

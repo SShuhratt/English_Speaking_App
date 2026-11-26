@@ -7,6 +7,7 @@ use App\Events\ConversationApproved;
 use App\Events\ConversationBooked;
 use App\Jobs\SyncAppointmentToGoogleJob;
 use App\Models\Appointment;
+use App\Models\GroupSession;
 use App\Models\PartnerVoucher;
 use App\Models\PupilPackage;
 use App\Models\TeacherAvailability;
@@ -676,6 +677,16 @@ class BookingService
 
         if ($conflict) {
             throw new \Exception('Time slot already booked.');
+        }
+
+        $groupConflict = GroupSession::where('teacher_id', $teacherId)
+            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->where('start_at', '<', $endUtc)
+            ->where('end_at', '>', $startUtc)
+            ->exists();
+
+        if ($groupConflict) {
+            throw new \Exception('Time slot reserved for a group conversation session.');
         }
     }
 

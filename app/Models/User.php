@@ -175,6 +175,16 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(Appointment::class, 'pupil_id');
     }
 
+    public function teacherGroupSessions()
+    {
+        return $this->hasMany(GroupSession::class, 'teacher_id');
+    }
+
+    public function groupSessionEnrollments()
+    {
+        return $this->hasMany(GroupSessionEnrollment::class, 'pupil_id');
+    }
+
     public function meetings()
     {
         return $this->hasMany(Meeting::class, 'teacher_id');

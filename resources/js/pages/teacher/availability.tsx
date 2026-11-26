@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { store, destroy } from '@/routes/teacher/availability';
 import {
     Clock,
@@ -17,6 +18,7 @@ import {
     AlertTriangle,
     Loader2,
     User,
+    Users,
     Repeat,
     ShieldCheck,
     Package,
@@ -41,11 +43,15 @@ import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/use-translation';
 import GoogleCalendarWarningBanner from '@/components/teachers/GoogleCalendarWarningBanner';
 import TeacherPackagesManager from '@/components/teachers/TeacherPackagesManager';
+import TeacherGroupSessionsManager, {
+    type GroupSessionItem,
+} from '@/components/teachers/TeacherGroupSessionsManager';
 
 interface Props {
     availabilities: any[];
     appointments?: any[];
     packages?: any[];
+    groupSessions?: GroupSessionItem[];
 }
 
 const translations = {
@@ -543,6 +549,7 @@ export default function Availability({
     availabilities,
     appointments = [],
     packages = [],
+    groupSessions = [],
 }: Props) {
     const { auth } = usePage<any>().props;
     const { locale } = useTranslation();
@@ -552,11 +559,28 @@ export default function Availability({
 
     const t = translations[lang];
 
-    const [mainTab, setMainTab] = useState<'calendar' | 'packages'>('calendar');
+    const [mainTab, setMainTab] = useState<'calendar' | 'packages' | 'groups'>(() => {
+        if (typeof window !== 'undefined') {
+            const tab = new URLSearchParams(window.location.search).get('tab');
+            if (tab === 'groups' || tab === 'packages') return tab;
+        }
+        return 'calendar';
+    });
     const [view, setView] = useState<'day' | 'week'>('week');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentDate, setCurrentDate] = useState(new Date()); // Month focus for sidebar mini-calendar
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [createModalKind, setCreateModalKind] = useState<'one_on_one' | 'group'>('one_on_one');
+    const [calGroupTitle, setCalGroupTitle] = useState('');
+    const [calGroupTopic, setCalGroupTopic] = useState('');
+    const [calGroupLevel, setCalGroupLevel] = useState('B1-B2');
+    const [calGroupCustomLevel, setCalGroupCustomLevel] = useState('');
+    const [calGroupStartAt, setCalGroupStartAt] = useState('');
+    const [calGroupDuration, setCalGroupDuration] = useState('60');
+    const [calGroupSeats, setCalGroupSeats] = useState('5');
+    const [calGroupPrice, setCalGroupPrice] = useState('50000');
+    const [calGroupSubmitting, setCalGroupSubmitting] = useState(false);
+    const [calGroupError, setCalGroupError] = useState('');
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
     const [selectedSlotDetail, setSelectedSlotDetail] = useState<any | null>(
         null,
@@ -1084,6 +1108,17 @@ export default function Availability({
         }));
     }, [appointments]);
 
+    const parsedGroupSessions = useMemo(() => {
+        return (groupSessions || [])
+            .filter((gs) => gs.status === 'scheduled' || gs.status === 'in_progress')
+            .map((gs) => ({
+                raw: gs,
+                status: gs.status,
+                startMs: parseUtcDate(gs.start_at).getTime(),
+                endMs: parseUtcDate(gs.end_at).getTime(),
+            }));
+    }, [groupSessions]);
+
     const getAvailabilitiesForDate = (date: Date) => {
         const dateStr = formatDateString(date);
         const dayName = getWeekdayName(date);
@@ -1101,12 +1136,13 @@ export default function Availability({
 
     const hasAvailability = (date: Date) => {
         const slots = getSlotsWithStatusForDate(date);
-        return slots.length > 0;
+        return slots.some((s) => Boolean(s.avail));
     };
 
     const slotCache = useMemo(() => new Map<string, any[]>(), [
         availabilities,
         appointments,
+        parsedGroupSessions,
         showCustom,
         showRecurring,
         nowTime,
@@ -1119,11 +1155,6 @@ export default function Availability({
         }
 
         const avails = getAvailabilitiesForDate(colDate);
-        if (avails.length === 0) {
-            slotCache.set(dateStr, []);
-            return [];
-        }
-
         const now = parseUtcDate(new Date().toISOString());
         const nowMs = now.getTime();
         const slotsList: any[] = [];
@@ -1225,6 +1256,12 @@ export default function Availability({
 
                 const matchingApp = matchingParsedApp ? matchingParsedApp.raw : null;
 
+                const matchingGroup = !matchingApp
+                    ? parsedGroupSessions.find(
+                          (g) => g.startMs < sEndMs && g.endMs > sStartMs,
+                      )
+                    : undefined;
+
                 let status = 'available';
                 if (matchingApp) {
                     const isConvExpired = nowMs >= matchingParsedApp!.endMs;
@@ -1255,6 +1292,8 @@ export default function Availability({
                             status = 'booked';
                         }
                     }
+                } else if (matchingGroup) {
+                    status = 'group_session';
                 } else {
                     // Omit unbooked past slots so the UI is not cluttered with expired badges
                     if (nowMs >= sStartMs) {
@@ -1276,10 +1315,42 @@ export default function Availability({
                     timeLabel,
                     status,
                     appointment: matchingApp || null,
+                    groupSession: matchingGroup ? matchingGroup.raw : null,
                 });
 
                 currMinutes += slotDur;
             }
+        });
+
+        // Add group sessions scheduled outside open 1-on-1 availability blocks so they always show on calendar
+        parsedGroupSessions.forEach((g) => {
+            const gStart = new Date(g.startMs);
+            if (formatDateString(gStart) !== dateStr) return;
+
+            const alreadyShown = slotsList.some(
+                (s) => s.groupSession?.id === g.raw.id,
+            );
+            if (alreadyShown) return;
+
+            const sH = gStart.getHours();
+            const sM = gStart.getMinutes();
+            const gEnd = new Date(g.endMs);
+            const eH = gEnd.getHours();
+            const eM = gEnd.getMinutes();
+            const timeLabel = `${String(sH).padStart(2, '0')}:${String(sM).padStart(2, '0')} - ${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
+
+            slotsList.push({
+                id: `group-${g.raw.id}`,
+                avail: null,
+                startMinutes: sH * 60 + sM,
+                durationMinutes: g.raw.duration_minutes || 60,
+                slotStart: gStart,
+                slotEnd: gEnd,
+                timeLabel,
+                status: 'group_session',
+                appointment: null,
+                groupSession: g.raw,
+            });
         });
 
         slotCache.set(dateStr, slotsList);
@@ -1521,6 +1592,10 @@ export default function Availability({
             day_of_week: getWeekdayName(dateFocus),
             days_of_week: [getWeekdayName(dateFocus)],
         }));
+        setCreateModalKind('one_on_one');
+        setCalGroupStartAt(`${dayStr}T${startHourStr}:00`);
+        setCalGroupError('');
+        setCalGroupPrice(String(Math.max(1000, Number(auth?.user?.teacher_profile?.price ?? 50000))));
         setIsCreateModalOpen(true);
     };
 
@@ -1640,7 +1715,77 @@ export default function Availability({
             end_date: formatDateString(nextWeekDate),
             slot_duration: 30,
         }));
+        setCreateModalKind('one_on_one');
+        const tomorrowStr = formatDateString(
+            new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+        );
+        setCalGroupStartAt(`${tomorrowStr}T19:00`);
+        setCalGroupError('');
+        setCalGroupPrice(String(Math.max(1000, Number(auth?.user?.teacher_profile?.price ?? 50000))));
         setIsCreateModalOpen(true);
+    };
+
+    const handleCreateCalendarGroupSession = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCalGroupError('');
+
+        if (calGroupTitle.trim().length < 3) {
+            setCalGroupError('Please enter a title (at least 3 characters).');
+            return;
+        }
+        const durNum = Number(calGroupDuration);
+        const seatsNum = Number(calGroupSeats);
+        const priceNum = Number(calGroupPrice.replace(/\D/g, ''));
+
+        if (!calGroupStartAt) {
+            setCalGroupError('Please choose a start date and time (Asia/Tashkent UTC+5).');
+            return;
+        }
+        if (durNum < 30 || durNum > 180) {
+            setCalGroupError('Duration must be between 30 and 180 minutes.');
+            return;
+        }
+        if (seatsNum < 2 || seatsNum > 20) {
+            setCalGroupError('Max seats must be between 2 and 20.');
+            return;
+        }
+        if (priceNum < 1000) {
+            setCalGroupError('Price per seat must be at least 1,000 UZS.');
+            return;
+        }
+
+        setCalGroupSubmitting(true);
+        try {
+            await axios.post('/teacher/group-sessions', {
+                title: calGroupTitle.trim(),
+                topic: calGroupTopic.trim() || null,
+                target_level:
+                    calGroupLevel === 'Custom'
+                        ? calGroupCustomLevel.trim() || 'All Levels'
+                        : calGroupLevel,
+                start_at: calGroupStartAt,
+                duration_minutes: durNum,
+                max_seats: seatsNum,
+                price_per_seat: priceNum,
+            });
+            toast.success('Group session created and overriding free 1-on-1 slots!');
+            setIsCreateModalOpen(false);
+            setCalGroupTitle('');
+            setCalGroupTopic('');
+            router.reload({
+                only: ['groupSessions', 'appointments', 'availabilities', 'auth'],
+            });
+        } catch (err: any) {
+            const firstErr =
+                Object.values(err?.response?.data?.errors || {})[0] ||
+                err?.response?.data?.message ||
+                'Unable to schedule group session.';
+            const msg = String(Array.isArray(firstErr) ? firstErr[0] : firstErr);
+            setCalGroupError(msg);
+            toast.error(msg);
+        } finally {
+            setCalGroupSubmitting(false);
+        }
     };
 
     return (
@@ -1685,6 +1830,20 @@ export default function Availability({
                                     </span>
                                 )}
                             </Button>
+                            <Button
+                                variant={mainTab === 'groups' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => setMainTab('groups')}
+                                className={`rounded-lg font-semibold text-xs gap-1.5 ${mainTab === 'groups' ? 'bg-background shadow-xs text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
+                            >
+                                <Users className="h-3.5 w-3.5" />
+                                <span>Group Sessions</span>
+                                {groupSessions && groupSessions.length > 0 && (
+                                    <span className="ml-1 rounded-full bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.2 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                        {groupSessions.length}
+                                    </span>
+                                )}
+                            </Button>
                         </div>
 
                         {mainTab === 'calendar' && (
@@ -1722,8 +1881,8 @@ export default function Availability({
                         )}
                     </div>
 
-                    {/* Mobile Mode Switcher (Full-width 2-column segmented toggle on mobile) */}
-                    <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1 border w-full md:hidden">
+                    {/* Mobile Mode Switcher */}
+                    <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted/60 p-1 border w-full md:hidden">
                         <Button
                             variant={mainTab === 'calendar' ? 'secondary' : 'ghost'}
                             size="sm"
@@ -1746,6 +1905,15 @@ export default function Availability({
                                     {packages.length}
                                 </span>
                             )}
+                        </Button>
+                        <Button
+                            variant={mainTab === 'groups' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setMainTab('groups')}
+                            className={`rounded-lg font-semibold text-xs gap-1.5 justify-center py-2 ${mainTab === 'groups' ? 'bg-background shadow-xs text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
+                        >
+                            <Users className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">Groups</span>
                         </Button>
                     </div>
 
@@ -1795,6 +1963,16 @@ export default function Availability({
                         <TeacherPackagesManager
                             packages={packages || []}
                             hourlyRate={Number(auth?.user?.teacher_profile?.price ?? 0)}
+                        />
+                    </div>
+                ) : mainTab === 'groups' ? (
+                    <div className="flex-1 overflow-y-auto p-6 max-w-7xl mx-auto w-full">
+                        <TeacherGroupSessionsManager
+                            sessions={groupSessions || []}
+                            preferredFormat={auth?.user?.teacher_profile?.preferred_session_format || 'one_on_one'}
+                            defaultPrice={Number(auth?.user?.teacher_profile?.price ?? 50000)}
+                            existingAppointments={appointments || []}
+                            googleConnected={Boolean(auth?.user?.google_connected)}
                         />
                     </div>
                 ) : (
@@ -2213,6 +2391,16 @@ export default function Availability({
                                                         icon = (
                                                             <Clock className="mr-1 inline h-3.5 w-3.5 text-rose-600" />
                                                         );
+                                                    } else if (
+                                                        slot.status ===
+                                                        'group_session'
+                                                    ) {
+                                                        statusStyle =
+                                                            'border-teal-700 bg-teal-600 text-white border-l-4 font-bold shadow-sm';
+                                                        statusText = 'Group';
+                                                        icon = (
+                                                            <Users className="mr-1 inline h-3.5 w-3.5 text-white" />
+                                                        );
                                                     }
 
                                                     return (
@@ -2257,6 +2445,11 @@ export default function Availability({
                                                                             .pupil
                                                                             .full_name
                                                                     }
+                                                                </div>
+                                                            )}
+                                                            {slot.groupSession && (
+                                                                <div className="mt-0.5 truncate text-[11px] font-medium opacity-95">
+                                                                    👥 {slot.groupSession.title} ({slot.groupSession.occupied_seats ?? 0}/{slot.groupSession.max_seats})
                                                                 </div>
                                                             )}
                                                         </div>
@@ -2357,6 +2550,16 @@ export default function Availability({
                                                                     'Expired';
                                                                 icon = (
                                                                     <Clock className="mr-1 inline h-3 w-3 text-rose-600" />
+                                                                );
+                                                            } else if (
+                                                                slot.status ===
+                                                                'group_session'
+                                                            ) {
+                                                                statusStyle =
+                                                                    'border-teal-700 bg-teal-600 text-white border-l-4 font-bold shadow-sm';
+                                                                statusText = 'Group';
+                                                                icon = (
+                                                                    <Users className="mr-1 inline h-3 w-3 text-white" />
                                                                 );
                                                             }
 
@@ -2755,13 +2958,10 @@ export default function Availability({
                 <Plus className="h-7 w-7" />
             </button>
 
-            {/* Create Availability Modal */}
+            {/* Unified Create Modal (Option C: 1-on-1 Availability OR Group Session) */}
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-                    <form
-                        onSubmit={submit}
-                        className="relative flex w-full max-w-lg animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95 max-h-[90vh] overflow-y-auto"
-                    >
+                    <div className="relative flex w-full max-w-lg animate-in flex-col rounded-2xl border bg-card p-6 shadow-2xl duration-150 zoom-in-95 max-h-[90vh] overflow-y-auto">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -2772,16 +2972,235 @@ export default function Availability({
                             <X className="h-4 w-4" />
                         </Button>
 
-                        <div className="mb-4">
-                            <h3 className="text-lg font-bold text-foreground">
-                                {t.addAvailability}
-                            </h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                                {data.type === 'recurring'
-                                    ? t.recurringSchedule
-                                    : t.specificDates}
-                            </p>
+                        {/* Mode Switcher: 1-on-1 Open Window vs Group Session */}
+                        <div className="mb-4 grid grid-cols-2 gap-1.5 rounded-xl bg-muted/60 p-1 border pr-8">
+                            <button
+                                type="button"
+                                onClick={() => setCreateModalKind('one_on_one')}
+                                className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                                    createModalKind === 'one_on_one'
+                                        ? 'bg-background text-foreground shadow-xs'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                <Clock className="h-3.5 w-3.5" />
+                                <span>1-on-1 Availability</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCreateModalKind('group')}
+                                className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                                    createModalKind === 'group'
+                                        ? 'bg-teal-600 text-white shadow-xs'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                <Users className="h-3.5 w-3.5" />
+                                <span>Group Session</span>
+                            </button>
                         </div>
+
+                        {createModalKind === 'group' ? (
+                            <form
+                                onSubmit={handleCreateCalendarGroupSession}
+                                noValidate
+                                className="space-y-4"
+                            >
+                                <div>
+                                    <h3 className="text-lg font-bold text-foreground">
+                                        Schedule Group Session
+                                    </h3>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Overrides free 1-on-1 slots in this window automatically (cannot overlap booked/pending 1-on-1 lessons). Free slots restore automatically if cancelled.
+                                    </p>
+                                </div>
+
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="cal_gs_title" className="text-xs font-semibold">
+                                        Title
+                                    </Label>
+                                    <Input
+                                        id="cal_gs_title"
+                                        required
+                                        value={calGroupTitle}
+                                        onChange={(e) => setCalGroupTitle(e.target.value)}
+                                        placeholder="IELTS Speaking Part 2 & 3 Debates"
+                                    />
+                                </div>
+
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="cal_gs_topic" className="text-xs font-semibold">
+                                        Topic / Description (optional)
+                                    </Label>
+                                    <Input
+                                        id="cal_gs_topic"
+                                        value={calGroupTopic}
+                                        onChange={(e) => setCalGroupTopic(e.target.value)}
+                                        placeholder="Guided fluency & vocabulary feedback"
+                                    />
+                                </div>
+
+                                <div className="grid gap-1.5">
+                                    <Label className="text-xs font-semibold">Target Level</Label>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {['All Levels', 'A1-A2', 'B1-B2', 'C1-C2', 'IELTS Prep', 'Custom'].map((lvl) => (
+                                            <Button
+                                                key={lvl}
+                                                type="button"
+                                                size="sm"
+                                                variant={calGroupLevel === lvl ? 'default' : 'outline'}
+                                                onClick={() => setCalGroupLevel(lvl)}
+                                                className="h-7 rounded-lg px-2.5 text-xs"
+                                            >
+                                                {lvl}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    {calGroupLevel === 'Custom' && (
+                                        <Input
+                                            value={calGroupCustomLevel}
+                                            onChange={(e) => setCalGroupCustomLevel(e.target.value)}
+                                            placeholder="e.g. Band 7–8"
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="grid gap-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="cal_gs_start" className="text-xs font-semibold">
+                                            Start Date & Time
+                                        </Label>
+                                        <span className="text-[11px] font-medium text-muted-foreground">
+                                            Asia/Tashkent (UTC+5)
+                                        </span>
+                                    </div>
+                                    <Input
+                                        id="cal_gs_start"
+                                        type="datetime-local"
+                                        required
+                                        value={calGroupStartAt}
+                                        onChange={(e) => setCalGroupStartAt(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid gap-1.5">
+                                        <Label className="text-xs font-semibold">Duration (min)</Label>
+                                        <div className="flex flex-wrap gap-1">
+                                            {['30', '45', '60', '90'].map((d) => (
+                                                <Button
+                                                    key={d}
+                                                    type="button"
+                                                    size="sm"
+                                                    variant={calGroupDuration === d ? 'default' : 'outline'}
+                                                    onClick={() => setCalGroupDuration(d)}
+                                                    className="h-7 rounded-lg px-2 text-xs tabular-nums"
+                                                >
+                                                    {d}m
+                                                </Button>
+                                            ))}
+                                        </div>
+                                        <Input
+                                            type="number"
+                                            min={30}
+                                            max={180}
+                                            value={calGroupDuration}
+                                            onChange={(e) => setCalGroupDuration(e.target.value)}
+                                            className="h-8 text-xs tabular-nums"
+                                        />
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label className="text-xs font-semibold">Max Seats (2–20)</Label>
+                                        <div className="flex flex-wrap gap-1">
+                                            {['3', '5', '8', '10'].map((s) => (
+                                                <Button
+                                                    key={s}
+                                                    type="button"
+                                                    size="sm"
+                                                    variant={calGroupSeats === s ? 'default' : 'outline'}
+                                                    onClick={() => setCalGroupSeats(s)}
+                                                    className="h-7 rounded-lg px-2 text-xs tabular-nums"
+                                                >
+                                                    {s}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                        <Input
+                                            type="number"
+                                            min={2}
+                                            max={20}
+                                            value={calGroupSeats}
+                                            onChange={(e) => setCalGroupSeats(e.target.value)}
+                                            className="h-8 text-xs tabular-nums"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="cal_gs_price" className="text-xs font-semibold">
+                                        Price / Seat (UZS)
+                                    </Label>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {['30000', '50000', '75000', '100000'].map((p) => (
+                                            <Button
+                                                key={p}
+                                                type="button"
+                                                size="sm"
+                                                variant={calGroupPrice.replace(/\D/g, '') === p ? 'default' : 'outline'}
+                                                onClick={() => setCalGroupPrice(p)}
+                                                className="h-7 rounded-lg px-2 text-xs tabular-nums"
+                                            >
+                                                {Number(p).toLocaleString('ru-RU').replace(/,/g, ' ')}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <Input
+                                        id="cal_gs_price"
+                                        value={calGroupPrice}
+                                        onChange={(e) => setCalGroupPrice(e.target.value.replace(/\D/g, ''))}
+                                        className="tabular-nums"
+                                    />
+                                </div>
+
+                                {calGroupError && (
+                                    <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+                                        {calGroupError}
+                                    </div>
+                                )}
+
+                                <div className="mt-4 flex justify-end gap-3 border-t pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsCreateModalOpen(false)}
+                                        className="rounded-xl"
+                                    >
+                                        {t.cancel}
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={calGroupSubmitting}
+                                        className="rounded-xl bg-teal-600 font-semibold text-white hover:bg-teal-700"
+                                    >
+                                        {calGroupSubmitting && (
+                                            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                                        )}
+                                        Create Group Session
+                                    </Button>
+                                </div>
+                            </form>
+                        ) : (
+                        <form onSubmit={submit} className="space-y-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    {t.addAvailability}
+                                </h3>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                    {data.type === 'recurring'
+                                        ? t.recurringSchedule
+                                        : t.specificDates}
+                                </p>
+                            </div>
 
                         <div className="space-y-4">
                             {/* Main Mode Toggle: Weekly Recurring vs Specific Dates */}
@@ -3192,6 +3611,8 @@ export default function Availability({
                             </Button>
                         </div>
                     </form>
+                    )}
+                    </div>
                 </div>
             )}
 
@@ -3231,34 +3652,54 @@ export default function Availability({
                                 <span
                                     className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold tracking-wider uppercase ${
                                         selectedSlotDetail.status ===
-                                        'awaiting_payment'
-                                            ? 'border border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-300'
+                                        'group_session'
+                                            ? 'border border-teal-600 bg-teal-600 text-white'
                                             : selectedSlotDetail.status ===
-                                                'booked'
-                                              ? 'border border-indigo-700 bg-indigo-950 text-white dark:border-indigo-500/30 dark:bg-indigo-950/60 dark:text-indigo-200'
+                                                'awaiting_payment'
+                                              ? 'border border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-300'
                                               : selectedSlotDetail.status ===
-                                                  'completed'
-                                                ? 'border border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300'
+                                                  'booked'
+                                                ? 'border border-indigo-700 bg-indigo-950 text-white dark:border-indigo-500/30 dark:bg-indigo-950/60 dark:text-indigo-200'
                                                 : selectedSlotDetail.status ===
-                                                    'expired'
-                                                  ? 'border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-300'
-                                                  : 'border border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                                    'completed'
+                                                  ? 'border border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300'
+                                                  : selectedSlotDetail.status ===
+                                                      'expired'
+                                                    ? 'border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-300'
+                                                    : 'border border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300'
                                     }`}
                                 >
                                     {selectedSlotDetail.status ===
-                                    'awaiting_payment'
-                                        ? 'Awaiting for payment'
-                                        : selectedSlotDetail.status === 'booked'
-                                          ? 'Booked'
-                                          : selectedSlotDetail.status ===
-                                              'completed'
-                                            ? 'Completed'
+                                    'group_session'
+                                        ? 'Group Session (Overrides 1-on-1)'
+                                        : selectedSlotDetail.status ===
+                                            'awaiting_payment'
+                                          ? 'Awaiting for payment'
+                                          : selectedSlotDetail.status === 'booked'
+                                            ? 'Booked'
                                             : selectedSlotDetail.status ===
-                                                'expired'
-                                              ? 'Expired'
-                                              : 'Available'}
+                                                'completed'
+                                              ? 'Completed'
+                                              : selectedSlotDetail.status ===
+                                                  'expired'
+                                                ? 'Expired'
+                                                : 'Available'}
                                 </span>
                             </div>
+
+                            {selectedSlotDetail.groupSession && (
+                                <div className="space-y-2 rounded-xl border border-teal-200 bg-teal-50/70 p-3 text-xs dark:border-teal-800 dark:bg-teal-950/30">
+                                    <div className="flex items-center justify-between font-bold text-teal-900 dark:text-teal-200">
+                                        <span>{selectedSlotDetail.groupSession.title}</span>
+                                        <span className="tabular-nums">
+                                            {selectedSlotDetail.groupSession.occupied_seats ?? 0}/{selectedSlotDetail.groupSession.max_seats} seats
+                                        </span>
+                                    </div>
+                                    <p className="text-teal-800/80 dark:text-teal-300/80">
+                                        This slot is locked by a group session. Free 1-on-1 availability underneath restores automatically if cancelled.
+                                    </p>
+                                </div>
+                            )}
 
                             {selectedSlotDetail.appointment?.pupil && (
                                 <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-2.5 dark:border-white/10 dark:bg-white/5">
@@ -3299,7 +3740,21 @@ export default function Availability({
                         </div>
 
                         <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between border-t pt-4 dark:border-gray-800">
+                            {selectedSlotDetail.groupSession && (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedSlotDetail(null);
+                                        setMainTab('groups');
+                                    }}
+                                    className="rounded-xl bg-teal-600 text-xs font-semibold text-white hover:bg-teal-700"
+                                >
+                                    Manage Group Session
+                                </Button>
+                            )}
                             {!selectedSlotDetail.appointment &&
+                                !selectedSlotDetail.groupSession &&
                                 selectedSlotDetail.avail && (
                                     <div className="flex flex-wrap items-center gap-2">
                                         <Button

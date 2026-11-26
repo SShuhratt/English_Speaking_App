@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\GroupSessionEnrollment;
 use App\Services\HumoPaymentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,8 +17,14 @@ class PupilBookingController extends Controller
             ->orderByDesc('start_at')
             ->paginate();
 
+        $groupEnrollments = GroupSessionEnrollment::where('pupil_id', $request->user()->id)
+            ->with(['groupSession.teacher:id,full_name,avatar'])
+            ->orderByDesc('created_at')
+            ->get();
+
         return Inertia::render('pupil/bookings/index', [
             'bookings' => $bookings,
+            'groupEnrollments' => $groupEnrollments,
         ]);
     }
 

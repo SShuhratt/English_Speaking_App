@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\Conversation;
+use App\Models\GroupSession;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -54,9 +55,31 @@ class StreakService
             ->selectRaw('DISTINCT DATE(started_at) as active_date')
             ->pluck('active_date');
 
-        // 3. Combine unique active dates
+        // 3. Group Session Dates (teacher hosts OR pupil enrolled in started/completed session)
+        $groupSessionQuery = GroupSession::query()
+            ->where(function ($q) {
+                $q->where('meeting_started', true)
+                    ->orWhere('status', 'completed');
+            });
+
+        if ($isPupil) {
+            $groupSessionQuery->whereHas('enrollments', function ($q) use ($userId) {
+                $q->where('pupil_id', $userId)
+                    ->where('payment_status', 'paid')
+                    ->whereIn('status', ['enrolled', 'completed']);
+            });
+        } else {
+            $groupSessionQuery->where('teacher_id', $userId);
+        }
+
+        $groupDates = $groupSessionQuery
+            ->selectRaw('DISTINCT DATE(start_at) as active_date')
+            ->pluck('active_date');
+
+        // 4. Combine unique active dates
         $allDates = $appointmentDates
             ->concat($conversationDates)
+            ->concat($groupDates)
             ->map(fn ($date) => is_string($date) ? substr($date, 0, 10) : (string) $date)
             ->filter()
             ->unique()

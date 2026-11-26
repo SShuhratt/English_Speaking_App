@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\BookingUpdated;
 use App\Models\Appointment;
+use App\Models\GroupSession;
 use App\Notifications\ConversationStartedNotification;
 use App\Services\BookingService;
 use App\Services\GamificationService;
@@ -61,14 +62,34 @@ class TeacherAppointmentController extends Controller
      */
     public function sessions(Request $request)
     {
-        $appointments = Appointment::where('teacher_id', $request->user()->id)
+        $teacherId = $request->user()->id;
+
+        $appointments = Appointment::where('teacher_id', $teacherId)
             ->where('status', '!=', 'pending')
             ->with(['pupil', 'feedbacks', 'cancelledBy', 'assessment'])
             ->latest()
             ->paginate();
 
+        $groupSessions = GroupSession::where('teacher_id', $teacherId)
+            ->with(['enrollments.pupil:id,full_name,email,avatar'])
+            ->orderByDesc('start_at')
+            ->get()
+            ->map(function (GroupSession $session) {
+                $session->occupied_seats = $session->occupiedSeatsCount();
+                $session->available_seats = $session->availableSeatsCount();
+
+                return $session;
+            });
+
+        $activeAppointments = Appointment::where('teacher_id', $teacherId)
+            ->whereIn('status', ['pending', 'accepted', 'confirmed'])
+            ->where('end_at', '>=', now())
+            ->get(['id', 'start_at', 'end_at', 'status']);
+
         return Inertia::render('teacher/sessions', [
             'appointments' => $appointments,
+            'groupSessions' => $groupSessions,
+            'activeAppointments' => $activeAppointments,
         ]);
     }
 

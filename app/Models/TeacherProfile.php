@@ -28,6 +28,8 @@ class TeacherProfile extends Model
         'price',
         'is_verified',
         'accepts_institutional_vouchers',
+        'supports_group_sessions',
+        'preferred_session_format',
         'country_code',
         'city',
     ];
@@ -38,6 +40,7 @@ class TeacherProfile extends Model
         'rating_cache' => 'float',
         'is_verified' => 'boolean',
         'accepts_institutional_vouchers' => 'boolean',
+        'supports_group_sessions' => 'boolean',
         'experience_years' => 'integer',
         'age' => 'integer',
     ];
@@ -101,8 +104,32 @@ class TeacherProfile extends Model
 
             $conversationCount = $conversations->count();
 
-            $totalConversations = $appointmentCount + $conversationCount;
-            $totalMinutes = (int) ($appointmentMinutes + $conversationMinutes);
+            // 3. Started/completed group sessions hosted by teacher
+            $groupSessions = GroupSession::where('teacher_id', $teacherId)
+                ->where(function ($query) {
+                    $query->where('status', 'completed')
+                        ->orWhere(function ($q) {
+                            $q->whereIn('status', ['scheduled', 'in_progress'])
+                                ->where('end_at', '<=', now())
+                                ->where('meeting_started', true);
+                        })
+                        ->orWhere('meeting_started', true);
+                })
+                ->get(['start_at', 'end_at', 'duration_minutes']);
+
+            $groupMinutes = $groupSessions->sum(function ($session) {
+                if ($session->duration_minutes && $session->duration_minutes > 0) {
+                    return $session->duration_minutes;
+                }
+                if ($session->start_at && $session->end_at) {
+                    return max(1, $session->start_at->diffInMinutes($session->end_at));
+                }
+
+                return 60;
+            });
+
+            $totalConversations = $appointmentCount + $conversationCount + $groupSessions->count();
+            $totalMinutes = (int) ($appointmentMinutes + $conversationMinutes + $groupMinutes);
 
             if ($totalMinutes < 60) {
                 $formattedTime = "{$totalMinutes}m";

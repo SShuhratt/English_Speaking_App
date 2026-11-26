@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\GroupSessionEnrollment;
 use App\Models\PupilPackage;
 use App\Notifications\PackagePaymentConfirmedNotification;
 use App\Notifications\PackagePaymentRejectedNotification;
 use App\Notifications\TeacherPackagePurchasedNotification;
 use App\Services\BookingService;
+use App\Services\GroupSessionService;
 use App\Services\MonetizationCalculator;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -61,6 +63,23 @@ class AdminDashboardController extends Controller
 
         $packages = $packageQuery->latest()->paginate(15, ['*'], 'packages_page')->withQueryString();
 
+        $groupEnrollmentQuery = GroupSessionEnrollment::with([
+            'groupSession.teacher.teacherProfile',
+            'pupil.pupilProfile',
+        ]);
+
+        if ($statusFilter === 'accepted') {
+            $groupEnrollmentQuery->where('payment_status', 'verifying');
+        } elseif ($statusFilter === 'confirmed') {
+            $groupEnrollmentQuery->where('payment_status', 'paid');
+        } elseif ($statusFilter === 'rejected') {
+            $groupEnrollmentQuery->where('payment_status', 'rejected');
+        } elseif ($statusFilter === 'cancelled') {
+            $groupEnrollmentQuery->where('status', 'cancelled');
+        }
+
+        $groupEnrollments = $groupEnrollmentQuery->latest()->paginate(15, ['*'], 'group_enrollments_page')->withQueryString();
+
         $stats = [
             'pending_verifications' => Appointment::where('status', 'accepted')->count(),
             'total_confirmed' => Appointment::where('status', 'confirmed')->count(),
@@ -69,11 +88,13 @@ class AdminDashboardController extends Controller
             'pending_package_verifications' => PupilPackage::where('payment_status', 'verifying')->count(),
             'total_package_confirmed' => PupilPackage::where('payment_status', 'paid')->count(),
             'total_package_rejected' => PupilPackage::where('payment_status', 'rejected')->count(),
+            'pending_group_verifications' => GroupSessionEnrollment::where('payment_status', 'verifying')->count(),
         ];
 
         return Inertia::render('admin/dashboard', [
             'appointments' => $appointments,
             'packages' => $packages,
+            'groupEnrollments' => $groupEnrollments,
             'stats' => $stats,
             'currentFilter' => $statusFilter,
             'currentTab' => $tab,
@@ -195,6 +216,65 @@ class AdminDashboardController extends Controller
             $package->pupil?->notify(new PackagePaymentRejectedNotification($package, $validated['reason']));
 
             return back()->with('success', 'Package payment rejected with reason provided.');
+        } catch (\Throwable $e) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Confirm payment for a group session enrollment.
+     */
+    public function confirmGroupEnrollmentPayment(string $id, GroupSessionService $groupSessionService)
+    {
+        try {
+            $enrollment = GroupSessionEnrollment::findOrFail($id);
+
+            if ($enrollment->payment_status === 'paid') {
+                throw new \Exception('Group enrollment payment is already confirmed.');
+            }
+
+            $groupSessionService->confirmEnrollmentPayment($enrollment);
+
+            return back()->with('success', 'Group enrollment confirmed successfully.');
+        } catch (\Throwable $e) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject payment for a group session enrollment.
+     */
+    public function rejectGroupEnrollmentPayment(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:3', 'max:1000'],
+        ]);
+
+        try {
+            $enrollment = GroupSessionEnrollment::findOrFail($id);
+
+            if ($enrollment->payment_status === 'paid') {
+                throw new \Exception('Cannot reject an enrollment that has already been confirmed as paid.');
+            }
+
+            $enrollment->update([
+                'payment_status' => 'rejected',
+                'payment_rejection_reason' => $validated['reason'],
+                'status' => 'cancelled',
+                'reserved_until' => null,
+            ]);
+
+            return back()->with('success', 'Group enrollment payment rejected.');
         } catch (\Throwable $e) {
             Inertia::flash('toast', [
                 'type' => 'error',

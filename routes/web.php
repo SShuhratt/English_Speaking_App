@@ -19,6 +19,7 @@ use App\Http\Controllers\PartnerPortalController;
 use App\Http\Controllers\PaymentLinkController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\PupilBookingController;
+use App\Http\Controllers\PupilGroupSessionController;
 use App\Http\Controllers\PupilPackageController;
 use App\Http\Controllers\PupilProgressController;
 use App\Http\Controllers\PupilSessionController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\TeacherAppointmentController;
 use App\Http\Controllers\TeacherAvailabilityController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherFeedbackController;
+use App\Http\Controllers\TeacherGroupSessionController;
 use App\Http\Controllers\TeacherPackageController;
 use App\Http\Controllers\TelegramAuthController;
 use App\Http\Controllers\TelegramConnectController;
@@ -129,6 +131,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/appointments/{id}/reject-payment', [AdminDashboardController::class, 'rejectPayment'])->name('appointments.reject-payment');
         Route::post('/packages/{id}/confirm-payment', [AdminDashboardController::class, 'confirmPackagePayment'])->name('packages.confirm-payment');
         Route::post('/packages/{id}/reject-payment', [AdminDashboardController::class, 'rejectPackagePayment'])->name('packages.reject-payment');
+        Route::post('/group-enrollments/{id}/confirm-payment', [AdminDashboardController::class, 'confirmGroupEnrollmentPayment'])->name('group-enrollments.confirm-payment');
+        Route::post('/group-enrollments/{id}/reject-payment', [AdminDashboardController::class, 'rejectGroupEnrollmentPayment'])->name('group-enrollments.reject-payment');
 
         Route::get('/teachers', [AdminUserController::class, 'teachers'])->name('teachers');
         Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
@@ -198,6 +202,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/packages/{id}/toggle', [TeacherPackageController::class, 'toggleActive'])->name('packages.toggle');
         Route::delete('/packages/{id}', [TeacherPackageController::class, 'destroy'])->name('packages.destroy');
 
+        Route::get('/group-sessions', [TeacherGroupSessionController::class, 'index'])->name('group-sessions.index');
+        Route::post('/group-sessions', [TeacherGroupSessionController::class, 'store'])->name('group-sessions.store');
+        Route::put('/group-sessions/{groupSession}', [TeacherGroupSessionController::class, 'update'])->name('group-sessions.update');
+        Route::post('/group-sessions/{groupSession}/start', [TeacherGroupSessionController::class, 'start'])->name('group-sessions.start');
+        Route::post('/group-sessions/{groupSession}/cancel', [TeacherGroupSessionController::class, 'cancel'])->name('group-sessions.cancel');
+        Route::post('/session-format-preferences', [TeacherGroupSessionController::class, 'updatePreferences'])->name('session-format-preferences.update');
+
         Route::get('/sessions', [TeacherAppointmentController::class, 'sessions'])->name('sessions');
         Route::get('/feedback', [TeacherFeedbackController::class, 'index'])->name('feedback');
         Route::get('/teachers', [TeacherController::class, 'teacherDirectory'])->name('teachers');
@@ -218,6 +229,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/packages/{pupilPackage}/receipt', [PupilPackageController::class, 'uploadReceipt'])->name('packages.receipt');
         Route::post('/packages/{pupilPackage}/send-telegram-link', [PaymentLinkController::class, 'sendTelegramPackageLink'])
             ->name('packages.send-telegram-link');
+
+        Route::get('/group-sessions', [PupilGroupSessionController::class, 'index'])->name('group-sessions.index');
+        Route::post('/group-sessions/{groupSession}/enroll', [PupilGroupSessionController::class, 'enroll'])->name('group-sessions.enroll');
+        Route::post('/group-enrollments/{enrollment}/receipt', [PupilGroupSessionController::class, 'uploadReceipt'])->name('group-enrollments.receipt');
+        Route::delete('/group-enrollments/{enrollment}', [PupilGroupSessionController::class, 'cancelEnrollment'])->name('group-enrollments.cancel');
         Route::get('/sessions', [PupilSessionController::class, 'index'])->name('sessions.index');
         Route::post('/appointments/{id}/join', [PupilSessionController::class, 'join'])->name('appointments.join');
         Route::get('/progress', [PupilProgressController::class, 'index'])->name('progress.index');

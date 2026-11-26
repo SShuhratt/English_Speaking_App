@@ -95,6 +95,11 @@ export function AppSidebar() {
                 icon: Video,
             },
             {
+                title: t('nav.group_sessions', 'Group Sessions'),
+                href: '/teacher/sessions?tab=groups',
+                icon: Users,
+            },
+            {
                 title: t('nav.pupil_feedback'),
                 href: '/teacher/feedback',
                 icon: MessageSquare,

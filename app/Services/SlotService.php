@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\GroupSession;
 use App\Models\TeacherAvailability;
+use App\Models\TeacherProfile;
 use App\Support\PlatformTime;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -48,6 +50,11 @@ class SlotService
                 $teacherId,
                 $date
             ) {
+                $preferredFormat = TeacherProfile::where('user_id', $teacherId)->value('preferred_session_format');
+                if ($preferredFormat === 'group') {
+                    return [];
+                }
+
                 // Delete expired custom availabilities from the DB
                 TeacherAvailability::where('teacher_id', $teacherId)
                     ->where('type', 'custom')
@@ -410,6 +417,13 @@ class SlotService
             })
             ->get();
 
+        $groupSessions = GroupSession::query()
+            ->where('teacher_id', $teacherId)
+            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->where('start_at', '<', $endOfDayStr)
+            ->where('end_at', '>', $startOfDayStr)
+            ->get();
+
         $finalSlots = collect();
 
         $allTimeSlots = $slots->filter(fn ($s) => ! empty($s['is_all_time']));
@@ -431,6 +445,10 @@ class SlotService
                     }
                 }
                 $freeIntervals = $this->subtractIntervals($freeIntervals, $appointment->start_at, $appointment->end_at);
+            }
+
+            foreach ($groupSessions as $groupSession) {
+                $freeIntervals = $this->subtractIntervals($freeIntervals, $groupSession->start_at, $groupSession->end_at);
             }
 
             foreach ($freeIntervals as $interval) {
@@ -467,6 +485,17 @@ class SlotService
                 } else {
                     // Active appointment (pending, accepted, confirmed)
                     if ($appStart < $slotEnd && $appEnd > $slotStart) {
+                        $isBooked = true;
+                        break;
+                    }
+                }
+            }
+
+            if (! $isBooked) {
+                foreach ($groupSessions as $groupSession) {
+                    $gStart = $groupSession->start_at->copy()->setTimezone('Asia/Tashkent');
+                    $gEnd = $groupSession->end_at->copy()->setTimezone('Asia/Tashkent');
+                    if ($gStart < $slotEnd && $gEnd > $slotStart) {
                         $isBooked = true;
                         break;
                     }

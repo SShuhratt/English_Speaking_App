@@ -24,6 +24,7 @@ export interface PaymentModalProps {
     onClose: () => void;
     appointmentId?: string | number;
     pupilPackageId?: string | number;
+    groupEnrollmentId?: string | number;
     itemTitle?: string;
     amount?: number | string;
     teacherName?: string;
@@ -39,6 +40,7 @@ export default function PaymentModal({
     onClose,
     appointmentId,
     pupilPackageId,
+    groupEnrollmentId,
     itemTitle,
     amount,
     teacherName,
@@ -243,6 +245,8 @@ export default function PaymentModal({
             uploadUrl = `/pupil/bookings/${appointmentId}/receipt`;
         } else if (pupilPackageId) {
             uploadUrl = `/pupil/packages/${pupilPackageId}/receipt`;
+        } else if (groupEnrollmentId) {
+            uploadUrl = `/pupil/group-enrollments/${groupEnrollmentId}/receipt`;
         } else {
             toast.error(
                 t('payment.no_target_error') ||

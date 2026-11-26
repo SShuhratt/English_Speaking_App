@@ -30,6 +30,7 @@ import {
     Calendar,
     AlertCircle,
     Package,
+    Users,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDuration, formatRemainingBalance } from '@/lib/duration';
@@ -77,6 +78,25 @@ interface PackageItem {
     created_at: string;
 }
 
+interface GroupEnrollmentItem {
+    id: string;
+    group_session_id: string;
+    pupil_id: string;
+    price_paid: number;
+    status: string;
+    payment_status: 'pending' | 'verifying' | 'paid' | 'rejected';
+    payment_rejection_reason?: string;
+    pupil?: UserItem;
+    group_session?: {
+        id: string;
+        title: string;
+        start_at: string;
+        duration_minutes: number;
+        teacher?: UserItem;
+    };
+    created_at: string;
+}
+
 interface Props {
     appointments: {
         data: Appointment[];
@@ -84,6 +104,10 @@ interface Props {
     };
     packages?: {
         data: PackageItem[];
+        links: any[];
+    };
+    groupEnrollments?: {
+        data: GroupEnrollmentItem[];
         links: any[];
     };
     stats: {
@@ -94,6 +118,7 @@ interface Props {
         pending_package_verifications?: number;
         total_package_confirmed?: number;
         total_package_rejected?: number;
+        pending_group_verifications?: number;
     };
     currentFilter: string;
     currentTab?: string;
@@ -102,17 +127,22 @@ interface Props {
 export default function AdminDashboard({
     appointments,
     packages,
+    groupEnrollments,
     stats,
     currentFilter,
     currentTab = 'appointments',
 }: Props) {
     const { locale, t } = useTranslation();
-    const [activeTab, setActiveTab] = useState<'appointments' | 'packages'>(
-        currentTab === 'packages' ? 'packages' : 'appointments',
+    const [activeTab, setActiveTab] = useState<'appointments' | 'packages' | 'group_enrollments'>(
+        currentTab === 'packages'
+            ? 'packages'
+            : currentTab === 'group_enrollments'
+              ? 'group_enrollments'
+              : 'appointments',
     );
     const [selectedReject, setSelectedReject] = useState<{
         id: string;
-        type: 'appointment' | 'package';
+        type: 'appointment' | 'package' | 'group_enrollment';
     } | null>(null);
 
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -139,6 +169,16 @@ export default function AdminDashboard({
         }
     };
 
+    const handleConfirmGroupEnrollment = (id: string) => {
+        if (
+            confirm(
+                'Are you sure you want to confirm payment for this group session seat? The pupil will be enrolled immediately.',
+            )
+        ) {
+            router.post(`/admin/group-enrollments/${id}/confirm-payment`);
+        }
+    };
+
     const handleRejectSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedReject) return;
@@ -146,7 +186,9 @@ export default function AdminDashboard({
         const endpoint =
             selectedReject.type === 'package'
                 ? `/admin/packages/${selectedReject.id}/reject-payment`
-                : `/admin/appointments/${selectedReject.id}/reject-payment`;
+                : selectedReject.type === 'group_enrollment'
+                  ? `/admin/group-enrollments/${selectedReject.id}/reject-payment`
+                  : `/admin/appointments/${selectedReject.id}/reject-payment`;
 
         post(endpoint, {
             onSuccess: () => {
@@ -164,7 +206,7 @@ export default function AdminDashboard({
         );
     };
 
-    const handleTabChange = (tab: 'appointments' | 'packages') => {
+    const handleTabChange = (tab: 'appointments' | 'packages' | 'group_enrollments') => {
         setActiveTab(tab);
         router.get(
             '/admin/dashboard',
@@ -207,10 +249,10 @@ export default function AdminDashboard({
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">
-                                {stats.pending_verifications + (stats.pending_package_verifications ?? 0)}
+                                {stats.pending_verifications + (stats.pending_package_verifications ?? 0) + (stats.pending_group_verifications ?? 0)}
                             </div>
                             <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-                                {stats.pending_verifications} sessions · {stats.pending_package_verifications ?? 0} packages awaiting confirmation
+                                {stats.pending_verifications} sessions · {stats.pending_package_verifications ?? 0} packages · {stats.pending_group_verifications ?? 0} group seats awaiting confirmation
                             </p>
                         </CardContent>
                     </Card>
@@ -300,6 +342,23 @@ export default function AdminDashboard({
                         {(stats.pending_package_verifications ?? 0) > 0 && (
                             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
                                 {stats.pending_package_verifications}
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleTabChange('group_enrollments')}
+                        className={`flex items-center gap-2 border-b-2 pb-3 px-2 text-sm font-semibold transition cursor-pointer ${
+                            activeTab === 'group_enrollments'
+                                ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        <Users className="h-4 w-4" />
+                        <span>Group Enrollments</span>
+                        {(stats.pending_group_verifications ?? 0) > 0 && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                                {stats.pending_group_verifications}
                             </span>
                         )}
                     </button>
@@ -686,7 +745,7 @@ export default function AdminDashboard({
                         )}
                     </CardContent>
                 </Card>
-            ) : (
+            ) : activeTab === 'packages' ? (
                 <Card className="shadow-md">
                     <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
@@ -935,6 +994,196 @@ export default function AdminDashboard({
                         )}
                     </CardContent>
                 </Card>
+            ) : (
+                <Card className="shadow-md">
+                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <CardTitle className="text-lg">
+                                Group Session Seat Enrollments
+                            </CardTitle>
+                            <CardDescription>
+                                Confirm or reject pupil seat payments for scheduled group conversations.
+                            </CardDescription>
+                        </div>
+                        <div className="flex flex-wrap gap-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+                            <Button
+                                size="sm"
+                                variant={currentFilter === 'accepted' ? 'default' : 'ghost'}
+                                onClick={() => setFilter('accepted')}
+                                className={currentFilter === 'accepted' ? 'bg-indigo-600 text-white' : ''}
+                            >
+                                Pending Verification ({stats.pending_group_verifications ?? 0})
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={currentFilter === 'confirmed' ? 'default' : 'ghost'}
+                                onClick={() => setFilter('confirmed')}
+                                className={currentFilter === 'confirmed' ? 'bg-indigo-600 text-white' : ''}
+                            >
+                                Confirmed
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={currentFilter === 'rejected' ? 'default' : 'ghost'}
+                                onClick={() => setFilter('rejected')}
+                                className={currentFilter === 'rejected' ? 'bg-indigo-600 text-white' : ''}
+                            >
+                                Rejected
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={currentFilter === 'cancelled' ? 'default' : 'ghost'}
+                                onClick={() => setFilter('cancelled')}
+                                className={currentFilter === 'cancelled' ? 'bg-indigo-600 text-white' : ''}
+                            >
+                                Cancelled
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={currentFilter === 'all' ? 'default' : 'ghost'}
+                                onClick={() => setFilter('all')}
+                                className={currentFilter === 'all' ? 'bg-indigo-600 text-white' : ''}
+                            >
+                                All
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {!groupEnrollments || groupEnrollments.data.length === 0 ? (
+                            <div className="py-12 text-center text-gray-500">
+                                <Users className="mx-auto h-12 w-12 text-gray-300 stroke-1" />
+                                <p className="mt-2 text-sm">
+                                    No group session enrollments found for the selected filter.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="border-b bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                        <tr>
+                                            <th className="px-4 py-3">Pupil</th>
+                                            <th className="px-4 py-3">Teacher</th>
+                                            <th className="px-4 py-3">Group Session</th>
+                                            <th className="px-4 py-3">Price Paid</th>
+                                            <th className="px-4 py-3">Status</th>
+                                            <th className="px-4 py-3 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {groupEnrollments.data.map((enrollment) => (
+                                            <tr
+                                                key={enrollment.id}
+                                                className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50"
+                                            >
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-9 w-9">
+                                                            <AvatarImage src={enrollment.pupil?.avatar} />
+                                                            <AvatarFallback className="bg-indigo-100 text-xs font-semibold text-indigo-700">
+                                                                {enrollment.pupil?.full_name?.charAt(0) || 'P'}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                {enrollment.pupil?.full_name || 'Pupil'}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {enrollment.pupil?.email}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                        {enrollment.group_session?.teacher?.full_name || 'Teacher'}
+                                                    </p>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                                        {enrollment.group_session?.title || 'Group Conversation'}
+                                                    </p>
+                                                    {enrollment.group_session?.start_at && (
+                                                        <p className="text-xs text-gray-500">
+                                                            {new Date(enrollment.group_session.start_at).toLocaleString()} · {enrollment.group_session.duration_minutes} min
+                                                        </p>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4 font-semibold tabular-nums">
+                                                    {Number(enrollment.price_paid).toLocaleString()} UZS
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {enrollment.payment_status === 'verifying' ? (
+                                                        <Badge className="bg-amber-500 text-white">
+                                                            Verifying
+                                                        </Badge>
+                                                    ) : enrollment.payment_status === 'paid' ? (
+                                                        <Badge className="bg-emerald-600 text-white">
+                                                            Confirmed
+                                                        </Badge>
+                                                    ) : enrollment.payment_status === 'rejected' ? (
+                                                        <Badge variant="destructive">Rejected</Badge>
+                                                    ) : (
+                                                        <Badge variant="outline">{enrollment.status}</Badge>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4 text-right">
+                                                    {enrollment.payment_status === 'verifying' && enrollment.status !== 'cancelled' ? (
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleConfirmGroupEnrollment(enrollment.id)}
+                                                                className="bg-emerald-600 text-white hover:bg-emerald-700"
+                                                            >
+                                                                <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                                                                Confirm Payment
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() =>
+                                                                    setSelectedReject({
+                                                                        id: enrollment.id,
+                                                                        type: 'group_enrollment',
+                                                                    })
+                                                                }
+                                                            >
+                                                                <XCircle className="mr-1 h-3.5 w-3.5" />
+                                                                Reject
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">—</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                        {groupEnrollments && groupEnrollments.links && groupEnrollments.links.length > 3 && (
+                            <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-800">
+                                <div className="flex gap-1">
+                                    {groupEnrollments.links.map((link, idx) => (
+                                        <Link
+                                            key={idx}
+                                            href={link.url || '#'}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                            className={`rounded px-3 py-1 text-xs font-medium transition ${
+                                                link.active
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : link.url
+                                                      ? 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                                                      : 'cursor-not-allowed text-gray-400'
+                                            }`}
+                                            preserveState
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             )}
 
                 {/* Reject Reason Modal */}
@@ -948,12 +1197,16 @@ export default function AdminDashboard({
                                 <XCircle className="h-5 w-5" />{' '}
                                 {selectedReject?.type === 'package'
                                     ? 'Reject Conversation Pack Payment'
-                                    : 'Reject Payment'}
+                                    : selectedReject?.type === 'group_enrollment'
+                                      ? 'Reject Group Seat Payment'
+                                      : 'Reject Payment'}
                             </DialogTitle>
                             <DialogDescription>
                                 {selectedReject?.type === 'package'
                                     ? 'Please enter the reason for rejecting this conversation pack payment. This will cancel the order.'
-                                    : 'Please enter the reason for rejecting this payment. This reason will be displayed to both teacher and pupil.'}
+                                    : selectedReject?.type === 'group_enrollment'
+                                      ? 'Please enter the reason for rejecting this group seat payment. This will cancel the seat reservation.'
+                                      : 'Please enter the reason for rejecting this payment. This reason will be displayed to both teacher and pupil.'}
                             </DialogDescription>
                         </DialogHeader>
 

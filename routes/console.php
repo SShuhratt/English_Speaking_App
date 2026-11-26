@@ -19,5 +19,9 @@ Schedule::call(function () {
 Schedule::command('appointments:send-reminders')->everyMinute();
 Schedule::command('appointments:complete-past')->everyFiveMinutes();
 Schedule::command('bookings:expire-unpaid')->everyFiveMinutes();
+Schedule::command('group-sessions:auto-cancel-unstarted')->everyMinute();
+Schedule::command('group-sessions:send-reminders')->everyMinute();
+Schedule::command('group-sessions:expire-unpaid')->everyFiveMinutes();
+Schedule::command('group-sessions:complete-past')->everyFiveMinutes();
 Schedule::command('partners:expire-vouchers')->daily();
 Schedule::command('partner-passes:expire')->daily();
